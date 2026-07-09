@@ -26,6 +26,8 @@ import {
   hunterWin, hunterFled, hunterRun, interceptWin, interceptFled,
 } from "./systems/arc";
 import { riderFight } from "./systems/scheduler";
+import { stationGo, stationEnter } from "./ui/station";
+import { openNPC, sceneChoose, sceneContinue } from "./systems/scene";
 import { loadRemoteContent } from "./supabase/content";
 
 setRender(render);
@@ -55,6 +57,8 @@ Object.assign(window as any, {
   hunterWin, hunterFled, hunterRun, interceptWin, interceptFled,
   // consequence scheduler
   riderFight,
+  // walkable station + scenes
+  stationGo, stationEnter, openNPC, sceneChoose, sceneContinue,
   // dev/debug: live state accessor (harmless — behind an underscore)
   __S: () => State.S,
 });

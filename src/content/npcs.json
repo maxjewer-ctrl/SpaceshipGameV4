@@ -1,0 +1,144 @@
+{
+  "harbormaster_vance": {
+    "name": "Harbormaster Sela Vance",
+    "room": "harbor",
+    "icon": "🛃",
+    "planets": "any",
+    "blurb": "Decides whose papers are in order today. Everything is negotiable — at a price that keeps rising.",
+    "nodes": {
+      "start": {
+        "text": "Vance doesn't look up from her manifests. \"Captain. Berth fees were revised this cycle. Upward.\" She finally meets your eyes, bored and bottomless. \"Of course, revisions can be... expedited. For a captain who understands how a station runs.\"",
+        "choices": [
+          { "label": "Pay the expedite fee (200cr)", "requires": { "credits": 200 }, "effects": [ { "credits": -200 }, { "flag": "docking_clearance", "value": true }, { "dispo": { "axis": "law", "n": -1 } } ], "reply": "The fee vanishes into a drawer. \"Wonderful. Your papers are, as always, immaculate.\" You both know what you just bought.", "end": true },
+          { "label": "Ask what a captain like you could do for her", "goto": "offer" },
+          { "label": "Report her graft to the Union liaison", "requires": { "flagNot": "vance_reported" }, "effects": [ { "rep": ["union", 3] }, { "dispo": { "axis": "law", "n": 2 } }, { "flag": "vance_reported", "value": true }, { "npc": { "key": "vance", "name": "Harbormaster Vance", "disposition": -4, "agenda": "grudge" } }, { "remember": { "who": "npc:vance", "fact": "captain_reported_me", "weight": -4, "note": "You turned Harbormaster Vance in to the Union. She runs this station. She will remember." } }, { "plantRider": { "min": 6, "max": 16, "key": "smuggle_the_bill" } } ], "reply": "Her pen stops. She smiles like a door closing. \"Bold. We'll see how bold plays out for you, Captain. Stations have long memories, and I am the station.\"", "end": true },
+          { "label": "Just process my papers. Nothing else.", "reply": "\"Suit yourself.\" A stamp, a shrug. \"Everyone comes back to my window eventually.\"", "end": true }
+        ]
+      },
+      "offer": {
+        "text": "That gets a real smile. \"A practical captain. Good.\" She slides a chit across the desk. \"There's cargo that shouldn't appear on any manifest. Move it, and my window is always open to you. Refuse, and it stays open — just colder.\"",
+        "choices": [
+          { "label": "Run her off-manifest cargo, quietly", "effects": [ { "dispo": { "axis": "law", "n": -2 } }, { "rep": ["syndicate", 1] }, { "flag": "vance_favor", "value": true }, { "mission": { "kind": "smuggle", "title": "Harbormaster's off-manifest crate", "dest": "havens", "pay": 420, "units": 5, "hidden": true, "rep": ["syndicate", 2], "needs": ["scargo:5", "mod:smuggler"], "desc": "Vance's private freight. No manifest, no questions. If a patrol opens that hold, you never met her." } } ], "reply": "\"I knew you were sensible.\" The chit is warm from her hand. \"Deliver it clean and there's more where that came from.\"", "end": true },
+          { "label": "\"I'm not that kind of captain.\"", "requires": { "dispo": ["law", 2] }, "effects": [ { "dispo": { "axis": "law", "n": 1 } } ], "reply": "\"No,\" she says, already looking back down. \"You're the other kind. The kind that pays full fees and sleeps well. How nice for you.\"", "end": true },
+          { "label": "Take the chit. Think about it.", "effects": [ { "flag": "vance_favor", "value": true } ], "reply": "\"Don't think too long. Offers cool.\"", "end": true }
+        ]
+      }
+    }
+  },
+
+  "refugees_aldren": {
+    "name": "The Aldren family",
+    "room": "docks",
+    "icon": "👨‍👩‍👧",
+    "planets": ["solace", "verge", "kestrel", "havens"],
+    "gate": { "flagNot": "aldren_resolved" },
+    "blurb": "Displaced, undocumented, and out of time. A resettlement sweep starts at dawn.",
+    "nodes": {
+      "start": {
+        "text": "A man, a woman, a child asleep on a duffel. Their papers were voided when their world's status changed — a stroke of a pen a thousand light-years away. \"Please,\" the man says, not quite begging, working hard not to beg. \"There's a sweep at dawn. 'Resettlement.' We've heard where the ships go. We just need to be gone before then. Anywhere but here.\"",
+        "choices": [
+          { "label": "Take them aboard — get them to the frontier", "requires": { "pax": 1, "flagNot": "aldren_resolved" }, "effects": [ { "flag": "aldren_resolved", "value": true }, { "dispo": { "axis": "mercy", "n": 3 } }, { "remember": { "who": "captain", "fact": "sheltered_the_aldrens", "weight": 3, "note": "You took the Aldren family aboard the night before the sweep. The child slept the whole way." } }, { "mission": { "kind": "passenger", "title": "Passage: the Aldren family", "dest": "kestrel", "pay": 90, "pax": { "name": "the Aldrens", "motive": "fugitive" }, "needs": ["pax:1"], "desc": "Undocumented refugees. Keep them off the manifest — a patrol scan is a death sentence for them." } }, { "plantRider": { "min": 20, "max": 40, "key": "distress_guild_echo" } } ], "reply": "The woman doesn't cry. She just nods, once, and picks up the child. \"We won't forget the ship that stopped,\" the man says. \"Whatever happens.\"", "end": true },
+          { "label": "Give them what credits you can spare (100cr)", "requires": { "credits": 100 }, "effects": [ { "credits": -100 }, { "dispo": { "axis": "mercy", "n": 1 } }, { "flag": "aldren_resolved", "value": true }, { "remember": { "who": "captain", "fact": "paid_off_your_conscience", "weight": 1, "note": "You gave the Aldrens credits instead of a berth. It bought them a day. Maybe." } } ], "reply": "He takes it like it costs him something. \"It buys us a day. A chance at a different ship.\" You both know the odds. \"Thank you, Captain.\"", "end": true },
+          { "label": "Turn them away — not your problem", "effects": [ { "dispo": { "axis": "mercy", "n": -2 } }, { "flag": "aldren_resolved", "value": true }, { "remember": { "who": "captain", "fact": "turned_away_refugees", "weight": -2, "note": "You left the Aldren family on the dock the night before the sweep. You didn't look back. You thought about it later." } } ], "reply": "The man's face does something complicated and then closes. \"Right. Of course.\" He picks up the duffel. The child stirs. They walk back toward the dark end of the concourse.", "end": true },
+          { "label": "Sell their location to the harbormaster (150cr)", "effects": [ { "credits": 150 }, { "dispo": { "axis": "mercy", "n": -4 } }, { "rep": ["union", 1] }, { "flag": "aldren_resolved", "value": true }, { "remember": { "who": "captain", "fact": "sold_out_refugees", "weight": -5, "note": "You told Vance where the Aldrens were sleeping. The sweep found them before dawn. The 150 credits spent like any other." } } ], "reply": "Vance pays without comment, as if you'd reported a fault in the plumbing. By the time you're back at your berth, there are boots on the far stairwell. You don't go and look.", "end": true }
+        ]
+      }
+    }
+  },
+
+  "dockboss_kord": {
+    "name": "Dock Boss Kord",
+    "room": "undercity",
+    "icon": "🦾",
+    "planets": "any",
+    "blurb": "Runs the under-deck crews. Muscle, freight, and debts that don't forgive.",
+    "nodes": {
+      "start": {
+        "text": "Kord holds court on a crate throne, a prosthetic arm resting across one knee like a tool he might still use. \"New face. You either want work or you're lost. Down here it's usually the same thing.\"",
+        "choices": [
+          { "label": "Ask for work", "goto": "work" },
+          { "label": "\"Just passing through.\"", "reply": "\"Nobody just passes through the under-deck, Captain. But sure. Mind the dark on your way up.\"", "end": true }
+        ]
+      },
+      "work": {
+        "text": "\"Two kinds of work I've got.\" He counts on metal fingers. \"Freight that don't like daylight. And collections — folks down here borrow, and the ledger always comes due. Which are you?\"",
+        "choices": [
+          { "label": "Run his sealed freight", "effects": [ { "dispo": { "axis": "law", "n": -2 } }, { "rep": ["syndicate", 2] }, { "mission": { "kind": "smuggle", "title": "Kord's under-deck freight", "dest": "verge", "pay": 380, "units": 6, "hidden": true, "rep": ["syndicate", 2], "needs": ["scargo:6", "mod:smuggler"], "desc": "Six units, sealed, no manifest. Kord's name opens doors at the Verge. A patrol scan closes them." } } ], "reply": "\"Good.\" A datachit changes hands. \"Verge dock, ask for the woman with the red gloves. Don't be clever about it.\"", "end": true },
+          { "label": "Take a collection job", "goto": "collection" },
+          { "label": "\"Neither. Not today.\"", "effects": [ { "npc": { "key": "kord", "name": "Dock Boss Kord", "disposition": -1 } } ], "reply": "\"Then you're wasting under-deck air.\" He turns back to his crate. You've been dismissed.", "end": true }
+        ]
+      },
+      "collection": {
+        "text": "\"Recycler tech named Bev owes me. Bonded debt, and she's behind.\" He says it flatly. \"Go remind her what behind means. Bring back what she's got, or bring back a reason she didn't pay. I'm not particular which.\" You find Bev in a maintenance crawlspace, thin as wire, a photo of a kid taped above her workbench.",
+        "choices": [
+          { "label": "Take what she has — and make it hurt", "effects": [ { "credits": 200 }, { "dispo": { "axis": "mercy", "n": -3 } }, { "rep": ["syndicate", 1] }, { "remember": { "who": "captain", "fact": "collected_for_kord", "weight": -3, "note": "You shook down a bonded recycler tech for Kord. She had a photo of a kid on the wall. You took the credits anyway." } } ], "reply": "She doesn't fight you. That's the worst part. Kord pays your cut without looking up. \"Knew you had it in you.\"", "end": true },
+          { "label": "Cover her debt yourself (250cr)", "requires": { "credits": 250 }, "effects": [ { "credits": -250 }, { "dispo": { "axis": "mercy", "n": 2 } }, { "flag": "cleared_bevs_debt", "value": true }, { "npc": { "key": "kord", "name": "Dock Boss Kord", "disposition": -2 } }, { "remember": { "who": "captain", "fact": "cleared_a_strangers_debt", "weight": 3, "note": "You paid off a bonded stranger's debt to Kord with your own credits. Bev didn't understand why. Neither, quite, did you." } } ], "reply": "You clear it with Kord directly. He takes the credits, unimpressed. \"Soft. But paid is paid.\" Bev catches you at the airlock later, wordless, and presses a spare part into your hand — a good one, worth something. \"In case,\" she says.", "end": true },
+          { "label": "Walk away — you're not his enforcer", "effects": [ { "npc": { "key": "kord", "name": "Dock Boss Kord", "disposition": -2 } } ], "reply": "\"Then you're no use to me.\" Kord's metal fingers drum once on the crate. \"Bev still owes. Now she owes AND I'm annoyed. You didn't help her by being precious, Captain.\"", "end": true }
+        ]
+      }
+    }
+  },
+
+  "informant_wren": {
+    "name": "Wren",
+    "room": "cantina",
+    "icon": "🐦",
+    "planets": "any",
+    "blurb": "Sells what she hears. Everything she sells belongs to somebody.",
+    "nodes": {
+      "start": {
+        "text": "Wren sits with her back to the wall and her eyes on the door, the way people do when they've been the subject of someone else's conversation. \"Captain. I deal in the one commodity that never spoils.\" She taps her temple. \"Information. Buying or selling?\"",
+        "choices": [
+          { "label": "Buy a lead (150cr)", "requires": { "credits": 150 }, "effects": [ { "credits": -150 }, { "flag": "lead_deep_wreck", "value": true }, { "rumor": "\"Someone paid Wren for the coordinates of that deep wreck. Fools and legends, same coin.\"" } ], "reply": "She slides you a fragment of coordinates. \"A hauler that went dark past the Verge with its holds full. Nobody's brave enough — or stupid enough — to go look. You collect the other pieces, you'll have yourself a score.\"", "end": true },
+          { "label": "\"You said selling. Who am I selling?\"", "goto": "inform" },
+          { "label": "Leave her to her drink", "reply": "\"Mm. You'll be back. Everybody needs to know something eventually.\"", "end": true }
+        ]
+      },
+      "inform": {
+        "text": "\"Sharp.\" She almost approves. \"There's a Frontier organizer working this station — Yun. Union would pay handsomely to know her routine, her contacts, where she sleeps. You've seen the concourse. You could get close.\" She lets that sit. \"It's just words, Captain. Words for credits. Nobody gets hurt. Well. Nobody you'll have to watch.\"",
+        "choices": [
+          { "label": "Inform on the organizer", "effects": [ { "credits": 260 }, { "rep": ["union", 2] }, { "rep": ["frontier", -3] }, { "dispo": { "axis": "mercy", "n": -2 } }, { "flag": "informed_on_yun", "value": true }, { "npc": { "key": "wren", "name": "Wren", "disposition": 2 } }, { "remember": { "who": "captain", "fact": "became_an_informant", "weight": -2, "note": "You sold the Frontier organizer's movements to Wren, who sold them onward. You told yourself it was only words." } } ], "reply": "The credits are real and immediate. \"Pleasure doing business. And Captain? Now I know you'll sell. That's worth remembering too.\"", "end": true },
+          { "label": "\"I don't sell people.\"", "effects": [ { "dispo": { "axis": "mercy", "n": 1 } }, { "npc": { "key": "wren", "name": "Wren", "disposition": -1 } } ], "reply": "\"Everyone says that until the number's right.\" She shrugs and looks back at the door. \"Come find me when yours is.\"", "end": true }
+        ]
+      }
+    }
+  },
+
+  "bonded_tomas": {
+    "name": "Tomas",
+    "room": "undercity",
+    "icon": "⛓️",
+    "planets": "any",
+    "gate": { "flagNot": "tomas_resolved" },
+    "blurb": "Ledger-bonded to the recyclers. Works off a debt engineered never to shrink.",
+    "nodes": {
+      "start": {
+        "text": "Tomas works the recycler line with the flat competence of a man who's done it ten thousand hours. He's a mechanic — a good one, you can tell from how he listens to the machines. He's also property, in every way that matters: a bond debt, compounding faster than any wage can chase. \"Don't mind me, Captain,\" he says, not stopping. \"I'm furniture that fixes things.\"",
+        "choices": [
+          { "label": "Buy out his bond and free him (400cr)", "requires": { "credits": 400 }, "effects": [ { "credits": -400 }, { "dispo": { "axis": "mercy", "n": 3 } }, { "flag": "tomas_resolved", "value": true }, { "recruit": { "role": "mechanic", "name": "Tomas", "salary": 6 } }, { "remember": { "who": "captain", "fact": "freed_tomas", "weight": 3, "note": "You bought out Tomas's bond and tore up the ledger. He asked to sign onto your crew before you'd finished the paperwork." } } ], "reply": "He stares at the settled ledger for a long moment. Then, quietly: \"I'm a better mechanic than whoever you've got. Let me prove it. I don't— I don't have anywhere else to be.\" He signs on before you can answer.", "end": true },
+          { "label": "Buy his bond — and keep it (400cr)", "requires": { "credits": 400 }, "effects": [ { "credits": -400 }, { "dispo": { "axis": "mercy", "n": -3 } }, { "flag": "tomas_resolved", "value": true }, { "recruit": { "role": "mechanic", "name": "Tomas (bonded)", "salary": 2 }, "note": "cheap because bonded" }, { "remember": { "who": "captain", "fact": "kept_a_man_bonded", "weight": -3, "note": "You bought Tomas's bond and kept it in your name. He fixes your ship for almost nothing, and he never once looks you in the eye." } } ], "reply": "You transfer the bond into your own registry. Tomas reads the terms — unchanged, just a new owner — and something in his face goes very still. \"Understood, Captain,\" he says. He'll work your engines beautifully. He'll never call you anything but Captain.", "end": true },
+          { "label": "Leave him to it", "reply": "\"Course,\" he says, already turning back to the line. \"Furniture doesn't need a goodbye.\"", "end": true }
+        ]
+      }
+    }
+  },
+
+  "organizer_yun": {
+    "name": "Organizer Yun",
+    "room": "concourse",
+    "icon": "✊",
+    "planets": "any",
+    "gate": { "flagNot": "informed_on_yun" },
+    "blurb": "The Frontier's quiet recruiter, working a Union station one conversation at a time.",
+    "nodes": {
+      "start": {
+        "text": "Yun doesn't look like a revolutionary. She looks like someone's aunt, sharing tea from a battered flask beneath the false-sky ceiling. \"You've got a ship and a reputation, Captain,\" she says, not asking your name because she already knows it. \"The Frontier doesn't have many of either. The core worlds squeeze us and call it order. I could use a captain who's noticed.\"",
+        "choices": [
+          { "label": "Run guns for the Frontier", "effects": [ { "rep": ["frontier", 4] }, { "rep": ["union", -3] }, { "dispo": { "axis": "law", "n": -2 } }, { "dispo": { "axis": "daring", "n": 1 } }, { "flag": "frontier_runner", "value": true }, { "mission": { "kind": "smuggle", "title": "Frontier consignment — \"medical supplies\"", "dest": "kestrel", "pay": 450, "units": 6, "hidden": true, "rep": ["frontier", 3], "needs": ["scargo:6", "mod:smuggler"], "desc": "Yun calls it medical supplies. The crates are heavier than medicine. Get them to Kestrel's Rest and don't get scanned." } } ], "reply": "She squeezes your forearm like family. \"Careful with it. Those crates are worth more than your ship, and not in credits. Kestrel's Rest. They'll be waiting.\"", "end": true },
+          { "label": "Report her to station security", "requires": { "rep": ["union", -5] }, "effects": [ { "rep": ["union", 3] }, { "rep": ["frontier", -4] }, { "dispo": { "axis": "law", "n": 2 } }, { "flag": "informed_on_yun", "value": true }, { "remember": { "who": "captain", "fact": "sold_out_the_organizer", "weight": -2, "note": "You pointed station security at Organizer Yun. They took her quietly, between one cup of tea and the next. The Frontier will hear whose ship was docked." } } ], "reply": "Security is polite about it. Yun doesn't struggle; she just looks at you, once, with something worse than anger — recognition, like she'd expected exactly this from exactly you. \"They always find a captain,\" she says as they walk her off. \"There's always a captain.\"", "end": true },
+          { "label": "Hear her out, commit to nothing", "reply": "\"No shame in caution,\" she says, refilling her flask. \"But the squeeze doesn't care how careful you are, Captain. One day you'll have to pick a side of the line. I hope you pick well.\"", "end": true }
+        ]
+      }
+    }
+  }
+}

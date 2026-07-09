@@ -15,6 +15,7 @@ import { checkScheduler, plantDelay, maybePlantReputationRider } from "./schedul
 import { bark, tellBark } from "./barks";
 import { remember, crewKey } from "./ledger";
 import { shift } from "./disposition";
+import { resetStation } from "../ui/station";
 import type { Job } from "../types";
 
 export function depart(destId: string) {
@@ -147,6 +148,7 @@ export function failJob(j: Job, msg: string) {
 export function arrive() {
   const dest = S.travel!.dest;
   S.loc = dest; S.docked = true; S.travel = null; S.screen = "ship";
+  resetStation();
   log(`Docked at ${PLANETS[dest].n}.`);
   // victory check
   if (dest === "gate" && S.arc.stage === 5) { arcVictory(); return; }

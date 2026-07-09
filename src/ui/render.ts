@@ -8,6 +8,7 @@ import { shipHTML } from "./ship";
 import { mapHTML } from "./map";
 import { planetHTML } from "./planet";
 import { travelHTML } from "./travel";
+import { stationHTML } from "./station";
 
 export function nav(scr: string) {
   S.screen = scr;
@@ -50,6 +51,7 @@ function renderNav() {
   $("nav").innerHTML =
     b("ship", "🚀 Ship", S.screen === "ship") +
     b("map", "🗺 Star Map", S.screen === "map") +
+    (S.docked && S.loc !== "gate" ? b("station", "🛰 Station", S.screen === "station") : "") +
     (S.docked ? b("planet", "🏙 " + PLANETS[S.loc].n, S.screen === "planet", S.loc === "gate") : "") +
     (S.travel ? b("travel", "🌌 In Transit", S.screen === "travel") : "") +
     `<span class="right">
@@ -62,6 +64,7 @@ function renderMain() {
   const m = $("main");
   if (S.screen === "ship") m.innerHTML = shipHTML();
   else if (S.screen === "map") m.innerHTML = mapHTML();
+  else if (S.screen === "station") m.innerHTML = stationHTML();
   else if (S.screen === "planet") m.innerHTML = planetHTML();
   else if (S.screen === "travel") m.innerHTML = travelHTML();
 }

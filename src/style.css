@@ -216,6 +216,17 @@ th{color:var(--dim); font-weight:500; text-transform:uppercase; font-size:11px; 
 .beacon{ transform-box:fill-box; transform-origin:center; animation:beacon 2.2s ease-out infinite; }
 @keyframes beacon{ 0%{opacity:.9; transform:scale(.7)} 100%{opacity:0; transform:scale(1.5)} }
 @media (prefers-reduced-motion:reduce){ .radar-sweep,.beacon{ animation:none; } }
+/* walkable station */
+.station-scope .scope-body{ background:#070a11; }
+.stationsvg{ width:100%; height:auto; display:block; position:relative; z-index:0; }
+.st-room rect{ transition:stroke .15s, fill .15s; }
+.st-room:hover rect{ stroke:var(--amber); }
+.you-marker{ position:absolute; z-index:4; width:16px; height:16px; transform:translate(-50%,-50%); transition:left .45s ease, top .45s ease; pointer-events:none; }
+.you-marker span{ display:block; width:10px; height:10px; margin:3px; border-radius:50%; background:var(--amber); box-shadow:0 0 10px var(--amber); }
+.you-marker::before{ content:""; position:absolute; inset:0; border:1px solid var(--amber); border-radius:50%; animation:beacon 1.8s ease-out infinite; }
+/* scene / dialogue modal */
+.scene .scene-loc{ font-family:"Consolas",ui-monospace,monospace; font-size:9px; letter-spacing:2px; color:var(--dim); text-transform:uppercase; margin-bottom:6px; }
+.scene .choices button{ text-align:left; }
 /* travel */
 .progress{height:16px; background:#0d0f17; border:1px solid var(--line); border-radius:8px; overflow:hidden; margin:10px 0;}
 .progress .fill{height:100%; background:linear-gradient(90deg,#7a5c1e,var(--amber)); transition:width .3s;}

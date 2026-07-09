@@ -11,8 +11,10 @@ import { modal, hasModal } from "../modal";
 import { requestRender } from "../bus";
 import { startCombat } from "./combat";
 import { remember } from "./ledger";
-import { reputation } from "./disposition";
+import { reputation, shift, type Axis } from "./disposition";
+import { genBundle } from "./market";
 import { rand } from "../rng";
+import type { Job } from "../types";
 
 // Plant a delayed consequence. fireWhen is a day, a dock condition, or a flag.
 export function plant(fireWhen: FireWhen, eventKey: string, payload?: Record<string, any>) {
@@ -91,6 +93,26 @@ export function applyEffects(effects: RiderEffect[]) {
     if (e.worldMemory) {
       const w = e.worldMemory;
       remember(`world:${w.planet}`, w.fact, w.weight, w.note);
+    }
+    if (e.dispo) shift(e.dispo.axis as Axis, e.dispo.n);
+    if (e.plantRider) plantDelay(e.plantRider.min, e.plantRider.max, e.plantRider.key);
+    if (e.mission) {
+      const m = e.mission;
+      S.jobs.push({
+        id: S.uid++, kind: m.kind, title: m.title, dest: m.dest, pay: m.pay,
+        units: m.units, hidden: m.hidden, prestige: m.prestige, rep: m.rep,
+        needs: m.needs, desc: m.desc,
+        deadline: m.deadlineDays ? S.day + m.deadlineDays : undefined,
+        pax: m.pax ? { name: m.pax.name, motive: m.pax.motive, sick: false } : undefined,
+      } as Job);
+    }
+    if (e.npc) {
+      const ex = S.npcs.find((n) => n.key === e.npc!.key);
+      if (ex) { ex.disposition += e.npc.disposition; ex.day = S.day; if (e.npc.agenda) ex.agenda = e.npc.agenda; }
+      else S.npcs.push({ key: e.npc.key, name: e.npc.name, disposition: e.npc.disposition, agenda: e.npc.agenda || "dormant", power: e.npc.power || 0, day: S.day });
+    }
+    if (e.recruit) {
+      S.crew.push({ id: S.uid++, name: e.recruit.name, role: e.recruit.role, fee: 0, salary: e.recruit.salary ?? 8, bundle: genBundle(), daysAboard: 0, questStage: 0 });
     }
   }
   // guard planet keys referenced in world memories exist (dev sanity)

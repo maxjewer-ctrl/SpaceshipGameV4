@@ -10,6 +10,7 @@ import barksJson from "./barks.json";
 import crewgenJson from "./crewgen.json";
 import ridersJson from "./riders.json";
 import reputationJson from "./reputation.json";
+import npcsJson from "./npcs.json";
 
 export const MODS = modulesJson as Record<string, ModuleDef>;
 export const PLANETS = planetsJson as Record<string, PlanetDef>;
@@ -30,12 +31,42 @@ export interface BarkDef {
   traits?: string[]; role?: string; secretTag?: string; wound?: string;
   origin?: string; sentimentMin?: number; sentimentMax?: number;
 }
+export interface MissionGrant {
+  kind: string; title: string; dest: string; pay: number;
+  units?: number; hidden?: boolean; prestige?: number; rep?: [string, number];
+  needs?: string[]; desc?: string; deadlineDays?: number;
+  pax?: { name: string; motive: string };
+}
 export interface RiderEffect {
   credits?: number; prestige?: number; food?: number; fuel?: number; hull?: number;
   rep?: [string, number]; flag?: string; value?: any; untilDays?: number;
   rumor?: string; log?: string;
   remember?: { who: string; fact: string; weight: number; note?: string };
   worldMemory?: { planet: string; fact: string; weight: number; note?: string };
+  // scene/NPC vocabulary
+  dispo?: { axis: string; n: number };
+  mission?: MissionGrant;
+  plantRider?: { min: number; max: number; key: string };
+  npc?: { key: string; name: string; disposition: number; agenda?: string; power?: number };
+  recruit?: { role: string; name: string; salary?: number };
+}
+
+// ---- Station scenes (data-driven NPC dialogue) ----
+export interface SceneChoice {
+  label: string;
+  requires?: Record<string, any>;   // pax, credits, rep, dispo, flag, flagNot...
+  effects?: RiderEffect[];
+  reply?: string;                   // NPC's response line before moving on
+  goto?: string;                    // next node key
+  end?: boolean;                    // close the scene
+}
+export interface SceneNode { text: string; choices: SceneChoice[]; }
+export interface NpcDef {
+  name: string; room: string; icon?: string;
+  planets?: string[] | "any";
+  gate?: Record<string, any>;       // conditions for the NPC to appear at all
+  blurb?: string;                   // one-liner shown on the station map / room list
+  nodes: Record<string, SceneNode>;
 }
 export interface RiderDef {
   class: string; title?: string; text?: string; log?: string;
@@ -61,6 +92,7 @@ export let BARKS = barksJson as BarkDef[];
 export let RIDERS = ridersJson as Record<string, RiderDef>;
 export const CREWGEN = crewgenJson as CrewGen;
 export const REPUTATION = reputationJson as ReputationContent;
+export let NPCS = npcsJson as Record<string, NpcDef>;
 
 // Merge hot-loaded content over the bundled baseline. Called by the content loader.
 export function applyRemoteContent(patch: {
