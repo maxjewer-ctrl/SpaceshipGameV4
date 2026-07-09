@@ -7,6 +7,17 @@ import { reputation } from "../systems/disposition";
 
 export function selSlot(i: number) { S.sel = S.sel === i ? null : i; requestRender(); }
 
+// Module bays get a category accent colour on the schematic — combat/logistics/
+// life-support/bio/power read at a glance instead of a wall of identical boxes.
+function modCategory(t: string): string {
+  if (["weapons", "shields", "armory"].includes(t)) return "cat-combat";
+  if (["cargohold", "fueltank", "smuggler"].includes(t)) return "cat-flow";
+  if (["cabin", "quarters", "luxcabin"].includes(t)) return "cat-life";
+  if (["hydro", "medbay"].includes(t)) return "cat-bio";
+  if (["reactor", "workshop"].includes(t)) return "cat-power";
+  return "";
+}
+
 // The player never sees the raw playstyle meters — only how they're talked about.
 function repStreetHtml(): string {
   const rep = reputation();
@@ -23,16 +34,19 @@ function repStreetHtml(): string {
 export function shipHTML(): string {
   const st = stats();
   const inst = modInst();
+  const hullPct = Math.max(0, S.hull / S.hullMax);
+  const hullState = hullPct < 0.35 ? "hull-crit" : hullPct < 0.7 ? "hull-warn" : "";
+  const reg = "KR-" + (((S.seed >>> 0) % 8999) + 1000); // stable registry number
   let slotsHtml = "";
   for (let i = 0; i < 10; i++) {
     if (i < inst.length) {
       const m = inst[i], md = MODS[m.t];
       const led = m.dmg ? "r" : (md.pw ? (m.on ? "g" : "o") : "g");
       const cls = (m.dmg ? " dmgd" : "") + (!m.dmg && md.pw && !m.on ? " offline" : "") + (S.sel === i ? " selected" : "");
-      slotsHtml += `<div class="slot filled${cls}" onclick="selSlot(${i})" title="${md.n}${m.dmg ? " — DAMAGED" : (md.pw && !m.on && !m.dmg ? " — powered down" : "")}">
+      slotsHtml += `<div class="slot filled ${modCategory(m.t)}${cls}" onclick="selSlot(${i})" title="${md.n}${m.dmg ? " — DAMAGED" : (md.pw && !m.on && !m.dmg ? " — powered down" : "")}">
         <span class="led ${led}"></span>
         ${md.pw ? `<span class="pips">${"⚡".repeat(md.pw)}</span>` : ""}${md.gen ? `<span class="pips">+${md.gen}⚡</span>` : ""}
-        <span class="ic">${md.icon}</span>${md.n}</div>`;
+        <span class="ic">${md.icon}</span><span class="nm">${md.n}</span></div>`;
     } else if (i < S.slotsMax) {
       slotsHtml += `<div class="slot" onclick="selSlot(-1)"><span class="ic">＋</span><span class="dim">empty bay</span></div>`;
     } else {
@@ -80,12 +94,27 @@ export function shipHTML(): string {
   }).join("");
   return `<div class="row">
     <div class="col" style="max-width:340px">
-      <div class="panel"><h3>${S.shipName} — deck plan</h3>
-        <div class="shipvis">
-          <div class="nose"><div class="canopy"></div>COCKPIT</div>
-          <div class="hullbody"><div class="slotgrid">${slotsHtml}</div></div>
-          <div class="tail">DRIVE CORE MK-${["", "I", "II", "III"][S.engineLvl]}</div>
-          <div class="flames">${'<div class="flame"></div>'.repeat(1 + S.engineLvl)}</div>
+      <div class="panel"><h3>${S.shipName} — deck schematic</h3>
+        <div class="shipframe ${hullState}">
+          <div class="frame-head"><span class="fh-l">◄ DECK PLAN ▬ LIVE FEED ►</span><span class="fh-r">REG ${reg}</span></div>
+          <div class="scansweep"></div>
+          <div class="shipvis">
+            <div class="nose"><div class="canopy"></div><span class="lbl">COCKPIT</span></div>
+            <div class="hullbody">
+              <span class="rivets"></span>
+              <span class="hardpoint hp-l ${st.active("weapons") > 0 ? "on-red" : ""}" title="port hardpoint"></span>
+              <span class="hardpoint hp-r ${st.active("shields") > 0 ? "on-blue" : ""}" title="starboard hardpoint"></span>
+              <div class="slotgrid">${slotsHtml}</div>
+            </div>
+            <div class="tail"><span class="lbl">DRIVE CORE MK-${["", "I", "II", "III"][S.engineLvl]}</span></div>
+            <div class="thrustglow"></div>
+            <div class="flames">${'<div class="flame"></div>'.repeat(1 + S.engineLvl)}</div>
+          </div>
+          <div class="frame-foot">
+            <span>HULL <b class="${S.hull < 40 ? "low" : ""}">${Math.round(hullPct * 100)}%</b></span>
+            <span class="ff-bar"><i style="width:${Math.round(hullPct * 100)}%"></i></span>
+            <span><b>${inst.length}</b>/${S.slotsMax} BAYS</span>
+          </div>
         </div>
         <div class="powerbar">⚡ Reactor load <b class="${st.powerUse > st.powerOut ? "low" : ""}">${st.powerUse}/${st.powerOut}</b>
           <span class="dim">(drive core ${4 + 2 * S.engineLvl}${st.intact("reactor") ? " + aux " + st.intact("reactor") * 3 : ""})</span>
