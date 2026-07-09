@@ -1,0 +1,28 @@
+{
+  "goods": {
+    "ore": {"n":"Ore", "base":18},
+    "med": {"n":"Medicine", "base":40},
+    "lux": {"n":"Luxuries", "base":65}
+  },
+  "factions": {
+    "union":     {"n":"Terran Union",      "c":"#5b8dd9"},
+    "frontier":  {"n":"Frontier Compact",  "c":"#d9a55b"},
+    "syndicate": {"n":"Red Sky Syndicate", "c":"#d96b6b"},
+    "none":      {"n":"Unaligned",         "c":"#888888"}
+  },
+  "roles": {
+    "pilot":        {"n":"Pilot",         "d":"-15% fuel burn, +25% flee chance, dodges hazards."},
+    "mechanic":     {"n":"Mechanic",      "d":"Auto-repairs 3 hull/day in flight (6 with Workshop). Halves breakdown damage."},
+    "medic":        {"n":"Medic",         "d":"Keeps the sick alive. With a Med Bay, cures passengers fully."},
+    "gunner":       {"n":"Gunner",        "d":"+50% weapon damage in combat."},
+    "cook":         {"n":"Cook",          "d":"-25% food consumption. Morale you can taste."},
+    "quartermaster":{"n":"Quartermaster", "d":"+15% contract payouts, bribes cost 35% less."}
+  },
+  "motives": {
+    "fugitive": {"hint":"keeps glancing at the door",        "d":"Wanted by somebody. Patrols may cause trouble."},
+    "merchant": {"hint":"travels with locked sample cases",  "d":"May offer to buy your goods mid-flight at a premium."},
+    "spy":      {"hint":"asks a lot of casual questions",    "d":"Delivering them will shift faction politics — somehow."},
+    "pilgrim":  {"hint":"hums quietly and tips in blessings","d":"Easy passenger. Word of your kindness spreads (+prestige)."},
+    "drifter":  {"hint":"owns exactly one duffel bag",       "d":"Just needs to be somewhere else. Don't we all."}
+  }
+}

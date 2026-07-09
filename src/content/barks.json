@@ -1,0 +1,76 @@
+[
+  { "when": "depart", "text": "{name}: \"Clamps away. Let's see what's out there.\"" },
+  { "when": "depart", "traits": ["superstitious"], "text": "{name} raps the bulkhead twice for luck before the burn." },
+  { "when": "depart", "traits": ["weary"], "text": "{name}: \"Another dock behind us. They all start looking the same.\"" },
+  { "when": "depart", "traits": ["dreamer"], "text": "{name} watches the port shrink to a pinprick and doesn't say anything for a while." },
+  { "when": "depart", "traits": ["hotheaded"], "text": "{name}: \"Finally. I was starting to grow roots back there.\"" },
+  { "when": "depart", "role": "pilot", "text": "{name} eases her into the lane like threading a needle. \"She flies clean today, Captain.\"" },
+
+  { "when": "arrive", "text": "{name}: \"Solid ground. Well — solid deck plating. Close enough.\"" },
+  { "when": "arrive", "traits": ["greedy"], "text": "{name} is already eyeing the market boards. \"Reckon there's coin here.\"" },
+  { "when": "arrive", "traits": ["cautious"], "text": "{name} clocks every exit off the dock before stepping down the ramp." },
+  { "when": "arrive", "traits": ["chatty"], "text": "{name}: \"First round's on the captain, right? Right.\"" },
+  { "when": "arrive", "origin": "orphanage", "text": "{name} goes quiet at the sight of the dock crèche. Old memories travel light." },
+
+  { "when": "quiet", "text": "{name} plays solitaire against the drive hum and loses, somehow." },
+  { "when": "quiet", "traits": ["haunted"], "text": "{name} stares at the black a long while. \"It looks back, you know. If you let it.\"" },
+  { "when": "quiet", "traits": ["devout"], "text": "{name} murmurs a small grace over nothing in particular." },
+  { "when": "quiet", "traits": ["chatty"], "text": "{name} tells a story about {origin} that you're fairly sure changes every time." },
+  { "when": "quiet", "traits": ["gentle"], "text": "{name} leaves a mug of something warm on the arm of your chair without a word." },
+  { "when": "quiet", "traits": ["cynical"], "text": "{name}: \"Peace and quiet. That's how you know something's about to go wrong.\"" },
+  { "when": "quiet", "traits": ["dreamer"], "text": "{name}: \"Somewhere out past the charts there's a shore nobody's named yet. I'd like to name one.\"" },
+  { "when": "quiet", "role": "cook", "text": "{name} is doing something ambitious with the ration paste. It smells almost like food." },
+  { "when": "quiet", "role": "mechanic", "text": "{name} has a panel off again, elbow-deep in the guts of her, whispering to the wiring." },
+  { "when": "quiet", "sentimentMin": 6, "text": "{name} catches your eye across the galley and just nods. You've been through some things." },
+  { "when": "quiet", "sentimentMax": -6, "text": "{name} eats alone, back to the bulkhead, and doesn't look up when you pass." },
+
+  { "when": "combat_start", "text": "{name}: \"Everyone strap in — this is going to get loud!\"" },
+  { "when": "combat_start", "traits": ["reckless"], "text": "{name} is grinning. That's never comforting. \"Let's give 'em a fight to remember.\"" },
+  { "when": "combat_start", "traits": ["cautious"], "text": "{name}: \"We do NOT have to win this. We just have to still be flying after.\"" },
+  { "when": "combat_start", "role": "gunner", "text": "{name} racks the weapons console. \"Say the word, Captain.\"" },
+  { "when": "combat_start", "traits": ["devout"], "text": "{name} kisses two fingers and touches the console. \"Watch over this old bucket.\"" },
+
+  { "when": "combat_win", "text": "{name} lets out a breath they'd clearly been holding for a while." },
+  { "when": "combat_win", "traits": ["hotheaded"], "text": "{name}: \"THAT'S what I'm talking about! Anyone else? No? Didn't think so.\"" },
+  { "when": "combat_win", "traits": ["haunted"], "text": "{name} watches the wreck tumble and doesn't celebrate. \"Somebody's not coming home from that.\"" },
+  { "when": "combat_win", "role": "gunner", "text": "{name} pats the weapons console like a good dog. \"Never doubted you.\"" },
+
+  { "when": "combat_flee", "text": "{name}: \"Running's not losing. Running's living. Punch it!\"" },
+  { "when": "combat_flee", "traits": ["proud"], "text": "{name} spits. \"I'll remember their registry. We don't run twice from the same ship.\"" },
+
+  { "when": "patrol", "text": "{name} keeps their hands visible and their mouth shut while the cutter runs the registry." },
+  { "when": "patrol", "traits": ["cynical"], "text": "{name}: \"Union scan. Smile pretty. They love that.\"" },
+
+  { "when": "breakdown", "text": "{name} is already crawling toward the noise with a wrench in their teeth." },
+  { "when": "breakdown", "role": "mechanic", "text": "{name}: \"I've got it, I've got it — do NOT touch anything, Captain.\"" },
+  { "when": "breakdown", "traits": ["superstitious"], "text": "{name}: \"She only breaks when you say she's running well. Who said it? WHO said it?\"" },
+
+  { "when": "meteor", "text": "{name} braces in the hatchway as the hull sings under the impacts." },
+  { "when": "meteor", "role": "pilot", "text": "{name} threads the swarm with small, sure corrections. \"Easy. Easy. There.\"" },
+
+  { "when": "salvage", "text": "{name}: \"One captain's junk, another captain's payday. Grab it.\"" },
+  { "when": "salvage", "traits": ["greedy"], "text": "{name} is halfway into the wreck before the netting's even secured." },
+
+  { "when": "rescue", "text": "{name} helps the survivors aboard, quiet and careful, like they've been on the other side of it." },
+  { "when": "rescue", "traits": ["gentle"], "text": "{name} wraps the coldest survivor in their own jacket without being asked." },
+  { "when": "rescue", "wound": "left_behind", "text": "{name} won't leave the airlock until every last one is aboard. \"Nobody gets left. Not on my watch.\"" },
+
+  { "when": "distress_ignore", "text": "{name} watches the beacon fade off the scope and says nothing. The silence is a kind of answer." },
+  { "when": "distress_ignore", "traits": ["gentle"], "text": "{name}: \"...Right. Their problem. Sure.\" {name} doesn't sleep much that night." },
+  { "when": "distress_ignore", "traits": ["cynical"], "text": "{name}: \"Could've been bait. Probably was. Probably.\"" },
+
+  { "when": "payroll_miss", "text": "{name} notices the pay didn't come through. {name} notices everything." },
+  { "when": "payroll_miss", "traits": ["loyal"], "text": "{name}: \"We're square when we're square. I've flown for worse than late.\"" },
+  { "when": "payroll_miss", "traits": ["greedy"], "text": "{name}: \"I fly for coin, Captain. No coin, no fly. Simple as.\"" },
+  { "when": "payroll_miss", "wound": "hungry_years", "text": "{name} doesn't say anything about the missed pay. That's somehow worse." },
+
+  { "when": "starving", "text": "{name}'s belt is on a tighter notch than last week. Nobody mentions it." },
+  { "when": "starving", "wound": "hungry_years", "text": "{name}: \"I've been hungrier. Doesn't mean I want to be again, Captain.\"" },
+
+  { "when": "hire", "text": "{name} stows a single duffel in the bunk and looks around. \"So this is home now. Huh.\"" },
+  { "when": "hire", "traits": ["proud"], "text": "{name}: \"I'm good at what I do. You'll see. Then you'll wonder how you flew without me.\"" },
+  { "when": "hire", "role": "pilot", "text": "{name} runs a hand along the console like meeting a horse. \"We'll get along, you and me.\"" },
+
+  { "when": "dock_home", "text": "{name} goes still. \"...I know this place. I grew up not far from here.\"" },
+  { "when": "dock_home", "traits": ["haunted"], "text": "{name} stares out at the port lights of home and doesn't go down the ramp." }
+]

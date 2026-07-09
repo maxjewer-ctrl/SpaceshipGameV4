@@ -1,0 +1,49 @@
+{
+  "distress_guild_echo": {
+    "class": "echo",
+    "title": "◆ A Debt Repaid",
+    "text": "A relay message chases you down at the fuel dock — the mining guild whose people you pulled out of a dying shuttle, weeks back. They don't forget a rescue. Your registry is flagged friendly across their fuel stops for a season.",
+    "log": "◆ The miners' guild remembers your rescue — friendly fuel prices follow you for a while.",
+    "effects": [
+      { "flag": "guild_discount", "untilDays": 30 },
+      { "prestige": 1 },
+      { "remember": { "who": "captain", "fact": "guild_owes_you", "weight": 2, "note": "The miners' guild remembers you pulled their people out of the dark." } }
+    ]
+  },
+
+  "smuggle_the_bill": {
+    "class": "bill",
+    "title": "◆ The Bill Comes Due",
+    "text": "That no-questions crate you ran? It was seed stock for a narco-farm. The frontier town it poisoned has your registry number and a long memory. Word travels the lanes ahead of you now — the cantina goes quiet when you walk in.",
+    "log": "◆ The sealed freight you smuggled poisoned a frontier town. Your registry is known now, and not fondly (−3 prestige).",
+    "effects": [
+      { "prestige": -3 },
+      { "rep": ["syndicate", 1] },
+      { "rumor": "\"Heard that captain ran the seed stock that poisoned a whole frontier settlement. Wouldn't share a dock with 'em.\"" },
+      { "worldMemory": { "planet": "kestrel", "fact": "captain_poisoned_the_town", "weight": -4, "note": "Somewhere out on the frontier, a town knows your registry and won't forget it." } }
+    ]
+  },
+
+  "pilgrim_star_chart": {
+    "class": "twist",
+    "title": "◆ A Chart With No Sender",
+    "text": "A star chart arrives by relay: coordinates, no note, signed only with the little spiral symbol your pilgrim passenger kept drawing on every surface. It points somewhere past the edge of the charts. You don't know what's there. You suspect they didn't either — only that it mattered.",
+    "log": "◆ The pilgrim you carried sent coordinates from nowhere, signed with their spiral symbol. A lead, filed for later.",
+    "effects": [
+      { "flag": "pilgrim_chart", "value": true },
+      { "rumor": "\"Some captain's been asking about a spiral symbol and a set of coordinates past the Verge. Ghost stories, if you ask me.\"" },
+      { "remember": { "who": "captain", "fact": "the_pilgrims_chart", "weight": 1, "note": "A pilgrim trusted you with coordinates to somewhere unnamed. You still have them." } }
+    ]
+  },
+
+  "pirate_grudge_return": {
+    "class": "person",
+    "title": "◆ Old Business",
+    "text": "The comm crackles with a voice you've heard before — the pirate captain who limped away from your guns. They've re-armed, and this time your ship's name is painted on the missile.",
+    "log": "◆ A pirate you bested has come back for you, with a bigger ship and a grudge.",
+    "combat": { "name": "Corsair (returned)", "hull": 75, "dmg": 15, "loot": 300 },
+    "effects": [
+      { "remember": { "who": "captain", "fact": "made_an_enemy", "weight": 0, "note": "Enemies compound out here. Friends do too." } }
+    ]
+  }
+}

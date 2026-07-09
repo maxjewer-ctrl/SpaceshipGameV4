@@ -1,0 +1,41 @@
+{
+  "quiet": [
+    "The black is quiet today. The hull ticks as it warms in a distant sun.",
+    "Someone left the galley radio on an old frontier station. Nobody turns it off.",
+    "You catch yourself talking to the ship again. She doesn't answer. Probably for the best.",
+    "A Union news relay drones about tariffs. You change the channel.",
+    "The stars don't care about your fuel gauge. Somehow that's comforting.",
+    "You find an old coin from Meridian under the pilot seat. Heads. Good omen."
+  ],
+  "rumors": [
+    "\"Foundry's yard runs 15% off list price. Bring your own welder though.\"",
+    "\"Food's nearly free on Kestrel's Rest. Buy there, sell to the Verge — folk out there eat money.\"",
+    "\"Medicine bought cheap on Meridian sells triple out past the frontier.\"",
+    "\"Pirates work the long empty runs. Weapons bay ain't optional forever, captain.\"",
+    "\"Union patrols scan for smuggler holds. A good bribe is cheaper than a fine.\"",
+    "\"Hire a mechanic before you need one. Ships break in the middle of nowhere, that's the rule.\"",
+    "\"The Syndicate pays well and remembers favors. The Union pays on time and remembers everything.\"",
+    "\"A stateroom pays for itself in two VIP charters, if you can stomach the clientele.\""
+  ],
+  "dmgFlavor": {
+    "fueltank": "Fuel sprays into the void before the feed lines seal.",
+    "cargohold": "Decompression in the hold — cargo netting snaps like thread.",
+    "cabin": "The passenger cabin vents atmosphere; everyone crowds into the corridor.",
+    "quarters": "The crew bunks are scrap metal and floating bedding.",
+    "hydro": "The hydroponics bay is a blizzard of frozen bean plants.",
+    "medbay": "The auto-doc sparks, dispenses one final bandage, and dies.",
+    "weapons": "The weapons bay capacitors blow in a shower of sparks.",
+    "shields": "The shield emitters overload and go dark.",
+    "armory": "The armory rack tears loose. There are rifles in the vents now.",
+    "workshop": "Half the workshop's tools are orbiting debris.",
+    "smuggler": "The hidden hold's false floor buckles. It is neither hidden nor a floor.",
+    "luxcabin": "The stateroom's chandelier is — was — very expensive.",
+    "reactor": "The auxiliary reactor SCRAMs hard. Emergency lighting only."
+  },
+  "depart": [
+    "The dock clamps release with a clang you feel in your teeth.",
+    "The drive lights and the whole ship leans into it, eager.",
+    "Ground control mutters something about unpaid berth fees. You're already gone.",
+    "Behind you, the port shrinks to a bright pinprick, then nothing."
+  ]
+}

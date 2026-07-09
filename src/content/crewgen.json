@@ -1,0 +1,51 @@
+{
+  "traits": [
+    "stoic", "hotheaded", "superstitious", "chatty", "haunted", "devout",
+    "greedy", "loyal", "cynical", "dreamer", "gruff", "gentle",
+    "reckless", "cautious", "proud", "weary"
+  ],
+  "origins": [
+    "a Meridian orphanage", "the Foundry smelter decks", "a Kestrel's Rest wheat farm",
+    "the back alleys of Haven's Folly", "a Union naval academy she washed out of",
+    "a Verge Station salvage crew", "a generation ship that never made port",
+    "the pilgrim flotillas", "a Syndicate debt she's still paying", "nowhere he'll name"
+  ],
+  "wants": [
+    "to find a brother who shipped out and never wrote",
+    "enough credits to buy back the family farm",
+    "to see the edge of the charts with her own eyes",
+    "a clean registry and a name nobody's hunting",
+    "to prove the academy wrong about washing him out",
+    "to bury someone properly, back where they're from",
+    "one honest job that doesn't end in gunfire",
+    "to stop running long enough to sleep through a night",
+    "passage, eventually, to Elysium — if it's real",
+    "to matter to somebody who isn't paying her"
+  ],
+  "wounds": [
+    { "tag": "distrusts_doctors", "text": "doesn't trust doctors — will do their own stitches" },
+    { "tag": "lost_a_ship", "text": "watched a ship they loved come apart in the black" },
+    { "tag": "left_behind", "text": "was left in a cell once and hasn't forgotten it" },
+    { "tag": "hungry_years", "text": "knew real hunger young and counts the food stores twice" },
+    { "tag": "union_took_someone", "text": "the Union took someone from them and never explained" },
+    { "tag": "betrayed_crew", "text": "sold out a crew once, or was sold out — won't say which" },
+    { "tag": "afraid_of_the_deep", "text": "the deep black past the charts frightens them, badly" },
+    { "tag": "debt", "text": "owes money to people who collect in blood" }
+  ],
+  "secrets": [
+    { "tag": "union_deserter", "text": "is a Union deserter — a patrol scan is a death sentence" },
+    { "tag": "wanted", "text": "is wanted under another name in three systems" },
+    { "tag": "informant", "text": "still sends quiet reports to someone dockside" },
+    { "tag": "ex_pirate", "text": "used to fly under a black flag and knows those crews by name" },
+    { "tag": "dying", "text": "is sicker than they let on and hasn't told a soul" },
+    { "tag": "rich_once", "text": "was somebody important once, before the fall" }
+  ],
+  "tells": [
+    { "situation": "patrol", "text": "goes very quiet when patrols hail" },
+    { "situation": "combat_start", "text": "checks the same weld on the bulkhead twice before every fight" },
+    { "situation": "depart", "text": "touches the hatch frame on the way out, every single time" },
+    { "situation": "quiet", "text": "hums a tune from somewhere you can't place when it's quiet" },
+    { "situation": "arrive", "text": "scans every new dock for a face they never find" },
+    { "situation": "starving", "text": "stops eating first, quietly, so the others don't notice" }
+  ]
+}
