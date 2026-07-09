@@ -45,5 +45,141 @@
     "effects": [
       { "remember": { "who": "captain", "fact": "made_an_enemy", "weight": 0, "note": "Enemies compound out here. Friends do too." } }
     ]
+  },
+
+  "rep_guardian_angel": {
+    "class": "echo",
+    "title": "◆ A Kindness, Returned",
+    "text": "A stranger hails you on a private band — a face you half-remember from a rescue you'd nearly forgotten. \"You didn't leave us. Figured I'd return the favor before someone worse finds you out here.\" A fuel drop and a fat credit transfer follow, no strings.",
+    "log": "◆ Someone you once helped tracked you down to repay it — fuel, credits, and a warning.",
+    "effects": [
+      { "credits": 320 },
+      { "fuel": 18 },
+      { "remember": { "who": "captain", "fact": "the_kindness_returned", "weight": 2, "note": "A stranger you helped came back to help you. It does come around." } }
+    ]
+  },
+  "rep_the_con": {
+    "class": "bill",
+    "title": "◆ The Soft Touch",
+    "text": "The sob story was airtight — a widow, a sick child, just needed a small advance for medicine. You gave it gladly. Days later the docking manifest shows their \"medical shuttle\" was a Syndicate courier, and your \"advance\" bought a shipment of something you'd never have carried. They played your good heart like a fiddle.",
+    "log": "◆ Your generosity got conned. Someone read you as a soft touch and took you for it (−250cr).",
+    "effects": [
+      { "credits": -250 },
+      { "prestige": -1 },
+      { "rumor": "\"Word is that captain's an easy mark for a good sob story. Bring tissues and a story.\"" }
+    ]
+  },
+
+  "rep_vendetta": {
+    "class": "person",
+    "title": "◆ Blood Debt",
+    "text": "A ship you don't recognize matches your burn and refuses every hail but one: \"You killed my brother off the Verge lanes. Registry doesn't lie. I've been looking a long time.\" No bribe. No bargain. Just guns.",
+    "log": "◆ The kin of someone you killed finally caught up to you.",
+    "combat": { "name": "Vengeance-Seeker", "hull": 72, "dmg": 15, "loot": 180 },
+    "effects": []
+  },
+  "rep_merc_work": {
+    "class": "echo",
+    "title": "◆ Professional Courtesy",
+    "text": "A mercenary broker you've never met leaves a message at three ports running: \"You've got a reputation for finishing things. We respect that. There's clean money in it for a captain who doesn't flinch.\" Attached: a retainer, paid up front, and a name to look up out past the frontier.",
+    "log": "◆ Your reputation for ruthlessness drew paying admirers — a mercenary retainer, cash up front.",
+    "effects": [
+      { "credits": 400 },
+      { "rep": ["syndicate", 1] },
+      { "rumor": "\"Mercenary brokers are asking after that captain by name. Whatever they did, it impressed the wrong sort of people.\"" }
+    ]
+  },
+
+  "rep_union_privilege": {
+    "class": "echo",
+    "title": "◆ Preferred Registry",
+    "text": "A Union liaison officer buys you a real coffee — the expensive kind — and slides a data-chit across the table. \"Your record's spotless, Captain. The Union likes clean operators. Consider yourself expedited.\" Your registry's been flagged preferred: fewer scans, first pick of Union work, a small loyalty bonus.",
+    "log": "◆ The Union flagged your clean record as a preferred registry — smoother scans and a bonus.",
+    "effects": [
+      { "credits": 300 },
+      { "rep": ["union", 3] },
+      { "flag": "union_favored", "value": true },
+      { "rumor": "\"That captain's got the Union eating out of their hand. Clean as they come. Handy — or suspicious.\"" }
+    ]
+  },
+  "rep_syndicate_snub": {
+    "class": "bill",
+    "title": "◆ No Friends in the Dark",
+    "text": "A Syndicate fixer catches you at the bar, all smiles and no warmth. \"You're a good little law-abider, aren't you. Problem is, out past the buoys, it's us or nothing — and you've made it clear which you are.\" The shady, lucrative work stops finding you. Some doors just quietly shut.",
+    "log": "◆ Your by-the-book reputation cost you: the Syndicate has blacklisted you (−4 Syndicate rep).",
+    "effects": [
+      { "rep": ["syndicate", -4] },
+      { "flag": "syndicate_blacklist", "value": true },
+      { "rumor": "\"The Syndicate's writing that squeaky-clean captain off. No shady work coming their way anymore.\"" }
+    ]
+  },
+
+  "rep_syndicate_courtship": {
+    "class": "echo",
+    "title": "◆ An Invitation",
+    "text": "A bottle of real Earth whiskey arrives at your berth with a handwritten note: \"You run our kind of freight, and you run it clean. The Red Sky remembers its friends. Keep flying like you fly — the good work will find you, and it pays.\" It's already paying: a finder's fee, and doors opening.",
+    "log": "◆ The Syndicate is courting you — a gift, a stipend, and better smuggling rates ahead.",
+    "effects": [
+      { "credits": 250 },
+      { "rep": ["syndicate", 4] },
+      { "flag": "syndicate_favored", "value": true },
+      { "rumor": "\"The Red Sky's taken a shine to that captain. Their hidden-hold work pays double now, I hear.\"" }
+    ]
+  },
+  "rep_union_manhunt": {
+    "class": "bill",
+    "title": "◆ On the List",
+    "text": "A friendly dock clerk pulls you aside, nervous. \"Your registry pinged a Union watch-flag when you berthed. Smuggling, evasion, the works. They're not arresting you today — but they've stopped pretending you're nobody. Watch the lanes.\" Out on the frontier, though, an outlaw's name earns a certain respect.",
+    "log": "◆ The Union has flagged you as a wanted operator (−4 Union rep). Patrols will be uglier now.",
+    "effects": [
+      { "rep": ["union", -4] },
+      { "prestige": 1 },
+      { "flag": "union_wanted", "value": true },
+      { "rumor": "\"That captain made a Union watchlist. Frontier folk buy 'em drinks for it.\"" }
+    ]
+  },
+
+  "rep_legend_grows": {
+    "class": "twist",
+    "title": "◆ The Stories They Tell",
+    "text": "A grizzled prospector corners you, wide-eyed. \"You're the one who flies the runs nobody comes back from. Listen — I've been sitting on something too big for a careful captain. A wreck, deep out, still holding its cargo. Nobody dares. But you...\" He presses a fragment of coordinates into your hand. It's not the whole picture. It's a start.",
+    "log": "◆ Your daredevil reputation earned you a lead: a rumored deep-space wreck, coordinates incomplete.",
+    "effects": [
+      { "prestige": 2 },
+      { "flag": "lead_deep_wreck", "value": true },
+      { "rumor": "\"Somebody handed that reckless captain a piece of a treasure map. Deep-black salvage. Fools and legends, same coin.\"" }
+    ]
+  },
+  "rep_pushed_luck": {
+    "class": "bill",
+    "title": "◆ The Odds Catch Up",
+    "text": "You've been running hot for weeks — skipping margins, taking the risky vector, betting the hull would hold one more time. This time the dice come up wrong: a debris field you'd normally route around, taken at speed to save a day, opens a long gash down the flank. Everyone's fine. The ship is not.",
+    "log": "◆ Weeks of pushing your luck finally cost you — a hard hit to the hull.",
+    "effects": [
+      { "hull": -22 },
+      { "remember": { "who": "captain", "fact": "pushed_it_too_far", "weight": 0, "note": "The black always collects, eventually. It collected." } }
+    ]
+  },
+
+  "rep_trusted_hauler": {
+    "class": "echo",
+    "title": "◆ Safe Hands",
+    "text": "A cautious old merchant seeks you out precisely because you're cautious too. \"I've watched you, Captain. You don't lose cargo. You don't take mad risks. That's worth more to me than fast.\" He fronts you a consignment of premium goods on trust and a generous cut — the kind of deal that only goes to captains who never lose a shipment.",
+    "log": "◆ A merchant trusts your careful reputation with premium cargo and a generous cut.",
+    "effects": [
+      { "credits": 350 },
+      { "rep": ["frontier", 2] },
+      { "rumor": "\"That careful captain? Merchants trust 'em with the good cargo. Slow, sure, and never loses a crate.\"" }
+    ]
+  },
+  "rep_passed_over": {
+    "class": "bill",
+    "title": "◆ The Bolder Captain",
+    "text": "You hear about the score secondhand, after the fact — a fat, dangerous contract that would've set you up for a season. It went to some hotshot who didn't think twice. \"Offered it to you first,\" the broker shrugs. \"Figured you'd want the sure thing. No offense.\" None taken. Mostly.",
+    "log": "◆ A lucrative, risky job went to a bolder captain — they didn't think you'd take it (−1 prestige).",
+    "effects": [
+      { "prestige": -1 },
+      { "remember": { "who": "captain", "fact": "played_it_too_safe", "weight": 0, "note": "Careful keeps you alive. It also lets the bold ones eat first." } }
+    ]
   }
 }

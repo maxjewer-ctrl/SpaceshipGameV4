@@ -9,8 +9,9 @@ import { checkDead } from "./gameover";
 import { damageModule } from "./actions";
 import { refreshMarket } from "./market";
 import { bark, tellBark } from "./barks";
-import { plantDelay } from "./scheduler";
+import { plantDelay, flagActive } from "./scheduler";
 import { remember, crewKey, witnessAll } from "./ledger";
+import { shift } from "./disposition";
 
 // ---------- daily event roll ----------
 export function rollEvent() {
@@ -86,6 +87,7 @@ export function pirateBribe(base: number) {
     closeModal(); evPiratesForce(base); return;
   }
   S.credits -= cost; closeModal();
+  shift("daring", -1, "paid off pirates");
   log(`Paid ${cost}cr in "docking fees." The pirates wave politely and burn away.`);
 }
 function evPiratesForce(base: number) {
@@ -98,6 +100,7 @@ export function pirateSurrender() {
   const cr = Math.round(S.credits * 0.3);
   S.credits -= cr;
   S.prestige = Math.max(0, S.prestige - 2);
+  shift("daring", -2, "surrendered to pirates");
   closeModal();
   log(`They stripped ${lost} units of goods and ${cr}cr, and left you your life. (−2 prestige)`);
 }
@@ -108,6 +111,11 @@ export function evPatrol() {
   const fugitive = S.jobs.some((j) => j.pax && j.pax.motive === "fugitive" && !j.arcVoss);
   const deserter = S.crew.find((c) => c.bundle && c.bundle.secretTag === "union_deserter");
   if (deserter) tellBark("patrol"); else bark("patrol", { chance: 0.5 });
+  // A preferred Union registry means routine scans wave you straight through.
+  if (flagActive("union_favored") && !contraband && !fugitive) {
+    log("A Union patrol pings your registry, sees the preferred-operator flag, and waves you on with something close to courtesy.");
+    return;
+  }
   if (!contraband && !fugitive) {
     // A crew member's secret is a landmine: a routine scan can go very wrong.
     if (deserter && rand() < 0.45) {
@@ -136,11 +144,14 @@ export function patrolBribe() {
   const cost = bribeCost(180);
   if (S.credits < cost) { closeModal(); log("Pockets too light to bribe. The scan proceeds..."); patrolSubmit(true); return; }
   S.credits -= cost; closeModal();
+  shift("law", -2, "bribed a Union inspector");
   if (rand() < 0.85) { log(`The inspector finds a ${cost}cr "clerical fee" and suddenly your paperwork is immaculate.`); }
   else { log("The inspector takes your money AND reports you. Bureaucrats."); patrolSubmit(true); }
 }
 export function patrolRun() {
   closeModal();
+  shift("law", -3, "ran from a Union patrol");
+  shift("daring", 1, "ran a patrol checkpoint");
   const st = stats();
   const chance = 0.3 + (st.has("pilot") ? 0.25 : 0) + S.engineLvl * 0.08;
   if (rand() < chance) {
@@ -148,12 +159,12 @@ export function patrolRun() {
     log("You spool the drive and vanish into the shipping lanes. The Union files a very angry report (−2 Union rep).");
   } else {
     startCombat({ name: "Union Cutter", hull: 50, dmg: 11 },
-      () => { S.rep.union = clamp(S.rep.union - 8, -20, 20); log("You shot down a Union cutter. That... will be remembered (−8 Union rep)."); },
+      () => { S.rep.union = clamp(S.rep.union - 8, -20, 20); shift("law", -3, "shot down a Union cutter"); log("You shot down a Union cutter. That... will be remembered (−8 Union rep)."); },
       () => { log("You broke away trailing smoke."); });
   }
 }
 export function patrolSubmit(noModal?: boolean) {
-  if (!noModal) closeModal();
+  if (!noModal) { closeModal(); shift("law", 2, "complied with a Union scan"); }
   const contraJobs = S.jobs.filter((j) => j.hidden);
   const fugJobs = S.jobs.filter((j) => j.pax && j.pax.motive === "fugitive" && !j.arcVoss);
   const msg: string[] = [];
@@ -229,6 +240,7 @@ export function distressHelp() {
     log("You save three miners who have nothing to give but thanks. Word still gets around (+2 prestige).");
   }
   witnessAll("captain_saved_the_miners", 2, "You altered course to pull strangers out of a dying shuttle.");
+  shift("mercy", 2, "rescued the shuttle");
   // The Echo: a good deed the universe remembers, weeks from now.
   plantDelay(18, 34, "distress_guild_echo");
 }
@@ -236,6 +248,7 @@ export function distressIgnore() {
   closeModal();
   S.prestige = Math.max(0, S.prestige - 1);
   log("You mute the beacon and fly on. The silence in the cockpit lasts a while (−1 prestige).");
+  shift("mercy", -2, "ignored a distress call");
   bark("distress_ignore", { chance: 0.7 });
   // Gentle/loyal crew log this against you, quietly.
   for (const c of S.crew) {

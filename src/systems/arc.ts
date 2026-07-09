@@ -8,6 +8,7 @@ import { modal, closeModal } from "../modal";
 import { requestRender } from "../bus";
 import { startCombat } from "./combat";
 import { witnessAll } from "./ledger";
+import { shift } from "./disposition";
 
 export function arcCantinaCard(): string {
   const a = S.arc;
@@ -118,6 +119,8 @@ export function ambushHandOver() {
   S.prestige = Math.max(0, S.prestige - 5);
   // The crew watched you do it. They carry it forever, and will cite it back.
   witnessAll("captain_sold_out_voss", -4, "You handed Dr. Voss to the Union for a thousand credits. Everyone aboard watched.");
+  shift("mercy", -4, "handed Voss to the Union");
+  shift("law", 2, "sided with the Union");
   S.flags.sold_out_voss = true;
   log("◆ You watched them take her. The credits spend fine. The Union owes you a favor. You tell yourself that's the whole story (−5 prestige, +10 Union rep).");
 }
@@ -127,12 +130,14 @@ export function ambushFight() {
     () => {
       S.rep.union = clamp(S.rep.union - 8, -20, 20); S.prestige += 3;
       witnessAll("captain_stood_by_voss", 4, "You took on a Union gunship rather than give Dr. Voss up. The crew won't forget that either.");
+      shift("mercy", 3, "protected Voss"); shift("law", -2, "fought the Union"); shift("daring", 2, "took on a gunship");
       log("◆ The gunship burns behind you. Voss exhales for the first time in an hour. There's no going back now (+3 prestige, −8 Union rep).");
     },
     () => { log("◆ You broke off and slipped away into the debris of an old battle. Fitting."); });
 }
 export function ambushRun() {
   closeModal();
+  shift("law", -1, "ran a Union blockade"); shift("daring", 2, "ran a Union blockade");
   const st = stats();
   const chance = 0.4 + (st.has("pilot") ? 0.25 : 0) + S.engineLvl * 0.08;
   if (rand() < chance) {
@@ -160,6 +165,8 @@ export function arcHavensScene() {
 export function arcStartRun() {
   S.arc.stage = 5;
   S.arc.deadline = S.day + 14;
+  shift("daring", 3, "began the Run to Elysium Gate");
+  shift("mercy", 2, "risked everything for the Meridian truth");
   log(`◆ THE RUN BEGINS. Elysium Gate is on your chart. Reach it by day ${S.arc.deadline}. The Union net is closing.`);
   modal(`<h2>◆ The Run</h2>
     <p>Voss straps in beside you and sets the duffel between her boots. Somewhere back toward the core worlds, alarms you'll never hear are starting to sound.</p>

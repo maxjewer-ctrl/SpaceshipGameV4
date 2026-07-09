@@ -11,6 +11,8 @@ import { modal, hasModal } from "../modal";
 import { requestRender } from "../bus";
 import { startCombat } from "./combat";
 import { remember } from "./ledger";
+import { reputation } from "./disposition";
+import { rand } from "../rng";
 
 // Plant a delayed consequence. fireWhen is a day, a dock condition, or a flag.
 export function plant(fireWhen: FireWhen, eventKey: string, payload?: Record<string, any>) {
@@ -73,10 +75,11 @@ export function riderFight() {
 // ---- the effects DSL — every future system just adds vocabulary here ----
 export function applyEffects(effects: RiderEffect[]) {
   for (const e of effects) {
-    if (e.credits) S.credits += e.credits;
+    if (e.credits) S.credits = Math.max(0, S.credits + e.credits);
     if (e.prestige) S.prestige = Math.max(0, S.prestige + e.prestige);
     if (e.food) S.food = Math.max(0, S.food + e.food);
     if (e.fuel) S.fuel = Math.max(0, S.fuel + e.fuel);
+    if (e.hull) { S.hull = Math.min(S.hullMax, Math.max(0, S.hull + e.hull)); }
     if (e.rep) S.rep[e.rep[0]] = clamp((S.rep[e.rep[0]] || 0) + e.rep[1], -20, 20);
     if (e.flag) S.flags[e.flag] = e.untilDays !== undefined ? S.day + e.untilDays : (e.value ?? true);
     if (e.rumor) {
@@ -99,4 +102,38 @@ export function flagActive(flag: string): boolean {
   const v = S.flags[flag];
   if (typeof v === "number") return v > S.day; // expiry-day flags
   return !!v;
+}
+
+// ---- reputation payoffs ----
+// Each pole maps to a [beneficial, costly] rider pair. Balanced tone: a coin flip
+// between them, so a strong reputation cuts both ways over time.
+const REP_RIDERS: Record<string, [string, string]> = {
+  "mercy+":  ["rep_guardian_angel", "rep_the_con"],
+  "mercy-":  ["rep_merc_work", "rep_vendetta"],
+  "law+":    ["rep_union_privilege", "rep_syndicate_snub"],
+  "law-":    ["rep_syndicate_courtship", "rep_union_manhunt"],
+  "daring+": ["rep_legend_grows", "rep_pushed_luck"],
+  "daring-": ["rep_trusted_hauler", "rep_passed_over"],
+};
+
+// Called on docking. If your reputation is pronounced, occasionally plant a
+// delayed payoff keyed to it — so HOW you've been playing sprouts weeks later,
+// disconnected from any single choice. Each rider fires at most once.
+export function maybePlantReputationRider() {
+  if (S.flags.repCooldownUntil && S.day < S.flags.repCooldownUntil) return;
+  const rep = reputation();
+  if (!rep || rep.strength < 8) return;
+  if (rand() > 0.18) return;
+  const pair = REP_RIDERS[rep.pole];
+  if (!pair) return;
+  // stronger reputations tilt slightly toward their beneficial side; balanced-ish
+  const pickCostly = rand() < 0.5;
+  const primary = pickCostly ? pair[1] : pair[0];
+  const alt = pickCostly ? pair[0] : pair[1];
+  const key = !S.flags["repfired_" + primary] ? primary
+            : !S.flags["repfired_" + alt] ? alt : null;
+  if (!key) return; // both already fired for this pole
+  S.flags["repfired_" + key] = true;
+  S.flags.repCooldownUntil = S.day + 12;
+  plantDelay(6, 16, key);
 }

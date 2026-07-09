@@ -67,6 +67,12 @@ export interface ArcState {
 
 export interface LogLine { d: number; m: string; bark?: boolean; }
 
+// The three tracked playstyle axes. Positive/negative poles:
+//   mercy:  + merciful (spare, rescue, protect)   − ruthless (execute, abandon, sell out)
+//   law:    + lawful (clean, comply)              − outlaw (smuggle, bribe, shoot patrols)
+//   daring: + daring (long odds, deep runs)       − cautious (flee, bribe, play safe)
+export interface Disposition { mercy: number; law: number; daring: number; }
+
 // ---- Engine primitive 1: the Consequence Scheduler ----
 // A seed planted now that sprouts later. This is the entire mechanism of
 // "unexpected payoff": missions plant riders, the scheduler fires them.
@@ -124,6 +130,9 @@ export interface GameState {
   ledger: MemoryEntry[];
   npcs: NpcRecord[];
   flags: Record<string, any>;
+  // hidden playstyle meters — how you operate, not what you own. Content reads
+  // these; the player never sees the raw numbers, only "word on the street".
+  disposition: Disposition;
   starve: number; unpaid: number; uid: number;
   over: boolean; won: boolean; dead: boolean;
 }

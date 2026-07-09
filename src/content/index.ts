@@ -9,6 +9,7 @@ import flavorJson from "./flavor.json";
 import barksJson from "./barks.json";
 import crewgenJson from "./crewgen.json";
 import ridersJson from "./riders.json";
+import reputationJson from "./reputation.json";
 
 export const MODS = modulesJson as Record<string, ModuleDef>;
 export const PLANETS = planetsJson as Record<string, PlanetDef>;
@@ -30,7 +31,7 @@ export interface BarkDef {
   origin?: string; sentimentMin?: number; sentimentMax?: number;
 }
 export interface RiderEffect {
-  credits?: number; prestige?: number; food?: number; fuel?: number;
+  credits?: number; prestige?: number; food?: number; fuel?: number; hull?: number;
   rep?: [string, number]; flag?: string; value?: any; untilDays?: number;
   rumor?: string; log?: string;
   remember?: { who: string; fact: string; weight: number; note?: string };
@@ -50,9 +51,16 @@ export interface CrewGen {
 
 // These three are content-hot-loadable: bundled JSON is the offline baseline,
 // but the Supabase loader can override them at boot (see src/supabase/content.ts).
+export interface ReputationContent {
+  titles: Record<string, string[]>;
+  street: Record<string, string[]>;
+  crossing: Record<string, string[]>;
+}
+
 export let BARKS = barksJson as BarkDef[];
 export let RIDERS = ridersJson as Record<string, RiderDef>;
 export const CREWGEN = crewgenJson as CrewGen;
+export const REPUTATION = reputationJson as ReputationContent;
 
 // Merge hot-loaded content over the bundled baseline. Called by the content loader.
 export function applyRemoteContent(patch: {

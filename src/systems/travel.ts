@@ -11,9 +11,10 @@ import { powerRebalance } from "./actions";
 import { refreshMarket } from "./market";
 import { gameOver } from "./gameover";
 import { evHunter, evAmbush, arcIntercept, arcVergeScene, arcHavensScene, arcVictory } from "./arc";
-import { checkScheduler, plantDelay } from "./scheduler";
+import { checkScheduler, plantDelay, maybePlantReputationRider } from "./scheduler";
 import { bark, tellBark } from "./barks";
 import { remember, crewKey } from "./ledger";
+import { shift } from "./disposition";
 import type { Job } from "../types";
 
 export function depart(destId: string) {
@@ -181,7 +182,8 @@ export function arrive() {
     if (j.arcVoss) arcHavensScene();
   }
   refreshMarket();
-  // dock-conditioned consequences (the cantina that remembers you) fire here
+  // your playstyle may quietly plant a future payoff, then dock-riders fire
+  maybePlantReputationRider();
   checkScheduler();
 }
 
@@ -214,8 +216,11 @@ export function completePay(j: Job) {
     // Chekhov's passenger: the pilgrim was mapping something. A chart arrives later.
     if (!S.flags.pilgrim_chart) plantDelay(12, 30, "pilgrim_star_chart");
   }
-  // The Bill: ~40% of smuggling runs carry a hidden rider that comes due weeks on.
-  if (j.hidden && rand() < 0.4) plantDelay(8, 25, "smuggle_the_bill");
+  if (j.hidden) {
+    shift("law", -1, "delivered contraband");
+    // The Bill: ~40% of smuggling runs carry a hidden rider that comes due weeks on.
+    if (rand() < 0.4) plantDelay(8, 25, "smuggle_the_bill");
+  }
   if (j.pax && j.pax.motive === "fugitive") {
     S.rep.frontier = clamp(S.rep.frontier + 2, -20, 20);
     S.rep.syndicate = clamp(S.rep.syndicate + 1, -20, 20);

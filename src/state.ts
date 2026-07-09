@@ -1,7 +1,7 @@
 import type { GameState, ModuleInstance } from "./types";
 
 export const SAVE_KEY = "kestrelrun";
-export const SAVE_VERSION = 3;
+export const SAVE_VERSION = 4;
 
 // The single mutable game state. `export let` gives live bindings to importers;
 // replace it only through setState so everyone sees the new object.
@@ -27,6 +27,7 @@ export function newState(shipName: string): GameState {
     market: null, travel: null,
     arc: { stage: 0, deadline: null, betrayed: false, ambushed: false, done: false },
     scheduled: [], ledger: [], npcs: [], flags: {},
+    disposition: { mercy: 0, law: 0, daring: 0 },
     starve: 0, unpaid: 0, uid: 1, over: false, won: false, dead: false,
   };
 }
@@ -75,6 +76,11 @@ export function migrate(s: any): GameState {
     // crew from v2 have no Tapestry bundle; that's fine — they just stay quiet.
     (s.crew || []).forEach((c: any) => { if (c.daysAboard === undefined) c.daysAboard = 0; });
     s.version = 3;
+  }
+  // v4: hidden playstyle disposition meters. Old saves start neutral.
+  if (s.version < 4) {
+    if (!s.disposition || typeof s.disposition !== "object") s.disposition = { mercy: 0, law: 0, daring: 0 };
+    s.version = 4;
   }
   return s as GameState;
 }

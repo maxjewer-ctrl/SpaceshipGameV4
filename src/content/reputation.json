@@ -1,0 +1,26 @@
+{
+  "titles": {
+    "mercy+":  ["a soft touch", "the Merciful", "a good hand in a bad system", "the captain who stops for beacons"],
+    "mercy-":  ["cold-blooded", "the Ruthless", "a captain with ice for blood", "the one who leaves you"],
+    "law+":    ["Union-clean", "strictly by the book", "a law-abiding hauler", "a captain the patrols wave through"],
+    "law-":    ["an outlaw", "a known smuggler", "a ghost the patrols want", "a name on three watchlists"],
+    "daring+": ["a daredevil", "the Reckless", "a captain who laughs at long odds", "the one who flies into the deep"],
+    "daring-": ["careful to a fault", "the Cautious", "a captain who never gambles", "slow, safe, and still breathing"]
+  },
+  "street": {
+    "mercy+":  ["\"That captain? Pulled a whole shuttle crew out of the black once. Good people, that one.\"", "\"They say that one never leaves a soul stranded. Rare, out here.\""],
+    "mercy-":  ["\"Heard that captain hands folk over without blinking. Don't get on the wrong berth.\"", "\"Cold, that one. Do the job, feel nothing. Useful, I suppose.\""],
+    "law+":    ["\"Clean registry, that captain. Union practically salutes 'em. Bit dull, if you ask me.\"", "\"Never runs anything they shouldn't. You could set a customs clock by 'em.\""],
+    "law-":    ["\"That captain? Patrols would love a word. Keeps a hidden hold, or I'm a Union clerk.\"", "\"Runs the shady freight and runs it well. The Syndicate's noticed.\""],
+    "daring+": ["\"Flies into places that eat ships whole and comes back grinning. Mad, or blessed.\"", "\"That one takes the runs nobody sane will. Legend in the making, or a wreck in the making.\""],
+    "daring-": ["\"Careful captain, that. Never caught short, never caught out. Never first through a door, either.\"", "\"Slow and sure. Won't gamble your cargo, won't gamble much of anything.\""]
+  },
+  "crossing": {
+    "mercy+":  ["The crew's noticed you never leave anyone behind. Word like that travels.", "Someone at the last port called you a soft touch. They didn't mean it kindly. You didn't mind."],
+    "mercy-":  ["There's a new quiet when you walk into a cantina. Word's gotten around what you're willing to do.", "The crew doesn't meet your eye the way they used to. They've seen what you'll trade away."],
+    "law+":    ["Your registry's getting a reputation — clean as a whistle. Patrols barely slow down for you now.", "A dockhand mentions the Union speaks well of you. Feels strange to be liked by them."],
+    "law-":    ["Your name's started showing up on the wrong lists. Patrols look twice now.", "Somebody dockside called you a smuggler like it was a compliment. Out here, maybe it is."],
+    "daring+": ["They're starting to tell stories about the runs you'll take. Some of them are even true.", "A pilot at the bar bought you a drink just to ask if the deep-black rumors about you are real."],
+    "daring-": ["Word is you're a careful one. Safe hands. It's not the worst thing to be known for.", "Somebody called you cautious. It stung a little. It also kept you alive this long."]
+  }
+}

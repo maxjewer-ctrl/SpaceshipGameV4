@@ -3,8 +3,22 @@ import { MODS, PLANETS, ROLES, MOTIVES, FACS } from "../content";
 import { stats, modInst, cargoUsed, scargoUsed, paxJobs, vipJobs, salaries, foodPerDay, daysTo } from "../derive";
 import { fmt } from "../util";
 import { requestRender } from "../bus";
+import { reputation } from "../systems/disposition";
 
 export function selSlot(i: number) { S.sel = S.sel === i ? null : i; requestRender(); }
+
+// The player never sees the raw playstyle meters — only how they're talked about.
+function repStreetHtml(): string {
+  const rep = reputation();
+  if (!rep) return `<div class="dim">You're still a nobody out here. Fly enough runs, make enough choices, and the lanes will start telling stories about you.</div>`;
+  const loud = rep.strength >= 20 ? "Your name carries all the way to the core worlds."
+    : rep.strength >= 12 ? "It's a reputation now, not a rumor." : "The talk is starting to follow you.";
+  return `<div class="card" style="border-color:var(--amber)">
+    <div class="title" style="color:var(--amber)">They call you ${rep.title}.</div>
+    <div class="dim" style="font-style:italic; margin-top:4px">${rep.street}</div>
+    <div class="dim" style="margin-top:6px">${loud}</div>
+  </div>`;
+}
 
 export function shipHTML(): string {
   const st = stats();
@@ -99,6 +113,7 @@ export function shipHTML(): string {
         </div>
       </div>
       <div class="panel"><h3>Faction Standing</h3>${repHtml}</div>
+      <div class="panel"><h3>Word on the Street</h3>${repStreetHtml()}</div>
     </div>
     <div class="col">
       <div class="panel"><h3>Active Contracts (${S.jobs.length})</h3>${jobsHtml}</div>

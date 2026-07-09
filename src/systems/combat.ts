@@ -6,6 +6,7 @@ import { requestRender } from "../bus";
 import { gameOver } from "./gameover";
 import { damageModule } from "./actions";
 import { bark, tellBark } from "./barks";
+import { shift } from "./disposition";
 import type { Enemy } from "../types";
 
 interface CombatState {
@@ -63,6 +64,8 @@ export function cAct(a: string) {
     C.log.push(`You fire — ${dmg} damage to the ${e.name}.`);
     if (e.hull <= 0) {
       C.log.push(`The ${e.name} breaks apart in a slow, silent bloom of fire.`);
+      // Beating a heavy opponent builds a daredevil reputation.
+      if (e.maxhull >= 60) shift("daring", 2, "beat a heavy warship");
       C.over = true; C.result = "win"; bark("combat_win", { chance: 0.7 }); drawCombat(); return;
     }
   } else if (a === "brace") {
@@ -72,6 +75,7 @@ export function cAct(a: string) {
     const chance = 0.35 + (st.has("pilot") ? 0.25 : 0) + S.engineLvl * 0.08;
     if (rand() < chance) {
       C.log.push("You redline the drive and break contact. Gone.");
+      shift("daring", -1, "fled a fight");
       C.over = true; C.result = "fled"; bark("combat_flee", { chance: 0.6 }); drawCombat(); return;
     }
     C.log.push("They match your burn. No escape this pass.");

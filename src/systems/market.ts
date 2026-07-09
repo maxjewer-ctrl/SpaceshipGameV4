@@ -4,6 +4,7 @@ import { stats, daysTo, cargoUsed, scargoUsed, paxJobs, vipJobs } from "../deriv
 import { rand, ri, pick } from "../rng";
 import { requestRender } from "../bus";
 import { bark } from "./barks";
+import { shift } from "./disposition";
 import type { Job, CrewMember, CrewBundle } from "../types";
 
 export function yardPrice(t: string): number {
@@ -74,12 +75,15 @@ export function genMission(): Job | null {
       pay: 350 + dd * 50 + tier * 150, prestige: 3, rep: [p.fac, 2], tier,
       needs: ["mod:weapons", "mod:armory"],
       desc: `A raider operating near ${PLANETS[dest].n}. Fly out, put them down, collect. Expect a real fight.` };
-  } else if (roll < 0.89 && (p.fac === "syndicate" || S.rep.syndicate >= 5)) { // smuggle
+  } else if (roll < 0.89 && !S.flags.syndicate_blacklist && (p.fac === "syndicate" || S.rep.syndicate >= 5 || S.flags.syndicate_favored)) { // smuggle
     const units = ri(4, 8);
-    return { id, kind: "smuggle", title: "No-questions freight", dest, units, hidden: true,
-      pay: 250 + dd * 70, prestige: 0, rep: ["syndicate", 3],
+    // A favored Syndicate operator gets richer no-questions work.
+    const favored = !!S.flags.syndicate_favored;
+    const pay = Math.round((250 + dd * 70) * (favored ? 1.25 : 1));
+    return { id, kind: "smuggle", title: favored ? "Priority no-questions freight" : "No-questions freight", dest, units, hidden: true,
+      pay, prestige: 0, rep: ["syndicate", 3],
       needs: ["scargo:" + units, "mod:smuggler"],
-      desc: `${units} units. Sealed. Hidden hold only. If a patrol scans you, that's your problem. Pays very well.` };
+      desc: `${units} units. Sealed. Hidden hold only. If a patrol scans you, that's your problem. Pays ${favored ? "exceptionally" : "very"} well.` };
   } else if (roll < 0.89) { // fallback cargo
     const units = ri(6, 12);
     return { id, kind: "cargo", title: "Freight: sealed containers", dest, units,
@@ -162,6 +166,8 @@ export function acceptMission(i: number) {
   if (!ok) { log("Can't take that job: " + why + "."); requestRender(); return; }
   S.market.missions.splice(i, 1);
   S.jobs.push(m);
+  // Taking shady freight marks you as an operator willing to work outside the law.
+  if (m.hidden || m.kind === "smuggle") shift("law", -2, "took a smuggling contract");
   log(`Contract accepted: ${m.title} → ${PLANETS[m.dest].n}${m.deadline ? " (by day " + m.deadline + ")" : ""}.`);
   requestRender();
 }

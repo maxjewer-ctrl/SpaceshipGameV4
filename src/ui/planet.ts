@@ -5,6 +5,7 @@ import { fmt } from "../util";
 import { requestRender } from "../bus";
 import { refreshMarket, canAccept, needBadges, yardPrice } from "../systems/market";
 import { arcCantinaCard } from "../systems/arc";
+import { reputation } from "../systems/disposition";
 
 export function ptab(t: string) { S.ptab = t; requestRender(); }
 
@@ -47,7 +48,11 @@ function cantinaHTML(): string {
        <span class="dim">Fee ${r.fee}cr · salary ${r.salary}cr/day</span>
        <button onclick="hire(${i})">Hire</button>
      </div></div>`).join("") : `<div class="dim">Nobody worth hiring tonight — just regulars and bad decisions.</div>`;
-  const rumors = M.rumors.map((r) => `<div class="card"><div class="dim" style="font-style:italic">${r}</div></div>`).join("");
+  const rep = reputation();
+  const repCard = rep && rep.strength >= 12
+    ? `<div class="card" style="border-color:var(--amber)"><div class="dim" style="font-style:italic">${rep.street} <span style="color:var(--amber)">— they mean you.</span></div></div>`
+    : "";
+  const rumors = repCard + M.rumors.map((r) => `<div class="card"><div class="dim" style="font-style:italic">${r}</div></div>`).join("");
   return `<div class="row">
     <div class="col">
       ${arcCard ? `<div class="panel"><h3>◆ The Grey Coat</h3>${arcCard}</div>` : ""}
