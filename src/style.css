@@ -192,9 +192,30 @@ th{color:var(--dim); font-weight:500; text-transform:uppercase; font-size:11px; 
 .tinyship{position:absolute; left:34%; top:50%; transform:translate(-50%,-50%) rotate(45deg); font-size:28px; filter:drop-shadow(0 0 8px #e8b04b99);}
 .tinyship::after{content:""; position:absolute; top:100%; left:50%; transform:translateX(-50%); width:3px; height:22px;
   background:linear-gradient(180deg,#e8b04bcc,transparent); border-radius:2px;}
-/* map */
-#mapsvg{width:100%; height:auto; background:#080a10; border:1px solid var(--line); border-radius:6px; display:block;}
+/* map — nav computer scope */
+.scope{ position:relative; border:1px solid #3a4256; border-radius:8px; overflow:hidden;
+  background:#05070d; box-shadow:inset 0 0 50px #000c, 0 0 0 3px #0d0f17, 0 10px 26px #000b; }
+.scope-head,.scope-foot{ position:relative; z-index:3; display:flex; align-items:center; justify-content:space-between; gap:8px;
+  padding:5px 10px; font-family:"Consolas",ui-monospace,monospace; font-size:9px; letter-spacing:1.5px; }
+.scope-head{ background:#0d1019; border-bottom:1px solid #23283a; color:var(--amber); }
+.scope-head .sh-r{ color:var(--green); }
+.scope-foot{ background:#0d1019; border-top:1px solid #23283a; color:#9aa0b4; }
+.scope-foot .fdot{ display:inline-block; width:8px; height:8px; border-radius:50%; margin:0 4px 0 10px; vertical-align:middle; }
+.scope-foot .fdot:first-child{ margin-left:0; }
+.scope-body{ position:relative; }
+.scope-body::after{ content:""; position:absolute; inset:0; z-index:2; pointer-events:none;
+  background:repeating-linear-gradient(#0000 0 2px,#00000030 2px 3px); }
+.radar-sweep{ position:absolute; inset:0; z-index:1; pointer-events:none; mix-blend-mode:screen;
+  background:conic-gradient(from 0deg, transparent 0deg, transparent 296deg, #e8b04b12 330deg, #e8b04b30 358deg, transparent 360deg);
+  animation:radar 7s linear infinite; }
+@keyframes radar{ from{transform:rotate(0)} to{transform:rotate(360deg)} }
+#mapsvg{width:100%; height:auto; display:block; position:relative; z-index:1;}
 .planet-dot{cursor:pointer;}
+.planet-dot text{ pointer-events:none; }
+.planet-dot:hover circle:nth-of-type(3){ fill:var(--amber); }
+.beacon{ transform-box:fill-box; transform-origin:center; animation:beacon 2.2s ease-out infinite; }
+@keyframes beacon{ 0%{opacity:.9; transform:scale(.7)} 100%{opacity:0; transform:scale(1.5)} }
+@media (prefers-reduced-motion:reduce){ .radar-sweep,.beacon{ animation:none; } }
 /* travel */
 .progress{height:16px; background:#0d0f17; border:1px solid var(--line); border-radius:8px; overflow:hidden; margin:10px 0;}
 .progress .fill{height:100%; background:linear-gradient(90deg,#7a5c1e,var(--amber)); transition:width .3s;}
@@ -218,10 +239,34 @@ th{color:var(--dim); font-weight:500; text-transform:uppercase; font-size:11px; 
 #modal p{margin-bottom:10px; line-height:1.55;}
 #modal .choices{display:flex; flex-direction:column; gap:8px; margin-top:14px;}
 #modal .choices button{text-align:left; padding:10px 12px;}
-.clog{background:#0d0f17; border:1px solid var(--line); border-radius:5px; padding:8px; margin:10px 0; max-height:150px; overflow-y:auto; font-size:12px;}
+.clog{background:#0d0f17; border:1px solid var(--line); border-radius:5px; padding:8px; margin:10px 0; max-height:150px; overflow-y:auto; font-size:12px; font-family:"Consolas",ui-monospace,monospace; color:#aeb4c6;}
 .clog div{padding:2px 0;}
+.clog div:last-child{color:var(--amber);}
 .hpbar{height:10px; background:#0d0f17; border:1px solid var(--line); border-radius:5px; overflow:hidden; margin:4px 0 10px;}
 .hpbar .f{height:100%;}
+/* combat — tactical console */
+.combat .cbt-band{ font-family:"Consolas",ui-monospace,monospace; font-size:10px; letter-spacing:2px; color:var(--red);
+  background:#1a0f12; border:1px solid #4a2226; border-radius:4px; padding:5px 10px; text-align:center; margin-bottom:12px; }
+.cbt-arena{ display:flex; align-items:stretch; gap:10px; margin-bottom:12px; }
+.combatant{ flex:1; background:linear-gradient(180deg,#0f1320,#0a0d16); border:1px solid #23283a; border-radius:6px;
+  padding:12px 10px 11px; text-align:center; position:relative; overflow:hidden; }
+.combatant::before{ content:""; position:absolute; inset:0; pointer-events:none;
+  background-image:linear-gradient(#ffffff08 1px,transparent 1px),linear-gradient(90deg,#ffffff08 1px,transparent 1px); background-size:18px 18px; }
+.combatant.you{ border-color:#2f5a3a; box-shadow:inset 0 0 22px #2f5a3a1c; }
+.combatant.foe{ border-color:#5a2f2f; box-shadow:inset 0 0 22px #5a2f2f22; }
+.cbt-name{ position:relative; font-family:"Consolas",ui-monospace,monospace; font-size:11px; letter-spacing:.5px; color:#fff; text-transform:uppercase; margin-bottom:4px; }
+.cbt-ship{ position:relative; font-size:36px; line-height:1; margin:4px 0 9px; }
+.combatant.you .cbt-ship{ filter:drop-shadow(0 0 10px #6fbf7388); }
+.combatant.foe .cbt-ship{ filter:drop-shadow(0 0 10px #d96b6b88); }
+.cbt-int{ position:relative; font-family:"Consolas",ui-monospace,monospace; font-size:10px; letter-spacing:1px; color:var(--dim); margin-bottom:5px; }
+.gauge{ position:relative; height:9px; background:#05070d; border:1px solid #2c3350; border-radius:5px; overflow:hidden; }
+.gauge i{ display:block; height:100%; transition:width .35s ease; box-shadow:0 0 8px #0006; }
+.cbt-sub{ position:relative; font-family:"Consolas",ui-monospace,monospace; font-size:9px; letter-spacing:.5px; color:var(--dim); margin-top:6px; }
+.cbt-sub.blue{ color:var(--blue); } .cbt-sub.red{ color:var(--red); }
+.cbt-vs{ display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px;
+  font-family:"Consolas",ui-monospace,monospace; font-size:13px; color:var(--amber); letter-spacing:1px; }
+.cbt-vs .cbt-range{ font-size:8px; color:var(--dim); letter-spacing:1px; }
+.cbt-actions button .dim{ font-weight:400; }
 .repbar{height:8px; background:#0d0f17; border-radius:4px; overflow:hidden; position:relative; margin:3px 0 8px;}
 .repbar .f{height:100%; position:absolute; top:0;}
 .statgrid{display:grid; grid-template-columns:1fr 1fr; gap:4px 12px; font-size:13px;}

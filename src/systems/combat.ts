@@ -31,6 +31,13 @@ export function startCombat(e: Enemy, onWin?: () => void, onEscape?: () => void)
   drawCombat();
 }
 
+function foeIcon(name: string): string {
+  const n = name.toLowerCase();
+  if (/union|cutter|gunship|hunter|interdictor/.test(n)) return "🛰️";
+  if (/pirate|corsair|skiff|raider|vengeance|seeker/.test(n)) return "☠️";
+  return "🛸";
+}
+
 function drawCombat() {
   if (!C) return;
   const st = stats();
@@ -38,19 +45,37 @@ function drawCombat() {
   const php = Math.max(0, Math.round((S.hull / S.hullMax) * 100));
   const ehp = Math.max(0, Math.round((e.hull / e.maxhull) * 100));
   const canBribe = e.bribe && !C.over;
-  modal(`<h2>⚔ ${e.name}</h2>
-    <div><b>${S.shipName}</b> — hull ${Math.max(0, Math.round(S.hull))}/${S.hullMax} ${st.shield ? "· shields −" + st.shield + "/hit" : ""}</div>
-    <div class="hpbar"><div class="f" style="width:${php}%; background:${php > 40 ? "#6fbf73" : "#d96b6b"}"></div></div>
-    <div><b>${e.name}</b> — hull ${Math.max(0, Math.round(e.hull))}/${e.maxhull}</div>
-    <div class="hpbar"><div class="f" style="width:${ehp}%; background:#d96b6b"></div></div>
+  const fleeChance = Math.round((0.35 + (st.has("pilot") ? 0.25 : 0) + S.engineLvl * 0.08) * 100);
+  const gauge = (pct: number, col: string) =>
+    `<div class="gauge"><i style="width:${pct}%; background:${col}"></i></div>`;
+  modal(`<div class="combat">
+    <div class="cbt-band">⚔ ENGAGEMENT ▬ WEAPONS HOT</div>
+    <div class="cbt-arena">
+      <div class="combatant you">
+        <div class="cbt-name">${S.shipName}</div>
+        <div class="cbt-ship">🚀</div>
+        <div class="cbt-int">HULL ${Math.max(0, Math.round(S.hull))}/${S.hullMax}</div>
+        ${gauge(php, php > 40 ? "linear-gradient(90deg,#4f9a55,#6fbf73)" : "linear-gradient(90deg,#a23b3b,#d96b6b)")}
+        ${st.shield ? `<div class="cbt-sub blue">◊ SHIELDS −${st.shield}/hit</div>` : `<div class="cbt-sub">no shields</div>`}
+      </div>
+      <div class="cbt-vs">VS<span class="cbt-range">RANGE ${C.over ? "—" : "CLOSE"}</span></div>
+      <div class="combatant foe">
+        <div class="cbt-name">${e.name}</div>
+        <div class="cbt-ship">${foeIcon(e.name)}</div>
+        <div class="cbt-int">HULL ${Math.max(0, Math.round(e.hull))}/${e.maxhull}</div>
+        ${gauge(ehp, "linear-gradient(90deg,#a23b3b,#d96b6b)")}
+        <div class="cbt-sub red">⚠ HOSTILE · ~${e.dmg} dmg/salvo</div>
+      </div>
+    </div>
     <div class="clog">${C.log.map((l) => "<div>› " + l + "</div>").join("")}</div>
     ${C.over ? `<div class="choices"><button class="primary" onclick="endCombat()">Continue</button></div>` :
-    `<div class="choices">
-      <button onclick="cAct('fire')">🎯 Fire (your damage: ~${st.dmg})</button>
-      <button onclick="cAct('brace')">🛡 Evasive maneuvers (halve incoming this turn)</button>
-      <button onclick="cAct('flee')">🏃 Flee (${Math.round((0.35 + (st.has("pilot") ? 0.25 : 0) + S.engineLvl * 0.08) * 100)}% chance)</button>
-      ${canBribe ? `<button onclick="cAct('bribe')">💰 Bribe (${bribeCost(e.bribe!)}cr)</button>` : ""}
-    </div>`}`);
+    `<div class="choices cbt-actions">
+      <button onclick="cAct('fire')">🎯 Fire <span class="dim">— your salvo ~${st.dmg}</span></button>
+      <button onclick="cAct('brace')">🛡 Evasive maneuvers <span class="dim">— halve incoming</span></button>
+      <button onclick="cAct('flee')">🏃 Flee <span class="dim">— ${fleeChance}% break contact</span></button>
+      ${canBribe ? `<button onclick="cAct('bribe')">💰 Bribe <span class="dim">— ${bribeCost(e.bribe!)}cr</span></button>` : ""}
+    </div>`}
+  </div>`);
 }
 
 export function cAct(a: string) {

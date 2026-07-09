@@ -6,37 +6,83 @@ import { requestRender } from "../bus";
 export function selPlanet(k: string) { S.selPlanet = k; requestRender(); }
 
 export function mapHTML(): string {
-  let svg = `<svg id="mapsvg" viewBox="0 0 860 480" xmlns="http://www.w3.org/2000/svg">`;
+  const from = S.travel ? S.travel.from : S.loc;
+  let svg = `<svg id="mapsvg" viewBox="0 0 860 480" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <pattern id="navgrid" width="43" height="40" patternUnits="userSpaceOnUse">
+        <path d="M43 0 H0 V40" fill="none" stroke="#e8b04b" stroke-opacity="0.08" stroke-width="1"/>
+      </pattern>
+      <radialGradient id="scopeVig" cx="50%" cy="50%" r="70%">
+        <stop offset="55%" stop-color="#000000" stop-opacity="0"/>
+        <stop offset="100%" stop-color="#000000" stop-opacity="0.55"/>
+      </radialGradient>
+      <filter id="nodeGlow" x="-80%" y="-80%" width="260%" height="260%">
+        <feGaussianBlur stdDeviation="4" result="b"/>
+        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+      <marker id="course" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+        <path d="M0 0 L10 5 L0 10 z" fill="#e8b04b"/>
+      </marker>
+    </defs>
+    <rect x="0" y="0" width="860" height="480" fill="url(#navgrid)"/>`;
   // deterministic decorative starfield
   for (let i = 0; i < 70; i++) {
     const x = (i * 137) % 860, y = (i * 211) % 480;
     svg += `<circle cx="${x}" cy="${y}" r="${i % 7 === 0 ? 1.3 : 0.7}" fill="#ffffff${i % 3 === 0 ? "66" : "33"}"/>`;
   }
-  const from = S.travel ? S.travel.from : S.loc;
+  // edge coordinate ticks (chart feel)
+  for (let gx = 100; gx < 860; gx += 100) svg += `<text x="${gx}" y="14" fill="#e8b04b55" font-size="8" text-anchor="middle" font-family="monospace">${(gx).toString().padStart(3, "0")}</text>`;
+  // plotted course to the selected destination
   if (S.selPlanet && S.selPlanet !== from) {
     const A = PLANETS[from], B = PLANETS[S.selPlanet];
-    svg += `<line x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}" stroke="#e8b04b88" stroke-dasharray="6 5" stroke-width="1.5"/>`;
+    const mx = (A.x + B.x) / 2, my = (A.y + B.y) / 2;
+    const d = daysTo(from, S.selPlanet), f = fuelTo(from, S.selPlanet);
+    const ok = S.fuel >= f;
+    svg += `<line x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}" stroke="${ok ? "#e8b04b" : "#d96b6b"}" stroke-opacity="0.8" stroke-dasharray="7 5" stroke-width="1.5" marker-end="url(#course)"/>
+      <g transform="translate(${mx},${my})">
+        <rect x="-38" y="-11" width="76" height="22" rx="3" fill="#0d1019" stroke="${ok ? "#3a4256" : "#d96b6b"}"/>
+        <text x="0" y="4" text-anchor="middle" font-family="monospace" font-size="10" fill="${ok ? "#e8b04b" : "#d96b6b"}">${d}d · ${f}⛽</text>
+      </g>`;
   }
   for (const k in PLANETS) {
     const p = PLANETS[k];
     if (p.hidden && S.arc.stage < 5) continue;
     const cur = k === S.loc && S.docked;
+    const sel = k === S.selPlanet;
     const c = FACS[p.fac].c;
+    const isGate = k === "gate";
     svg += `<g class="planet-dot" onclick="selPlanet('${k}')">
-      <circle cx="${p.x}" cy="${p.y}" r="11" fill="${c}" stroke="${k === S.selPlanet ? "#e8b04b" : "#000"}" stroke-width="${k === S.selPlanet ? 3 : 1}"/>
-      ${cur ? `<circle cx="${p.x}" cy="${p.y}" r="17" fill="none" stroke="#e8b04b" stroke-width="1.5" stroke-dasharray="3 3"/>` : ""}
-      <text x="${p.x}" y="${p.y + 28}" fill="#c9cdd8" font-size="12" text-anchor="middle">${p.n}</text>
-      ${k === "gate" ? `<text x="${p.x}" y="${p.y - 18}" fill="#e8b04b" font-size="11" text-anchor="middle">◆ THE RUN</text>` : ""}
+      <circle cx="${p.x}" cy="${p.y}" r="${isGate ? 13 : 11}" fill="${c}" filter="url(#nodeGlow)" opacity="0.9"/>
+      <circle cx="${p.x}" cy="${p.y}" r="${isGate ? 13 : 11}" fill="none" stroke="#05070d" stroke-width="1.5"/>
+      <circle cx="${p.x}" cy="${p.y}" r="${isGate ? 6 : 4.5}" fill="#ffffffcc"/>
+      ${cur ? `<circle class="beacon" cx="${p.x}" cy="${p.y}" r="16" fill="none" stroke="#e8b04b" stroke-width="1.5"/>
+              <circle cx="${p.x}" cy="${p.y}" r="20" fill="none" stroke="#e8b04b" stroke-width="1" stroke-dasharray="2 4"/>` : ""}
+      ${sel ? `<rect x="${p.x - 18}" y="${p.y - 18}" width="36" height="36" fill="none" stroke="#e8b04b" stroke-width="1.5" stroke-dasharray="9 8"/>
+              <line x1="${p.x - 24}" y1="${p.y}" x2="${p.x - 19}" y2="${p.y}" stroke="#e8b04b" stroke-width="1.5"/>
+              <line x1="${p.x + 19}" y1="${p.y}" x2="${p.x + 24}" y2="${p.y}" stroke="#e8b04b" stroke-width="1.5"/>` : ""}
+      <text x="${p.x}" y="${p.y + 30}" fill="${sel ? "#e8b04b" : "#c9cdd8"}" font-size="12" text-anchor="middle" font-family="monospace" letter-spacing="0.5">${p.n}</text>
+      ${isGate ? `<text x="${p.x}" y="${p.y - 20}" fill="#e8b04b" font-size="11" text-anchor="middle" font-family="monospace">◆ THE RUN</text>` : ""}
     </g>`;
   }
   if (S.travel) {
     const A = PLANETS[S.travel.from], B = PLANETS[S.travel.dest];
     const t = 1 - S.travel.left / S.travel.total;
     const x = A.x + (B.x - A.x) * t, y = A.y + (B.y - A.y) * t;
+    const ang = Math.atan2(B.y - A.y, B.x - A.x) * 180 / Math.PI;
     svg += `<line x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}" stroke="#e8b04b55" stroke-width="1"/>
-      <text x="${x}" y="${y}" font-size="16" text-anchor="middle" fill="#e8b04b">☄</text>`;
+      <g transform="translate(${x},${y}) rotate(${ang})"><text x="0" y="5" font-size="17" text-anchor="middle" fill="#e8b04b" filter="url(#nodeGlow)">▸</text></g>`;
   }
+  svg += `<rect x="0" y="0" width="860" height="480" fill="url(#scopeVig)" pointer-events="none"/>`;
   svg += `</svg>`;
+  const locName = PLANETS[from].n;
+  const frameSvg = `<div class="scope">
+    <div class="scope-head"><span>◄ NAV COMPUTER ▬ SECTOR 07 ►</span><span class="sh-r">${S.travel ? "◇ IN TRANSIT" : "● DOCKED · " + locName.toUpperCase()}</span></div>
+    <div class="scope-body"><div class="radar-sweep"></div>${svg}</div>
+    <div class="scope-foot">
+      <span><i class="fdot" style="background:#5b8dd9"></i>UNION <i class="fdot" style="background:#d9a55b"></i>FRONTIER <i class="fdot" style="background:#d96b6b"></i>SYNDICATE</span>
+      <span>${Object.keys(PLANETS).filter((k) => !(PLANETS[k].hidden && S.arc.stage < 5)).length} CONTACTS</span>
+    </div>
+  </div>`;
   let info = "";
   if (S.selPlanet) {
     const p = PLANETS[S.selPlanet];
@@ -60,5 +106,5 @@ export function mapHTML(): string {
   } else {
     info = `<div class="panel"><p class="dim">Select a destination. Planet colors show controlling faction: <span style="color:#5b8dd9">Union</span> · <span style="color:#d9a55b">Frontier</span> · <span style="color:#d96b6b">Syndicate</span>.</p></div>`;
   }
-  return `<div class="panel"><h3>Sector Chart</h3>${svg}</div>` + info;
+  return `<div class="panel"><h3>Sector Chart</h3>${frameSvg}</div>` + info;
 }
