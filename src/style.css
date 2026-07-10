@@ -176,6 +176,59 @@ th{color:var(--dim); font-weight:500; text-transform:uppercase; font-size:11px; 
 .powerbar .cells{display:flex; gap:3px; margin-top:5px;}
 .powerbar .cell{flex:1; height:11px; border-radius:2px; background:#1c2133; border:1px solid #2c3350;}
 .powerbar .cell.used{background:linear-gradient(180deg,#ffd77a,#b97e1f); border-color:#e8b04b; box-shadow:0 0 4px #e8b04b55;}
+/* cockpit — the ship screen framed as a nav station with implied depth */
+.cockpit{ perspective:1300px; perspective-origin:50% 22%; }
+.canopy{
+  position:relative; height:120px; overflow:hidden; margin-bottom:14px;
+  background:radial-gradient(ellipse at 50% 130%, #101625 0%, #04050a 70%);
+  border:1px solid #3a4256; border-bottom:3px solid #2e3448; border-radius:14px 14px 4px 4px;
+  clip-path:polygon(4% 0, 96% 0, 100% 100%, 0 100%);
+  box-shadow:inset 0 -18px 30px #000c, inset 0 4px 20px #5b8dd90d;
+}
+.canopy .l1,.canopy .l2{ position:absolute; inset:0; background-repeat:repeat; }
+.canopy .l1{
+  background-image:radial-gradient(1px 1px at 10px 20px,#fff9,transparent),radial-gradient(1px 1px at 60px 84px,#fff5,transparent),radial-gradient(1.6px 1.6px at 132px 42px,#fffb,transparent),radial-gradient(1px 1px at 190px 100px,#fff6,transparent),radial-gradient(1.2px 1.2px at 226px 66px,#fff8,transparent);
+  background-size:260px 120px;
+}
+.canopy .l2{
+  background-image:radial-gradient(1px 1px at 32px 62px,#fff4,transparent),radial-gradient(1px 1px at 92px 16px,#fff3,transparent),radial-gradient(1px 1px at 158px 74px,#fff4,transparent),radial-gradient(1px 1px at 204px 34px,#fff3,transparent);
+  background-size:230px 120px;
+}
+.canopy.moving .l1{ animation:scroll1 3s linear infinite; }
+.canopy.moving .l2{ animation:scroll2 7s linear infinite; }
+.canopy-strut{ position:absolute; top:0; bottom:0; width:14px; background:linear-gradient(90deg,#1a1e2c,#2e3448,#1a1e2c); box-shadow:0 0 10px #000c; }
+.canopy-strut.cs-l{ left:26%; transform:skewX(-7deg); }
+.canopy-strut.cs-r{ right:26%; transform:skewX(7deg); }
+.canopy-status{
+  position:absolute; left:50%; bottom:8px; transform:translateX(-50%);
+  font-family:"Consolas",ui-monospace,monospace; font-size:10px; letter-spacing:3px; color:var(--amber);
+  background:#0d1019cc; border:1px solid #23283a; border-radius:3px; padding:3px 12px; white-space:nowrap;
+}
+.dash{ display:flex; gap:8px; align-items:flex-start; transform-style:preserve-3d; }
+.console{ flex:1; min-width:0; }
+.console .panel{ background:linear-gradient(180deg,#141722,#10121b); }
+.con-left{ transform:rotateY(9deg) translateZ(6px); transform-origin:right center; }
+.con-right{ transform:rotateY(-9deg) translateZ(6px); transform-origin:left center; }
+.con-center{ max-width:360px; transform:rotateX(5deg); transform-origin:center top; z-index:1; }
+.con-left .panel{ box-shadow:6px 0 14px #0008; border-right-color:#3a4256; }
+.con-right .panel{ box-shadow:-6px 0 14px #0008; border-left-color:#3a4256; }
+.con-center .panel{ box-shadow:0 12px 22px #000a; }
+.dash-sill{
+  display:flex; align-items:center; justify-content:space-between; gap:14px;
+  height:26px; margin-top:4px; padding:0 18px;
+  background:linear-gradient(180deg,#232839,#141826 60%,#0c0e16);
+  border:1px solid #3a4256; border-top-color:#4a536b; border-radius:4px 4px 10px 10px;
+  box-shadow:0 -6px 16px #0009, inset 0 1px 0 #ffffff14;
+}
+.sill-vents{ flex:1; max-width:220px; height:8px; margin:0 auto;
+  background-image:linear-gradient(90deg,#0a0c12 3px,transparent 3px); background-size:9px 8px; opacity:.7; }
+.sill-light{ width:7px; height:7px; border-radius:50%; }
+.sill-light.g{ background:var(--green); box-shadow:0 0 6px var(--green); animation:pulse 3.2s infinite; }
+.sill-light.o{ background:#7a5c1e; box-shadow:0 0 4px #7a5c1e; }
+@media (max-width:1000px){
+  .dash{ flex-wrap:wrap; }
+  .con-left,.con-right,.con-center{ transform:none; max-width:none; flex:1 1 280px; }
+}
 /* travel starfield */
 .starfield{position:relative; height:120px; border:1px solid var(--line); border-radius:6px; overflow:hidden; margin:12px 0; background:#04050a;}
 .starfield .l1,.starfield .l2{position:absolute; inset:0; background-repeat:repeat;}

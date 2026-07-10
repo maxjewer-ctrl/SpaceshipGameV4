@@ -93,8 +93,38 @@ export function shipHTML(): string {
     return `<div style="font-size:12px">${FACS[f].n} <span class="dim">(${v > 0 ? "+" : ""}${v})</span></div>
       <div class="repbar"><div class="f" style="left:0;width:${pct}%;background:${FACS[f].c}"></div></div>`;
   }).join("");
-  return `<div class="row">
-    <div class="col" style="max-width:340px">
+  // Cockpit framing: canopy up top, consoles angled toward the pilot's seat.
+  const canopyStatus = S.travel ? "◇ IN TRANSIT" : S.docked ? `● DOCKED — ${PLANETS[S.loc].n.toUpperCase()}` : "◇ ADRIFT";
+  return `<div class="cockpit">
+    <div class="canopy${S.travel ? " moving" : ""}">
+      <div class="l1"></div><div class="l2"></div>
+      <div class="canopy-strut cs-l"></div><div class="canopy-strut cs-r"></div>
+      <div class="canopy-status">${canopyStatus}</div>
+    </div>
+    <div class="dash">
+    <div class="console con-left">
+      <div class="panel"><h3>Ship Systems</h3>
+        <div class="statgrid">
+          <span>Cargo</span><b>${cargoUsed()}/${st.cargoCap}</b>
+          <span>Hidden cargo</span><b>${scargoUsed()}/${st.scargoCap}</b>
+          <span>Passenger berths</span><b>${paxJobs().length}/${st.paxCap}</b>
+          <span>Staterooms</span><b>${vipJobs().length}/${st.vipCap}</b>
+          <span>Crew bunks</span><b>${S.crew.length}/${st.crewCap}</b>
+          <span>Combat damage</span><b>~${st.dmg}</b>
+          <span>Shields</span><b>−${st.shield}/hit</b>
+          <span>Speed</span><b>${st.speed} u/day</b>
+          <span>Fuel burn</span><b>${st.fuelDay}/day</b>
+          <span>Food: eat/grow</span><b>${foodPerDay()}/${st.foodGen}</b>
+          <span>Trade goods</span><b>${S.cargo.ore} ore · ${S.cargo.med} med · ${S.cargo.lux} lux</b>
+          <span>Payroll</span><b>${salaries()}cr/day</b>
+          <span>Reactor</span><b>${st.powerUse}/${st.powerOut}⚡</b>
+          <span>Systems down</span><b class="${S.modules.some((m) => m.dmg) ? "low" : ""}">${S.modules.filter((m) => m.dmg).length}</b>
+        </div>
+      </div>
+      <div class="panel"><h3>Faction Standing</h3>${repHtml}</div>
+      <div class="panel"><h3>Word on the Street</h3>${repStreetHtml()}</div>
+    </div>
+    <div class="console con-center">
       <div class="panel"><h3>${S.shipName} — deck schematic</h3>
         <div class="shipframe ${hullState}">
           <div class="frame-head"><span class="fh-l">◄ DECK PLAN ▬ LIVE FEED ►</span><span class="fh-r">REG ${reg}</span></div>
@@ -124,32 +154,14 @@ export function shipHTML(): string {
         <p class="dim" style="margin-top:8px">● green = running · ○ grey = powered down · ⛔ red = damaged. Click a bay to inspect, toggle power, or sell.</p>
       </div>
       ${selHtml}
-      <div class="panel"><h3>Ship Systems</h3>
-        <div class="statgrid">
-          <span>Cargo</span><b>${cargoUsed()}/${st.cargoCap}</b>
-          <span>Hidden cargo</span><b>${scargoUsed()}/${st.scargoCap}</b>
-          <span>Passenger berths</span><b>${paxJobs().length}/${st.paxCap}</b>
-          <span>Staterooms</span><b>${vipJobs().length}/${st.vipCap}</b>
-          <span>Crew bunks</span><b>${S.crew.length}/${st.crewCap}</b>
-          <span>Combat damage</span><b>~${st.dmg}</b>
-          <span>Shields</span><b>−${st.shield}/hit</b>
-          <span>Speed</span><b>${st.speed} u/day</b>
-          <span>Fuel burn</span><b>${st.fuelDay}/day</b>
-          <span>Food: eat/grow</span><b>${foodPerDay()}/${st.foodGen}</b>
-          <span>Trade goods</span><b>${S.cargo.ore} ore · ${S.cargo.med} med · ${S.cargo.lux} lux</b>
-          <span>Payroll</span><b>${salaries()}cr/day</b>
-          <span>Reactor</span><b>${st.powerUse}/${st.powerOut}⚡</b>
-          <span>Systems down</span><b class="${S.modules.some((m) => m.dmg) ? "low" : ""}">${S.modules.filter((m) => m.dmg).length}</b>
-        </div>
-      </div>
-      <div class="panel"><h3>Faction Standing</h3>${repHtml}</div>
-      <div class="panel"><h3>Word on the Street</h3>${repStreetHtml()}</div>
     </div>
-    <div class="col">
+    <div class="console con-right">
       ${storyCards()}
       <div class="panel"><h3>Active Contracts (${S.jobs.length})</h3>${jobsHtml}</div>
       <div class="panel"><h3>Crew (${S.crew.length}/${st.crewCap})</h3>${crewHtml}</div>
       <div class="panel"><h3>Passengers</h3>${paxHtml}</div>
     </div>
+    </div>
+    <div class="dash-sill"><span class="sill-light g"></span><span class="sill-vents"></span><span class="sill-light o"></span></div>
   </div>`;
 }
