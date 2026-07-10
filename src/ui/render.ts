@@ -4,7 +4,7 @@ import { stats, foodPerDay, isSilenced } from "../derive";
 import { fmt, $ } from "../util";
 import { requestRender } from "../bus";
 import { refreshMarket } from "../systems/market";
-import { shipHTML } from "./ship";
+import { shipHTML, captainsLogHTML } from "./ship";
 import { mapHTML } from "./map";
 import { planetHTML } from "./planet";
 import { travelHTML } from "./travel";
@@ -84,7 +84,14 @@ function renderMain() {
 }
 
 function renderSide() {
-  $("side").innerHTML = `<div class="panel"><h3>Captain's Log</h3>
-    ${S.logLines.map((l) => `<div class="logline${l.bark ? " bark" : ""}"><b>D${l.d}</b> ${l.m}</div>`).join("") || '<div class="dim">Nothing yet.</div>'}
-  </div>`;
+  // On the ship screen the log lives at the top of the cockpit's right
+  // console instead — hide the standalone sidebar so it isn't shown twice.
+  const side = $("side");
+  if (S.screen === "ship") {
+    side.style.display = "none";
+    side.innerHTML = "";
+  } else {
+    side.style.display = "";
+    side.innerHTML = captainsLogHTML();
+  }
 }

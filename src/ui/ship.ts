@@ -8,6 +8,12 @@ import { storyCards } from "../systems/silence";
 
 export function selSlot(i: number) { S.sel = S.sel === i ? null : i; requestRender(); }
 
+export function captainsLogHTML(): string {
+  return `<div class="panel"><h3>Captain's Log</h3>
+    ${S.logLines.map((l) => `<div class="logline${l.bark ? " bark" : ""}"><b>D${l.d}</b> ${l.m}</div>`).join("") || '<div class="dim">Nothing yet.</div>'}
+  </div>`;
+}
+
 // Module bays get a category accent colour on the schematic — combat/logistics/
 // life-support/bio/power read at a glance instead of a wall of identical boxes.
 export function modCategory(t: string): string {
@@ -156,6 +162,7 @@ export function shipHTML(): string {
       ${selHtml}
     </div>
     <div class="console con-right">
+      ${captainsLogHTML()}
       ${storyCards()}
       <div class="panel"><h3>Active Contracts (${S.jobs.length})</h3>${jobsHtml}</div>
       <div class="panel"><h3>Crew (${S.crew.length}/${st.crewCap})</h3>${crewHtml}</div>
