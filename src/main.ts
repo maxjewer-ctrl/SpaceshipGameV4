@@ -26,12 +26,14 @@ import {
   hunterWin, hunterFled, hunterRun, interceptWin, interceptFled,
 } from "./systems/arc";
 import { riderFight } from "./systems/scheduler";
-import { stationGo, stationEnter } from "./ui/station";
-import { openNPC, sceneChoose, sceneContinue } from "./systems/scene";
+import { sceneChoose, sceneContinue } from "./systems/scene";
 import {
   silDescend, silBearing, silAnswer, silStill, silSell,
   silBoardReturned, silScanReturned, silLearnNumbers, silLearnReturned,
 } from "./systems/silence";
+import { pressStart, pressEnd, interact, debugStep, debugPos, debugGoto } from "./ui/walk";
+import { crewTalk } from "./ui/shipwalk";
+import { wkPay, wkTalk, wkFight } from "./systems/walkEncounters";
 import { loadRemoteContent } from "./supabase/content";
 
 setRender(render);
@@ -61,13 +63,19 @@ Object.assign(window as any, {
   hunterWin, hunterFled, hunterRun, interceptWin, interceptFled,
   // consequence scheduler
   riderFight,
-  // walkable station + scenes
-  stationGo, stationEnter, openNPC, sceneChoose, sceneContinue,
+  // station scenes (dialogue-tree modal choices)
+  sceneChoose, sceneContinue,
   // the Long Silence
   silDescend, silBearing, silAnswer, silStill, silSell,
   silBoardReturned, silScanReturned, silLearnNumbers, silLearnReturned,
-  // dev/debug: live state accessor (harmless — behind an underscore)
+  // free-roam walking: D-pad/keyboard fallback buttons, crew chat, foot encounters
+  walkPressStart: pressStart, walkPressEnd: pressEnd, walkInteract: interact,
+  crewTalk, wkPay, wkTalk, wkFight,
+  // dev/debug: live state accessor + manual walk-frame stepper (harmless — behind underscores)
   __S: () => State.S,
+  __walkStep: debugStep,
+  __walkPos: debugPos,
+  __walkGoto: debugGoto,
 });
 
 // ---- boot ----

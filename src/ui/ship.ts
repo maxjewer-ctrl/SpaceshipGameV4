@@ -10,7 +10,7 @@ export function selSlot(i: number) { S.sel = S.sel === i ? null : i; requestRend
 
 // Module bays get a category accent colour on the schematic — combat/logistics/
 // life-support/bio/power read at a glance instead of a wall of identical boxes.
-function modCategory(t: string): string {
+export function modCategory(t: string): string {
   if (["weapons", "shields", "armory"].includes(t)) return "cat-combat";
   if (["cargohold", "fueltank", "smuggler"].includes(t)) return "cat-flow";
   if (["cabin", "quarters", "luxcabin"].includes(t)) return "cat-life";

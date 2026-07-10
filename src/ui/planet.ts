@@ -23,6 +23,7 @@ export function planetHTML(): string {
     <div style="display:flex; gap:6px; flex-wrap:wrap">
       ${tab("cantina", "🍺 Cantina")} ${tab("market", "⚖ Market")} ${tab("yard", "🔧 Shipyard")}
       <button onclick="waitDay()" title="Pass a day: refreshes jobs & prices, consumes food & payroll">⏳ Wait a day</button>
+      <button onclick="nav('stationwalk')" style="margin-left:auto">🚪 Back to the deck</button>
     </div>
   </div>` + body;
 }

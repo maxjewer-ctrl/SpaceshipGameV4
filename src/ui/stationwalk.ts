@@ -1,0 +1,155 @@
+// The walkable station: a real top-down deck you move a sprite through with
+// WASD/arrows. The cantina hides behind the exchange, the dry dock opens off
+// the docks, the undercity is down past the berths — this is the ONLY way
+// onto planetside services; there is no shortcut nav button into the cantina.
+import { S } from "../state";
+import { PLANETS, NPCS } from "../content";
+import { requestRender } from "../bus";
+import { npcsInRoom, openNPC } from "../systems/scene";
+import { isSilenced } from "../derive";
+import { stationWalkTick } from "../systems/walkEncounters";
+import { teardown, forgetSpawn } from "./walk";
+import type { WalkScene, WalkRoom, WalkRect, WalkDoor, WalkActor } from "./walk";
+
+interface RoomDef { id: string; x: number; y: number; w: number; h: number; label: string; icon: string; tab?: string; }
+
+// World 1000x700. A warren, not a wheel — see LINKS for who connects to whom.
+const ROOMS: RoomDef[] = [
+  { id: "harbor", x: 650, y: 40, w: 230, h: 150, label: "Harbormaster", icon: "🛃" },
+  { id: "concourse", x: 560, y: 290, w: 260, h: 170, label: "Concourse", icon: "🏛️" },
+  { id: "market", x: 280, y: 220, w: 210, h: 150, label: "Exchange", icon: "⚖️", tab: "market" },
+  { id: "cantina", x: 40, y: 90, w: 220, h: 150, label: "Cantina", icon: "🍺", tab: "cantina" },
+  { id: "docks", x: 430, y: 520, w: 240, h: 150, label: "Docks", icon: "🚀" },
+  { id: "drydock", x: 760, y: 540, w: 220, h: 140, label: "Dry Dock", icon: "🔧", tab: "yard" },
+  { id: "undercity", x: 90, y: 540, w: 230, h: 150, label: "The Undercity", icon: "🕯️" },
+];
+const LINKS: [string, string][] = [
+  ["harbor", "concourse"], ["concourse", "market"], ["market", "cantina"],
+  ["concourse", "docks"], ["docks", "drydock"], ["docks", "undercity"],
+];
+
+function corridor(a: RoomDef, b: RoomDef, thick = 46): WalkRect[] {
+  const acx = a.x + a.w / 2, acy = a.y + a.h / 2;
+  const bcx = b.x + b.w / 2, bcy = b.y + b.h / 2;
+  const half = thick / 2;
+  return [
+    { x: Math.min(acx, bcx) - half, y: acy - half, w: Math.abs(bcx - acx) + thick, h: thick },
+    { x: bcx - half, y: Math.min(acy, bcy) - half, w: thick, h: Math.abs(bcy - acy) + thick },
+  ];
+}
+
+const ROOM_DESC: Record<string, string> = {
+  harbor: "Frosted glass and a queue that never moves. The harbormaster decides whose papers are in order today — and whose fees went up.",
+  cantina: "Warmth, noise, and the smell of cheap protein and cheaper liquor. Work changes hands here, and so do secrets.",
+  market: "The commodities floor. Numbers scroll, hands are shaken, and nobody asks where anything came from.",
+  concourse: "The station's crossroads under a false-sky ceiling. Everyone passes through eventually.",
+  undercity: "Below the plating, where the light gives out. Bonded labor, back rooms, and the people the concourse pretends not to see.",
+  drydock: "Sparks, cranes, and the yard crew who'll weld anything onto anything for the right number.",
+  docks: "Your berth. The ship ticks as she cools. Beyond the airlock, the station hums with other people's business.",
+};
+const DARK_DESC: Record<string, string> = {
+  harbor: "The queue posts stand in perfect order. The fee schedule still cycles on the screen behind the empty desk, revising itself upward for no one.",
+  cantina: "Every tap still works. Trays of food at empty tables, gone soft. The radio behind the bar plays the hiss between stations at careful, deliberate volume.",
+  market: "The boards still scroll prices for a market with no traders. Somewhere in the racks a cooling fan finds a frequency that sounds almost like humming.",
+  concourse: "The false-sky ceiling still runs its daylight cycle over an empty floor. Your bootsteps don't echo the way they should.",
+  undercity: "The recycler lines run themselves. Neat rows of tools set down mid-task — not dropped. Set down, carefully, by people who knew they wouldn't need them again.",
+  drydock: "A ship sits half-repaired in the cradle, welding rig still clamped to her spine. The work log's last entry reads, in full: 'done now.'",
+  docks: "Your ship is the only thing on this deck with a heartbeat. The berth clamps took you in like the automation never stopped caring. It didn't.",
+};
+
+function verb(tab: string): string {
+  return tab === "cantina" ? "Step into the Cantina" : tab === "market" ? "Walk the Exchange floor" : "Enter the Dry Dock";
+}
+
+// Every action that walks the player OFF the station deck tears down the walk
+// engine first — otherwise its rAF loop and keydown listener keep running
+// against a detached canvas after render() overwrites #main for the new screen.
+export function stationEnter(tab: string) {
+  teardown();
+  S.ptab = tab;
+  S.screen = "planet";
+  requestRender();
+}
+
+function boardShip() {
+  teardown();
+  S.screen = "shipwalk";
+  requestRender();
+}
+function departureBoard() {
+  teardown();
+  S.screen = "map";
+  requestRender();
+}
+
+export function buildStationScene(): WalkScene {
+  const dark = isSilenced(S.loc);
+  const floors: WalkRect[] = ROOMS.map((r) => ({ x: r.x, y: r.y, w: r.w, h: r.h }));
+  for (const [a, b] of LINKS) {
+    const A = ROOMS.find((r) => r.id === a)!, B = ROOMS.find((r) => r.id === b)!;
+    floors.push(...corridor(A, B));
+  }
+  const rooms: WalkRoom[] = ROOMS.map((r) => ({ id: r.id, x: r.x, y: r.y, w: r.w, h: r.h, label: r.label, icon: r.icon }));
+
+  const doors: WalkDoor[] = [];
+  const actors: WalkActor[] = [];
+
+  for (const r of ROOMS) {
+    if (r.tab) {
+      doors.push({
+        x: r.x + r.w / 2 - 34, y: r.y + r.h - 30, w: 68, h: 22,
+        label: verb(r.tab),
+        locked: dark,
+        lockedHint: dark ? "Locked down. Nothing answers." : undefined,
+        action: () => stationEnter(r.tab!),
+      });
+    }
+    if (r.id === "docks") {
+      doors.push({
+        x: r.x + 18, y: r.y + r.h - 30, w: 90, h: 22,
+        label: dark ? "Back aboard. Now." : "Board your ship",
+        action: boardShip,
+      });
+      doors.push({
+        x: r.x + r.w - 108, y: r.y + r.h - 30, w: 90, h: 22,
+        label: "Departure board",
+        locked: dark,
+        lockedHint: dark ? "The board's dead. Nothing's coming or going here." : undefined,
+        action: departureBoard,
+      });
+    }
+    if (!dark) {
+      const npcs = npcsInRoom(r.id);
+      npcs.forEach((key, i) => {
+        const n = NPCS[key];
+        const cols = Math.min(npcs.length, 3);
+        const gx = r.x + 30 + (i % cols) * 56;
+        const gy = r.y + 44 + Math.floor(i / cols) * 50;
+        actors.push({
+          x: gx, y: gy, w: 30, h: 30, key,
+          label: n.name, icon: n.icon || "◆", color: "#d9a55b",
+          onInteract: () => openNPC(key),
+        });
+      });
+    }
+  }
+
+  const roomDesc: Record<string, string> = {};
+  for (const r of ROOMS) roomDesc[r.id] = (dark ? DARK_DESC[r.id] : ROOM_DESC[r.id]) || "";
+
+  const p = PLANETS[S.loc];
+  return {
+    id: "station:" + S.loc,
+    title: `${p.n} — Station Deck${dark ? " (dark)" : ""}`,
+    status: dark ? "SIGNAL LOST · AUTOMATION ONLY" : `${p.n.toUpperCase()} STATION`,
+    width: 1000, height: 700,
+    floors, rooms, roomDesc, doors, actors,
+    spawn: { x: 550, y: 590 }, // just inside the docks room
+    dark,
+    onTick: (moving, dt, roomId) => stationWalkTick(moving, dt, roomId),
+  };
+}
+
+export function resetStation() {
+  forgetSpawn("station:" + S.loc);
+}

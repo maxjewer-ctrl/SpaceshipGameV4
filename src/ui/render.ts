@@ -8,9 +8,14 @@ import { shipHTML } from "./ship";
 import { mapHTML } from "./map";
 import { planetHTML } from "./planet";
 import { travelHTML } from "./travel";
-import { stationHTML } from "./station";
+import { buildStationScene } from "./stationwalk";
+import { buildShipScene } from "./shipwalk";
+import * as walk from "./walk";
+
+const WALK_SCREENS = ["stationwalk", "shipwalk"];
 
 export function nav(scr: string) {
+  if (WALK_SCREENS.includes(S.screen) && !WALK_SCREENS.includes(scr)) walk.teardown();
   S.screen = scr;
   if (scr === "planet") refreshMarket();
   requestRender();
@@ -48,11 +53,13 @@ function renderTop() {
 function renderNav() {
   const b = (id: string, label: string, on?: boolean, dis?: boolean) =>
     `<button class="${on ? "tab-on" : ""}" ${dis ? "disabled" : ""} onclick="nav('${id}')">${label}</button>`;
+  // No direct shortcut into the cantina/market/yard screen: the station deck
+  // is the only door in. Walk to the room, then through it.
   $("nav").innerHTML =
     b("ship", "🚀 Ship", S.screen === "ship") +
+    b("shipwalk", "🧑‍🚀 Walk Ship", S.screen === "shipwalk") +
     b("map", "🗺 Star Map", S.screen === "map") +
-    (S.docked && S.loc !== "gate" && S.loc !== "anechoic" ? b("station", isSilenced(S.loc) ? "🛰 Station (dark)" : "🛰 Station", S.screen === "station") : "") +
-    (S.docked ? b("planet", "🏙 " + PLANETS[S.loc].n, S.screen === "planet", S.loc === "gate" || S.loc === "anechoic" || isSilenced(S.loc)) : "") +
+    (S.docked && S.loc !== "gate" && S.loc !== "anechoic" ? b("stationwalk", isSilenced(S.loc) ? "🛰 Station (dark)" : "🛰 Station", S.screen === "stationwalk") : "") +
     (S.travel ? b("travel", "🌌 In Transit", S.screen === "travel") : "") +
     `<span class="right">
       <button onclick="showHelp()">? Help</button>
@@ -64,8 +71,15 @@ function renderMain() {
   const m = $("main");
   if (S.screen === "ship") m.innerHTML = shipHTML();
   else if (S.screen === "map") m.innerHTML = mapHTML();
-  else if (S.screen === "station") m.innerHTML = stationHTML();
-  else if (S.screen === "planet") m.innerHTML = planetHTML();
+  else if (S.screen === "stationwalk") {
+    const scene = buildStationScene();
+    if (walk.needsMount(scene.id)) m.innerHTML = walk.mountHTML(scene);
+    walk.ensureRunning(scene);
+  } else if (S.screen === "shipwalk") {
+    const scene = buildShipScene();
+    if (walk.needsMount(scene.id)) m.innerHTML = walk.mountHTML(scene);
+    walk.ensureRunning(scene);
+  } else if (S.screen === "planet") m.innerHTML = planetHTML();
   else if (S.screen === "travel") m.innerHTML = travelHTML();
 }
 

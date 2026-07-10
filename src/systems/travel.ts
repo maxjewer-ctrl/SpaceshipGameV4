@@ -15,7 +15,7 @@ import { checkScheduler, plantDelay, maybePlantReputationRider } from "./schedul
 import { bark, tellBark } from "./barks";
 import { remember, crewKey } from "./ledger";
 import { shift } from "./disposition";
-import { resetStation } from "../ui/station";
+import { resetStation } from "../ui/stationwalk";
 import { silenceTick, silenceArrive } from "./silence";
 import type { Job } from "../types";
 
