@@ -53,6 +53,20 @@ export function scargoUsed(): number {
 }
 export function salaries(): number { return S.crew.reduce((a, c) => a + c.salary, 0); }
 
+// Hidden worlds reveal on their own story conditions.
+export function planetVisible(k: string): boolean {
+  const p = PLANETS[k];
+  if (!p || !p.hidden) return !!p;
+  if (k === "gate") return S.arc.stage >= 5;
+  if (k === "anechoic") return !!S.flags.source_unlocked;
+  return false;
+}
+
+// A silenced world is still on the chart — but nothing answers there.
+export function isSilenced(k: string): boolean {
+  return !!S.campaign && S.campaign.silence.silenced.includes(k);
+}
+
 export function dist(a: string, b: string): number {
   const A = PLANETS[a], B = PLANETS[b];
   return Math.hypot(A.x - B.x, A.y - B.y);

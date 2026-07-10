@@ -1,6 +1,6 @@
 import { S, log } from "../state";
 import { PLANETS, MODS, GOODS, NAMES, MOTIVES, FLAVOR, ROLES, CREWGEN } from "../content";
-import { stats, daysTo, cargoUsed, scargoUsed, paxJobs, vipJobs } from "../derive";
+import { stats, daysTo, cargoUsed, scargoUsed, paxJobs, vipJobs, planetVisible, isSilenced } from "../derive";
 import { rand, ri, pick } from "../rng";
 import { requestRender } from "../bus";
 import { bark } from "./barks";
@@ -15,7 +15,7 @@ export function yardPrice(t: string): number {
 export function refreshMarket() {
   if (S.market && S.market.loc === S.loc && S.market.day === S.day) return;
   const p = PLANETS[S.loc];
-  if (S.loc === "gate") {
+  if (S.loc === "gate" || S.loc === "anechoic" || isSilenced(S.loc)) {
     S.market = { loc: S.loc, day: S.day, missions: [], recruits: [], prices: {}, rumors: [] };
     return;
   }
@@ -39,7 +39,8 @@ export function refreshMarket() {
 }
 
 function otherPlanet(): string {
-  const opts = Object.keys(PLANETS).filter((k) => k !== S.loc && !PLANETS[k].hidden);
+  const opts = Object.keys(PLANETS).filter(
+    (k) => k !== S.loc && !PLANETS[k].hidden && planetVisible(k) && !isSilenced(k));
   return pick(opts);
 }
 

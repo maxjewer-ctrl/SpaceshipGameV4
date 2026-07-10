@@ -12,6 +12,8 @@ import { bark, tellBark } from "./barks";
 import { plantDelay, flagActive } from "./scheduler";
 import { remember, crewKey, witnessAll } from "./ledger";
 import { shift } from "./disposition";
+import { evNumbersStation, evReturnedShip } from "./silence";
+import { planetVisible, isSilenced } from "../derive";
 
 // ---------- daily event roll ----------
 export function rollEvent() {
@@ -26,6 +28,11 @@ export function rollEvent() {
   add(2, evTrader);
   if (S.jobs.some((j) => j.pax)) add(3, evPax);
   add(3, evQuiet);
+  // the Long Silence leaks into the lanes once the Broadcast has happened
+  if (S.campaign.silence.stage >= 1 && S.campaign.silence.stage < 4) {
+    add(2, evNumbersStation);
+    if (!S.flags.sil_returned_done) add(2, evReturnedShip);
+  }
   pick(pool)();
 }
 
@@ -346,7 +353,7 @@ export function adriftTow() {
   const cost = Math.max(200, Math.round(S.credits * 0.4));
   let nearest: string | null = null, best = 1e9;
   for (const k in PLANETS) {
-    if (PLANETS[k].hidden && S.arc.stage < 5) continue;
+    if (!planetVisible(k) || isSilenced(k) || k === "anechoic") continue;
     if (k === S.loc) continue;
     const from = S.travel ? S.travel.from : S.loc;
     const d = dist(from, k);

@@ -1,7 +1,7 @@
 import type { GameState, ModuleInstance } from "./types";
 
 export const SAVE_KEY = "kestrelrun";
-export const SAVE_VERSION = 4;
+export const SAVE_VERSION = 5;
 
 // The single mutable game state. `export let` gives live bindings to importers;
 // replace it only through setState so everyone sees the new object.
@@ -28,6 +28,7 @@ export function newState(shipName: string): GameState {
     arc: { stage: 0, deadline: null, betrayed: false, ambushed: false, done: false },
     scheduled: [], ledger: [], npcs: [], flags: {},
     disposition: { mercy: 0, law: 0, daring: 0 },
+    campaign: { silence: { stage: 0, silenced: [], nextDay: null, nextWorld: null, billDay: null } },
     starve: 0, unpaid: 0, uid: 1, over: false, won: false, dead: false,
   };
 }
@@ -81,6 +82,15 @@ export function migrate(s: any): GameState {
   if (s.version < 4) {
     if (!s.disposition || typeof s.disposition !== "object") s.disposition = { mercy: 0, law: 0, daring: 0 };
     s.version = 4;
+  }
+  // v5: campaigns (the Long Silence + the Reckoning gate).
+  if (s.version < 5) {
+    if (!s.campaign || typeof s.campaign !== "object") {
+      s.campaign = { silence: { stage: 0, silenced: [], nextDay: null, nextWorld: null, billDay: null } };
+    }
+    // The Reckoning reads this flag; grant it to saves that already resolved Voss.
+    if (s.arc && (s.arc.done || s.arc.betrayed)) s.flags.arc_resolved = true;
+    s.version = 5;
   }
   return s as GameState;
 }

@@ -36,6 +36,7 @@ export interface MissionGrant {
   units?: number; hidden?: boolean; prestige?: number; rep?: [string, number];
   needs?: string[]; desc?: string; deadlineDays?: number;
   pax?: { name: string; motive: string };
+  tag?: string;  // completion sets flags["job_<tag>"]
 }
 export interface RiderEffect {
   credits?: number; prestige?: number; food?: number; fuel?: number; hull?: number;

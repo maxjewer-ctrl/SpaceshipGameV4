@@ -28,6 +28,10 @@ import {
 import { riderFight } from "./systems/scheduler";
 import { stationGo, stationEnter } from "./ui/station";
 import { openNPC, sceneChoose, sceneContinue } from "./systems/scene";
+import {
+  silDescend, silBearing, silAnswer, silStill, silSell,
+  silBoardReturned, silScanReturned, silLearnNumbers, silLearnReturned,
+} from "./systems/silence";
 import { loadRemoteContent } from "./supabase/content";
 
 setRender(render);
@@ -59,6 +63,9 @@ Object.assign(window as any, {
   riderFight,
   // walkable station + scenes
   stationGo, stationEnter, openNPC, sceneChoose, sceneContinue,
+  // the Long Silence
+  silDescend, silBearing, silAnswer, silStill, silSell,
+  silBoardReturned, silScanReturned, silLearnNumbers, silLearnReturned,
   // dev/debug: live state accessor (harmless — behind an underscore)
   __S: () => State.S,
 });

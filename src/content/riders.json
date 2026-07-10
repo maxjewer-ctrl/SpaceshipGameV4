@@ -172,6 +172,43 @@
       { "rumor": "\"That careful captain? Merchants trust 'em with the good cargo. Slow, sure, and never loses a crate.\"" }
     ]
   },
+  "reckoning_verdict": {
+    "class": "echo",
+    "title": "⚖ The Verdict Lands",
+    "text": "It reaches you by relay in three parts: the verdict, the sentence, and the sound — forty seconds of a cargo hall full of Meridian survivors not cheering, not weeping, just breathing out, together, for the first time in eleven years. Admiral Ottesen's portrait comes down from a thousand Union offices in a single administrative afternoon. On Meridian Prime, they are reading the sixty thousand names aloud in the plaza. It takes four days. Your ship's name is read at the end, in the list of those who carried.",
+    "log": "⚖ The Ottesen verdict has landed. On Meridian they read the sixty thousand names — and your ship's, at the end.",
+    "effects": [
+      { "prestige": 2 },
+      { "rep": ["frontier", 2] },
+      { "rumor": "\"They read the names for four days on Meridian. Four days. And not one Union patrol dared break it up.\"" },
+      { "worldMemory": { "planet": "meridian", "fact": "the_names_were_read", "weight": 4, "note": "Meridian Prime remembers: the verdict, the plaza, four days of names, and the ship that carried the witnesses." } }
+    ]
+  },
+  "reckoning_public_wave": {
+    "class": "twist",
+    "title": "⚖ Fury, Unfiled",
+    "text": "No verdict, no process — just the raw Meridian files loose on every band, and the sector deciding for itself. Three Union recruitment offices burn in a week. A statue of Ottesen loses its head to a docking clamp on a livestream. The Admiral withdraws from public life 'for reasons of health,' guarded by men who now watch HIM. Reyes sends you a single line, no signature: 'Fury, as promised. History will argue about us. At least now it has the documents.'",
+    "log": "⚖ The Meridian files are everywhere. No trial — just fury, riots, and an Admiral hiding behind his own guards.",
+    "effects": [
+      { "prestige": 1 },
+      { "rep": ["union", -2] },
+      { "rep": ["syndicate", 2] },
+      { "rumor": "\"No tribunal, no appeal, no forgetting. Whoever leaked it all didn't want justice. They wanted it REMEMBERED.\"" }
+    ]
+  },
+  "reckoning_burn": {
+    "class": "bill",
+    "title": "⚖ The Tidying of History",
+    "text": "The news finds you at a fuel stop, six lines deep in a Union bulletin: a fire in a Haven's Folly storage district. One fatality — an unlicensed 'legal consultant,' name withheld. You don't need the name withheld. You know exactly which door-desk burned, and which sixty thousand names went with it. There will be no case now. There was never going to be a case, after you. Mr. Grey's transfer sits in your account, spending exactly like any other money.",
+    "log": "⚖ Advocate Reyes is dead — a 'storage fire' on Haven's Folly. The tribunal's case burned with him. You were paid.",
+    "effects": [
+      { "prestige": -2 },
+      { "rumor": "\"Storage fire, they're calling it. Funny how the fire knew which crates had the depositions in them.\"" },
+      { "remember": { "who": "captain", "fact": "reyes_burned", "weight": -5, "note": "Reyes died in a 'storage fire' three weeks after you took Ottesen's buyout. Sixty thousand names burned twice." } },
+      { "worldMemory": { "planet": "havens", "fact": "the_advocate_burned", "weight": -3, "note": "Haven's Folly remembers the storage fire, and the undercity keeps a shorter, uglier account of who got paid beforehand." } }
+    ]
+  },
+
   "rep_passed_over": {
     "class": "bill",
     "title": "◆ The Bolder Captain",

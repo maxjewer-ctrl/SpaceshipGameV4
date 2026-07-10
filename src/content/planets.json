@@ -19,5 +19,8 @@
                "d":"Last light before the black. Prices are ugly but so is the alternative."},
   "gate":     {"n":"Elysium Gate",   "x":770, "y":420, "fac":"none",     "fuelP":0, "foodP":0, "tag":"???", "hidden":true,
                "goods":{"ore":1.0, "med":1.0, "lux":1.0},
-               "d":"A dead moon that isn't dead. Coordinates that don't appear on any Union chart."}
+               "d":"A dead moon that isn't dead. Coordinates that don't appear on any Union chart."},
+  "anechoic": {"n":"The Anechoic",   "x":820, "y":80,  "fac":"none",     "fuelP":0, "foodP":0, "tag":"???", "hidden":true,
+               "goods":{"ore":1.0, "med":1.0, "lux":1.0},
+               "d":"A coordinate where the band goes flat. The charts show nothing. Your instruments disagree with each other about what they're looking at."}
 }

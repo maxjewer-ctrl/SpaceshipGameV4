@@ -224,6 +224,9 @@ th{color:var(--dim); font-weight:500; text-transform:uppercase; font-size:11px; 
 .you-marker{ position:absolute; z-index:4; width:16px; height:16px; transform:translate(-50%,-50%); transition:left .45s ease, top .45s ease; pointer-events:none; }
 .you-marker span{ display:block; width:10px; height:10px; margin:3px; border-radius:50%; background:var(--amber); box-shadow:0 0 10px var(--amber); }
 .you-marker::before{ content:""; position:absolute; inset:0; border:1px solid var(--amber); border-radius:50%; animation:beacon 1.8s ease-out infinite; }
+.station-dark .scope-body{ filter:saturate(0.35) brightness(0.75); }
+.station-dark .you-marker span{ background:#8a8fa0; box-shadow:0 0 8px #8a8fa0; }
+.station-dark .you-marker::before{ border-color:#8a8fa0; }
 /* scene / dialogue modal */
 .scene .scene-loc{ font-family:"Consolas",ui-monospace,monospace; font-size:9px; letter-spacing:2px; color:var(--dim); text-transform:uppercase; margin-bottom:6px; }
 .scene .choices button{ text-align:left; }

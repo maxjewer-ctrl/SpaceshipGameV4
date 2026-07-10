@@ -8,20 +8,74 @@ import { reputation } from "../systems/disposition";
 import { npcsInRoom } from "../systems/scene";
 import { NPCS } from "../content";
 import { fmt } from "../util";
+import { isSilenced } from "../derive";
 
 interface Room { id: string; x: number; y: number; label: string; icon: string; kind: string; tab?: string; }
 
 // One shared deck layout, flavoured per world. viewBox is 600 x 400.
+// The deck is a warren, not a wheel: the cantina hides behind the exchange,
+// the dry dock opens off the docks, and the undercity is down past the berths.
 const ROOMS: Room[] = [
-  { id: "harbor", x: 300, y: 58, label: "Harbormaster", icon: "🛃", kind: "npc" },
-  { id: "cantina", x: 112, y: 150, label: "Cantina", icon: "🍺", kind: "tab", tab: "cantina" },
-  { id: "market", x: 488, y: 150, label: "Exchange", icon: "⚖️", kind: "tab", tab: "market" },
-  { id: "concourse", x: 300, y: 200, label: "Concourse", icon: "🏛️", kind: "hub" },
-  { id: "undercity", x: 112, y: 300, label: "The Undercity", icon: "🕯️", kind: "npc" },
-  { id: "drydock", x: 488, y: 300, label: "Dry Dock", icon: "🔧", kind: "tab", tab: "yard" },
-  { id: "docks", x: 300, y: 345, label: "Docks", icon: "🚀", kind: "dock" },
+  { id: "harbor", x: 390, y: 60, label: "Harbormaster", icon: "🛃", kind: "npc" },
+  { id: "cantina", x: 100, y: 105, label: "Cantina", icon: "🍺", kind: "tab", tab: "cantina" },
+  { id: "market", x: 240, y: 140, label: "Exchange", icon: "⚖️", kind: "tab", tab: "market" },
+  { id: "concourse", x: 390, y: 175, label: "Concourse", icon: "🏛️", kind: "hub" },
+  { id: "undercity", x: 130, y: 300, label: "The Undercity", icon: "🕯️", kind: "npc" },
+  { id: "drydock", x: 470, y: 320, label: "Dry Dock", icon: "🔧", kind: "tab", tab: "yard" },
+  { id: "docks", x: 300, y: 320, label: "Docks", icon: "🚀", kind: "dock" },
 ];
-const LINKS = ["harbor", "cantina", "market", "undercity", "drydock", "docks"].map((r) => ["concourse", r]);
+const LINKS: [string, string][] = [
+  ["harbor", "concourse"],
+  ["concourse", "market"],
+  ["market", "cantina"],
+  ["concourse", "docks"],
+  ["docks", "drydock"],
+  ["docks", "undercity"],
+];
+
+function neighbors(id: string): string[] {
+  const out: string[] = [];
+  for (const [a, b] of LINKS) {
+    if (a === id) out.push(b);
+    if (b === id) out.push(a);
+  }
+  return out;
+}
+
+// Shortest corridor route between two rooms (BFS over LINKS).
+function findPath(from: string, to: string): string[] {
+  if (from === to) return [];
+  const prev: Record<string, string> = {};
+  const queue = [from];
+  const seen = new Set([from]);
+  while (queue.length) {
+    const cur = queue.shift()!;
+    for (const n of neighbors(cur)) {
+      if (seen.has(n)) continue;
+      seen.add(n);
+      prev[n] = cur;
+      if (n === to) {
+        const path: string[] = [to];
+        let p = to;
+        while (prev[p] !== from) { p = prev[p]; path.unshift(p); }
+        return path;
+      }
+      queue.push(n);
+    }
+  }
+  return [];
+}
+
+// What the same rooms feel like after a station stops answering.
+const DARK_DESC: Record<string, string> = {
+  harbor: "The queue posts stand in perfect order. The fee schedule is still cycling on the screen behind the empty desk, revising itself upward for no one.",
+  cantina: "Every tap still works. Trays of food at empty tables, gone soft. The radio behind the bar is playing the hiss between stations at careful, deliberate volume.",
+  market: "The boards still scroll prices for a market with no traders. Somewhere in the racks, a cooling fan finds a frequency that sounds almost like humming.",
+  concourse: "The false-sky ceiling still runs its daylight cycle over an empty floor. Your bootsteps don't echo the way they should. The air has been persuaded not to carry them.",
+  undercity: "The recycler lines run themselves. Neat rows of tools set down mid-task — not dropped. Set down, carefully, by people who knew they wouldn't need them again.",
+  drydock: "A ship sits half-repaired in the cradle, welding rig still clamped to her spine. The work log's last entry is timestamped mid-shift and reads, in full: 'done now.'",
+  docks: "Your ship is the only thing on this deck with a heartbeat. The berth clamps took you in like the automation never stopped caring. It didn't.",
+};
 
 const ROOM_DESC: Record<string, string> = {
   harbor: "Frosted glass and a queue that never moves. The harbormaster's office decides whose papers are in order today — and whose fees went up.",
@@ -34,9 +88,28 @@ const ROOM_DESC: Record<string, string> = {
 };
 
 let currentRoom = "docks";
+let walkTimer: ReturnType<typeof setTimeout> | null = null;
 export function stationRoom() { return currentRoom; }
-export function stationGo(room: string) { currentRoom = room; requestRender(); }
-export function resetStation() { currentRoom = "docks"; }
+
+// Walk there, don't teleport: step the marker through each corridor room on the
+// BFS route. Clicking mid-walk re-routes from wherever you currently are.
+export function stationGo(room: string) {
+  if (walkTimer) { clearTimeout(walkTimer); walkTimer = null; }
+  const path = findPath(currentRoom, room);
+  if (!path.length) { requestRender(); return; }
+  const step = () => {
+    currentRoom = path.shift()!;
+    requestRender();
+    if (path.length) walkTimer = setTimeout(step, 340);
+    else walkTimer = null;
+  };
+  step();
+}
+
+export function resetStation() {
+  if (walkTimer) { clearTimeout(walkTimer); walkTimer = null; }
+  currentRoom = "docks";
+}
 
 function roomNode(r: Room, cur: boolean): string {
   const npcCount = npcsInRoom(r.id).length;
@@ -65,19 +138,27 @@ export function stationHTML(): string {
   svg += `</svg>`;
   const marker = `<div class="you-marker" style="left:${cur.x / 6}%; top:${cur.y / 4}%"><span></span></div>`;
 
+  const dark = isSilenced(S.loc);
   const rep = reputation();
-  const scope = `<div class="scope station-scope">
-    <div class="scope-head"><span>◄ STATION DECK ▬ ${p.n.toUpperCase()} ►</span><span class="sh-r">◉ ${cur.label.toUpperCase()}</span></div>
+  const scope = `<div class="scope station-scope${dark ? " station-dark" : ""}">
+    <div class="scope-head"><span>◄ STATION DECK ▬ ${p.n.toUpperCase()} ►</span><span class="sh-r" ${dark ? 'style="color:var(--red)"' : ""}>${dark ? "◌ NO CARRIER" : "◉ " + cur.label.toUpperCase()}</span></div>
     <div class="scope-body">${marker}${svg}</div>
-    <div class="scope-foot"><span>${rep ? "KNOWN AS " + rep.title.toUpperCase() : "AN UNKNOWN CAPTAIN"}</span><span>${fmt(S.credits)}CR</span></div>
+    <div class="scope-foot"><span>${dark ? "SIGNAL LOST · AUTOMATION ONLY" : rep ? "KNOWN AS " + rep.title.toUpperCase() : "AN UNKNOWN CAPTAIN"}</span><span>${fmt(S.credits)}CR</span></div>
   </div>`;
 
-  return `<div class="panel"><h3>${p.n} — Station Deck</h3>${scope}
-    <p class="dim" style="margin-top:8px">Click a section to walk there. The concourse connects the deck; numbered markers show who's around.</p>
+  return `<div class="panel"><h3>${p.n} — Station Deck${dark ? ' <span class="low">— dark</span>' : ""}</h3>${scope}
+    <p class="dim" style="margin-top:8px">${dark ? "The deck is lit, warm, and empty. Walk it if you must." : "Click a section and your marker takes the corridors — the cantina hides behind the exchange, the yard opens off the docks. Numbered markers show who's around."}</p>
   </div>` + roomPanel(cur);
 }
 
 function roomPanel(r: Room): string {
+  // dark station: atmosphere only — no commerce, no people
+  if (isSilenced(S.loc)) {
+    return `<div class="panel"><h3>${r.icon} ${r.label}</h3>
+      <p class="dim" style="margin-bottom:10px">${DARK_DESC[r.id] || "Nothing answers here."}</p>
+      ${r.kind === "dock" ? `<button class="primary" onclick="nav('ship')">Back aboard. Now.</button>` : ""}
+    </div>`;
+  }
   let body = `<p class="dim" style="margin-bottom:10px">${ROOM_DESC[r.id] || ""}</p>`;
   if (r.kind === "tab") {
     const verb = r.tab === "cantina" ? "Step into the Cantina" : r.tab === "market" ? "Walk the Exchange floor" : "Enter the Dry Dock";

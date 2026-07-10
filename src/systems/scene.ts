@@ -5,7 +5,7 @@
 import { S } from "../state";
 import { NPCS, PLANETS } from "../content";
 import type { SceneChoice } from "../content";
-import { stats, paxJobs, vipJobs, cargoUsed } from "../derive";
+import { stats, paxJobs, vipJobs, cargoUsed, isSilenced } from "../derive";
 import { modal, closeModal } from "../modal";
 import { requestRender } from "../bus";
 import { applyEffects } from "./scheduler";
@@ -37,6 +37,7 @@ export function checkReq(req?: Record<string, any>): [boolean, string] {
 export function npcAvailable(key: string): boolean {
   const npc = NPCS[key];
   if (!npc) return false;
+  if (isSilenced(S.loc)) return false; // nobody is home on a dark station
   if (npc.planets && npc.planets !== "any" && !(npc.planets as string[]).includes(S.loc)) return false;
   return checkReq(npc.gate)[0];
 }

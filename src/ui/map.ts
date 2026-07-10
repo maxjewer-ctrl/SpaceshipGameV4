@@ -1,6 +1,6 @@
 import { S } from "../state";
 import { PLANETS, FACS } from "../content";
-import { daysTo, fuelTo, foodPerDay } from "../derive";
+import { daysTo, fuelTo, foodPerDay, planetVisible, isSilenced } from "../derive";
 import { requestRender } from "../bus";
 
 export function selPlanet(k: string) { S.selPlanet = k; requestRender(); }
@@ -46,22 +46,27 @@ export function mapHTML(): string {
   }
   for (const k in PLANETS) {
     const p = PLANETS[k];
-    if (p.hidden && S.arc.stage < 5) continue;
+    if (!planetVisible(k)) continue;
     const cur = k === S.loc && S.docked;
     const sel = k === S.selPlanet;
-    const c = FACS[p.fac].c;
+    const dark = isSilenced(k);
+    const c = dark ? "#2c3140" : FACS[p.fac].c;
     const isGate = k === "gate";
+    const isSource = k === "anechoic";
     svg += `<g class="planet-dot" onclick="selPlanet('${k}')">
-      <circle cx="${p.x}" cy="${p.y}" r="${isGate ? 13 : 11}" fill="${c}" filter="url(#nodeGlow)" opacity="0.9"/>
-      <circle cx="${p.x}" cy="${p.y}" r="${isGate ? 13 : 11}" fill="none" stroke="#05070d" stroke-width="1.5"/>
-      <circle cx="${p.x}" cy="${p.y}" r="${isGate ? 6 : 4.5}" fill="#ffffffcc"/>
+      ${isSource ? `<circle cx="${p.x}" cy="${p.y}" r="20" fill="none" stroke="#a86bd9" stroke-width="1" stroke-dasharray="3 6" opacity="0.7"/>` : ""}
+      <circle cx="${p.x}" cy="${p.y}" r="${isGate || isSource ? 13 : 11}" fill="${isSource ? "#0a0710" : c}" ${dark || isSource ? "" : 'filter="url(#nodeGlow)"'} opacity="0.9" ${isSource ? 'stroke="#a86bd9" stroke-width="1.5"' : ""}/>
+      <circle cx="${p.x}" cy="${p.y}" r="${isGate || isSource ? 13 : 11}" fill="none" stroke="#05070d" stroke-width="1.5"/>
+      ${isSource ? "" : `<circle cx="${p.x}" cy="${p.y}" r="${isGate ? 6 : 4.5}" fill="${dark ? "#3a4050" : "#ffffffcc"}"/>`}
       ${cur ? `<circle class="beacon" cx="${p.x}" cy="${p.y}" r="16" fill="none" stroke="#e8b04b" stroke-width="1.5"/>
               <circle cx="${p.x}" cy="${p.y}" r="20" fill="none" stroke="#e8b04b" stroke-width="1" stroke-dasharray="2 4"/>` : ""}
       ${sel ? `<rect x="${p.x - 18}" y="${p.y - 18}" width="36" height="36" fill="none" stroke="#e8b04b" stroke-width="1.5" stroke-dasharray="9 8"/>
               <line x1="${p.x - 24}" y1="${p.y}" x2="${p.x - 19}" y2="${p.y}" stroke="#e8b04b" stroke-width="1.5"/>
               <line x1="${p.x + 19}" y1="${p.y}" x2="${p.x + 24}" y2="${p.y}" stroke="#e8b04b" stroke-width="1.5"/>` : ""}
-      <text x="${p.x}" y="${p.y + 30}" fill="${sel ? "#e8b04b" : "#c9cdd8"}" font-size="12" text-anchor="middle" font-family="monospace" letter-spacing="0.5">${p.n}</text>
+      <text x="${p.x}" y="${p.y + 30}" fill="${sel ? "#e8b04b" : dark ? "#5f6479" : "#c9cdd8"}" font-size="12" text-anchor="middle" font-family="monospace" letter-spacing="0.5">${p.n}</text>
+      ${dark ? `<text x="${p.x}" y="${p.y + 43}" fill="#5f6479" font-size="9" text-anchor="middle" font-family="monospace">· NO SIGNAL ·</text>` : ""}
       ${isGate ? `<text x="${p.x}" y="${p.y - 20}" fill="#e8b04b" font-size="11" text-anchor="middle" font-family="monospace">◆ THE RUN</text>` : ""}
+      ${isSource ? `<text x="${p.x}" y="${p.y - 24}" fill="#a86bd9" font-size="11" text-anchor="middle" font-family="monospace">◇ THE SILENCE</text>` : ""}
     </g>`;
   }
   if (S.travel) {
@@ -80,7 +85,7 @@ export function mapHTML(): string {
     <div class="scope-body"><div class="radar-sweep"></div>${svg}</div>
     <div class="scope-foot">
       <span><i class="fdot" style="background:#5b8dd9"></i>UNION <i class="fdot" style="background:#d9a55b"></i>FRONTIER <i class="fdot" style="background:#d96b6b"></i>SYNDICATE</span>
-      <span>${Object.keys(PLANETS).filter((k) => !(PLANETS[k].hidden && S.arc.stage < 5)).length} CONTACTS</span>
+      <span>${Object.keys(PLANETS).filter((k) => planetVisible(k) && !isSilenced(k)).length} CONTACTS${S.campaign.silence.silenced.length ? ` · ${S.campaign.silence.silenced.length} DARK` : ""}</span>
     </div>
   </div>`;
   let info = "";
@@ -92,8 +97,10 @@ export function mapHTML(): string {
       const d = daysTo(from, S.selPlanet), f = fuelTo(from, S.selPlanet);
       const foodNeed = foodPerDay() * d;
       const ok = S.fuel >= f;
+      const darkWarn = isSilenced(S.selPlanet)
+        ? `<p class="low" style="margin:6px 0">◇ NO SIGNAL — nothing has answered from ${p.n} since it went dark. No port services. No fuel. Whatever you fly in with is what you fly out on.</p>` : "";
       info = `<div class="panel"><h3>${p.n} <span class="badge fac">${FACS[p.fac].n}</span></h3>
-        <p class="dim">${p.d}</p>
+        <p class="dim">${p.d}</p>${darkWarn}
         <div class="statgrid" style="margin:8px 0">
           <span>Distance</span><b>${d} days</b>
           <span>Fuel needed</span><b class="${ok ? "" : "low"}">${f} (have ${Math.floor(S.fuel)})</b>

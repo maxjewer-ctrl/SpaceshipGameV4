@@ -50,6 +50,8 @@ export interface Job {
   units?: number; hidden?: boolean; deadline?: number;
   pax?: Passenger; vip?: boolean; tier?: number; minPrestige?: number;
   arcCrate?: boolean; arcVoss?: boolean;
+  // On completion, sets flags["job_<tag>"] — how campaign missions report back.
+  tag?: string;
 }
 
 export interface Market {
@@ -105,6 +107,19 @@ export interface NpcRecord {
   day: number;           // last-updated day
 }
 
+// ---- Campaigns ----
+// The Long Silence (main): stage 0 dormant → 1 gathering → 2 the dimming →
+// 3 source known → 4 resolved. Knowledge fragments live in flags as sk_*;
+// endings live in flags as silence_answered / silence_stilled / silence_sold.
+export interface SilenceCampaign {
+  stage: number;
+  silenced: string[];          // planet keys currently dark
+  nextDay: number | null;      // when the next world goes quiet
+  nextWorld: string | null;
+  billDay: number | null;      // the sold ending's deferred price
+}
+export interface CampaignState { silence: SilenceCampaign; }
+
 export interface GameState {
   version: number;
   seed: number;
@@ -133,6 +148,7 @@ export interface GameState {
   // hidden playstyle meters — how you operate, not what you own. Content reads
   // these; the player never sees the raw numbers, only "word on the street".
   disposition: Disposition;
+  campaign: CampaignState;
   starve: number; unpaid: number; uid: number;
   over: boolean; won: boolean; dead: boolean;
 }

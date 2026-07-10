@@ -123,6 +123,161 @@
     }
   },
 
+  "brother_calis": {
+    "name": "Brother Calis",
+    "room": "concourse",
+    "icon": "🕳️",
+    "planets": ["havens"],
+    "gate": { "flag": "sil_stage1", "flagNot": "sk_cult" },
+    "blurb": "Keeper of the Church of the Open Door. His congregation has been expecting this for eleven years.",
+    "nodes": {
+      "start": {
+        "text": "The chapel is a converted cargo bay, and the altar is a radio. Brother Calis turns the dial with the tenderness of a man tuning an instrument. \"You heard the Broadcast,\" he says. Not a question. \"Everyone heard. We've been listening to it arrive for eleven years, Captain — the long inhale before a word. The Door has been opening very, very slowly. Would you like to know what we know?\"",
+        "choices": [
+          { "label": "Make a donation to the church (100cr)", "requires": { "credits": 100 }, "effects": [ { "credits": -100 }, { "flag": "sk_cult", "value": true }, { "log": "◇ SIGNAL FRAGMENT — the Open Door's eleven years of listening logs point to a fixed source, deep past the Verge." } ], "reply": "He accepts with grace and unlocks the vestry. Inside: eleven years of listening logs, meticulous, obsessive, sane. The four seconds have been repeating for eleven years — below hearing, getting louder by fractions. And they triangulate. \"It isn't coming from everywhere, Captain. It only sounds like everywhere. It's coming from one place. The Door has an address.\"", "end": true },
+          { "label": "\"Your flock walked into the dark on the Verge.\"", "goto": "grief" },
+          { "label": "Leave the chapel", "reply": "\"The Door stays open, Captain. That's the terrifying mercy of it. Come back when the quiet gets loud.\"", "end": true }
+        ]
+      },
+      "grief": {
+        "text": "For a moment the serenity cracks and something raw looks out. \"Some of my congregation were on the Verge. Yes.\" He steadies the dial hand. \"You want me to say they were taken. But you've heard it. It doesn't take, Captain. It ASKED. And eleven hundred tired, lonely people said yes.\" He looks at you. \"The question you should be asking is why the rest of us keep saying no.\"",
+        "choices": [
+          { "label": "Ask to see the listening logs", "effects": [ { "flag": "sk_cult", "value": true }, { "dispo": { "axis": "mercy", "n": 1 } }, { "log": "◇ SIGNAL FRAGMENT — the Open Door's listening logs triangulate the Silence to a single deep-black source." } ], "reply": "Grief buys what credits would have. He opens the vestry and shows you everything — eleven years of logs, and a bearing. \"Find it,\" he says. \"Ask it to speak up. Some of us would like to hear the whole word before we die.\"", "end": true },
+          { "label": "Leave him to his radio", "reply": "He turns back to the dial. Behind the static, for half a second, you'd swear something breathes.", "end": true }
+        ]
+      }
+    }
+  },
+
+  "lieutenant_farr": {
+    "name": "Lieutenant Farr",
+    "room": "harbor",
+    "icon": "🎧",
+    "planets": ["meridian", "foundry"],
+    "gate": { "flag": "sil_stage1", "flagNot": "sk_archive" },
+    "blurb": "Union signals clerk, drinking steadily, carrying eleven years of the wrong kind of quiet.",
+    "nodes": {
+      "start": {
+        "text": "Farr has the grey, careful look of a man who's been ordered not to sleep well. Signals Directorate patches, listening-post ribbon. He's several drinks into ignoring both. \"You're the captain everyone says listens,\" he says quietly. \"So listen. The Broadcast wasn't news to us. Post 9 logged the first one ELEVEN YEARS ago — three weeks before Meridian. It's all in the archive. Sealed. 'No anomalies.'\" He laughs like it hurts.",
+        "choices": [
+          { "label": "Buy his conscience a drink (150cr)", "requires": { "credits": 150 }, "effects": [ { "credits": -150 }, { "dispo": { "axis": "law", "n": -1 } }, { "flag": "sk_archive", "value": true }, { "log": "◇ SIGNAL FRAGMENT — Union Post 9 logged the signal eleven years ago and sealed it. It has been getting louder ever since." } ], "reply": "The chit disappears and a data wafer takes its place, palmed with a clerk's practiced misery. \"Post 9 raw logs. Eleven years of it getting louder, and eleven years of us filing it under nothing. There's a bearing in there, Captain. We always knew where it was. We were just too frightened to be right.\"", "end": true },
+          { "label": "\"The Union owes the sector this. Hand it over.\" ", "requires": { "rep": ["union", 3] }, "effects": [ { "flag": "sk_archive", "value": true }, { "rep": ["union", -1] }, { "log": "◇ SIGNAL FRAGMENT — Post 9's sealed logs: the Union has tracked the signal for eleven years. There is a bearing." } ], "reply": "Your standing with the Union is the only reason he doesn't bolt. He stares at you, then slides the wafer over like a man laying down a weight. \"You didn't get this from me. Post 9's raw take. If anyone asks — equipment failure.\" He almost smiles. \"It's always equipment failure.\"", "end": true },
+          { "label": "Report his loose talk to his superiors", "effects": [ { "rep": ["union", 2] }, { "dispo": { "axis": "mercy", "n": -2 } }, { "flag": "farr_reported", "value": true }, { "remember": { "who": "captain", "fact": "reported_farr", "weight": -2, "note": "You reported Lieutenant Farr for talking. They transferred him somewhere quiet. That word again." } } ], "reply": "Two officers collect him before his glass is empty. He doesn't resist. On the way past you he says, without heat: \"Now you'll never know what we heard. Hope the rep was worth it.\"", "end": true },
+          { "label": "Let the man drink", "reply": "\"Smart.\" He raises his glass to nothing. \"To no anomalies. To eleven years of no anomalies whatsoever.\"", "end": true }
+        ]
+      }
+    }
+  },
+
+  "survivor_ondine": {
+    "name": "Ondine",
+    "room": "docks",
+    "icon": "🧣",
+    "planets": ["solace", "kestrel", "havens", "foundry"],
+    "gate": { "flag": "sil_stage1", "flagNot": "sk_survivor" },
+    "blurb": "Got out of a mining outpost three days before it stopped answering. Nobody wants to hear what she heard.",
+    "nodes": {
+      "start": {
+        "text": "She sits on the cold end of the dock with a scarf wound high and a refugee's talent for being unseen. \"You're a captain. Captains file reports. Maybe someone reads yours.\" Her voice is sanded flat. \"Teller's Claim. Forty-one souls. I left on the supply boat three days before it went quiet, and I'm going to tell you what nobody at the relief desk would write down: it didn't go quiet all at once. It went quiet PERSON BY PERSON.\"",
+        "choices": [
+          { "label": "Give her a hot meal and hear all of it (−2 food)", "effects": [ { "food": -2 }, { "dispo": { "axis": "mercy", "n": 1 } }, { "flag": "sk_survivor", "value": true }, { "remember": { "who": "captain", "fact": "heard_ondine_out", "weight": 2, "note": "You fed a Teller's Claim survivor and wrote down every word nobody else would. She slept through a night for the first time in weeks." } }, { "log": "◇ SIGNAL FRAGMENT — the quiet takes people one at a time: first they hear it, then they smile, then they walk toward the deep side of the station." } ], "reply": "Over soup she gives you the whole terrible sequence: her bunkmate humming four seconds of something on a loop. The foreman smiling at the mine's deep face like an old friend was standing in it. One by one, calm as shift change, walking DOWN. \"It wants the deep and the dark and the quiet,\" she says. \"It comes up the wire from below. If a station of yours ever goes soft-spoken, Captain — you fly. You fly and you do not send rescue.\"", "end": true },
+          { "label": "Pay for the story like a transaction (50cr)", "requires": { "credits": 50 }, "effects": [ { "credits": -50 }, { "flag": "sk_survivor", "value": true }, { "log": "◇ SIGNAL FRAGMENT — survivors describe the quiet taking people one by one, always toward the deep decks." } ], "reply": "She takes the credits without shame and gives you the facts without warmth: the humming, the smiling, the walking down. Transaction complete. \"Buy yourself something nice, Captain. Buy yourself a loud ship.\"", "end": true },
+          { "label": "\"Relief desk's that way.\"", "effects": [ { "dispo": { "axis": "mercy", "n": -1 } } ], "reply": "\"Been. Filed. Stamped.\" She pulls the scarf higher. \"Forty-one souls at Teller's Claim, and the stamp said DUPLICATE. Fly safe, Captain.\"", "end": true }
+        ]
+      }
+    }
+  },
+
+  "advocate_reyes": {
+    "name": "Advocate Ihsan Reyes",
+    "room": "undercity",
+    "icon": "⚖️",
+    "planets": ["havens"],
+    "gate": { "flag": "arc_resolved", "flagNot": "reckoning_resolved" },
+    "blurb": "Counsel for sixty thousand dead. Works out of a back room because every front room reports to somebody.",
+    "nodes": {
+      "start": {
+        "text": "The office is a storage bay with a desk, and the desk is a door on crates, and on the door-desk are sixty thousand names in hard copy. Reyes doesn't stand. \"Captain. You carried the Meridian core — which makes you evidence, witness, or accomplice, and I genuinely don't care which. The Survivors' Tribunal is bringing charges against Admiral Corin Ottesen, who signed the Meridian order eleven years ago and is currently favored to run the entire Union Directorate. We have the paper. What we need is LIVING WITNESSES — and a captain whose ship doesn't get searched.\"",
+        "choices": [
+          { "label": "\"Tell me what you need moved.\"", "requires": { "flagNot": "reckoning_started" }, "effects": [ { "flag": "reckoning_started", "value": true }, { "remember": { "who": "captain", "fact": "took_the_tribunals_case", "weight": 2, "note": "You agreed to move witnesses for the Meridian tribunal. Reyes shook your hand like it was a signature." } } ], "goto": "brief" },
+          { "label": "Present the case to the tribunal", "requires": { "flag": "job_witness1" }, "goto": "judgment" },
+          { "label": "Ask how the case stands", "requires": { "flag": "reckoning_started" }, "reply": "\"Marek is the spine — gunnery log-keeper, saw the order come in. He's hiding in the Foundry under-decks. Senn is the skin: Ottesen's own bio-warfare consultant, wants immunity, waiting on Meridian of all places. Hiding under the lighthouse.\" Reyes rubs his eyes. \"Bring me who you can live with, Captain.\"", "end": true },
+          { "label": "\"Find another ship.\"", "reply": "\"There isn't one. There's never another ship.\" He goes back to the names. \"You know where the door-desk is when your conscience finds its spine.\"", "end": true }
+        ]
+      },
+      "brief": {
+        "text": "Reyes lays out two dossiers with a lawyer's economy. \"CORPORAL ELLIS MAREK — kept the gunnery logs on the Meridian picket. Saw the order, saw who signed it. Union cleaners have been closing on him for a month; he's gone to ground in the FOUNDRY under-decks. And DOCTOR HALVARD SENN —\" his jaw tightens \"— who helped design what happened and now wants immunity in exchange for testimony. On MERIDIAN. The tribunal has, God help us, approved the deal. Marek makes the case. Senn makes it unappealable. Get me one. Get me both.\"",
+        "choices": [
+          { "label": "\"I'll bring you your witnesses.\"", "reply": "\"Then you're the most dangerous ship in the sector, Captain. Fly like it.\"", "end": true }
+        ]
+      },
+      "judgment": {
+        "text": "The tribunal convenes in a decompressed cargo hall — survivors, their children, three judges who between them have buried more of Meridian than the Union ever acknowledged. The witnesses you carried wait behind a curtain that used to be a cargo tarp. Reyes looks at you across the door-desk one last time. \"How do we end this, Captain?\"",
+        "choices": [
+          { "label": "Present the full case — Marek AND Senn", "requires": { "flag": "job_witness2" }, "effects": [ { "flag": "reckoning_resolved", "value": true }, { "flag": "reckoning_tribunal", "value": true }, { "rep": ["union", -6] }, { "rep": ["frontier", 4] }, { "prestige": 5 }, { "dispo": { "axis": "law", "n": 2 } }, { "dispo": { "axis": "mercy", "n": 1 } }, { "plantRider": { "min": 8, "max": 15, "key": "reckoning_verdict" } }, { "remember": { "who": "captain", "fact": "brought_ottesen_down", "weight": 5, "note": "You carried the witnesses that ended Admiral Ottesen. Marek's logs, Senn's confession, and sixty thousand names read into the record." } }, { "rumor": "\"The tribunal has a log-keeper AND one of Ottesen's own scientists. The Admiral's people have stopped answering the newsnets.\"" } ], "reply": "Marek testifies for six hours in the flat voice of a man reading his own nightmares off a manifest. Then Senn — precise, unforgivable, damning — explains exactly what was done and exactly who signed it, in exchange for an immunity everyone in the room will hate forever. It is enough. It is more than enough. Reyes reads the names until his voice goes, and another survivor takes the list, and another. The verdict goes out on every band the Union doesn't own.", "end": true },
+          { "label": "Present the case with the Gate broadcast as its spine", "requires": { "flag": "arc_broadcast", "flagNot": "job_witness2" }, "effects": [ { "flag": "reckoning_resolved", "value": true }, { "flag": "reckoning_tribunal", "value": true }, { "rep": ["union", -5] }, { "rep": ["frontier", 4] }, { "prestige": 4 }, { "dispo": { "axis": "law", "n": 2 } }, { "plantRider": { "min": 8, "max": 15, "key": "reckoning_verdict" } }, { "remember": { "who": "captain", "fact": "finished_what_voss_started", "weight": 5, "note": "Voss broadcast the truth from the Gate; you carried the witness who made it a verdict. She'd have liked the symmetry." } }, { "rumor": "\"First the Gate broadcast, now a living witness. Ottesen's defense is running out of people to call liars.\"" } ], "reply": "Marek's testimony locks arms with the broadcast you carried to Elysium Gate — document and witness, signature and voice. The defense's whole strategy was 'forgery,' and forgeries don't shake while they read their own handwriting. Reyes reads the names until his voice goes. The verdict follows within days.", "end": true },
+          { "label": "Present Marek alone — it will have to do", "requires": { "flagNot": "job_witness2" }, "effects": [ { "flag": "reckoning_resolved", "value": true }, { "flag": "reckoning_tribunal", "value": true }, { "rep": ["union", -4] }, { "rep": ["frontier", 2] }, { "prestige": 2 }, { "plantRider": { "min": 8, "max": 15, "key": "reckoning_verdict" } }, { "remember": { "who": "captain", "fact": "gave_the_tribunal_its_chance", "weight": 3, "note": "You brought the tribunal one witness. It was enough to wound Ottesen, not to end him. History will argue about the difference." } }, { "rumor": "\"One witness against an Admiral. Brave arithmetic. The verdict came in narrow — narrow still counts.\"" } ], "reply": "Marek stands alone against an Admiral's lawyers, and stands, and stands. The verdict, when it comes, is narrower than sixty thousand names deserve — censure, resignation, charges pending appeal for a decade. Ottesen's career dies; Ottesen does not. Reyes closes the ledger gently. \"Wars end ugly, Captain. So do trials. Thank you for the witness.\"", "end": true },
+          { "label": "Give everything to the newsnets instead — let the sector judge", "effects": [ { "flag": "reckoning_resolved", "value": true }, { "flag": "reckoning_public", "value": true }, { "rep": ["union", -5] }, { "prestige": 3 }, { "dispo": { "axis": "daring", "n": 2 } }, { "dispo": { "axis": "law", "n": -2 } }, { "plantRider": { "min": 6, "max": 12, "key": "reckoning_public_wave" } }, { "remember": { "who": "captain", "fact": "let_the_truth_run_wild", "weight": 3, "note": "You gave the Meridian case to the newsnets raw — no tribunal, no process, just the truth at full burn. Reyes never forgave you. He never said you were wrong, either." } }, { "rumor": "\"No trial. No process. Just everything, on every band, all at once. The Union's calling it terrorism. Everyone else is calling it Tuesday's news and Wednesday's riot.\"" } ], "reply": "Reyes argues for process until he sees your face, and then he's just tired. \"You'll get justice's little brother,\" he says. \"Fury.\" The files hit every band at once — unredacted, unlawyered, unstoppable. There will be no verdict, no appeal, and no forgetting. What there will be is fire, and you lit it.", "end": true }
+        ]
+      }
+    }
+  },
+
+  "witness_marek": {
+    "name": "Corporal Ellis Marek",
+    "room": "undercity",
+    "icon": "📼",
+    "planets": ["foundry"],
+    "gate": { "flag": "reckoning_started", "flagNot": "job_witness1" },
+    "blurb": "Kept the gunnery logs at Meridian. Has been running from what he filed for eleven years.",
+    "nodes": {
+      "start": {
+        "text": "He's older than the service photo Reyes showed you, greyer, folded into a maintenance alcove with a sightline on both exits. \"You're Reyes's captain.\" He doesn't wait for confirmation. \"I kept the logs. That was my whole war — I wrote down what the guns did. Eleven years I've been telling myself a clerk isn't guilty of what he files.\" His hands are shaking. His voice isn't. \"Get me to that tribunal before the cleaners get me, and I'll read every line of it out loud.\"",
+        "choices": [
+          { "label": "Take him aboard — quiet berth, no manifest", "requires": { "pax": 1 }, "effects": [ { "mission": { "kind": "passenger", "title": "⚖ Witness: Corporal Marek", "dest": "havens", "pay": 150, "tag": "witness1", "pax": { "name": "Corporal Marek", "motive": "fugitive" }, "needs": ["pax:1"], "desc": "Get Marek to the tribunal on Haven's Folly alive. Union cleaners are a month behind him and closing. A patrol scan would be very, very bad." } }, { "remember": { "who": "captain", "fact": "carried_marek", "weight": 2, "note": "You gave the Meridian log-keeper a berth and a chance to say it all out loud." } } ], "reply": "He's packed in ninety seconds — a man who has practiced leaving for eleven years. At the airlock he pauses. \"Whatever you've heard about what testifying buys a man's soul, Captain — I'm not doing it to feel clean. I'm doing it because I can still see the timestamps.\"", "end": true },
+          { "label": "\"Not yet. Sit tight.\"", "reply": "\"Sure.\" He melts back into the alcove, one eye on each exit. \"That's what the last captain said. Word of advice — the cleaners aren't waiting on anybody's schedule.\"", "end": true }
+        ]
+      }
+    }
+  },
+
+  "witness_senn": {
+    "name": "Dr. Halvard Senn",
+    "room": "concourse",
+    "icon": "🧪",
+    "planets": ["meridian"],
+    "gate": { "flag": "reckoning_started", "flagNot": "job_witness2" },
+    "blurb": "Helped design what happened at Meridian. Wants immunity. The tribunal, God help it, has agreed.",
+    "nodes": {
+      "start": {
+        "text": "He's exactly where a wanted man shouldn't be: Meridian Prime, under the glass towers, drinking good tea in a bad café. \"Captain.\" He identifies you the way he probably identifies everything — instantly, clinically, without warmth. \"I'll spare us both: yes, I am what they say. I modeled the dispersal patterns. I chose the hour — shift change, maximum density. You are not transporting a witness; you are transporting a perpetrator with a very good memory.\" He sips. \"The tribunal has approved my immunity. I can hang Ottesen with mathematics. The only question is whether your stomach is strong enough to carry me.\"",
+        "choices": [
+          { "label": "Carry him. The dead need his memory more than his blood.", "requires": { "pax": 1 }, "effects": [ { "dispo": { "axis": "law", "n": 1 } }, { "dispo": { "axis": "mercy", "n": -1 } }, { "mission": { "kind": "passenger", "title": "⚖ Witness: Dr. Senn (immunity deal)", "dest": "havens", "pay": 200, "tag": "witness2", "pax": { "name": "Dr. Halvard Senn", "motive": "drifter" }, "needs": ["pax:1"], "desc": "Deliver Ottesen's own bio-warfare consultant to the tribunal on Haven's Folly. He eats alone. Everyone prefers it that way." } }, { "remember": { "who": "captain", "fact": "carried_senn", "weight": -1, "note": "You carried Dr. Senn to the tribunal under an immunity deal. Sixty thousand dead, and their best witness helped kill them. The math never stopped being ugly." } } ], "reply": "\"Sensible.\" He finishes the tea and leaves exact change. \"For the record, Captain: I don't expect forgiveness, and I decline to perform remorse. What I offer is accuracy. In my experience it outlasts both.\"", "end": true },
+          { "label": "Refuse the deal — no immunity from your deck plates", "effects": [ { "flag": "reckoning_refused_senn", "value": true }, { "dispo": { "axis": "mercy", "n": -1 } }, { "remember": { "who": "captain", "fact": "refused_senn", "weight": 0, "note": "You refused to carry Dr. Senn and his immunity deal. The case went to trial lighter. Your conscience argues both directions at 3am." } } ], "reply": "Something that is almost respect crosses his face. \"Principled. Expensive, for the prosecution — but principled.\" He signals for more tea. \"I'll find another ship, or the cleaners will find me first. Either way, Captain, you've made the trial smaller. I do hope it's still big enough.\"", "end": true },
+          { "label": "Sell his location to the men hunting him (300cr)", "effects": [ { "credits": 300 }, { "flag": "reckoning_refused_senn", "value": true }, { "dispo": { "axis": "mercy", "n": -3 } }, { "rep": ["union", 1] }, { "remember": { "who": "captain", "fact": "sold_senn_to_the_cleaners", "weight": -4, "note": "You sold Dr. Senn to Ottesen's cleaners. Whatever he was, the tribunal needed him, and the men who took him needed him silent. The tea was still warm on the table." } } ], "reply": "The men who pay you wear no insignia and thank you with the courtesy of a funeral home. Senn watches them come with no surprise whatsoever. \"Ah,\" he says, standing, straightening his coat. \"Accuracy, Captain. It outlasts everything except arithmetic like yours.\" You are three streets away before you stop hearing the tea cup settle into its saucer.", "end": true }
+        ]
+      }
+    }
+  },
+
+  "mr_grey": {
+    "name": "Mr. Grey",
+    "room": "harbor",
+    "icon": "🕴️",
+    "planets": ["meridian", "foundry", "solace"],
+    "gate": { "flag": "job_witness1", "flagNot": "reckoning_resolved" },
+    "blurb": "Represents interested parties. Has your itinerary memorized and a number in his pocket.",
+    "nodes": {
+      "start": {
+        "text": "He is waiting beside your berth with the patience of furniture, and his suit costs more than your engine. \"Captain. I represent parties interested in the Meridian... litigation.\" He says the word like it's a smell. \"You've been moving cargo for Advocate Reyes. Admirable. Sentimental. Loss-making.\" A number appears on the chit in his hand: 2,500 credits. \"The Admiral's position is simple: the past is expensive to relitigate. Deliver your — cargo — to us instead. The tribunal's case dies quietly, you fly away wealthy, and history stays exactly where it's buried. Everyone already dead stays dead either way, Captain.\"",
+        "choices": [
+          { "label": "Take the buyout (2,500cr) — bury the case", "effects": [ { "credits": 2500 }, { "flag": "reckoning_resolved", "value": true }, { "flag": "reckoning_sold", "value": true }, { "rep": ["union", 6] }, { "dispo": { "axis": "mercy", "n": -3 } }, { "dispo": { "axis": "law", "n": -1 } }, { "plantRider": { "min": 10, "max": 20, "key": "reckoning_burn" } }, { "remember": { "who": "captain", "fact": "sold_the_reckoning", "weight": -5, "note": "You sold the tribunal's witnesses to Ottesen's fixer for 2,500 credits. Mr. Grey called it 'tidying history.' The money was very green and the handshake was very cold." } }, { "rumor": "\"The tribunal's star witnesses recanted. Both of them. Same week. Funny old universe, isn't it.\"" } ], "reply": "The transfer clears before his handshake ends. \"A pleasure, Captain. The Admiral remembers his friends.\" The witnesses are collected from your ship by men with gentle voices and no insignia, and everyone is very polite, and the case dies exactly as quietly as promised — everything about it quiet, forever, except the part of you that filed it.", "end": true },
+          { "label": "\"Get away from my ship.\"", "effects": [ { "dispo": { "axis": "mercy", "n": 1 } }, { "remember": { "who": "captain", "fact": "refused_ottesens_money", "weight": 3, "note": "Ottesen's fixer offered 2,500 credits to bury the Meridian case. You told him to get away from your ship. He wrote the refusal down like a debt." } } ], "reply": "He doesn't argue. He makes a small note — actually takes out a pen and makes a note — and that is somehow worse than any threat. \"For the record, Captain, the number was negotiable.\" He leaves no card. Men like Mr. Grey are their own card.", "end": true }
+        ]
+      }
+    }
+  },
+
   "organizer_yun": {
     "name": "Organizer Yun",
     "room": "concourse",

@@ -4,6 +4,7 @@ import { stats, modInst, cargoUsed, scargoUsed, paxJobs, vipJobs, salaries, food
 import { fmt } from "../util";
 import { requestRender } from "../bus";
 import { reputation } from "../systems/disposition";
+import { storyCards } from "../systems/silence";
 
 export function selSlot(i: number) { S.sel = S.sel === i ? null : i; requestRender(); }
 
@@ -145,6 +146,7 @@ export function shipHTML(): string {
       <div class="panel"><h3>Word on the Street</h3>${repStreetHtml()}</div>
     </div>
     <div class="col">
+      ${storyCards()}
       <div class="panel"><h3>Active Contracts (${S.jobs.length})</h3>${jobsHtml}</div>
       <div class="panel"><h3>Crew (${S.crew.length}/${st.crewCap})</h3>${crewHtml}</div>
       <div class="panel"><h3>Passengers</h3>${paxHtml}</div>

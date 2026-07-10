@@ -114,6 +114,7 @@ export function ambushHandOver() {
   closeModal();
   S.jobs = S.jobs.filter((j) => !j.arcVoss);
   S.arc.stage = 99; S.arc.betrayed = true;
+  S.flags.arc_resolved = true; // the Reckoning can now find you
   S.credits += 1000;
   S.rep.union = clamp(S.rep.union + 10, -20, 20);
   S.prestige = Math.max(0, S.prestige - 5);
@@ -213,6 +214,8 @@ export function interceptFled() {
 
 export function arcVictory() {
   S.arc.stage = 6; S.arc.done = true; S.won = true;
+  S.flags.arc_resolved = true; // the Reckoning can now find you
+  S.flags.arc_broadcast = true; // you carried the truth to the Gate — the tribunal knows
   S.fuel = stats().fuelCap; S.hull = S.hullMax; S.food += 40;
   S.prestige += 10;
   const rep = S.rep;

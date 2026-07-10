@@ -1,6 +1,6 @@
 import { S, save } from "../state";
 import { PLANETS } from "../content";
-import { stats, foodPerDay } from "../derive";
+import { stats, foodPerDay, isSilenced } from "../derive";
 import { fmt, $ } from "../util";
 import { requestRender } from "../bus";
 import { refreshMarket } from "../systems/market";
@@ -51,8 +51,8 @@ function renderNav() {
   $("nav").innerHTML =
     b("ship", "🚀 Ship", S.screen === "ship") +
     b("map", "🗺 Star Map", S.screen === "map") +
-    (S.docked && S.loc !== "gate" ? b("station", "🛰 Station", S.screen === "station") : "") +
-    (S.docked ? b("planet", "🏙 " + PLANETS[S.loc].n, S.screen === "planet", S.loc === "gate") : "") +
+    (S.docked && S.loc !== "gate" && S.loc !== "anechoic" ? b("station", isSilenced(S.loc) ? "🛰 Station (dark)" : "🛰 Station", S.screen === "station") : "") +
+    (S.docked ? b("planet", "🏙 " + PLANETS[S.loc].n, S.screen === "planet", S.loc === "gate" || S.loc === "anechoic" || isSilenced(S.loc)) : "") +
     (S.travel ? b("travel", "🌌 In Transit", S.screen === "travel") : "") +
     `<span class="right">
       <button onclick="showHelp()">? Help</button>

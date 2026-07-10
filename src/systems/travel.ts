@@ -16,6 +16,7 @@ import { bark, tellBark } from "./barks";
 import { remember, crewKey } from "./ledger";
 import { shift } from "./disposition";
 import { resetStation } from "../ui/station";
+import { silenceTick, silenceArrive } from "./silence";
 import type { Job } from "../types";
 
 export function depart(destId: string) {
@@ -136,6 +137,8 @@ export function dayTick(traveling: boolean) {
   if (S.arc.stage === 5 && S.arc.deadline && S.day > S.arc.deadline) {
     arcIntercept();
   }
+  // the Long Silence advances on its own clock
+  silenceTick();
 }
 
 export function failJob(j: Job, msg: string) {
@@ -184,6 +187,8 @@ export function arrive() {
     if (j.arcVoss) arcHavensScene();
   }
   refreshMarket();
+  // campaign beats own the arrival if one is due (dark stations, the source)
+  if (silenceArrive()) return;
   // your playstyle may quietly plant a future payoff, then dock-riders fire
   maybePlantReputationRider();
   checkScheduler();
@@ -205,6 +210,8 @@ export function completePay(j: Job) {
   S.credits += pay;
   S.prestige += j.prestige || 0;
   if (j.rep) S.rep[j.rep[0]] = clamp(S.rep[j.rep[0]] + (j.rep[1] || 1), -20, 20);
+  // campaign missions report completion via flags (scenes gate on job_<tag>)
+  if (j.tag) S.flags["job_" + j.tag] = true;
   log(`✓ ${j.title} — paid ${Math.round(pay).toLocaleString()}cr${j.prestige ? ", +" + j.prestige + " prestige" : ""}.`);
   if (j.pax && j.pax.motive === "spy") {
     const f = pick(["union", "frontier", "syndicate"]);
