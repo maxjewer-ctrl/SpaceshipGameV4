@@ -2,13 +2,13 @@
 // module bays branching off alternating sides — generated fresh from whatever
 // is actually installed, so buying or losing a module changes the deck you walk.
 import { S } from "../state";
-import { MODS } from "../content";
+import { MODS, ROLES } from "../content";
 import { requestRender } from "../bus";
-import { modal, closeModal } from "../modal";
 import { modCategory } from "./ship";
-import { crewChatLine } from "../systems/barks";
+import { openCrewTalk } from "../systems/crewtalk";
+import { trustTier, dispositionWord } from "../systems/trust";
 import { shipWalkTick } from "../systems/walkEncounters";
-import { teardown } from "./walk";
+import { teardown, setHighlight } from "./walk";
 import type { WalkScene, WalkRoom, WalkRect, WalkDoor, WalkActor } from "./walk";
 
 const CAT_COLOR: Record<string, string> = {
@@ -23,20 +23,31 @@ function moduleStatus(m: { t: string; on: boolean; dmg: boolean }): string {
   return "operational";
 }
 
-export function crewTalk(id: number) {
-  const c = S.crew.find((x) => x.id === id);
-  if (!c) return;
-  modal(`<div class="scene"><div class="scene-loc">${S.shipName} · crew deck</div>
-    <h2>🧑‍🚀 ${c.name}</h2>
-    <p>${crewChatLine(c)}</p>
-    <div class="choices"><button class="primary" onclick="closeModal()">Nod and move on</button></div></div>`);
-}
+export function crewTalk(id: number) { openCrewTalk(id); }
+
+export function crewHighlight(id: number) { setHighlight("crew:" + id); requestRender(); }
 
 // Leaving to the schematic tears down the walk loop (see stationwalk.ts for why);
 // hopping to the station stays inside the walk system, so ensureRunning() there
 // just remounts fresh via the differing scene id — no explicit teardown needed.
 function openSchematic() { teardown(); S.screen = "ship"; requestRender(); }
 function toStation() { S.screen = "stationwalk"; requestRender(); }
+
+const ROOM_KIND: Record<string, string> = {
+  cockpit: "cockpit", engine: "engine", cargohold: "cargo", quarters: "quarters",
+  medbay: "medbay", hydro: "hydro",
+};
+
+// Which module types a role gravitates to, checked in order — first one
+// actually installed wins. Empty list means "always the cockpit" (the pilot).
+const ROLE_POSTS: Record<string, string[]> = {
+  pilot: [],
+  mechanic: ["workshop", "engine"],
+  gunner: ["weapons", "armory"],
+  medic: ["medbay"],
+  cook: ["hydro"],
+  quartermaster: ["cargohold"],
+};
 
 export function buildShipScene(): WalkScene {
   const bays = S.modules.filter((m) => !MODS[m.t].core);
@@ -55,8 +66,8 @@ export function buildShipScene(): WalkScene {
     { x: cockpit.x, y: spineY - spineH / 2, w: engine.x + engine.w - cockpit.x, h: spineH },
   ];
   const rooms: WalkRoom[] = [
-    { id: "cockpit", x: cockpit.x, y: cockpit.y, w: cockpit.w, h: cockpit.h, label: MODS.cockpit.n, icon: MODS.cockpit.icon },
-    { id: "engine", x: engine.x, y: engine.y, w: engine.w, h: engine.h, label: MODS.engine.n, icon: MODS.engine.icon },
+    { id: "cockpit", x: cockpit.x, y: cockpit.y, w: cockpit.w, h: cockpit.h, label: MODS.cockpit.n, icon: MODS.cockpit.icon, kind: "cockpit" },
+    { id: "engine", x: engine.x, y: engine.y, w: engine.w, h: engine.h, label: MODS.engine.n, icon: MODS.engine.icon, kind: "engine" },
   ];
   const roomDesc: Record<string, string> = {
     cockpit: "The chair still smells like the last owner's coffee. Every gauge you own reports in from here.",
@@ -75,6 +86,7 @@ export function buildShipScene(): WalkScene {
 
   const actors: WalkActor[] = [];
   let quartersRoom: (WalkRect & { id: string }) | null = null;
+  const bayRoomByType: Record<string, WalkRect & { id: string }> = {};
 
   bays.forEach((m, i) => {
     const up = i % 2 === 0;
@@ -89,16 +101,28 @@ export function buildShipScene(): WalkScene {
       ? { x: connX, y: rect.y + rect.h, w: 46, h: (spineY - spineH / 2) - (rect.y + rect.h) }
       : { x: connX, y: spineY + spineH / 2, w: 46, h: rect.y - (spineY + spineH / 2) });
     const md = MODS[m.t];
-    rooms.push({ id, x: rect.x, y: rect.y, w: rect.w, h: rect.h, label: md.n, icon: md.icon, color: CAT_COLOR[modCategory(m.t)] });
+    rooms.push({ id, x: rect.x, y: rect.y, w: rect.w, h: rect.h, label: md.n, icon: md.icon, color: CAT_COLOR[modCategory(m.t)], kind: ROOM_KIND[m.t] });
     roomDesc[id] = `${md.n} — ${moduleStatus(m)}. ${md.d}`;
     if (m.t === "quarters" && !quartersRoom) quartersRoom = rect;
+    if (!bayRoomByType[m.t]) bayRoomByType[m.t] = rect;
   });
 
-  const crewHome = quartersRoom || cockpit;
-  S.crew.forEach((c, i) => {
+  // Crew stand at a post that matches their job, falling back to quarters
+  // then the cockpit — always somewhere legal to stand.
+  function postFor(role: string): WalkRect & { id: string } {
+    for (const t of ROLE_POSTS[role] || []) if (bayRoomByType[t]) return bayRoomByType[t];
+    return quartersRoom || cockpit;
+  }
+  const roomOccupancy: Record<string, number> = {};
+  S.crew.forEach((c) => {
+    const post = postFor(c.role);
+    const slot = roomOccupancy[post.id] || 0;
+    roomOccupancy[post.id] = slot + 1;
     const cols = 3;
-    const gx = crewHome.x + 26 + (i % cols) * 54;
-    const gy = crewHome.y + crewHome.h - 40 - Math.floor(i / cols) * 46;
+    // deterministic scatter so crew sharing a post aren't stacked, but stable
+    // across renders (no per-frame jitter to fight the idle bob with)
+    const gx = post.x + 26 + (slot % cols) * 54;
+    const gy = post.y + post.h - 40 - Math.floor(slot / cols) * 46;
     actors.push({
       x: gx, y: gy, w: 28, h: 28, key: "crew:" + c.id,
       label: c.name, icon: "🧑‍🚀", color: "#5b8dd9",
@@ -115,4 +139,29 @@ export function buildShipScene(): WalkScene {
     spawn: { x: cockpit.x + cockpit.w / 2, y: cockpit.y + cockpit.h / 2 },
     onTick: (moving, dt) => shipWalkTick(moving, dt),
   };
+}
+
+const TIER_DOT: Record<string, string> = {
+  stranger: "#5c636e", shipmate: "#5b8dd9", trusted: "#e8b04b", bonded: "#6fbf73",
+};
+
+// Replaces the captain's log sidebar while walking the decks — a live read on
+// who's aboard, how long they've flown with you, and how they feel about it.
+export function crewRosterHTML(): string {
+  if (!S.crew.length) {
+    return `<div class="panel"><h3>Crew Roster</h3><div class="dim">Nobody aboard but you. Hire hands in planet cantinas.</div></div>`;
+  }
+  const rows = S.crew.map((c) => {
+    const tier = trustTier(c);
+    const dw = dispositionWord(c);
+    const quest = c.questStage === 2 ? " · on a quiet errand" : c.questStage === 3 && c.perk ? " · settled, and grateful" : "";
+    return `<div class="cr-row" onclick="crewHighlight(${c.id})" title="Click to find them on deck">
+      <span class="cr-dot" style="background:${TIER_DOT[tier]}"></span>
+      <div class="cr-info">
+        <div class="cr-name">${c.name}</div>
+        <div class="cr-meta"><span class="ctword ${dw.cls}">${dw.word}</span> · ${ROLES[c.role]?.n || c.role} · ${c.daysAboard || 0}d aboard${quest}</div>
+      </div>
+    </div>`;
+  }).join("");
+  return `<div class="panel"><h3>Crew Roster (${S.crew.length})</h3>${rows}</div>`;
 }

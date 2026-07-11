@@ -130,8 +130,8 @@ export function shipHTML(): string {
       const led = m.dmg ? "var(--red)" : (md.pw ? (m.on ? "var(--green)" : "#3a3f48") : "var(--green)");
       const fill = m.dmg ? "30%" : (md.pw && m.on ? "60%" : "15%");
       const fillC = m.dmg ? "var(--red)" : (cat ? "var(--accent)" : "var(--amber)");
-      const tagC = m.dmg ? "var(--red)" : "var(--dim)";
-      const nameC = m.dmg ? "var(--red)" : "#b8bdc7";
+      const tagC = m.dmg ? "var(--red)" : "#7fb8dd";
+      const nameC = m.dmg ? "var(--red)" : "#cfeaff";
       const tag = md.pw ? (m.on ? `ON ${md.pw}⚡` : `OFF`) : (md.gen ? `+${md.gen}⚡` : "PSV");
       const cls = (m.dmg ? " dmgd" : "") + (!m.dmg && md.pw && !m.on ? " offline" : "") + (S.sel === i ? " selected" : "");
       slotsHtml += `<div class="v2-bay ${cat}${cls}" onclick="selSlot(${i})" title="${md.n}${m.dmg ? " — DAMAGED" : (md.pw && !m.on ? " — powered down" : "")}">

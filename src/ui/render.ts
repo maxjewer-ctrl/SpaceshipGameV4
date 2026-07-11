@@ -10,7 +10,7 @@ import { mapHTML } from "./map";
 import { planetHTML } from "./planet";
 import { travelHTML } from "./travel";
 import { buildStationScene } from "./stationwalk";
-import { buildShipScene } from "./shipwalk";
+import { buildShipScene, crewRosterHTML } from "./shipwalk";
 import * as walk from "./walk";
 
 const WALK_SCREENS = ["stationwalk", "shipwalk"];
@@ -137,10 +137,15 @@ function renderMain() {
 function renderSide() {
   // On the ship screen the log lives at the top of the cockpit's right
   // console instead — hide the standalone sidebar so it isn't shown twice.
+  // On the walk-the-decks screen, the roster replaces the log — you're down
+  // there to see your people, not to reread what already happened.
   const side = $("side");
   if (S.screen === "ship") {
     side.style.display = "none";
     side.innerHTML = "";
+  } else if (S.screen === "shipwalk") {
+    side.style.display = "";
+    side.innerHTML = crewRosterHTML();
   } else {
     side.style.display = "";
     side.innerHTML = captainsLogHTML();

@@ -8,7 +8,7 @@ import { hasModal } from "../modal";
 export interface WalkRect { x: number; y: number; w: number; h: number; }
 export interface WalkDoor extends WalkRect { label: string; locked?: boolean; lockedHint?: string; action: () => void; }
 export interface WalkActor extends WalkRect { key: string; label: string; icon?: string; color?: string; onInteract: () => void; }
-export interface WalkRoom extends WalkRect { id: string; label: string; icon?: string; color?: string; }
+export interface WalkRoom extends WalkRect { id: string; label: string; icon?: string; color?: string; kind?: string; }
 export interface WalkScene {
   id: string;                 // unique per context — changing it remounts at spawn
   title: string;
@@ -41,6 +41,10 @@ let nearDoor: WalkDoor | null = null;
 let nearActor: WalkActor | null = null;
 let clickTarget: { x: number; y: number } | null = null;
 let clickStuck = 0;
+let highlightKey: string | null = null;
+
+// Roster panel -> canvas: flash a ring around one actor when its row is clicked.
+export function setHighlight(key: string | null) { highlightKey = key; }
 
 const KEYMAP: Record<string, string> = {
   ArrowUp: "up", KeyW: "up", ArrowDown: "down", KeyS: "down",
@@ -180,6 +184,66 @@ function rectDist(px: number, py: number, r: WalkRect): number {
   return Math.hypot(px - cx, py - cy);
 }
 
+function hashStr(s: string): number {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
+  return (h >>> 0) % 628; // 0..2π*100, cheap phase spread
+}
+
+// Simple canvas set-dressing per room kind — cheap shapes, no assets, just
+// enough silhouette that a cockpit doesn't look like an engine room.
+function drawProps(c: CanvasRenderingContext2D, r: WalkRoom, dark?: boolean) {
+  const lineC = dark ? "#3a3d46" : "#3a4256";
+  const fillC = dark ? "#1a1c22" : "#161a28";
+  c.save();
+  c.strokeStyle = lineC; c.fillStyle = fillC; c.lineWidth = 1.5;
+  if (r.kind === "cockpit") {
+    // console arc along the forward wall
+    c.beginPath();
+    c.moveTo(r.x + 14, r.y + r.h - 14);
+    c.quadraticCurveTo(r.x + r.w / 2, r.y + r.h - 34, r.x + r.w - 14, r.y + r.h - 14);
+    c.lineTo(r.x + r.w - 14, r.y + r.h - 6); c.lineTo(r.x + 14, r.y + r.h - 6); c.closePath();
+    c.fill(); c.stroke();
+    for (let i = 0; i < 4; i++) {
+      const bx = r.x + r.w / 2 - 40 + i * 26;
+      c.fillStyle = i % 2 === 0 ? "#5aa7ff55" : "#e8b04b55";
+      c.fillRect(bx, r.y + r.h - 22, 8, 5);
+    }
+    c.fillStyle = fillC;
+  } else if (r.kind === "engine") {
+    // drive core column
+    const cx = r.x + r.w / 2, cy = r.y + r.h / 2;
+    c.beginPath(); c.arc(cx, cy, 26, 0, Math.PI * 2); c.fill(); c.stroke();
+    c.beginPath(); c.arc(cx, cy, 14, 0, Math.PI * 2); c.strokeStyle = "#e8843b77"; c.stroke();
+  } else if (r.kind === "cargo") {
+    // crate stack
+    for (let i = 0; i < 3; i++) {
+      const bx = r.x + 16 + (i % 2) * 30, by = r.y + r.h - 26 - Math.floor(i / 2) * 26;
+      c.fillRect(bx, by, 24, 22); c.strokeRect(bx, by, 24, 22);
+    }
+  } else if (r.kind === "quarters") {
+    // bunks along the back wall
+    for (let i = 0; i < 2; i++) {
+      const bx = r.x + 16 + i * (r.w - 44);
+      c.fillRect(bx, r.y + r.h - 40, 28, 26); c.strokeRect(bx, r.y + r.h - 40, 28, 26);
+    }
+  } else if (r.kind === "medbay") {
+    // a bed + a cross
+    c.fillRect(r.x + 18, r.y + r.h - 34, 40, 18); c.strokeRect(r.x + 18, r.y + r.h - 34, 40, 18);
+    c.strokeStyle = "#6fbf7377";
+    c.beginPath(); c.moveTo(r.x + r.w - 24, r.y + 18); c.lineTo(r.x + r.w - 24, r.y + 30); c.moveTo(r.x + r.w - 30, r.y + 24); c.lineTo(r.x + r.w - 18, r.y + 24); c.stroke();
+  } else if (r.kind === "hydro") {
+    // planter rows
+    for (let i = 0; i < 3; i++) {
+      const ry = r.y + r.h - 20 - i * 12;
+      c.fillStyle = "#6fbf7333";
+      c.fillRect(r.x + 14, ry, r.w - 28, 8);
+      c.strokeStyle = "#6fbf7355"; c.strokeRect(r.x + 14, ry, r.w - 28, 8);
+    }
+  }
+  c.restore();
+}
+
 // ---- loop ----
 function tick(t: number) {
   const dt = Math.min(0.05, (t - last) / 1000);
@@ -271,6 +335,7 @@ function draw() {
     ctx.fillStyle = scene.dark ? "#6a6f7c" : "#7d8294";
     ctx.textAlign = "left";
     ctx.fillText(`${r.icon || ""} ${r.label}`.trim(), r.x + 10, r.y + 18);
+    if (r.kind) drawProps(ctx, r, scene.dark);
   }
   for (const d of scene.doors) {
     const isNear = d === nearDoor;
@@ -286,7 +351,11 @@ function draw() {
     ctx.font = "12px Consolas, monospace";
   }
   for (const a of scene.actors) {
-    const cx = a.x + a.w / 2, cy = a.y + a.h / 2;
+    // gentle idle bob, out of phase per actor so a crowded room doesn't
+    // breathe in unison — purely cosmetic, doesn't touch a.x/a.y or collision
+    const seed = hashStr(a.key);
+    const bob = Math.sin(last / 700 + seed) * 2;
+    const cx = a.x + a.w / 2, cy = a.y + a.h / 2 + bob;
     const isNear = a === nearActor;
     ctx.beginPath(); ctx.arc(cx, cy, 15, 0, Math.PI * 2);
     ctx.fillStyle = a.color || "#d9a55b";
@@ -304,6 +373,10 @@ function draw() {
     ctx.font = "10px Consolas, monospace";
     ctx.fillStyle = isNear ? "#e8b04b" : "#9aa0b4";
     ctx.fillText(a.label, cx, a.y + a.h + 13);
+    if (a.key === highlightKey) {
+      ctx.beginPath(); ctx.arc(cx, cy, 20 + Math.sin(last / 140) * 3, 0, Math.PI * 2);
+      ctx.strokeStyle = "#e8b04b"; ctx.lineWidth = 2; ctx.stroke();
+    }
   }
   if (clickTarget) {
     ctx.beginPath(); ctx.arc(clickTarget.x, clickTarget.y, 5, 0, Math.PI * 2);

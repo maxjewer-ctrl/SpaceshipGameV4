@@ -1,6 +1,6 @@
 import { S, log } from "../state";
 import { PLANETS, MODS, FLAVOR } from "../content";
-import { stats, daysTo, fuelTo, foodPerDay, salaries } from "../derive";
+import { stats, daysTo, fuelTo, foodPerDay, salaries, perkActive } from "../derive";
 import { rand, pick } from "../rng";
 import { clamp } from "../util";
 import { requestRender } from "../bus";
@@ -17,6 +17,7 @@ import { remember, crewKey } from "./ledger";
 import { shift } from "./disposition";
 import { resetStation } from "../ui/stationwalk";
 import { silenceTick, silenceArrive } from "./silence";
+import { checkCrewQuests, checkCrewDeparture } from "./crewtalk";
 import type { Job } from "../types";
 
 export function depart(destId: string) {
@@ -74,7 +75,7 @@ export function dayTick(traveling: boolean) {
     if (S.fuel <= 0) { S.fuel = 0; evAdrift(); }
   }
   // food
-  const eat = foodPerDay();
+  const eat = perkActive("cook") ? Math.ceil(foodPerDay() * 0.9) : foodPerDay();
   S.food += st.foodGen;
   S.food -= eat;
   if (S.food < 0) {
@@ -115,12 +116,13 @@ export function dayTick(traveling: boolean) {
   }
   // mechanic works in flight: hull first, then jury-rigging broken modules
   if (traveling && st.has("mechanic")) {
+    const mechPerk = perkActive("mechanic");
     if (S.hull < S.hullMax) {
-      const amt = st.active("workshop") > 0 ? 6 : 3;
+      const amt = (st.active("workshop") > 0 ? 6 : 3) + (mechPerk ? 2 : 0);
       S.hull = Math.min(S.hullMax, S.hull + amt);
     }
     const dmgd = S.modules.filter((m) => m.dmg);
-    if (dmgd.length && rand() < (st.active("workshop") > 0 ? 0.6 : 0.3)) {
+    if (dmgd.length && rand() < (st.active("workshop") > 0 ? 0.6 : 0.3) + (mechPerk ? 0.15 : 0)) {
       const m = pick(dmgd);
       m.dmg = false;
       powerRebalance();
@@ -192,17 +194,23 @@ export function arrive() {
   // your playstyle may quietly plant a future payoff, then dock-riders fire
   maybePlantReputationRider();
   checkScheduler();
+  // a crew member's personal quest may resolve here, or a badly neglected one
+  // may walk — at most one of these opens a modal per docking
+  checkCrewQuests();
+  checkCrewDeparture();
 }
 
 export function completePay(j: Job) {
   const st = stats();
   let pay = j.pay;
-  if (st.has("quartermaster")) pay = Math.round(pay * 1.15);
+  if (st.has("quartermaster")) pay = Math.round(pay * (perkActive("quartermaster") ? 1.22 : 1.15));
   if (j.vip && j.pax && !j.pax.sick && st.active("luxcabin") === 0) {
     pay = Math.round(pay * 0.6);
     log(`${j.pax.name} spent the trip in an unpowered stateroom and deducts 40% of the fare, itemized, with footnotes.`);
   }
-  if (j.pax && j.pax.sick) {
+  if (j.pax && j.pax.sick && st.has("medic") && perkActive("medic")) {
+    log(`${j.pax.name} disembarks fighting fit — your medic wouldn't let it go any other way. Full pay.`);
+  } else if (j.pax && j.pax.sick) {
     pay = Math.round(pay * 0.5);
     S.prestige = Math.max(0, S.prestige - 1);
     log(`${j.pax.name} disembarks pale and furious. Half pay.`);

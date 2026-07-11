@@ -7,6 +7,12 @@ export function modInst(): ModuleInstance[] {
   return S.modules.filter((m) => !MODS[m.t].core);
 }
 
+// A crew member who saw their personal quest through grants a small stacking
+// bonus on top of the flat role perk — earned, not bought.
+export function perkActive(role: string): boolean {
+  return S.crew.some((c) => c.role === role && c.perk);
+}
+
 export function stats(): ShipStats {
   const inst = (t: string) => S.modules.filter((m) => m.t === t).length;
   const intact = (t: string) => S.modules.filter((m) => m.t === t && !m.dmg).length;
@@ -25,11 +31,11 @@ export function stats(): ShipStats {
     paxCap: intact("cabin") * 2,
     vipCap: intact("luxcabin"),
     crewCap: intact("quarters") * 2,
-    dmg: Math.round((wDmg > 0 ? wDmg : 2) * (has("gunner") ? 1.5 : 1)),
+    dmg: Math.round((wDmg > 0 ? wDmg : 2) * (has("gunner") ? (perkActive("gunner") ? 1.65 : 1.5) : 1)),
     shield: active("shields") * 4,
     foodGen: active("hydro") * 2,
     speed: [0, 70, 85, 100][S.engineLvl],
-    fuelDay: +(4 * (has("pilot") ? 0.85 : 1)).toFixed(1),
+    fuelDay: +(4 * (has("pilot") ? (perkActive("pilot") ? 0.78 : 0.85) : 1)).toFixed(1),
   };
 }
 
@@ -79,5 +85,6 @@ export function fuelTo(from: string, to: string): number {
 }
 
 export function bribeCost(base: number): number {
-  return Math.round(base * (stats().has("quartermaster") ? 0.65 : 1));
+  const has = stats().has("quartermaster");
+  return Math.round(base * (has ? (perkActive("quartermaster") ? 0.55 : 0.65) : 1));
 }

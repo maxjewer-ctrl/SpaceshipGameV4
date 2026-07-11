@@ -61,22 +61,6 @@ export function bark(
   return true;
 }
 
-// Non-logging variant for the walkable ship interior: walk up to a crew member
-// and hear a line, shown in a small chat modal rather than whispered to the log.
-const CHAT_FALLBACK: Record<string, string> = {
-  pilot: "\"Handles good today, Captain. No complaints.\"",
-  mechanic: "\"She's holding together. Mostly.\"",
-  medic: "\"Everyone's vitals are fine. Boring, in a good way.\"",
-  gunner: "\"Weapons are hot and ready, if it comes to that.\"",
-  cook: "\"Don't ask what's in the stew.\"",
-  quartermaster: "\"The numbers add up, for once.\"",
-};
-export function crewChatLine(c: CrewMember): string {
-  const pairs = BARKS.filter((b) => b.when === "quiet" && gateOk(b, c));
-  if (pairs.length) return fill(cosPick(pairs).text, c);
-  return `${c.name}: ${CHAT_FALLBACK[c.role] || '"All quiet, Captain."'}`;
-}
-
 // A crew member's "tell" — the behavioural giveaway — surfaced in-context. This
 // is how the hidden Tapestry sheet leaks without ever being shown.
 export function tellBark(situation: string): boolean {

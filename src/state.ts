@@ -1,7 +1,7 @@
 import type { GameState, ModuleInstance } from "./types";
 
 export const SAVE_KEY = "kestrelrun";
-export const SAVE_VERSION = 5;
+export const SAVE_VERSION = 6;
 
 // The single mutable game state. `export let` gives live bindings to importers;
 // replace it only through setState so everyone sees the new object.
@@ -91,6 +91,16 @@ export function migrate(s: any): GameState {
     // The Reckoning reads this flag; grant it to saves that already resolved Voss.
     if (s.arc && (s.arc.done || s.arc.betrayed)) s.flags.arc_resolved = true;
     s.version = 5;
+  }
+  // v6: crew dialogue — what's been revealed, and where a resolved want points.
+  if (s.version < 6) {
+    (s.crew || []).forEach((c: any) => {
+      if (!c.revealed || typeof c.revealed !== "object") c.revealed = {};
+      if (c.questStage === undefined) c.questStage = 0;
+      if (c.questDest === undefined) c.questDest = null;
+      if (c.perk === undefined) c.perk = false;
+    });
+    s.version = 6;
   }
   return s as GameState;
 }

@@ -35,11 +35,19 @@ export interface CrewBundle {
   traits: string[]; // 2 personality tags from the corpus — gate which barks fire
 }
 
+// What they've actually told the captain — gates which Tapestry fields the
+// dialogue system has leaked so far. Distinct from the bundle itself, which
+// always exists the moment they're generated.
+export interface CrewRevealed { origin?: boolean; want?: boolean; wound?: boolean; }
+
 export interface CrewMember {
   id: number; name: string; role: string; fee: number; salary: number;
   bundle?: CrewBundle;
   daysAboard?: number;   // veterancy tick, drives loyalty & quest timing
-  questStage?: number;   // personal-quest progress (0 = dormant)
+  questStage?: number;   // personal-quest progress: 0 dormant, 1 opened, 2 pointed at a world, 3 resolved
+  revealed?: CrewRevealed;
+  questDest?: string | null;  // world their personal quest points to, once stage 2
+  perk?: boolean;              // resolved their quest well — grants a small stacking bonus on their role
 }
 
 export interface Passenger { name: string; motive: string; sick: boolean; arc?: boolean; }

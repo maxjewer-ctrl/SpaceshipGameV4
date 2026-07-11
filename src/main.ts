@@ -36,8 +36,9 @@ import {
   silBoardReturned, silScanReturned, silLearnNumbers, silLearnReturned,
 } from "./systems/silence";
 import { pressStart, pressEnd, interact, debugStep, debugPos, debugGoto } from "./ui/walk";
-import { crewTalk } from "./ui/shipwalk";
+import { crewTalk, crewHighlight } from "./ui/shipwalk";
 import { wkPay, wkTalk, wkFight } from "./systems/walkEncounters";
+import { ctVibe, ctAbout, ctShip, ctQuest, ctClose, ctQuestHelp, ctQuestSkip } from "./systems/crewtalk";
 import { loadRemoteContent } from "./supabase/content";
 
 setRender(render);
@@ -77,7 +78,9 @@ Object.assign(window as any, {
   silBoardReturned, silScanReturned, silLearnNumbers, silLearnReturned,
   // free-roam walking: D-pad/keyboard fallback buttons, crew chat, foot encounters
   walkPressStart: pressStart, walkPressEnd: pressEnd, walkInteract: interact,
-  crewTalk, wkPay, wkTalk, wkFight,
+  crewTalk, crewHighlight, wkPay, wkTalk, wkFight,
+  // crew dialogue — trust-gated topics, personal quests
+  ctVibe, ctAbout, ctShip, ctQuest, ctClose, ctQuestHelp, ctQuestSkip,
   // dev/debug: live state accessor + manual walk-frame stepper (harmless — behind underscores)
   __S: () => State.S,
   __walkStep: debugStep,
