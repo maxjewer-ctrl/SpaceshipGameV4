@@ -85,8 +85,9 @@ function breakersHTML(): string {
 }
 
 export function captainsLogHTML(): string {
+  const visible = S.logLines.slice(0, 20);
   return `<div class="panel"><h3>Captain's Log</h3>
-    ${S.logLines.map((l) => `<div class="logline${l.bark ? " bark" : ""}"><b>D${l.d}</b> ${l.m}</div>`).join("") || '<div class="dim">Nothing yet.</div>'}
+    <div class="logscroll">${visible.map((l) => `<div class="logline${l.bark ? " bark" : ""}"><b>D${l.d}</b> ${l.m}</div>`).join("") || '<div class="dim">Nothing yet.</div>'}</div>
   </div>`;
 }
 
