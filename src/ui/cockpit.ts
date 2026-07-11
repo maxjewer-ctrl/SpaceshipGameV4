@@ -36,19 +36,28 @@ export function throttleLive(el: HTMLInputElement) {
   if (val) val.textContent = el.value + "%";
 }
 
-export function bayToggle() {
+// The bay doors are a real interlock now: freight loads through an open bay,
+// and the launch sequence won't light the drive over an open one.
+export function bayIsOpen() { return CTL.bay === "open"; }
+export function bayBusy() { return CTL.bayMoving; }
+
+export function cycleBay(to: "open" | "closed", done?: () => void) {
   if (CTL.bayMoving) return;
+  if (CTL.bay === to) { done?.(); return; }
   CTL.bayMoving = true;
   requestRender();
   setTimeout(() => {
     CTL.bayMoving = false;
-    CTL.bay = CTL.bay === "open" ? "closed" : "open";
-    log(CTL.bay === "open"
+    CTL.bay = to;
+    log(to === "open"
       ? "📦 Cargo bay doors open. Hard vacuum where the floor used to be."
       : "📦 Cargo bay doors sealed and pressurized.");
     requestRender();
+    done?.();
   }, 1250);
 }
+
+export function bayToggle() { cycleBay(CTL.bay === "open" ? "closed" : "open"); }
 
 export function jettisonGood(g: string) {
   if (CTL.bay !== "open" || CTL.bayMoving) return;

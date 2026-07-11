@@ -17,11 +17,15 @@ import { remember, crewKey } from "./ledger";
 import { shift } from "./disposition";
 import { resetStation } from "../ui/stationwalk";
 import { silenceTick, silenceArrive } from "./silence";
+import { launchCleared, resetLaunch } from "../ui/bridge";
+import { bayIsOpen } from "../ui/cockpit";
 import { checkCrewQuests, checkCrewDeparture } from "./crewtalk";
 import type { Job } from "../types";
 
 export function depart(destId: string) {
   if (!S.docked || S.travel) return;
+  if (!launchCleared()) { log("⚓ The clamps are still on — run the launch sequence (Bridge)."); requestRender(); return; }
+  if (bayIsOpen()) { log("📦 Bay doors are open to vacuum — seal the hold before liftoff."); requestRender(); return; }
   const d = daysTo(S.loc, destId);
   const f = fuelTo(S.loc, destId);
   if (S.fuel < f) { log(`Not enough fuel — need ${f}, have ${Math.floor(S.fuel)}.`); requestRender(); return; }
@@ -29,6 +33,7 @@ export function depart(destId: string) {
   S.docked = false;
   S.screen = "bridge";
   S.selPlanet = null;
+  resetLaunch(); // the board goes dark for the next port
   log(`Departed ${PLANETS[S.loc].n} for ${PLANETS[destId].n}. ${d} days out. ${pick(FLAVOR.depart)}`);
   if (!tellBark("depart")) bark("depart", { chance: 0.7 });
   requestRender();

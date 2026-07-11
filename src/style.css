@@ -1345,3 +1345,70 @@ th{color:var(--dim); font-weight:500; text-transform:uppercase; font-size:11px; 
   .bridge .viewport{height:110px;}
   .helm .burnbtn{min-width:0; min-height:60px; flex:1 1 44%;}
 }
+
+/* ============ action board — big bright handles ============ */
+.board{display:grid; grid-template-columns:1fr; gap:8px; margin-bottom:12px;}
+@media (min-width:821px){ .board{grid-template-columns:1fr 1fr;} }
+.act{
+  --tone:#8a8f99;
+  display:flex; align-items:center; gap:12px; text-align:left;
+  padding:13px 14px; border-radius:10px;
+  border:1px solid color-mix(in srgb, var(--tone) 55%, #14161b);
+  background:linear-gradient(180deg, color-mix(in srgb, var(--tone) 13%, #12141a), #0d0f14);
+  box-shadow:inset 0 1px 0 #ffffff10, 0 4px 10px #0008;
+}
+.act:hover:not(:disabled){ border-color:var(--tone); }
+.act .a-ic{font-size:22px; flex:none; line-height:1; filter:drop-shadow(0 0 8px color-mix(in srgb, var(--tone) 70%, transparent));}
+.act .a-tx{flex:1; min-width:0; display:flex; flex-direction:column; gap:2px;}
+.act .a-t{font-weight:800; font-size:14px; letter-spacing:.1em; color:var(--tone);}
+.act .a-s{font-size:11.5px; font-weight:400; color:#8a8f99; letter-spacing:.02em; text-transform:none;}
+.act .a-go{flex:none; font-size:17px; color:var(--tone); opacity:.75;}
+.act.tone-red{--tone:var(--red);} .act.tone-amber{--tone:var(--amber);}
+.act.tone-green{--tone:var(--green);} .act.tone-blue{--tone:var(--blue);}
+.act.tone-dim{--tone:#6b7280;}
+.act.flash{animation:actglow 1.3s ease-in-out infinite;}
+@keyframes actglow{
+  0%,100%{ box-shadow:inset 0 1px 0 #ffffff10, 0 4px 10px #0008; }
+  50%{ box-shadow:inset 0 1px 0 #ffffff10, 0 0 24px color-mix(in srgb, var(--tone) 50%, transparent), 0 4px 10px #0008; }
+}
+
+/* ============ launch sequence — five switches in a row ============ */
+.launchseq{display:flex; align-items:stretch;}
+.ls-wire{flex:none; width:9px; height:2px; align-self:center; background:#2c313a;}
+.lstep{
+  position:relative; flex:1; min-width:0; overflow:hidden;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px;
+  padding:10px 3px 8px; border-radius:8px; border:1px solid #2a2e36;
+  background:linear-gradient(180deg,#14171e,#0e1014);
+  box-shadow:inset 0 1px 0 #ffffff0a, 0 3px 7px #0007;
+}
+.lstep .ls-led{width:8px; height:8px; border-radius:50%; background:#3a3f48; flex:none;}
+.lstep .ls-ic{font-size:18px; line-height:1.2;}
+.lstep .ls-n{font-family:var(--mono); font-size:7.5px; letter-spacing:.08em; color:#8a8f99; white-space:nowrap;}
+.lstep .ls-sub{font-family:var(--mono); font-size:7.5px; letter-spacing:.06em; color:#5c636e;}
+.lstep.ok{border-color:#2f5a3a; opacity:1;}
+.lstep.ok .ls-led{background:var(--green); box-shadow:0 0 7px var(--green);}
+.lstep.ok .ls-sub{color:var(--green);}
+.lstep.next{border-color:var(--amber); cursor:pointer; animation:lstepflash 1s ease-in-out infinite;}
+.lstep.next .ls-led{background:var(--amber); box-shadow:0 0 8px var(--amber); animation:pulse 1s infinite;}
+.lstep.next .ls-n,.lstep.next .ls-sub{color:var(--amber);}
+.lstep.busy{border-color:var(--blue);}
+.lstep.busy .ls-led{background:var(--blue); box-shadow:0 0 8px var(--blue); animation:alarm .28s infinite;}
+.lstep.locked{opacity:.42;}
+.lstep.ignite .ls-ic{font-size:21px;}
+.lstep.ignite.next{border-color:var(--red); animation:lstepflash-red .8s ease-in-out infinite;}
+.lstep.ignite.next .ls-led{background:var(--red); box-shadow:0 0 9px var(--red);}
+.lstep.ignite.next .ls-n,.lstep.ignite.next .ls-sub{color:var(--red);}
+@keyframes lstepflash{0%,100%{box-shadow:0 0 4px rgba(232,160,74,.2)}50%{box-shadow:0 0 18px rgba(232,160,74,.55)}}
+@keyframes lstepflash-red{0%,100%{box-shadow:0 0 4px rgba(208,69,58,.25)}50%{box-shadow:0 0 20px rgba(208,69,58,.6)}}
+/* the guard cover over the clamps switch — flip it up first */
+.lguard{
+  position:absolute; inset:0; z-index:2; cursor:pointer; border-radius:8px;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
+  background:linear-gradient(180deg,rgba(200,60,50,.94),rgba(150,40,32,.94));
+  background-image:linear-gradient(180deg,rgba(200,60,50,.94),rgba(150,40,32,.94)),repeating-linear-gradient(45deg,transparent 0 9px,#00000026 9px 18px);
+  border:1px solid #e0796d;
+  font-family:var(--mono); font-size:9px; font-weight:700; letter-spacing:.14em; color:#ffd9d4;
+}
+.lguard small{font-size:7px; font-weight:400; letter-spacing:.08em;}
+@media (prefers-reduced-motion:reduce){ .act.flash,.lstep.next,.lstep.ignite.next{animation:none;} }

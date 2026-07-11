@@ -3,6 +3,8 @@ import { PLANETS, MODS, GOODS, NAMES, MOTIVES, FLAVOR, ROLES, CREWGEN } from "..
 import { stats, daysTo, cargoUsed, scargoUsed, paxJobs, vipJobs, planetVisible, isSilenced } from "../derive";
 import { rand, ri, pick } from "../rng";
 import { requestRender } from "../bus";
+import { modal, closeModal } from "../modal";
+import { bayIsOpen, cycleBay } from "../ui/cockpit";
 import { bark } from "./barks";
 import { shift } from "./disposition";
 import type { Job, CrewMember, CrewBundle } from "../types";
@@ -165,12 +167,35 @@ export function acceptMission(i: number) {
   if (!m) return;
   const [ok, why] = canAccept(m);
   if (!ok) { log("Can't take that job: " + why + "."); requestRender(); return; }
+  // Freight is physical: open cargo goes aboard through open bay doors.
+  // (Hidden freight doesn't — it arrives in crates marked "machine parts".)
+  const needsBay = !!m.units && !m.hidden;
+  if (needsBay && !bayIsOpen()) {
+    modal(`<h2>📦 The hold is sealed</h2>
+      <p>${m.units} units of freight sit on the dock cart, crane standing by — but your bay doors are shut.</p>
+      <div class="choices">
+        <button class="primary" onclick="bayForJob(${m.id})">CYCLE BAY DOORS OPEN — then load</button>
+        <button onclick="closeModal()">Leave it on the dock</button>
+      </div>`);
+    return;
+  }
   S.market.missions.splice(i, 1);
   S.jobs.push(m);
   // Taking shady freight marks you as an operator willing to work outside the law.
   if (m.hidden || m.kind === "smuggle") shift("law", -2, "took a smuggling contract");
   log(`Contract accepted: ${m.title} → ${PLANETS[m.dest].n}${m.deadline ? " (by day " + m.deadline + ")" : ""}.`);
+  if (needsBay) log(`📦 The crane swings ${m.units} units aboard through the open bay. Seal her up before liftoff.`);
   requestRender();
+}
+
+// From the "hold is sealed" prompt: cycle the doors, then take the job the
+// captain was reaching for (found again by id — the board may have shifted).
+export function bayForJob(id: number) {
+  closeModal();
+  cycleBay("open", () => {
+    const idx = S.market ? S.market.missions.findIndex((m) => m.id === id) : -1;
+    if (idx >= 0) acceptMission(idx);
+  });
 }
 
 export function hire(i: number) {

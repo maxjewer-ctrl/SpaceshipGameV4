@@ -2,6 +2,7 @@ import { S } from "../state";
 import { PLANETS, FACS } from "../content";
 import { daysTo, fuelTo, foodPerDay, planetVisible, isSilenced } from "../derive";
 import { requestRender } from "../bus";
+import { launchCleared } from "./bridge";
 
 export function selPlanet(k: string) { S.selPlanet = k; requestRender(); }
 
@@ -107,7 +108,11 @@ export function mapHTML(): string {
           <span>Food needed (est.)</span><b class="${S.food >= foodNeed ? "" : "low"}">~${foodNeed} (have ${Math.floor(S.food)})</b>
           <span>Fuel price there</span><b>${p.fuelP || "—"}cr</b>
         </div>
-        ${S.docked ? `<button class="primary" ${ok ? "" : "disabled"} onclick="depart('${S.selPlanet}')">${ok ? "⛽ Depart (" + f + " fuel, " + d + " days)" : "Not enough fuel"}</button>` : `<span class="dim">Already in transit.</span>`}
+        ${S.docked
+          ? launchCleared()
+            ? `<button class="primary" ${ok ? "" : "disabled"} onclick="depart('${S.selPlanet}')">${ok ? "🚀 Punch it — " + d + " days, " + f + " fuel" : "Not enough fuel"}</button>`
+            : `<button class="primary" onclick="launchGoto()">⚓ CLAMPED — run the launch sequence</button>`
+          : `<span class="dim">Already in transit.</span>`}
       </div>`;
     }
   } else {
