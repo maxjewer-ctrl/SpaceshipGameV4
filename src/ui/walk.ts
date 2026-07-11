@@ -87,13 +87,16 @@ export function mountHTML(s: WalkScene): string {
   const dpad = (dir: string, glyph: string, cls: string) =>
     `<button class="wk-dbtn ${cls}" onpointerdown="walkPressStart('${dir}')" onpointerup="walkPressEnd('${dir}')" onpointerleave="walkPressEnd('${dir}')" onpointercancel="walkPressEnd('${dir}')">${glyph}</button>`;
   return `<div class="panel"><h3>${s.title}</h3>
-    <div class="walkscope${s.dark ? " walk-dark" : ""}">
-      <div class="scope-head"><span>◄ FREE MOVEMENT ▬ WASD / ARROWS ►</span><span class="sh-r" id="wk-room"></span></div>
-      <div class="walk-viewport" style="aspect-ratio:${s.width}/${s.height}">
-        <canvas id="walkcanvas" width="${s.width}" height="${s.height}"></canvas>
-        <div class="walk-prompt" id="wk-prompt"></div>
+    <div class="cockpit">
+    <div class="console con-table">
+      <div class="walkscope${s.dark ? " walk-dark" : ""}">
+        <div class="scope-head"><span>◄ FREE MOVEMENT ▬ WASD / ARROWS ►</span><span class="sh-r" id="wk-room"></span></div>
+        <div class="walk-viewport" style="aspect-ratio:${s.width}/${s.height}">
+          <canvas id="walkcanvas" width="${s.width}" height="${s.height}"></canvas>
+          <div class="walk-prompt" id="wk-prompt"></div>
+        </div>
+        <div class="scope-foot"><span id="wk-status"></span><span>[E] interact</span></div>
       </div>
-      <div class="scope-foot"><span id="wk-status"></span><span>[E] interact</span></div>
     </div>
     <p class="dim" id="wk-desc" style="margin-top:8px; min-height:16px"></p>
     <div class="walk-controls">
@@ -103,6 +106,7 @@ export function mountHTML(s: WalkScene): string {
         ${dpad("down", "▼", "wk-down")}
       </div>
       <div class="walk-fallback" id="wk-fallback"></div>
+    </div>
     </div>
   </div>`;
 }

@@ -343,6 +343,9 @@ th{color:var(--dim); font-weight:500; text-transform:uppercase; font-size:11px; 
 .con-left{ transform:rotateY(12deg) translateZ(10px); transform-origin:right center; }
 .con-right{ transform:rotateY(-12deg) translateZ(10px); transform-origin:left center; }
 .con-center{ max-width:360px; transform:rotateX(6deg) translateZ(-8px); transform-origin:center top; z-index:1; }
+/* a wide instrument tilted back like a chart table — same depth cue as
+   con-center, but without the narrow max-width (star map, walk viewports) */
+.con-table{ transform:rotateX(4deg) translateZ(-4px); transform-origin:center top; box-shadow:0 14px 26px #000b; }
 .con-left .panel{ box-shadow:10px 0 18px #000a; border-right-color:#3a4256; }
 .con-right .panel{ box-shadow:-10px 0 18px #000a; border-left-color:#3a4256; }
 .con-center .panel{ box-shadow:0 14px 26px #000b; }
@@ -498,9 +501,30 @@ th{color:var(--dim); font-weight:500; text-transform:uppercase; font-size:11px; 
 .sigbars i{ flex:1; border-radius:1px; }
 @media (max-width:1000px){
   .dash{ flex-wrap:wrap; }
-  .con-left,.con-right,.con-center{ transform:none; max-width:none; flex:1 1 280px; }
-  .pedestal{ transform:none; }
+  .con-left,.con-right,.con-center,.con-table{ transform:none; max-width:none; flex:1 1 280px; }
+  .pedestal,.walk-controls{ transform:none; }
 }
+/* walk screens (station deck, ship interior) — same physical-panel language
+   as the ship's pedestal: bolted housing under the viewport, tactile keys */
+.walk-controls{
+  position:relative;
+  padding:11px 16px 14px; margin-top:10px;
+  background:linear-gradient(180deg,#242a38 0%,#171b26 16%,#0d0f16 100%);
+  border:1px solid #2c313a; border-top-color:#4d566b; border-radius:6px 6px 16px 16px;
+  box-shadow:0 -10px 22px #000a, inset 0 1px 0 #ffffff1c, inset 0 -12px 26px #0009;
+  transform:rotateX(6deg); transform-origin:50% 100%;
+}
+.walk-controls::before,.walk-controls::after{
+  content:""; position:absolute; top:6px; width:5px; height:5px; border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#4a536b,#20242e 70%); box-shadow:inset 0 1px 1px #000;
+}
+.walk-controls::before{ left:8px; } .walk-controls::after{ right:8px; }
+.wk-dbtn{
+  background:linear-gradient(180deg,#12151c,#0d0f14); border:1px solid #23272f;
+  box-shadow:inset 0 1px 0 #ffffff08, 0 3px 6px #0007;
+}
+.wk-dbtn:active{ box-shadow:inset 0 2px 4px #0009; transform:translateY(1px); }
+.wk-interact{ background:linear-gradient(180deg,#2a2012,#171107); }
 /* travel starfield */
 .starfield{position:relative; height:120px; border:1px solid var(--line); border-radius:6px; overflow:hidden; margin:12px 0; background:#04050a;}
 .starfield .l1,.starfield .l2{position:absolute; inset:0; background-repeat:repeat;}

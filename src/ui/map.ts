@@ -113,5 +113,11 @@ export function mapHTML(): string {
   } else {
     info = `<div class="panel"><p class="dim">Select a destination. Planet colors show controlling faction: <span style="color:#5b8dd9">Union</span> · <span style="color:#d9a55b">Frontier</span> · <span style="color:#d96b6b">Syndicate</span>.</p></div>`;
   }
-  return `<div class="panel"><h3>Sector Chart</h3>${frameSvg}</div>` + info;
+  // Cockpit framing: the chart is the big console angled toward the pilot's
+  // left hand, the destination readout a narrower console to the right —
+  // same physical language as the ship screen's con-left/con-right split.
+  return `<div class="cockpit"><div class="dash">
+    <div class="console con-left"><div class="panel"><h3>Sector Chart</h3>${frameSvg}</div></div>
+    <div class="console con-right" style="max-width:300px">${info}</div>
+  </div></div>`;
 }
