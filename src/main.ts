@@ -1,10 +1,10 @@
 import "./style.css";
 import { setRender, requestRender } from "./bus";
-import { render, nav } from "./ui/render";
+import { render, nav, masterCaution } from "./ui/render";
 import { loadSaved, setState, log } from "./state";
 import * as State from "./state";
 import { closeModal } from "./modal";
-import { selSlot } from "./ui/ship";
+import { selSlot, shipView } from "./ui/ship";
 import { selPlanet } from "./ui/map";
 import { ptab } from "./ui/planet";
 import { showHelp, confirmNewGame, newGame, intro, startGame } from "./ui/help";
@@ -43,7 +43,7 @@ setRender(render);
 // global. This is the single registry of that surface.
 Object.assign(window as any, {
   // navigation & screens
-  nav, ptab, selSlot, selPlanet, closeModal, log,
+  nav, ptab, selSlot, selPlanet, closeModal, log, shipView, masterCaution,
   // meta
   showHelp, confirmNewGame, newGame, intro, startGame,
   // planet actions

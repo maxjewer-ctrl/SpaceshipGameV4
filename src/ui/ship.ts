@@ -8,6 +8,81 @@ import { storyCards } from "../systems/silence";
 
 export function selSlot(i: number) { S.sel = S.sel === i ? null : i; requestRender(); }
 
+// Center-frame view: the deck schematic or the sensor live feed. Session-only
+// preference — no reason to persist which page of the console you left open.
+let shipViewMode: "plan" | "feed" = "plan";
+export function shipView(v: "plan" | "feed") { shipViewMode = v; requestRender(); }
+
+// Deterministic per (location, day) so blips hold still while you look at them.
+function hash(s: string): number {
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return h >>> 0;
+}
+
+function radarBlips(): { l: number; t: number; c: string; title: string }[] {
+  const out: { l: number; t: number; c: string; title: string }[] = [];
+  const place = (ang: number, dist: number, c: string, title: string) => {
+    const r = 8 + dist * 40; // % from center, kept inside the scope ring
+    out.push({ l: 50 + r * Math.cos(ang), t: 50 + r * Math.sin(ang), c, title });
+  };
+  if (S.travel) {
+    const prog = 1 - S.travel.left / S.travel.total;
+    const a = (hash(S.travel.dest) % 360) * Math.PI / 180;
+    place(a, 1 - prog * 0.85, "var(--blue)", PLANETS[S.travel.dest].n + " (destination)");
+    if (prog < 0.5) place(a + Math.PI, 0.3 + prog, "#6b7280", PLANETS[S.travel.from].n + " (departure)");
+  } else if (S.docked) {
+    place((hash(S.loc) % 360) * Math.PI / 180, 0.18, "var(--blue)", PLANETS[S.loc].n + " (docked)");
+  }
+  // ambient traffic — quiet lanes some days, busy ones others
+  const h = hash(S.loc + ":" + S.day);
+  const n = h % 3;
+  for (let i = 0; i < n; i++) {
+    const a = ((h >> (4 + i * 7)) % 360) * Math.PI / 180;
+    place(a, 0.45 + ((h >> (2 + i * 5)) % 50) / 100, "var(--green)", "Unresolved contact");
+  }
+  return out;
+}
+
+function liveFeedHTML(): string {
+  const st = stats();
+  const blips = radarBlips();
+  const vel = S.travel ? st.speed : 0;
+  const hdg = S.travel ? hash(S.travel.dest) % 360 : hash(S.loc) % 360;
+  const silent = !S.travel && !S.docked;
+  return `<div class="livefeed">
+    <div class="radar">
+      <div class="ring r1"></div><div class="ring r2"></div>
+      <div class="ax-v"></div><div class="ax-h"></div>
+      <div class="rsweep"></div>
+      ${blips.map((b) => `<div class="blip" style="left:${b.l.toFixed(1)}%;top:${b.t.toFixed(1)}%;background:${b.c};box-shadow:0 0 6px ${b.c}" title="${b.title}"></div>`).join("")}
+      <div class="self" title="${S.shipName}"></div>
+      ${silent ? '<div class="nosig">NO SIGNAL</div>' : ""}
+    </div>
+    <div class="feedstats">
+      <div class="fs"><div class="fk">VELOCITY</div><div class="fv">${vel}<small> u/d</small></div></div>
+      <div class="fs"><div class="fk">HEADING</div><div class="fv">${String(hdg).padStart(3, "0")}°</div></div>
+      <div class="fs"><div class="fk">CONTACTS</div><div class="fv plain">${silent ? "—" : blips.length}</div></div>
+    </div>
+  </div>`;
+}
+
+// Breaker panel — one physical switch per powered module, wired straight to
+// the same toggle the schematic bays use.
+function breakersHTML(): string {
+  const inst = modInst();
+  const rows = inst.map((m, i) => ({ m, md: MODS[m.t], i })).filter((r) => r.md.pw);
+  if (!rows.length) return "";
+  return `<div class="panel"><h3>Breaker Panel</h3><div class="breakers">
+    ${rows.map(({ m, md, i }) => `<div class="breaker${m.on && !m.dmg ? " on" : ""}${m.dmg ? " dmgd" : ""}"
+        onclick="toggleMod(${i})" title="${md.n}${m.dmg ? " — DAMAGED" : m.on ? " — online, drawing " + md.pw + "⚡" : " — powered down"}">
+      <div class="bk-well"><div class="bk-handle"></div></div>
+      <div class="bk-led"></div>
+      <div class="bk-name">${md.n}</div>
+    </div>`).join("")}
+  </div></div>`;
+}
+
 export function captainsLogHTML(): string {
   return `<div class="panel"><h3>Captain's Log</h3>
     ${S.logLines.map((l) => `<div class="logline${l.bark ? " bark" : ""}"><b>D${l.d}</b> ${l.m}</div>`).join("") || '<div class="dim">Nothing yet.</div>'}
@@ -97,7 +172,7 @@ export function shipHTML(): string {
     const v = S.rep[f];
     const pct = ((v + 20) / 40) * 100;
     return `<div style="font-size:12px">${FACS[f].n} <span class="dim">(${v > 0 ? "+" : ""}${v})</span></div>
-      <div class="repbar"><div class="f" style="left:0;width:${pct}%;background:${FACS[f].c}"></div></div>`;
+      <div class="repbar"><div class="f" style="left:0;width:${pct}%;background:${FACS[f].c};color:${FACS[f].c}"></div></div>`;
   }).join("");
   // Cockpit framing: canopy up top, consoles angled toward the pilot's seat.
   const canopyStatus = S.travel ? "◇ IN TRANSIT" : S.docked ? `● DOCKED — ${PLANETS[S.loc].n.toUpperCase()}` : "◇ ADRIFT";
@@ -127,15 +202,22 @@ export function shipHTML(): string {
           <span>Systems down</span><b class="${S.modules.some((m) => m.dmg) ? "low" : ""}">${S.modules.filter((m) => m.dmg).length}</b>
         </div>
       </div>
+      ${breakersHTML()}
       <div class="panel"><h3>Faction Standing</h3>${repHtml}</div>
       <div class="panel"><h3>Word on the Street</h3>${repStreetHtml()}</div>
     </div>
     <div class="console con-center">
       <div class="panel"><h3>${S.shipName} — deck schematic</h3>
         <div class="shipframe ${hullState}">
-          <div class="frame-head"><span class="fh-l">◄ DECK PLAN ▬ LIVE FEED ►</span><span class="fh-r">REG ${reg}</span></div>
+          <div class="frame-head">
+            <span class="fh-tabs">
+              <button class="fh-tab${shipViewMode === "plan" ? " on" : ""}" onclick="shipView('plan')">◀ DECK PLAN</button>
+              <button class="fh-tab${shipViewMode === "feed" ? " on" : ""}" onclick="shipView('feed')">LIVE FEED ▶</button>
+            </span>
+            <span class="fh-r">REG ${reg}</span>
+          </div>
           <div class="scansweep"></div>
-          <div class="shipvis">
+          ${shipViewMode === "feed" ? liveFeedHTML() : `<div class="shipvis">
             <div class="nose"><div class="canopy"></div><span class="lbl">COCKPIT</span></div>
             <div class="hullbody">
               <span class="rivets"></span>
@@ -146,7 +228,7 @@ export function shipHTML(): string {
             <div class="tail"><span class="lbl">DRIVE CORE MK-${["", "I", "II", "III"][S.engineLvl]}</span></div>
             <div class="thrustglow"></div>
             <div class="flames">${'<div class="flame"></div>'.repeat(1 + S.engineLvl)}</div>
-          </div>
+          </div>`}
           <div class="frame-foot">
             <span>HULL <b class="${S.hull < 40 ? "low" : ""}">${Math.round(hullPct * 100)}%</b></span>
             <span class="ff-bar"><i style="width:${Math.round(hullPct * 100)}%"></i></span>
