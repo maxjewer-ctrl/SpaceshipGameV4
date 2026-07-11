@@ -19,7 +19,7 @@ export function newState(shipName: string): GameState {
     shipName: shipName || "Kestrel",
     day: 1, credits: 500, fuel: 30, food: 20, hull: 100, hullMax: 100, prestige: 0,
     engineLvl: 1, slotsMax: 6, loc: "solace", docked: true,
-    screen: "ship", ptab: "cantina", sel: null, selPlanet: null,
+    screen: "bridge", ptab: "cantina", sel: null, selPlanet: null,
     rep: { union: 0, frontier: 0, syndicate: 0 },
     modules: [mk("cockpit"), mk("engine"), mk("fueltank"), mk("cargohold")],
     cargo: { ore: 0, med: 0, lux: 0 },

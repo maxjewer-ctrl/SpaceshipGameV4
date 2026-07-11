@@ -6,6 +6,7 @@ import { requestRender } from "../bus";
 import { modal } from "../modal";
 import { refreshMarket } from "../systems/market";
 import { shipHTML, captainsLogHTML } from "./ship";
+import { bridgeHTML } from "./bridge";
 import { mapHTML } from "./map";
 import { planetHTML } from "./planet";
 import { travelHTML } from "./travel";
@@ -94,6 +95,7 @@ function renderNav() {
   // No direct shortcut into the cantina/market/yard screen: the station deck
   // is the only door in. Walk to the room, then through it.
   $("nav").innerHTML =
+    b("bridge", "◆", "Bridge", "Bridge", S.screen === "bridge") +
     b("ship", "🚀", "Ship", "Ship", S.screen === "ship") +
     b("shipwalk", "🧑‍🚀", "Walk Ship", "Walk", S.screen === "shipwalk") +
     b("map", "✦", "Star Map", "Map", S.screen === "map") +
@@ -122,7 +124,8 @@ function renderTicker() {
 
 function renderMain() {
   const m = $("main");
-  if (S.screen === "ship") m.innerHTML = shipHTML();
+  if (S.screen === "bridge") m.innerHTML = bridgeHTML();
+  else if (S.screen === "ship") m.innerHTML = shipHTML();
   else if (S.screen === "map") m.innerHTML = mapHTML();
   else if (S.screen === "stationwalk") {
     const scene = buildStationScene();
@@ -142,7 +145,8 @@ function renderSide() {
   // On the walk-the-decks screen, the roster replaces the log — you're down
   // there to see your people, not to reread what already happened.
   const side = $("side");
-  if (S.screen === "ship") {
+  if (S.screen === "ship" || S.screen === "bridge") {
+    // the bridge carries its own story feed — no second log
     side.style.display = "none";
     side.innerHTML = "";
   } else if (S.screen === "shipwalk") {

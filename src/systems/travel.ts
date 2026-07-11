@@ -27,7 +27,7 @@ export function depart(destId: string) {
   if (S.fuel < f) { log(`Not enough fuel — need ${f}, have ${Math.floor(S.fuel)}.`); requestRender(); return; }
   S.travel = { from: S.loc, dest: destId, total: d, left: d };
   S.docked = false;
-  S.screen = "travel";
+  S.screen = "bridge";
   S.selPlanet = null;
   log(`Departed ${PLANETS[S.loc].n} for ${PLANETS[destId].n}. ${d} days out. ${pick(FLAVOR.depart)}`);
   if (!tellBark("depart")) bark("depart", { chance: 0.7 });
@@ -152,7 +152,9 @@ export function failJob(j: Job, msg: string) {
 
 export function arrive() {
   const dest = S.travel!.dest;
-  S.loc = dest; S.docked = true; S.travel = null; S.screen = "ship";
+  // Land on the bridge: arrival is a story beat (deliveries, scenes, quests
+  // all fire here), so the story screen should be what greets the captain.
+  S.loc = dest; S.docked = true; S.travel = null; S.screen = "bridge";
   resetStation();
   log(`Docked at ${PLANETS[dest].n}.`);
   // victory check
