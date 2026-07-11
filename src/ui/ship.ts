@@ -5,7 +5,7 @@ import { fmt } from "../util";
 import { requestRender } from "../bus";
 import { reputation } from "../systems/disposition";
 import { storyCards } from "../systems/silence";
-import { viewportHTML, pedestalHTML } from "./cockpit";
+import { viewportHTML, pedestalHTML, reactorPanelHTML, lifeSupportHTML, commsFullHTML } from "./cockpit";
 
 export function selSlot(i: number) { S.sel = S.sel === i ? null : i; requestRender(); }
 
@@ -120,20 +120,28 @@ export function shipHTML(): string {
   const hullPct = Math.max(0, S.hull / S.hullMax);
   const hullState = hullPct < 0.35 ? "hull-crit" : hullPct < 0.7 ? "hull-warn" : "";
   const reg = "KR-" + (((S.seed >>> 0) % 8999) + 1000); // stable registry number
+  // v2-style module bay cards: fill-level overlay, LED dot, category tag
   let slotsHtml = "";
   for (let i = 0; i < 10; i++) {
     if (i < inst.length) {
       const m = inst[i], md = MODS[m.t];
-      const led = m.dmg ? "r" : (md.pw ? (m.on ? "g" : "o") : "g");
+      const cat = modCategory(m.t);
+      const led = m.dmg ? "var(--red)" : (md.pw ? (m.on ? "var(--green)" : "#3a3f48") : "var(--green)");
+      const fill = m.dmg ? "30%" : (md.pw && m.on ? "60%" : "15%");
+      const fillC = m.dmg ? "var(--red)" : (cat ? "var(--accent)" : "var(--amber)");
+      const tagC = m.dmg ? "var(--red)" : "var(--dim)";
+      const nameC = m.dmg ? "var(--red)" : "#b8bdc7";
+      const tag = md.pw ? (m.on ? `ON ${md.pw}⚡` : `OFF`) : (md.gen ? `+${md.gen}⚡` : "PSV");
       const cls = (m.dmg ? " dmgd" : "") + (!m.dmg && md.pw && !m.on ? " offline" : "") + (S.sel === i ? " selected" : "");
-      slotsHtml += `<div class="slot filled ${modCategory(m.t)}${cls}" onclick="selSlot(${i})" title="${md.n}${m.dmg ? " — DAMAGED" : (md.pw && !m.on && !m.dmg ? " — powered down" : "")}">
-        <span class="led ${led}"></span>
-        ${md.pw ? `<span class="pips">${"⚡".repeat(md.pw)}</span>` : ""}${md.gen ? `<span class="pips">+${md.gen}⚡</span>` : ""}
-        <span class="ic">${md.icon}</span><span class="nm">${md.n}</span></div>`;
+      slotsHtml += `<div class="v2-bay ${cat}${cls}" onclick="selSlot(${i})" title="${md.n}${m.dmg ? " — DAMAGED" : (md.pw && !m.on ? " — powered down" : "")}">
+        <div class="v2-bay-fill" style="height:${fill};background:${fillC}"></div>
+        <div class="v2-bay-top"><span class="v2-bay-tag" style="color:${tagC}">${tag}</span><span class="v2-bay-led" style="background:${led};box-shadow:0 0 6px ${led}"></span></div>
+        <div class="v2-bay-bot"><span class="v2-bay-icon">${md.icon}</span><span class="v2-bay-name" style="color:${nameC}">${md.n}</span></div>
+      </div>`;
     } else if (i < S.slotsMax) {
-      slotsHtml += `<div class="slot" onclick="selSlot(-1)"><span class="ic">＋</span><span class="dim">empty bay</span></div>`;
+      slotsHtml += `<div class="v2-bay empty" onclick="selSlot(-1)"><div class="v2-bay-bot"><span class="v2-bay-icon">＋</span><span class="v2-bay-name dim">empty bay</span></div></div>`;
     } else {
-      slotsHtml += `<div class="slot locked"><span class="ic">🔒</span><span class="dim">hull expansion</span></div>`;
+      slotsHtml += `<div class="v2-bay locked"><div class="v2-bay-bot"><span class="v2-bay-icon">🔒</span><span class="v2-bay-name dim">hull expansion</span></div></div>`;
     }
   }
   let selHtml = "";
@@ -199,6 +207,7 @@ export function shipHTML(): string {
           <span>Systems down</span><b class="${S.modules.some((m) => m.dmg) ? "low" : ""}">${S.modules.filter((m) => m.dmg).length}</b>
         </div>
       </div>
+      ${reactorPanelHTML()}
       ${breakersHTML()}
       <div class="panel"><h3>Faction Standing</h3>${repHtml}</div>
       <div class="panel"><h3>Word on the Street</h3>${repStreetHtml()}</div>
@@ -214,17 +223,18 @@ export function shipHTML(): string {
             <span class="fh-r">REG ${reg}</span>
           </div>
           <div class="scansweep"></div>
-          ${shipViewMode === "feed" ? liveFeedHTML() : `<div class="shipvis">
-            <div class="nose"><div class="noseglass"></div><span class="lbl">COCKPIT</span></div>
-            <div class="hullbody">
-              <span class="rivets"></span>
-              <span class="hardpoint hp-l ${st.active("weapons") > 0 ? "on-red" : ""}" title="port hardpoint"></span>
-              <span class="hardpoint hp-r ${st.active("shields") > 0 ? "on-blue" : ""}" title="starboard hardpoint"></span>
-              <div class="slotgrid">${slotsHtml}</div>
+          ${shipViewMode === "feed" ? liveFeedHTML() : `<div class="v2-deck">
+            <div class="v2-deck-nose" onclick="selSlot(-1)">
+              <span class="v2-deck-nled" style="background:var(--green);box-shadow:0 0 6px var(--green)"></span>
+              <span class="v2-deck-nlbl">COCKPIT</span>
             </div>
-            <div class="tail"><span class="lbl">DRIVE CORE MK-${["", "I", "II", "III"][S.engineLvl]}</span></div>
-            <div class="thrustglow"></div>
-            <div class="flames">${'<div class="flame"></div>'.repeat(1 + S.engineLvl)}</div>
+            <div class="v2-deck-spine"></div>
+            <div class="v2-baygrid">${slotsHtml}</div>
+            <div class="v2-deck-spine"></div>
+            <div class="v2-deck-eng">
+              <span class="v2-eng-lbl">DRIVE</span>
+              ${Array.from({ length: 1 + S.engineLvl }, () => '<span class="v2-eng-glow"></span>').join("")}
+            </div>
           </div>`}
           <div class="frame-foot">
             <span>HULL <b class="${S.hull < 40 ? "low" : ""}">${Math.round(hullPct * 100)}%</b></span>
@@ -241,6 +251,8 @@ export function shipHTML(): string {
       ${selHtml}
     </div>
     <div class="console con-right">
+      ${lifeSupportHTML()}
+      ${commsFullHTML()}
       ${captainsLogHTML()}
       ${storyCards()}
       <div class="panel"><h3>Active Contracts (${S.jobs.length})</h3>${jobsHtml}</div>

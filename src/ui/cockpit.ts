@@ -229,3 +229,122 @@ export function pedestalHTML(): string {
 
   return `<div class="pedestal">${throttle}${burn}${bay}${vent}${comms}</div>`;
 }
+
+// ---- v2 harvested panels: reactor knobs, life support, comms transceiver ----
+
+export function reactorPanelHTML(): string {
+  const st = stats();
+  const online = st.powerOut > 0;
+  const drawPct = st.powerOut ? Math.min(100, Math.round((st.powerUse / st.powerOut) * 100)) : 0;
+  const heatPct = Math.min(100, Math.round(drawPct * 0.6));
+  const drawClr = drawPct > 90 ? "var(--red)" : drawPct > 70 ? "var(--amber)" : "var(--green)";
+  const heatClr = heatPct > 70 ? "var(--red)" : heatPct > 50 ? "var(--amber)" : "#5aa7ff";
+  const outPct = online ? Math.round((st.powerOut / (st.powerOut + 4)) * 100) : 0;
+  // Decorative knob positions derived from actual state
+  const engDeg = Math.round((st.speed / 12) * 240 - 120);
+  const shdDeg = Math.round((st.shield / 4) * 240 - 120);
+  const wpnDeg = Math.round((st.dmg / 8) * 240 - 120);
+  const knobs = [
+    { name: "ENG", deg: engDeg, clr: "var(--amber)", val: st.speed + " u/d" },
+    { name: "SHD", deg: shdDeg, clr: "var(--blue)", val: "−" + st.shield + "/hit" },
+    { name: "WPN", deg: wpnDeg, clr: "var(--red)", val: "~" + st.dmg + " dmg" },
+  ];
+  return `<div class="panel v2-reactor">
+    <div class="v2-head"><span>REACTOR &amp; POWER</span><span class="v2-tag ${online ? "on" : "off"}">${online ? "ONLINE" : "OFFLINE"}</span></div>
+    <div class="v2-slider-row">
+      <span class="v2-slbl">OUTPUT</span><span class="v2-sval">${st.powerOut}⚡</span>
+    </div>
+    <div class="v2-slider">
+      <div class="v2-sfill" style="width:${outPct}%"></div>
+      <div class="v2-sthumb" style="left:${outPct}%"></div>
+    </div>
+    <div class="v2-bars">
+      <div class="v2-bar"><div class="v2-blbl"><span>DRAW</span><span>${st.powerUse}/${st.powerOut}</span></div><div class="v2-btrack"><div class="v2-bfill" style="width:${drawPct}%;background:${drawClr}"></div></div></div>
+      <div class="v2-bar"><div class="v2-blbl"><span>HEAT</span><span>${heatPct}%</span></div><div class="v2-btrack"><div class="v2-bfill" style="width:${heatPct}%;background:${heatClr}"></div></div></div>
+    </div>
+    <div class="v2-knobs">
+      ${knobs.map((k) => `<div class="v2-knob-group">
+        <div class="v2-knob" style="--deg:${k.deg}deg">
+          <div class="v2-knurl"></div>
+          <div class="v2-kptr"><i style="background:${k.clr};box-shadow:0 0 6px ${k.clr}"></i></div>
+          <div class="v2-kcap"></div>
+        </div>
+        <span class="v2-kname">${k.name}</span>
+        <span class="v2-kval" style="color:${k.clr}">${k.val}</span>
+      </div>`).join("")}
+    </div>
+  </div>`;
+}
+
+export function lifeSupportHTML(): string {
+  const st = stats();
+  const o2 = Math.min(100, Math.max(0, Math.round(80 + st.foodGen * 4)));
+  const co2 = Math.max(200, Math.min(2000, Math.round(800 - st.foodGen * 120)));
+  const co2Pct = Math.min(100, Math.round((co2 / 2000) * 100));
+  const co2Clr = co2 > 1200 ? "var(--red)" : co2 > 800 ? "var(--amber)" : "var(--green)";
+  const scrubOn = st.intact("hydro") > 0;
+  const tempDeg = 42; // decorative — ~21°C position
+  return `<div class="panel v2-lifesup">
+    <div class="v2-head"><span>LIFE SUPPORT</span></div>
+    <div class="v2-lsbars">
+      <div class="v2-lsbar">
+        <div class="v2-blbl"><span>O2 RESERVE</span><span style="color:var(--blue)">${o2}%</span></div>
+        <div class="v2-lstrack"><div class="v2-lsfill o2" style="width:${o2}%"></div></div>
+      </div>
+      <div class="v2-lsbar">
+        <div class="v2-blbl"><span>CO2 PPM</span><span style="color:${co2Clr}">${co2}</span></div>
+        <div class="v2-lstrack"><div class="v2-lsfill" style="width:${co2Pct}%;background:${co2Clr}"></div></div>
+      </div>
+    </div>
+    <div class="v2-ls-row">
+      <div class="v2-knob-group">
+        <div class="v2-knob lg" style="--deg:${tempDeg}deg">
+          <div class="v2-knurl"></div>
+          <div class="v2-kptr"><i style="background:var(--amber);box-shadow:0 0 6px var(--amber)"></i></div>
+          <div class="v2-kcap"></div>
+        </div>
+        <span class="v2-kname">CABIN TEMP</span>
+        <span class="v2-kval" style="color:var(--amber)">21°C</span>
+      </div>
+      <div class="v2-ls-readouts">
+        <div class="v2-ls-boxes">
+          <div class="v2-lsbox"><span class="v2-lsbox-k">PRESS</span><span class="v2-lsbox-v">1.02 atm</span></div>
+          <div class="v2-lsbox"><span class="v2-lsbox-k">HUMID</span><span class="v2-lsbox-v">41%</span></div>
+        </div>
+        <button class="v2-scrub ${scrubOn ? "on" : ""}" disabled>${scrubOn ? "● CO2 SCRUBBER ACTIVE" : "○ SCRUBBER OFFLINE"}</button>
+        <div class="v2-scrub-led"><span class="v2-led ${scrubOn ? "green" : "dim"}"></span><span>${scrubOn ? "NOMINAL — CYCLING" : "NO HYDROPONICS MODULE"}</span></div>
+      </div>
+    </div>
+  </div>`;
+}
+
+export function commsFullHTML(): string {
+  const cr = channelReadout();
+  const bars = Array.from({ length: 9 }, (_, i) => {
+    const h = 20 + (chanHash(CTL.chan + ":" + S.day + ":" + i) % 80);
+    const on = i / 9 < cr.sig;
+    return `<div class="v2-sigbar" style="height:${on ? h : 10}%;background:${on ? "var(--blue)" : "#23272f"}"></div>`;
+  }).join("");
+  return `<div class="panel v2-comms">
+    <div class="v2-head"><span>COMMS — TRANSCEIVER</span></div>
+    <div class="v2-comms-row">
+      <div class="v2-knob-group">
+        <div class="v2-knob xl" onclick="commsTune()" title="Tune to next channel" style="--deg:${CTL.chan * 64 - 96}deg">
+          <div class="v2-knurl"></div>
+          <div class="v2-kptr blue"><i></i></div>
+          <div class="v2-kcap"></div>
+        </div>
+        <span class="v2-kname">CHANNEL</span>
+      </div>
+      <div class="v2-comms-read">
+        <div class="v2-readbox"><span class="v2-readbox-k">CH ${CTL.chan + 1}</span><span class="v2-readbox-v">${CHANNELS[CTL.chan]}</span></div>
+        <div class="v2-sigbars">${bars}</div>
+        <div class="v2-comms-btns">
+          <button class="v2-combtn">MON</button>
+          <button class="v2-combtn ptt">PTT · XMIT</button>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
