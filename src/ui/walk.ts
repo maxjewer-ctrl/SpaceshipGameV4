@@ -39,6 +39,8 @@ let ctx: CanvasRenderingContext2D | null = null;
 let listenersBound = false;
 let nearDoor: WalkDoor | null = null;
 let nearActor: WalkActor | null = null;
+let clickTarget: { x: number; y: number } | null = null;
+let clickStuck = 0;
 
 const KEYMAP: Record<string, string> = {
   ArrowUp: "up", KeyW: "up", ArrowDown: "down", KeyS: "down",
@@ -53,12 +55,25 @@ function bindListeners() {
     const tag = (document.activeElement && document.activeElement.tagName) || "";
     if (tag === "INPUT" || tag === "TEXTAREA") return;
     const dir = KEYMAP[e.code];
-    if (dir) { keys.add(dir); e.preventDefault(); return; }
+    if (dir) { keys.add(dir); clickTarget = null; e.preventDefault(); return; }
     if (e.code === "KeyE" || e.code === "Space") { e.preventDefault(); interact(); }
   });
   document.addEventListener("keyup", (e) => {
     const dir = KEYMAP[e.code];
     if (dir) keys.delete(dir);
+  });
+}
+
+function bindCanvas() {
+  if (!canvas) return;
+  canvas.addEventListener("pointerdown", (e) => {
+    if (!scene || !canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    const sx = scene.width / rect.width;
+    const sy = scene.height / rect.height;
+    const tx = (e.clientX - rect.left) * sx;
+    const ty = (e.clientY - rect.top) * sy;
+    clickTarget = { x: tx, y: ty };
   });
 }
 
@@ -101,6 +116,7 @@ export function start(s: WalkScene) {
   canvas = document.getElementById("walkcanvas") as HTMLCanvasElement | null;
   ctx = canvas ? canvas.getContext("2d") : null;
   bindListeners();
+  bindCanvas();
   last = performance.now();
   if (raf) cancelAnimationFrame(raf);
   raf = requestAnimationFrame(tick);
@@ -120,7 +136,7 @@ export function teardown() {
   raf = null;
   if (scene) savedPos[scene.id] = { ...pos };
   scene = null; mountedId = null; canvas = null; ctx = null;
-  keys.clear();
+  keys.clear(); clickTarget = null;
 }
 
 export function forgetSpawn(sceneId: string) { delete savedPos[sceneId]; }
@@ -190,6 +206,14 @@ function simulate(dt: number) {
     if (keys.has("down")) vy += 1;
     if (keys.has("left")) vx -= 1;
     if (keys.has("right")) vx += 1;
+    // Point-and-click: move toward click target when no keys held
+    if (!vx && !vy && clickTarget) {
+      const dx = clickTarget.x - pos.x;
+      const dy = clickTarget.y - pos.y;
+      const dist = Math.hypot(dx, dy);
+      if (dist < 6) { clickTarget = null; clickStuck = 0; }
+      else { vx = dx / dist; vy = dy / dist; }
+    }
     moving = !!(vx || vy);
     if (moving) {
       const len = Math.hypot(vx, vy) || 1;
@@ -200,8 +224,13 @@ function simulate(dt: number) {
       // Creep to the wall rather than hard-rejecting the whole step: a large
       // dt (a frame stutter, or a coarse test step) would otherwise leave the
       // player stuck a few px short of a legal position at any corridor seam.
+      const prevX = pos.x, prevY = pos.y;
       pos.x = creepAxis(pos.x, nx, (v) => insideFloors(v, pos.y));
       pos.y = creepAxis(pos.y, ny, (v) => insideFloors(pos.x, v));
+      if (clickTarget && Math.hypot(pos.x - prevX, pos.y - prevY) < 0.5) {
+        clickStuck += dt;
+        if (clickStuck > 0.3) { clickTarget = null; clickStuck = 0; }
+      } else { clickStuck = 0; }
       if (Math.abs(vx) > Math.abs(vy)) facing = vx > 0 ? "right" : "left";
       else if (vy !== 0) facing = vy > 0 ? "down" : "up";
       walkPhase += dt * 9;
@@ -275,6 +304,11 @@ function draw() {
     ctx.font = "10px Consolas, monospace";
     ctx.fillStyle = isNear ? "#e8b04b" : "#9aa0b4";
     ctx.fillText(a.label, cx, a.y + a.h + 13);
+  }
+  if (clickTarget) {
+    ctx.beginPath(); ctx.arc(clickTarget.x, clickTarget.y, 5, 0, Math.PI * 2);
+    ctx.strokeStyle = scene.dark ? "#8a8fa066" : "#e8b04b66";
+    ctx.lineWidth = 1.5; ctx.setLineDash([3, 3]); ctx.stroke(); ctx.setLineDash([]);
   }
   drawPlayer(ctx, pos.x, pos.y, facing, moving, walkPhase, scene.dark);
 }
