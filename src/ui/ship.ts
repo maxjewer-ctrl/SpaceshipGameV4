@@ -14,6 +14,12 @@ export function selSlot(i: number) { S.sel = S.sel === i ? null : i; requestRend
 let shipViewMode: "plan" | "feed" = "plan";
 export function shipView(v: "plan" | "feed") { shipViewMode = v; requestRender(); }
 
+// Which console the small-screen layout shows. On a phone the three cockpit
+// consoles become pages behind a SYSTEMS / DECK / OPS switcher instead of one
+// endless stack; desktop ignores this entirely (the tabs are display:none).
+let mobileConsole: "sys" | "deck" | "ops" = "deck";
+export function shipConsole(v: "sys" | "deck" | "ops") { mobileConsole = v; requestRender(); }
+
 // Deterministic per (location, day) so blips hold still while you look at them.
 function hash(s: string): number {
   let h = 2166136261;
@@ -186,9 +192,14 @@ export function shipHTML(): string {
   }).join("");
   // Cockpit framing: viewport glass up top, consoles angled toward the
   // pilot's seat, physical controls on the pedestal below.
+  const conTab = (v: "sys" | "deck" | "ops", label: string) =>
+    `<button class="${mobileConsole === v ? "on" : ""}" onclick="shipConsole('${v}')">${label}</button>`;
   return `<div class="cockpit">
     ${viewportHTML()}
-    <div class="dash">
+    <div class="con-tabs">
+      ${conTab("sys", "⚙ SYSTEMS")}${conTab("deck", "▦ DECK")}${conTab("ops", "☰ OPS")}
+    </div>
+    <div class="dash mob-${mobileConsole}">
     <div class="console con-left">
       <div class="panel"><h3>Ship Systems</h3>
         <div class="statgrid">

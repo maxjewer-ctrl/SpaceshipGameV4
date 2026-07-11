@@ -85,22 +85,24 @@ function renderTop() {
 }
 
 function renderNav() {
-  const b = (id: string, label: string, on?: boolean, dis?: boolean) =>
-    `<button class="${on ? "tab-on" : ""}" ${dis ? "disabled" : ""} onclick="nav('${id}')"><span class="navdot"></span>${label}</button>`;
+  // Each button carries an icon (shown only in the mobile bottom bar) and a
+  // label; utility buttons also carry a short label for narrow screens.
+  const b = (id: string, icon: string, label: string, short: string, on?: boolean, dis?: boolean) =>
+    `<button class="${on ? "tab-on" : ""}" ${dis ? "disabled" : ""} onclick="nav('${id}')"><span class="navdot"></span><span class="nico">${icon}</span><span class="nlbl lg">${label}</span><span class="nlbl sm">${short}</span></button>`;
   const cs = cautions();
   const lit = cs.length > 0 && cautionAck !== cs.map((c) => c.t).join("|");
   // No direct shortcut into the cantina/market/yard screen: the station deck
   // is the only door in. Walk to the room, then through it.
   $("nav").innerHTML =
-    b("ship", "Ship", S.screen === "ship") +
-    b("shipwalk", "Walk Ship", S.screen === "shipwalk") +
-    b("map", "Star Map", S.screen === "map") +
-    (S.docked && S.loc !== "gate" && S.loc !== "anechoic" ? b("stationwalk", isSilenced(S.loc) ? "Station (dark)" : "Station", S.screen === "stationwalk") : "") +
-    (S.travel ? b("travel", "In Transit", S.screen === "travel") : "") +
+    b("ship", "🚀", "Ship", "Ship", S.screen === "ship") +
+    b("shipwalk", "🧑‍🚀", "Walk Ship", "Walk", S.screen === "shipwalk") +
+    b("map", "✦", "Star Map", "Map", S.screen === "map") +
+    (S.docked && S.loc !== "gate" && S.loc !== "anechoic" ? b("stationwalk", "🛰", isSilenced(S.loc) ? "Station (dark)" : "Station", "Station", S.screen === "stationwalk") : "") +
+    (S.travel ? b("travel", "➤", "In Transit", "Transit", S.screen === "travel") : "") +
     `<span class="right">
-      <button class="mcaution${lit ? " lit" : ""}" onclick="masterCaution()">⚠ MASTER CAUTION</button>
-      <button onclick="showHelp()">? Help</button>
-      <button class="danger" onclick="confirmNewGame()">New Game</button>
+      <button class="mcaution${lit ? " lit" : ""}" onclick="masterCaution()"><span class="nico">⚠</span><span class="nlbl lg">⚠ MASTER CAUTION</span><span class="nlbl sm">Caution</span></button>
+      <button onclick="showHelp()"><span class="nico">?</span><span class="nlbl lg">? Help</span><span class="nlbl sm">Help</span></button>
+      <button class="danger" onclick="confirmNewGame()"><span class="nico">⟳</span><span class="nlbl lg">New Game</span><span class="nlbl sm">Reset</span></button>
     </span>`;
 }
 

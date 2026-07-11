@@ -4,7 +4,7 @@ import { render, nav, masterCaution } from "./ui/render";
 import { loadSaved, setState, log } from "./state";
 import * as State from "./state";
 import { closeModal } from "./modal";
-import { selSlot, shipView } from "./ui/ship";
+import { selSlot, shipView, shipConsole } from "./ui/ship";
 import {
   setThrottle, throttleLive, bayToggle, jettisonGood, ventGuard, ventFuel,
   commsTune, engageBurn,
@@ -48,7 +48,7 @@ setRender(render);
 // global. This is the single registry of that surface.
 Object.assign(window as any, {
   // navigation & screens
-  nav, ptab, selSlot, selPlanet, closeModal, log, shipView, masterCaution,
+  nav, ptab, selSlot, selPlanet, closeModal, log, shipView, shipConsole, masterCaution,
   // cockpit pedestal — physical controls
   setThrottle, throttleLive, bayToggle, jettisonGood, ventGuard, ventFuel,
   commsTune, engageBurn,
