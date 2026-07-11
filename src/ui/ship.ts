@@ -5,6 +5,7 @@ import { fmt } from "../util";
 import { requestRender } from "../bus";
 import { reputation } from "../systems/disposition";
 import { storyCards } from "../systems/silence";
+import { viewportHTML, pedestalHTML } from "./cockpit";
 
 export function selSlot(i: number) { S.sel = S.sel === i ? null : i; requestRender(); }
 
@@ -20,7 +21,7 @@ function hash(s: string): number {
   return h >>> 0;
 }
 
-function radarBlips(): { l: number; t: number; c: string; title: string }[] {
+export function radarBlips(): { l: number; t: number; c: string; title: string }[] {
   const out: { l: number; t: number; c: string; title: string }[] = [];
   const place = (ang: number, dist: number, c: string, title: string) => {
     const r = 8 + dist * 40; // % from center, kept inside the scope ring
@@ -174,14 +175,10 @@ export function shipHTML(): string {
     return `<div style="font-size:12px">${FACS[f].n} <span class="dim">(${v > 0 ? "+" : ""}${v})</span></div>
       <div class="repbar"><div class="f" style="left:0;width:${pct}%;background:${FACS[f].c};color:${FACS[f].c}"></div></div>`;
   }).join("");
-  // Cockpit framing: canopy up top, consoles angled toward the pilot's seat.
-  const canopyStatus = S.travel ? "◇ IN TRANSIT" : S.docked ? `● DOCKED — ${PLANETS[S.loc].n.toUpperCase()}` : "◇ ADRIFT";
+  // Cockpit framing: viewport glass up top, consoles angled toward the
+  // pilot's seat, physical controls on the pedestal below.
   return `<div class="cockpit">
-    <div class="canopy${S.travel ? " moving" : ""}">
-      <div class="l1"></div><div class="l2"></div>
-      <div class="canopy-strut cs-l"></div><div class="canopy-strut cs-r"></div>
-      <div class="canopy-status">${canopyStatus}</div>
-    </div>
+    ${viewportHTML()}
     <div class="dash">
     <div class="console con-left">
       <div class="panel"><h3>Ship Systems</h3>
@@ -218,7 +215,7 @@ export function shipHTML(): string {
           </div>
           <div class="scansweep"></div>
           ${shipViewMode === "feed" ? liveFeedHTML() : `<div class="shipvis">
-            <div class="nose"><div class="canopy"></div><span class="lbl">COCKPIT</span></div>
+            <div class="nose"><div class="noseglass"></div><span class="lbl">COCKPIT</span></div>
             <div class="hullbody">
               <span class="rivets"></span>
               <span class="hardpoint hp-l ${st.active("weapons") > 0 ? "on-red" : ""}" title="port hardpoint"></span>
@@ -251,6 +248,6 @@ export function shipHTML(): string {
       <div class="panel"><h3>Passengers</h3>${paxHtml}</div>
     </div>
     </div>
-    <div class="dash-sill"><span class="sill-light g"></span><span class="sill-vents"></span><span class="sill-light o"></span></div>
+    ${pedestalHTML()}
   </div>`;
 }

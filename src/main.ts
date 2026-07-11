@@ -5,6 +5,10 @@ import { loadSaved, setState, log } from "./state";
 import * as State from "./state";
 import { closeModal } from "./modal";
 import { selSlot, shipView } from "./ui/ship";
+import {
+  setThrottle, throttleLive, bayToggle, jettisonGood, ventGuard, ventFuel,
+  commsTune, engageBurn,
+} from "./ui/cockpit";
 import { selPlanet } from "./ui/map";
 import { ptab } from "./ui/planet";
 import { showHelp, confirmNewGame, newGame, intro, startGame } from "./ui/help";
@@ -44,6 +48,9 @@ setRender(render);
 Object.assign(window as any, {
   // navigation & screens
   nav, ptab, selSlot, selPlanet, closeModal, log, shipView, masterCaution,
+  // cockpit pedestal — physical controls
+  setThrottle, throttleLive, bayToggle, jettisonGood, ventGuard, ventFuel,
+  commsTune, engageBurn,
   // meta
   showHelp, confirmNewGame, newGame, intro, startGame,
   // planet actions
