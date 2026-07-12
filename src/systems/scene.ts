@@ -65,7 +65,7 @@ function renderNode(key: string, nodeKey: string) {
     return `<button ${ok ? "" : "disabled"} onclick="sceneChoose('${key}','${nodeKey}',${i})">${c.label}${ok ? "" : ` <span class="dim">— ${why}</span>`}</button>`;
   }).join("");
   modal(`<div class="scene"><div class="scene-loc">${PLANETS[S.loc].n} · station</div>
-    ${dialogueHeadHTML(key, npc.icon || "◆", npc.name, npc.blurb)}
+    ${dialogueHeadHTML(null, npc.icon || "◆", npc.name, npc.blurb)}
     <p>${node.text}</p>
     <div class="choices">${choices}</div></div>`);
 }
@@ -82,7 +82,7 @@ export function sceneChoose(key: string, nodeKey: string, idx: number) {
   };
   if (c.reply) {
     pendingAfter = after;
-    modal(`<div class="scene">${dialogueHeadHTML(key, npc.icon || "◆", npc.name)}
+    modal(`<div class="scene">${dialogueHeadHTML(null, npc.icon || "◆", npc.name)}
       <p>${c.reply}</p>
       <div class="choices"><button class="primary" onclick="sceneContinue()">Continue</button></div></div>`);
   } else {

@@ -1242,3 +1242,9 @@ th{color:var(--dim); font-weight:500; text-transform:uppercase; font-size:11px; 
   display:flex; align-items:center; justify-content:center;
   background:radial-gradient(circle at 35% 30%, #1c2131, #0b0d14);
 }
+/* 3D walk presenter: canvas occupies the existing deterministic walk viewport. */
+.walk-viewport { position: relative; overflow: hidden; min-height: 360px; }
+.walk3d-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+.walk-viewport > #walkcanvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.walk-viewport .walk-prompt { z-index: 3; }
+.cockpit-walk-return { display:flex; justify-content:center; margin:-2px 0 8px; }

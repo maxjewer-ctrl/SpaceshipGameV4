@@ -212,6 +212,7 @@ export function shipHTML(): string {
   // pilot's seat, physical controls on the pedestal below.
   return `<div class="cockpit">
     ${viewportHTML()}
+    <div class="cockpit-walk-return"><button class="primary" onclick="walkDeck()">🧍 Stand up — walk the deck</button></div>
     <div class="dash">
     <div class="console con-left">
       <div class="panel"><h3>Ship Systems</h3>

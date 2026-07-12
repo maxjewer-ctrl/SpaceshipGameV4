@@ -102,7 +102,8 @@ export function buildStationScene(): WalkScene {
     const A = ROOMS.find((r) => r.id === a)!, B = ROOMS.find((r) => r.id === b)!;
     floors.push(...corridor(A, B));
   }
-  const rooms: WalkRoom[] = ROOMS.map((r) => ({ id: r.id, x: r.x, y: r.y, w: r.w, h: r.h, label: r.label, icon: r.icon }));
+  const serviceColor: Record<string,string> = { harbor:"#74a7d8", concourse:"#9aa6bd", market:"#e8b04b", cantina:"#d77c55", docks:"#5b8dd9", drydock:"#d96b6b", undercity:"#7b6a9f" };
+  const rooms: WalkRoom[] = ROOMS.map((r) => ({ id: r.id, x: r.x, y: r.y, w: r.w, h: r.h, label: r.label, icon: r.icon, color: serviceColor[r.id], kind: r.id }));
 
   const doors: WalkDoor[] = [];
   const actors: WalkActor[] = [];

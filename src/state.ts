@@ -23,7 +23,7 @@ export function newState(shipName: string): GameState {
     captainName: "Cass Ardent",
     appearance: { ...DEFAULT_APPEARANCE },
     captainRole: null,
-    screen: "ship", ptab: "cantina", sel: null, selPlanet: null,
+    screen: "shipwalk", ptab: "cantina", sel: null, selPlanet: null,
     rep: { union: 0, frontier: 0, syndicate: 0 },
     modules: [mk("cockpit"), mk("engine"), mk("fueltank"), mk("cargohold")],
     cargo: { ore: 0, med: 0, lux: 0 },

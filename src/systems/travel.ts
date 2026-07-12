@@ -166,7 +166,7 @@ export function failJob(j: Job, msg: string) {
 
 export function arrive() {
   const dest = S.travel!.dest;
-  S.loc = dest; S.docked = true; S.travel = null; S.screen = "ship";
+  S.loc = dest; S.docked = true; S.travel = null; S.screen = "shipwalk";
   resetStation();
   log(`Docked at ${PLANETS[dest].n}.`);
   // victory check

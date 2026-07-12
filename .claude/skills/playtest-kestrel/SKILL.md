@@ -82,7 +82,11 @@ Registered in `src/main.ts`. The important ones:
 Planet ids: `meridian foundry solace kestrel havens verge` (+ hidden `gate anechoic`).
 Module ids: `fueltank cargohold cabin quarters hydro medbay weapons shields armory workshop smuggler luxcabin reactor`.
 
-## 5. Walking the decks & stations (canvas mini-game)
+## 5. Walking the decks & stations (3D view, 2D simulation)
+
+The visible walk screen uses a Three.js third-person presenter when WebGL is
+available and falls back to canvas otherwise. Harness coordinates and behavior
+remain entirely 2D and unchanged.
 
 Walk screens (`shipwalk`, `stationwalk`) render to a `<canvas>` and run their own
 rAF loop. Two debug helpers bypass the sprite movement:

@@ -6,11 +6,12 @@
 import { hasModal } from "../modal";
 import { S } from "../state";
 import { drawAvatar } from "./avatarDraw";
+import * as walk3d from "./walk3d";
 
 export interface WalkRect { x: number; y: number; w: number; h: number; }
 export interface WalkDoor extends WalkRect { label: string; locked?: boolean; lockedHint?: string; action: () => void; }
-export interface WalkActor extends WalkRect { key: string; label: string; icon?: string; color?: string; onInteract: () => void; }
-export interface WalkRoom extends WalkRect { id: string; label: string; icon?: string; color?: string; kind?: string; }
+export interface WalkActor extends WalkRect { key: string; label: string; icon?: string; color?: string; role?: string; bubble?: string; verb?: string; onInteract: () => void; }
+export interface WalkRoom extends WalkRect { id: string; label: string; icon?: string; color?: string; kind?: string; moduleIndex?: number; moduleType?: string; }
 export interface WalkScene {
   id: string;                 // unique per context — changing it remounts at spawn
   title: string;
@@ -34,6 +35,9 @@ let facing: "up" | "down" | "left" | "right" = "down";
 let walkPhase = 0;
 let moving = false;
 const keys = new Set<string>();
+const gpDirs = new Set<string>();
+let gpPrevA = false;
+const GP_DEADZONE = 0.35;
 let raf: number | null = null;
 let last = 0;
 let canvas: HTMLCanvasElement | null = null;
@@ -127,6 +131,7 @@ export function start(s: WalkScene) {
   ctx = canvas ? canvas.getContext("2d") : null;
   bindListeners();
   bindCanvas();
+  walk3d.mount(canvas?.parentElement || null, s, (x, y) => { clickTarget = { x, y }; });
   last = performance.now();
   if (raf) cancelAnimationFrame(raf);
   raf = requestAnimationFrame(tick);
@@ -139,6 +144,7 @@ export function start(s: WalkScene) {
 export function ensureRunning(s: WalkScene) {
   if (mountedId !== s.id) { start(s); return; }
   scene = s;
+  walk3d.setScene(s);
 }
 
 export function teardown() {
@@ -147,6 +153,7 @@ export function teardown() {
   if (scene) savedPos[scene.id] = { ...pos };
   scene = null; mountedId = null; canvas = null; ctx = null;
   keys.clear(); clickTarget = null;
+  walk3d.teardown();
 }
 
 export function forgetSpawn(sceneId: string) { delete savedPos[sceneId]; }
@@ -158,6 +165,24 @@ export function interact() {
   if (hasModal()) return;
   if (nearDoor && !nearDoor.locked) nearDoor.action();
   else if (nearActor) nearActor.onInteract();
+}
+
+// ---- gamepad (Xbox/standard-mapping USB controllers) ----
+// Polled once per frame in simulate() rather than event-driven — the Gamepad
+// API has no change events, only a snapshot you read each tick.
+function pollGamepad() {
+  gpDirs.clear();
+  const pads = navigator.getGamepads ? navigator.getGamepads() : [];
+  const gp = pads && pads[0];
+  if (!gp) { gpPrevA = false; return; }
+  const ax = gp.axes[0] || 0, ay = gp.axes[1] || 0;
+  if (ay < -GP_DEADZONE || gp.buttons[12]?.pressed) gpDirs.add("up");
+  if (ay > GP_DEADZONE || gp.buttons[13]?.pressed) gpDirs.add("down");
+  if (ax < -GP_DEADZONE || gp.buttons[14]?.pressed) gpDirs.add("left");
+  if (ax > GP_DEADZONE || gp.buttons[15]?.pressed) gpDirs.add("right");
+  const aPressed = !!gp.buttons[0]?.pressed;
+  if (aPressed && !gpPrevA) interact();
+  gpPrevA = aPressed;
 }
 
 // ---- geometry ----
@@ -172,6 +197,7 @@ function insideFloors(px: number, py: number): boolean {
   const pts: [number, number][] = [[px - r, py - r], [px + r, py - r], [px - r, py + r], [px + r, py + r]];
   return pts.every(([cx, cy]) => scene!.floors.some((f) => cx >= f.x && cx <= f.x + f.w && cy >= f.y && cy <= f.y + f.h));
 }
+export function walkInsideFloors(px: number, py: number): boolean { return insideFloors(px, py); }
 // Move from `from` toward `to` along one axis; if the full step is illegal,
 // binary-search the furthest legal point instead of rejecting outright.
 function creepAxis(from: number, to: number, legal: (v: number) => boolean): number {
@@ -264,18 +290,20 @@ function tick(t: number) {
 // which would otherwise make the walk screens untestable end-to-end.
 export function debugStep(dtSeconds: number) { simulate(dtSeconds); }
 export function debugPos() { return { ...pos }; }
+export function debugActors() { return scene ? scene.actors.map((a) => ({ key: a.key, x: a.x, y: a.y, bubble: a.bubble || "" })) : []; }
 // Debug-only: teleport (bypasses collision) for exercising room/door/actor
 // detection directly, once movement collision itself is verified separately.
 export function debugGoto(x: number, y: number) { pos = { x, y }; simulate(0); }
 
 function simulate(dt: number) {
   if (!scene) return; // torn down mid-frame
+  pollGamepad();
   if (!hasModal()) {
     let vx = 0, vy = 0;
-    if (keys.has("up")) vy -= 1;
-    if (keys.has("down")) vy += 1;
-    if (keys.has("left")) vx -= 1;
-    if (keys.has("right")) vx += 1;
+    if (keys.has("up") || gpDirs.has("up")) vy -= 1;
+    if (keys.has("down") || gpDirs.has("down")) vy += 1;
+    if (keys.has("left") || gpDirs.has("left")) vx -= 1;
+    if (keys.has("right") || gpDirs.has("right")) vx += 1;
     // Point-and-click: move toward click target when no keys held
     if (!vx && !vy && clickTarget) {
       const dx = clickTarget.x - pos.x;
@@ -316,6 +344,7 @@ function simulate(dt: number) {
     moving = false;
   }
   draw();
+  walk3d.render({ pos, facing, moving, phase: walkPhase, nearDoor, nearActor, time: last });
   updateHud();
 }
 
@@ -409,7 +438,7 @@ function updateHud() {
   const promptEl = document.getElementById("wk-prompt");
   if (promptEl) {
     const text = nearDoor ? (nearDoor.locked ? (nearDoor.lockedHint || "Locked.") : `[E] ${nearDoor.label}`)
-      : nearActor ? `[E] Talk to ${nearActor.label}` : "";
+      : nearActor ? `[E] ${nearActor.verb || "Talk to"} ${nearActor.label}` : "";
     if (promptEl.textContent !== text) promptEl.textContent = text;
     promptEl.style.opacity = text ? "1" : "0";
   }
@@ -419,7 +448,7 @@ function updateHud() {
     if (fbEl.dataset.key !== key) {
       fbEl.dataset.key = key;
       if (nearDoor && !nearDoor.locked) fbEl.innerHTML = `<button class="primary" onclick="walkInteract()">${nearDoor.label}</button>`;
-      else if (nearActor) fbEl.innerHTML = `<button class="primary" onclick="walkInteract()">Talk to ${nearActor.label}</button>`;
+      else if (nearActor) fbEl.innerHTML = `<button class="primary" onclick="walkInteract()">${nearActor.verb || "Talk to"} ${nearActor.label}</button>`;
       else fbEl.innerHTML = "";
     }
   }

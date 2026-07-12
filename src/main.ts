@@ -40,8 +40,8 @@ import {
   silDescend, silBearing, silAnswer, silStill, silSell,
   silBoardReturned, silScanReturned, silLearnNumbers, silLearnReturned,
 } from "./systems/silence";
-import { pressStart, pressEnd, interact, debugStep, debugPos, debugGoto } from "./ui/walk";
-import { crewTalk, crewHighlight } from "./ui/shipwalk";
+import { pressStart, pressEnd, interact, debugStep, debugPos, debugGoto, debugActors } from "./ui/walk";
+import { crewTalk, crewHighlight, wkInspect, walkDeck, sitChair } from "./ui/shipwalk";
 import { wkPay, wkTalk, wkFight } from "./systems/walkEncounters";
 import { ctVibe, ctAbout, ctShip, ctQuest, ctWorld, ctClose, ctQuestHelp, ctQuestSkip } from "./systems/crewtalk";
 import { dcValve, dcVector, dcCare } from "./systems/damagecontrol";
@@ -99,7 +99,7 @@ Object.assign(window as any, {
   silBoardReturned, silScanReturned, silLearnNumbers, silLearnReturned,
   // free-roam walking: D-pad/keyboard fallback buttons, crew chat, foot encounters
   walkPressStart: pressStart, walkPressEnd: pressEnd, walkInteract: interact,
-  crewTalk, crewHighlight, wkPay, wkTalk, wkFight,
+  crewTalk, crewHighlight, wkInspect, walkDeck, sitChair, wkPay, wkTalk, wkFight,
   // crew dialogue — trust-gated topics, personal quests
   ctVibe, ctAbout, ctShip, ctQuest, ctWorld, ctClose, ctQuestHelp, ctQuestSkip,
   // damage control — crew-gap minigames (no mechanic/pilot/med bay aboard)
@@ -114,6 +114,7 @@ Object.assign(window as any, {
   __S: () => State.S,
   __walkStep: debugStep,
   __walkPos: debugPos,
+  __walkActors: debugActors,
   __walkGoto: debugGoto,
   __scenario: loadScenario,
   // dev/debug: force a specific travel event (playtesting encounters on demand)

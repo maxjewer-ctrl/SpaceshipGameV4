@@ -4,12 +4,17 @@
 import { S } from "../state";
 import { MODS, ROLES } from "../content";
 import { requestRender } from "../bus";
+import { modal } from "../modal";
 import { modCategory } from "./ship";
+import { toggleMod } from "../systems/actions";
+import { wearTier, wearOf } from "../systems/wear";
+import { BARKS } from "../content";
+import { fork } from "../rng";
 import { openCrewTalk } from "../systems/crewtalk";
 import { trustTier, dispositionWord } from "../systems/trust";
 import { shipWalkTick } from "../systems/walkEncounters";
 import { introShipDoors, introRoomDesc, introSpawnEngine, introAirlockHint } from "../systems/intro";
-import { teardown, setHighlight } from "./walk";
+import { teardown, setHighlight, walkInsideFloors } from "./walk";
 import type { WalkScene, WalkRoom, WalkRect, WalkDoor, WalkActor } from "./walk";
 
 const CAT_COLOR: Record<string, string> = {
@@ -32,6 +37,18 @@ export function crewHighlight(id: number) { setHighlight("crew:" + id); requestR
 // hopping to the station stays inside the walk system, so ensureRunning() there
 // just remounts fresh via the differing scene id — no explicit teardown needed.
 function openSchematic() { teardown(); S.screen = "ship"; requestRender(); }
+export function walkDeck() { S.screen = "shipwalk"; requestRender(); }
+export function sitChair() { openSchematic(); }
+
+export function wkInspect(i: number) {
+  const m = S.modules[i], md = m && MODS[m.t];
+  if (!m || !md) return;
+  const wt = wearTier(m);
+  const status = m.dmg ? "DAMAGED" : md.pw ? (m.on ? `ONLINE · drawing ${md.pw}⚡` : "POWERED DOWN") : "OPERATIONAL";
+  modal(`<h2>${md.icon} ${md.n}</h2><p><b>${status}</b></p>
+    <p class="dim">${md.d}</p><p>Wear: <b>${wt.toUpperCase()}</b> · ${Math.round(wearOf(m))}%</p>
+    <div class="choices">${md.pw && !m.dmg ? `<button onclick="toggleMod(${i});wkInspect(${i})">${m.on ? "⏻ Power down" : "⏻ Power up"}</button>` : ""}<button class="primary" onclick="closeModal()">Done</button></div>`);
+}
 function toStation() { S.screen = "stationwalk"; requestRender(); }
 
 const ROOM_KIND: Record<string, string> = {
@@ -41,7 +58,7 @@ const ROOM_KIND: Record<string, string> = {
 
 // Which module types a role gravitates to, checked in order — first one
 // actually installed wins. Empty list means "always the cockpit" (the pilot).
-const ROLE_POSTS: Record<string, string[]> = {
+export const ROLE_POSTS: Record<string, string[]> = {
   pilot: [],
   mechanic: ["workshop", "engine"],
   gunner: ["weapons", "armory"],
@@ -51,7 +68,7 @@ const ROLE_POSTS: Record<string, string[]> = {
 };
 
 export function buildShipScene(): WalkScene {
-  const bays = S.modules.filter((m) => !MODS[m.t].core);
+  const bays = S.modules.map((m, index) => ({ m, index })).filter(({m}) => !MODS[m.t].core);
 
   const spineY = 320, spineH = 90, roomW = 210, roomH = 150;
   const cockpit: WalkRect & { id: string } = { id: "cockpit", x: 30, y: spineY - spineH / 2 - (roomH - spineH) / 2, w: roomW, h: roomH };
@@ -99,7 +116,7 @@ export function buildShipScene(): WalkScene {
   let quartersRoom: (WalkRect & { id: string }) | null = null;
   const bayRoomByType: Record<string, WalkRect & { id: string }> = {};
 
-  bays.forEach((m, i) => {
+  bays.forEach(({m, index}, i) => {
     const up = i % 2 === 0;
     const rx = cockpit.x + cockpit.w + gap / 2 + i * gap;
     const ry = up ? spineY - spineH / 2 - roomH - 30 : spineY + spineH / 2 + 30;
@@ -112,11 +129,16 @@ export function buildShipScene(): WalkScene {
       ? { x: connX, y: rect.y + rect.h, w: 46, h: (spineY - spineH / 2) - (rect.y + rect.h) }
       : { x: connX, y: spineY + spineH / 2, w: 46, h: rect.y - (spineY + spineH / 2) });
     const md = MODS[m.t];
-    rooms.push({ id, x: rect.x, y: rect.y, w: rect.w, h: rect.h, label: md.n, icon: md.icon, color: CAT_COLOR[modCategory(m.t)], kind: ROOM_KIND[m.t] });
+    rooms.push({ id, x: rect.x, y: rect.y, w: rect.w, h: rect.h, label: md.n, icon: md.icon, color: CAT_COLOR[modCategory(m.t)], kind: ROOM_KIND[m.t], moduleIndex: index, moduleType: m.t });
     roomDesc[id] = `${md.n} — ${moduleStatus(m)}. ${md.d}`;
     if (m.t === "quarters" && !quartersRoom) quartersRoom = rect;
     if (!bayRoomByType[m.t]) bayRoomByType[m.t] = rect;
+    actors.push({ x: rect.x + rect.w / 2 - 14, y: rect.y + rect.h / 2 - 14, w: 28, h: 28,
+      key: `module:${index}`, label: md.n, icon: md.icon, color: CAT_COLOR[modCategory(m.t)], verb: "Inspect", onInteract: () => wkInspect(index) });
   });
+
+  actors.push({ x: cockpit.x + cockpit.w / 2 - 14, y: cockpit.y + cockpit.h - 52, w: 28, h: 28,
+    key: "captains-chair", label: "captain's chair", icon: "🪑", color: "#e8b04b", verb: "Sit in", onInteract: sitChair });
 
   // Crew stand at a post that matches their job, falling back to quarters
   // then the cockpit — always somewhere legal to stand.
@@ -134,9 +156,11 @@ export function buildShipScene(): WalkScene {
     // across renders (no per-frame jitter to fight the idle bob with)
     const gx = post.x + 26 + (slot % cols) * 54;
     const gy = post.y + post.h - 40 - Math.floor(slot / cols) * 46;
+    const ag = crewAgents[c.id] || (crewAgents[c.id] = { x: gx, y: gy, tx: gx, ty: gy, mode: "post", timer: 12 + cosmetic(c.id) * 12, bubble: "", bubbleTime: 0 });
     actors.push({
-      x: gx, y: gy, w: 28, h: 28, key: "crew:" + c.id,
+      x: ag.x, y: ag.y, w: 28, h: 28, key: "crew:" + c.id,
       label: c.name, icon: "🧑‍🚀", color: "#5b8dd9",
+      role: c.role, bubble: ag.bubble || undefined,
       onInteract: () => crewTalk(c.id),
     });
   });
@@ -154,8 +178,25 @@ export function buildShipScene(): WalkScene {
     width, height,
     floors, rooms, roomDesc, doors, actors,
     spawn,
-    onTick: (moving, dt) => shipWalkTick(moving, dt),
+    onTick: (moving, dt) => { shipWalkTick(moving, dt); tickCrew(dt, actors, cockpit, quartersRoom, postFor); },
   };
+}
+
+type CrewAgent = { x:number; y:number; tx:number; ty:number; mode:"post"|"walking"|"break"; timer:number; bubble:string; bubbleTime:number };
+const crewAgents: Record<number, CrewAgent> = {};
+function cosmetic(id:number){ return fork(`walk-crew:${S.seed}:${S.day}:${id}`)(); }
+function quietLine(name:string): string {
+  const lines = BARKS.filter((b:any)=>b.when==="quiet").map((b:any)=>String(b.text).replace(/\{name\}/g,name).replace(/\{[^}]+\}/g,"the black"));
+  return lines.length ? lines[Math.floor(cosmetic(name.length + S.day) * lines.length)] : "All quiet on my end.";
+}
+function tickCrew(dt:number, actors:WalkActor[], cockpit:WalkRect, quarters:WalkRect|null, postFor:(role:string)=>WalkRect){
+  for(const c of S.crew){const a=crewAgents[c.id];if(!a)continue;a.timer-=dt;a.bubbleTime-=dt;if(a.bubbleTime<=0)a.bubble="";
+    if(a.timer<=0){if(a.mode==="post"){const r=quarters||cockpit;a.tx=r.x+r.w/2-14;a.ty=r.y+r.h/2-14;a.mode="walking";}
+      else if(a.mode==="break"){const r=postFor(c.role);a.tx=r.x+r.w/2-14;a.ty=r.y+r.h-54;a.mode="walking";}
+      else {const p=postFor(c.role),atPost=Math.hypot(a.x-(p.x+p.w/2-14),a.y-(p.y+p.h-54))<60;a.mode=atPost?"post":"break";a.timer=20+cosmetic(c.id+S.day)*20;if(cosmetic(c.id+17)<.35){a.bubble=quietLine(c.name);a.bubbleTime=6;}}}
+    if(a.mode==="walking"){const dx=a.tx-a.x,dy=a.ty-a.y,d=Math.hypot(dx,dy);if(d<5){a.mode=(quarters&&a.tx>quarters.x&&a.tx<quarters.x+quarters.w)?"break":"post";a.timer=20+cosmetic(c.id+31)*20;}else{const step=Math.min(d,75*dt),nx=a.x+dx/d*step,ny=a.y+dy/d*step;if(walkInsideFloors(nx+14,a.y+14))a.x=nx;if(walkInsideFloors(a.x+14,ny+14))a.y=ny;}}
+    const actor=actors.find(x=>x.key==="crew:"+c.id);if(actor){actor.x=a.x;actor.y=a.y;actor.bubble=a.bubble||undefined;}
+  }
 }
 
 const TIER_DOT: Record<string, string> = {

@@ -50,7 +50,7 @@ export function arcCantinaCard(): string {
 }
 
 export function arcMeet() {
-  modal(`${dialogueHeadHTML("voss", "🧥", "Dr. Elara Voss", "the woman in the grey coat")}
+  modal(`${dialogueHeadHTML(null, "🧥", "Dr. Elara Voss", "the woman in the grey coat")}
     <p>"Captain. I'll be brief. I have a crate — sealed, heavy, and very much not your business what's inside. It needs to reach <b>Verge Station</b> intact. No manifests, no questions."</p>
     <p>"The Union would prefer it didn't arrive. That's all you need to know, and honestly more than is safe."</p>
     <p class="dim">Requires 4 free cargo space. Pays 600cr on delivery.</p>
