@@ -6,6 +6,7 @@ import { S } from "../state";
 import { PLANETS, NPCS } from "../content";
 import { requestRender } from "../bus";
 import { npcsInRoom, openNPC } from "../systems/scene";
+import { introDebtDoor, introDebtScene } from "../systems/intro";
 import { isSilenced } from "../derive";
 import { stationWalkTick } from "../systems/walkEncounters";
 import { teardown, forgetSpawn } from "./walk";
@@ -102,6 +103,13 @@ export function buildStationScene(): WalkScene {
         locked: dark,
         lockedHint: dark ? "Locked down. Nothing answers." : undefined,
         action: () => stationEnter(r.tab!),
+      });
+    }
+    if (r.id === "harbor" && introDebtDoor()) {
+      doors.push({
+        x: r.x + r.w / 2 - 60, y: r.y + r.h - 30, w: 120, h: 22,
+        label: "Settle Captain Osei's debt",
+        action: introDebtScene,
       });
     }
     if (r.id === "docks") {

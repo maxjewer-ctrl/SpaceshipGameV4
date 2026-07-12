@@ -5,6 +5,7 @@ import { fmt } from "../util";
 import { requestRender } from "../bus";
 import { reputation } from "../systems/disposition";
 import { storyCards } from "../systems/silence";
+import { introCard } from "../systems/intro";
 import { viewportHTML, pedestalHTML, reactorPanelHTML, lifeSupportHTML, commsFullHTML } from "./cockpit";
 
 export function selSlot(i: number) { S.sel = S.sel === i ? null : i; requestRender(); }
@@ -252,6 +253,7 @@ export function shipHTML(): string {
       ${selHtml}
     </div>
     <div class="console con-right">
+      ${introCard()}
       ${lifeSupportHTML()}
       ${commsFullHTML()}
       ${captainsLogHTML()}

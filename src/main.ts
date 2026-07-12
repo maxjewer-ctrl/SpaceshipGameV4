@@ -12,6 +12,7 @@ import {
 import { selPlanet } from "./ui/map";
 import { ptab } from "./ui/planet";
 import { showHelp, confirmNewGame, newGame, intro, startGame } from "./ui/help";
+import { introStart, introAct } from "./systems/intro";
 import { acceptMission, hire } from "./systems/market";
 import {
   toggleMod, repairSystems, fireCrew, buyGood, sellGood, buyFuel, buyFood,
@@ -54,6 +55,8 @@ Object.assign(window as any, {
   commsTune, engageBurn,
   // meta
   showHelp, confirmNewGame, newGame, intro, startGame,
+  // prologue campaign (DEAD RECKONING)
+  introStart, introAct,
   // planet actions
   acceptMission, hire, fireCrew, buyGood, sellGood, buyFuel, buyFood,
   repairShip, repairSystems, buyMod, sellMod, toggleMod, upgradeEngine, buySlots,

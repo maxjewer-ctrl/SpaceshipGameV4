@@ -5,6 +5,7 @@ import { rand, ri, pick } from "../rng";
 import { requestRender } from "../bus";
 import { bark } from "./barks";
 import { shift } from "./disposition";
+import { introOnAccept } from "./intro";
 import type { Job, CrewMember, CrewBundle } from "../types";
 
 export function yardPrice(t: string): number {
@@ -170,6 +171,7 @@ export function acceptMission(i: number) {
   // Taking shady freight marks you as an operator willing to work outside the law.
   if (m.hidden || m.kind === "smuggle") shift("law", -2, "took a smuggling contract");
   log(`Contract accepted: ${m.title} → ${PLANETS[m.dest].n}${m.deadline ? " (by day " + m.deadline + ")" : ""}.`);
+  introOnAccept(); // the prologue counts your first contract
   requestRender();
 }
 

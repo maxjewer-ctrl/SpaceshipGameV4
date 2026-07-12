@@ -8,6 +8,7 @@ import { modCategory } from "./ship";
 import { openCrewTalk } from "../systems/crewtalk";
 import { trustTier, dispositionWord } from "../systems/trust";
 import { shipWalkTick } from "../systems/walkEncounters";
+import { introShipDoors, introRoomDesc, introSpawnEngine, introAirlockHint } from "../systems/intro";
 import { teardown, setHighlight } from "./walk";
 import type { WalkScene, WalkRoom, WalkRect, WalkDoor, WalkActor } from "./walk";
 
@@ -79,10 +80,20 @@ export function buildShipScene(): WalkScene {
     {
       x: cockpit.x + 16, y: cockpit.y + 24, w: 90, h: 22,
       label: "Airlock", locked: !S.docked,
-      lockedHint: "Sealed. You're in transit — nowhere to go but forward.",
+      lockedHint: introAirlockHint() || "Sealed. You're in transit — nowhere to go but forward.",
       action: toStation,
     },
   ];
+  // Prologue beats appear as doors in the rooms they live in — the campaign
+  // decides which; this only knows where cockpit and engine walls are.
+  for (const spec of introShipDoors()) {
+    const r = spec.room === "cockpit" ? cockpit : engine;
+    doors.push({
+      x: r.x + r.w - 150, y: r.y + r.h - 60, w: 134, h: 22,
+      label: spec.label,
+      action: () => (window as any).introAct(spec.act),
+    });
+  }
 
   const actors: WalkActor[] = [];
   let quartersRoom: (WalkRect & { id: string }) | null = null;
@@ -130,13 +141,19 @@ export function buildShipScene(): WalkScene {
     });
   });
 
+  // Prologue overrides: room prose follows the story beats, and the cold open
+  // wakes you aft by the drive core instead of in the captain's seat.
+  Object.assign(roomDesc, introRoomDesc());
+  const spawn = introSpawnEngine()
+    ? { x: engine.x + engine.w / 2, y: engine.y + engine.h / 2 }
+    : { x: cockpit.x + cockpit.w / 2, y: cockpit.y + cockpit.h / 2 };
   return {
     id: "ship",
     title: `${S.shipName} — Walk the Decks`,
     status: S.travel ? "◇ IN TRANSIT" : S.docked ? "● DOCKED" : "◇ ADRIFT",
     width, height,
     floors, rooms, roomDesc, doors, actors,
-    spawn: { x: cockpit.x + cockpit.w / 2, y: cockpit.y + cockpit.h / 2 },
+    spawn,
     onTick: (moving, dt) => shipWalkTick(moving, dt),
   };
 }

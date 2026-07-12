@@ -17,6 +17,7 @@ import { remember, crewKey } from "./ledger";
 import { shift } from "./disposition";
 import { resetStation } from "../ui/stationwalk";
 import { silenceTick, silenceArrive } from "./silence";
+import { introTravelBeat, introArrive } from "./intro";
 import { checkCrewQuests, checkCrewDeparture } from "./crewtalk";
 import type { Job } from "../types";
 
@@ -49,6 +50,8 @@ export function advanceDay() {
   if (S.over || hasModal()) { requestRender(); return; }
   S.travel.left--;
   if (S.travel.left <= 0) { arrive(); requestRender(); return; }
+  // The prologue scripts its own travel days — no random lane events on top.
+  if (introTravelBeat()) { requestRender(); return; }
   // events
   if (S.arc.stage === 5 && rand() < 0.45) { evHunter(); requestRender(); return; }
   const arcJob = S.jobs.find((j) => j.arcVoss);
@@ -189,7 +192,9 @@ export function arrive() {
     if (j.arcVoss) arcHavensScene();
   }
   refreshMarket();
-  // campaign beats own the arrival if one is due (dark stations, the source)
+  // campaign beats own the arrival if one is due (the prologue's docking,
+  // dark stations, the source)
+  if (introArrive()) return;
   if (silenceArrive()) return;
   // your playstyle may quietly plant a future payoff, then dock-riders fire
   maybePlantReputationRider();

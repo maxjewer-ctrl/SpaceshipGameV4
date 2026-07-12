@@ -33,13 +33,13 @@ export function newGame() {
 
 export function intro() {
   modal(`<h2>☄ THE KESTREL RUN</h2>
-    <p>The war's over, the Union won, and the paperwork never stops. You've got a secondhand freighter, <b>500 credits</b>, half a tank of fuel, and a registry that's <i>technically</i> clean.</p>
-    <p>Out here past the core worlds, folk need things moved — cargo, passengers, secrets. Your ship is a spine with room to grow: bolt on cabins, cargo, guns, or a hydroponics bay full of beans. You can't have everything. That's the job: choosing.</p>
+    <p>The war's over, the Union won, and the paperwork never stops. Out here past the core worlds, folk need things moved — cargo, passengers, secrets. A ship is a spine with room to grow: cabins, cargo, guns, a hydroponics bay full of beans. You can't have everything. That's the job: choosing.</p>
     <p>Earn credits. Earn a reputation. And when your name means something (<b>12★ prestige</b>), somebody with a very dangerous crate is going to come looking for a captain exactly like you.</p>
     <p style="margin-bottom:4px"><b>Name your ship:</b></p>
     <input id="shipnamein" value="Kestrel" maxlength="18" style="width:100%; padding:8px; background:#0d0f17; border:1px solid var(--line); color:var(--amber); border-radius:4px; font-size:15px; font-family:inherit">
     <div class="choices">
-      <button class="primary" onclick="startGame()">Take the keys</button>
+      <button class="primary" onclick="introStart()">◆ Begin at the beginning — the prologue <span class="dim">(recommended: how you got this ship)</span></button>
+      <button onclick="startGame()">Skip it — start docked at Port Solace with 500cr</button>
     </div>`);
 }
 
