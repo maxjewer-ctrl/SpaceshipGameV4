@@ -13,19 +13,19 @@ of it. The problems start *after* the prologue ends.
 
 ## Where it falls short
 
-### 1. The handoff cliff ("YOURS NOW" → now what?)
+### 1. The handoff cliff ("YOURS NOW" → now what?) ✅
 The prologue ends with +1 prestige and a pat on the shoulder, and the player
 lands in an open game whose only visible horizon is **a number: 12★**. The
 "giant adventure" is real — two campaigns and a conspiracy — but for the next
-several hours the game *looks* like a freight spreadsheet. Nothing in the
-first session lets the player peek at the mountain they're climbing toward.
+several hours the game *looks* like a freight spreadsheet.
 
-**Fix direction:** breadcrumbs, not gates. The grey-coat watcher should be
-*visible and named* in the Solace cantina from day one ("she's watching you;
-she's always watching somebody"). A rumor track should mention the Meridian
-anniversary, the Verge's bad radio nights, Elysium as a spacer's myth — the
-three campaign hooks as ambient noise long before they fire. Cheap to add
-(rumor pool + one cantina fixture), enormous for pull.
+**Fixed this pass:** the grey-coat woman is now a visible, unexplained
+cantina fixture from day one — same table, same drink, other patrons shrug
+when asked — and grows louder as prestige climbs past 8★, before the stage-0
+meeting unlocks at 12★. The rumor pool now carries the three campaign hooks
+as ambient noise (the Meridian anniversary, Verge's bad radio nights, Elysium
+as a spacer's myth, "four seconds" heard and forgotten) long before any of
+them fire for real.
 
 ### 2. Solo play is too frictionless ✅
 Problems literally solved themselves: a coolant rupture or a meteor swarm was
@@ -39,6 +39,13 @@ find the right one. No pilot → the meteor swarm is a manual-helm gamble. No
 med bay → sick passengers demand food, credits and sleepless nights, or their
 fare. Every minigame ends by telling you, in prose, exactly which hire would
 have made it a footnote.
+
+**Also fixed:** the captain now picks a pre-command specialty at game start
+and can personally cover that one station — solving the "who's even flying
+this thing on day one" problem — but at a cost: contracts pay 10% less while
+they're still moonlighting below decks, and the star-map departure screen now
+shows an explicit ⚠ warning card listing every uncovered role before you cast
+off. The frustration is now a choice you can see coming, not an ambush.
 
 ### 3. Crew were interchangeable stat blocks ✅
 `genRecruit()` names were random; hiring felt like buying a module with a
@@ -94,8 +101,9 @@ this; see dossiers.)
 
 ## Priority order (pull-the-player-in per unit of work)
 
-1. Grey-coat visible at Solace + campaign-hook rumor track (#1, #7) — small
+1. ~~Grey-coat visible at Solace + campaign-hook rumor track (#1, #7)~~ ✅
 2. First-dock summons + undercity breadcrumb (#5) — small
-3. Agenda beats for the named twelve (#3 follow-through) — medium
+3. ~~Agenda beats for the named twelve (#3 follow-through)~~ ✅ six of twelve;
+   Ada/Brix/Elias/Tomas/Imogen/Bapu beats still open
 4. Skip-path intro rewrite (#6) — trivial
 5. Concourse ambient walkers (#5) — medium, graphics pass

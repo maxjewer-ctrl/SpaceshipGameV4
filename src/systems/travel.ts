@@ -1,6 +1,6 @@
 import { S, log } from "../state";
 import { PLANETS, MODS, FLAVOR } from "../content";
-import { stats, daysTo, fuelTo, foodPerDay, salaries, perkActive } from "../derive";
+import { stats, daysTo, fuelTo, foodPerDay, salaries, perkActive, captainDoubleHatting } from "../derive";
 import { rand, pick } from "../rng";
 import { clamp } from "../util";
 import { requestRender } from "../bus";
@@ -19,6 +19,7 @@ import { resetStation } from "../ui/stationwalk";
 import { silenceTick, silenceArrive } from "./silence";
 import { introTravelBeat, introArrive } from "./intro";
 import { checkCrewQuests, checkCrewDeparture } from "./crewtalk";
+import { checkAgendaBeats } from "./agendabeats";
 import type { Job } from "../types";
 
 export function depart(destId: string) {
@@ -200,15 +201,20 @@ export function arrive() {
   maybePlantReputationRider();
   checkScheduler();
   // a crew member's personal quest may resolve here, or a badly neglected one
-  // may walk — at most one of these opens a modal per docking
+  // may walk, or a named character's agenda may surface — at most one of
+  // these opens a modal per docking
   checkCrewQuests();
   checkCrewDeparture();
+  checkAgendaBeats();
 }
 
 export function completePay(j: Job) {
   const st = stats();
   let pay = j.pay;
   if (st.has("quartermaster")) pay = Math.round(pay * (perkActive("quartermaster") ? 1.22 : 1.15));
+  // A captain still moonlighting as their own pre-command specialty isn't
+  // giving contracts full attention — a standing incentive to hire the role.
+  if (captainDoubleHatting()) pay = Math.round(pay * 0.9);
   if (j.vip && j.pax && !j.pax.sick && st.active("luxcabin") === 0) {
     pay = Math.round(pay * 0.6);
     log(`${j.pax.name} spent the trip in an unpowered stateroom and deducts 40% of the fare, itemized, with footnotes.`);

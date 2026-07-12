@@ -1,6 +1,6 @@
 // Pure derivations over the game state. No mutations here.
 import { S } from "./state";
-import { MODS, PLANETS } from "./content";
+import { MODS, PLANETS, ROLES } from "./content";
 import type { ModuleInstance, ShipStats, Job } from "./types";
 
 export function modInst(): ModuleInstance[] {
@@ -13,12 +13,26 @@ export function perkActive(role: string): boolean {
   return S.crew.some((c) => c.role === role && c.perk);
 }
 
+// The captain personally covers their pre-command specialty until a real
+// crew member of that role signs on — but a captain moonlighting below decks
+// isn't fully captaining (see captainDoubleHatting).
+export function crewCovers(role: string): boolean { return S.crew.some((c) => c.role === role); }
+export function captainCovers(role: string): boolean { return S.captainRole === role && !crewCovers(role); }
+export function captainDoubleHatting(): boolean { return S.captainRole !== null && !crewCovers(S.captainRole); }
+
+// Roles nobody aboard covers at all — the ones that still trigger crew-gap
+// damage control (systems/damagecontrol.ts) or lose their contract bonus.
+export function uncoveredRoles(): string[] {
+  const all = ["pilot", "mechanic", "gunner", "medic", "cook", "quartermaster"];
+  return all.filter((r) => !crewCovers(r) && !captainCovers(r));
+}
+
 export function stats(): ShipStats {
   const inst = (t: string) => S.modules.filter((m) => m.t === t).length;
   const intact = (t: string) => S.modules.filter((m) => m.t === t && !m.dmg).length;
   const active = (t: string) =>
     S.modules.filter((m) => m.t === t && !m.dmg && (MODS[m.t].pw ? m.on : true)).length;
-  const has = (r: string) => S.crew.some((c) => c.role === r);
+  const has = (r: string) => crewCovers(r) || captainCovers(r);
   const powerOut = 4 + 2 * S.engineLvl + intact("reactor") * 3;
   const powerUse = S.modules.reduce(
     (a, m) => a + (MODS[m.t].pw && m.on && !m.dmg ? MODS[m.t].pw! : 0), 0);
@@ -82,6 +96,26 @@ export function daysTo(from: string, to: string): number {
 }
 export function fuelTo(from: string, to: string): number {
   return Math.ceil(daysTo(from, to) * stats().fuelDay);
+}
+
+// Warnings surfaced before departure — so a crew gap is a choice you made,
+// not an ambush the moment a coolant line lets go.
+export function crewGapWarnings(): string[] {
+  const out: string[] = [];
+  const gaps = uncoveredRoles();
+  const GAP_TXT: Record<string, string> = {
+    pilot: "No pilot — meteor swarms become a manual gamble at the helm.",
+    mechanic: "No mechanic — breakdowns become a hands-on scramble that costs hull and fuel.",
+    medic: "No medic — a sick passenger means nursing them yourself, or their fare.",
+    gunner: "No gunner — combat damage is down 50%.",
+    cook: "No cook — rations burn 25% faster.",
+    quartermaster: "No quartermaster — contracts pay 15% less, bribes cost more.",
+  };
+  for (const r of gaps) if (GAP_TXT[r]) out.push(GAP_TXT[r]);
+  if (captainDoubleHatting()) {
+    out.push(`You're still moonlighting as ship's ${ROLES[S.captainRole!].n.toLowerCase()} — hire one so you can captain properly (contracts pay 10% less until then).`);
+  }
+  return out;
 }
 
 export function bribeCost(base: number): number {

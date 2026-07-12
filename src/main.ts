@@ -41,6 +41,13 @@ import { crewTalk, crewHighlight } from "./ui/shipwalk";
 import { wkPay, wkTalk, wkFight } from "./systems/walkEncounters";
 import { ctVibe, ctAbout, ctShip, ctQuest, ctClose, ctQuestHelp, ctQuestSkip } from "./systems/crewtalk";
 import { dcValve, dcVector, dcCare } from "./systems/damagecontrol";
+import {
+  abVexPay, abVexRefuse, abVexReport,
+  abCorbinConfront, abCorbinCut, abCorbinIgnore,
+  abRookTalk, abRookDark, abRookConfront,
+  abNylaConfront, abNylaAsk, abNylaIgnore,
+  abMiriEnd, abMiriKeep,
+} from "./systems/agendabeats";
 import { loadScenario } from "./debug/scenarios";
 import { evPirates, evPatrol, evBreakdown, evMeteor, evSalvage, evDistress, evTrader, evPax } from "./systems/events";
 import { loadRemoteContent } from "./supabase/content";
@@ -89,6 +96,12 @@ Object.assign(window as any, {
   ctVibe, ctAbout, ctShip, ctQuest, ctClose, ctQuestHelp, ctQuestSkip,
   // damage control — crew-gap minigames (no mechanic/pilot/med bay aboard)
   dcValve, dcVector, dcCare,
+  // agenda beats — the named twelve's honest/dishonest objectives billing due
+  abVexPay, abVexRefuse, abVexReport,
+  abCorbinConfront, abCorbinCut, abCorbinIgnore,
+  abRookTalk, abRookDark, abRookConfront,
+  abNylaConfront, abNylaAsk, abNylaIgnore,
+  abMiriEnd, abMiriKeep,
   // dev/debug: live state accessor + manual walk-frame stepper (harmless — behind underscores)
   __S: () => State.S,
   __walkStep: debugStep,

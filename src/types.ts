@@ -138,6 +138,10 @@ export interface GameState {
   hull: number; hullMax: number; prestige: number;
   engineLvl: number; slotsMax: number;
   loc: string; docked: boolean;
+  // The captain's own pre-command specialty. They can cover that one station
+  // personally — but a captain below decks isn't captaining (contract pay
+  // penalty until the role is hired).
+  captainRole: string | null;
   screen: string; ptab: string;
   sel: number | null; selPlanet: string | null;
   rep: Record<string, number>;

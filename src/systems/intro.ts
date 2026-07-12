@@ -14,6 +14,7 @@ import { S, setState, newState, log } from "../state";
 import { modal, closeModal } from "../modal";
 import { requestRender } from "../bus";
 import { clearSave } from "../state";
+import { readCaptainRole } from "../ui/help";
 import { remember, witnessAll, crewKey } from "./ledger";
 import { shift } from "./disposition";
 import { plantDelay } from "./scheduler";
@@ -31,8 +32,10 @@ function juno(): CrewMember | undefined {
 export function introStart() {
   const input = document.getElementById("shipnamein") as HTMLInputElement | null;
   const name = (input && input.value.trim()) || "Kestrel";
+  const role = readCaptainRole();
   clearSave();
   setState(newState(name));
+  S.captainRole = role;
   // The ship as the fight left her: drive down, bunkroom caved in, tanks holed.
   S.credits = 85;
   S.fuel = 3;

@@ -21,7 +21,15 @@ export function arcCantinaCard(): string {
         <button class="primary" style="margin-top:8px" onclick="arcMeet()">Hear her out</button>
       </div>`;
     }
-    return `<div class="card"><div class="dim" style="font-style:italic">You overhear: "Some scientist's been asking around for a captain who doesn't ask questions. Only wants ones with a reputation, though." (Reach 12 ★ prestige.)</div></div>`;
+    // She's a fixture in every cantina from day one — visible, unexplained,
+    // and increasingly hard to ignore as prestige climbs toward the meeting.
+    const near = S.prestige >= 8;
+    const seen = near
+      ? `<div class="title" style="color:var(--amber)">◆ Her again</div>
+         <div class="dim">The woman in the grey coat is at her usual table. She's stopped pretending not to watch you. Word in the cantina says she only talks to captains who've made a name for themselves — and yours is getting loud enough to hear.</div>`
+      : `<div class="title dim">A woman in a grey coat</div>
+         <div class="dim">She's here again — same corner, same one drink, nursing it slow. Never approaches, never explains. Ask around and you get shrugs: <i>"She's been asking about a captain with a reputation. Not you. Not yet."</i></div>`;
+    return `<div class="card" style="${near ? "border-color:var(--amber)" : ""}">${seen}</div>`;
   }
   if (a.stage === 2 && S.loc === "verge") {
     return `<div class="card" style="border-color:var(--amber)">

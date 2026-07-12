@@ -1,7 +1,7 @@
 import type { GameState, ModuleInstance } from "./types";
 
 export const SAVE_KEY = "kestrelrun";
-export const SAVE_VERSION = 6;
+export const SAVE_VERSION = 7;
 
 // The single mutable game state. `export let` gives live bindings to importers;
 // replace it only through setState so everyone sees the new object.
@@ -19,6 +19,7 @@ export function newState(shipName: string): GameState {
     shipName: shipName || "Kestrel",
     day: 1, credits: 500, fuel: 30, food: 20, hull: 100, hullMax: 100, prestige: 0,
     engineLvl: 1, slotsMax: 6, loc: "solace", docked: true,
+    captainRole: null,
     screen: "ship", ptab: "cantina", sel: null, selPlanet: null,
     rep: { union: 0, frontier: 0, syndicate: 0 },
     modules: [mk("cockpit"), mk("engine"), mk("fueltank"), mk("cargohold")],
@@ -101,6 +102,12 @@ export function migrate(s: any): GameState {
       if (c.perk === undefined) c.perk = false;
     });
     s.version = 6;
+  }
+  // v7: the captain's own pre-command specialty. Older saves never chose one —
+  // grandfather them as null so behavior is unchanged (no coverage, no penalty).
+  if (s.version < 7) {
+    if (s.captainRole === undefined) s.captainRole = null;
+    s.version = 7;
   }
   return s as GameState;
 }

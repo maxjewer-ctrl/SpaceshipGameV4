@@ -202,7 +202,11 @@ with Elias if you ever crew both.
 - Agendas are expressed today through the systems that already run: secrets
   (`union_deserter` is a live patrol landmine; `informant`/`wanted`/`ex_pirate`
   are seeded for hooks), tells, trust-gated reveals, and personal quests.
-  **Next pass:** agenda *beats* — periodic scripted moments where the dishonest
-  agendas actually bill you (Vex's collectors, Miri's manifest leak, Corbin's
-  gossip coming home) and the honest ones pay off (Ada's testimony, Dez's mail
-  network warning you of a sweep).
+  **Shipped:** agenda beats (`systems/agendabeats.ts`) — periodic scripted
+  moments, ~14 days aboard, at most one per docking. Vex's Syndicate
+  collectors call in the debt, Corbin's gossip trail gets traced back, Rook's
+  old crew hails him by his black-flag call sign, Nyla's pantry skim turns up
+  in the books, Miri's manifest leak buys you a Syndicate "courtesy," and
+  Dez's honest sideline pays off with a sweep warning that saves the ship.
+  **Still open:** Ada's testimony as a Reckoning witness thread; beats for
+  Brix (the stolen kit) and Elias (the Vance grudge).

@@ -15,7 +15,12 @@
     "\"Union patrols scan for smuggler holds. A good bribe is cheaper than a fine.\"",
     "\"Hire a mechanic before you need one. Ships break in the middle of nowhere, that's the rule.\"",
     "\"The Syndicate pays well and remembers favors. The Union pays on time and remembers everything.\"",
-    "\"A stateroom pays for itself in two VIP charters, if you can stomach the clientele.\""
+    "\"A stateroom pays for itself in two VIP charters, if you can stomach the clientele.\"",
+    "\"Eleven years this month since Meridian. They still call it a reactor accident at the memorial. Nobody who was there calls it anything.\"",
+    "\"Verge Station's had bad radio nights for weeks now. Fuel broker says it's sunspots. Fuel broker says a lot of things.\"",
+    "\"My grandmother swore Elysium was real — a moon past the charts where the Meridian dead all washed up alive. Spacer's tale. Probably.\"",
+    "\"Some captains hear things out past the Verge lanes that don't sound like anything. Four seconds, they say. Then it's gone.\"",
+    "\"There's a woman in a grey coat been through every cantina on this route asking after captains with a name. Ask me, she's trouble worth having.\""
   ],
   "dmgFlavor": {
     "fueltank": "Fuel sprays into the void before the feed lines seal.",

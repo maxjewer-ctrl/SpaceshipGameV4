@@ -1,6 +1,6 @@
 import { S } from "../state";
 import { PLANETS, FACS } from "../content";
-import { daysTo, fuelTo, foodPerDay, planetVisible, isSilenced } from "../derive";
+import { daysTo, fuelTo, foodPerDay, planetVisible, isSilenced, crewGapWarnings } from "../derive";
 import { requestRender } from "../bus";
 
 export function selPlanet(k: string) { S.selPlanet = k; requestRender(); }
@@ -99,8 +99,12 @@ export function mapHTML(): string {
       const ok = S.fuel >= f;
       const darkWarn = isSilenced(S.selPlanet)
         ? `<p class="low" style="margin:6px 0">◇ NO SIGNAL — nothing has answered from ${p.n} since it went dark. No port services. No fuel. Whatever you fly in with is what you fly out on.</p>` : "";
+      const gaps = crewGapWarnings();
+      const gapWarn = gaps.length
+        ? `<div class="card" style="border-color:var(--red); margin:8px 0"><div class="title" style="color:var(--red)">⚠ Before you cast off</div>
+            ${gaps.map((g) => `<div class="dim" style="margin-top:3px">· ${g}</div>`).join("")}</div>` : "";
       info = `<div class="panel"><h3>${p.n} <span class="badge fac">${FACS[p.fac].n}</span></h3>
-        <p class="dim">${p.d}</p>${darkWarn}
+        <p class="dim">${p.d}</p>${darkWarn}${gapWarn}
         <div class="statgrid" style="margin:8px 0">
           <span>Distance</span><b>${d} days</b>
           <span>Fuel needed</span><b class="${ok ? "" : "low"}">${f} (have ${Math.floor(S.fuel)})</b>

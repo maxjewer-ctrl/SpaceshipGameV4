@@ -1,8 +1,26 @@
-import { setState, newState, log, clearSave } from "../state";
+import { S, setState, newState, log, clearSave } from "../state";
 import { modal, clearModal, closeModal } from "../modal";
 import { requestRender } from "../bus";
 import { refreshMarket } from "../systems/market";
+import { ROLES } from "../content";
 import { $ } from "../util";
+
+// Shared by both the prologue and the skip-path start (help.ts intro() renders
+// it; both startGame() and systems/intro.ts introStart() read the selection).
+export function specialtyPickerHTML(): string {
+  const opts = ["pilot", "mechanic", "gunner", "medic", "cook", "quartermaster"]
+    .map((r) => `<option value="${r}">${ROLES[r].n}</option>`).join("");
+  return `<p style="margin-bottom:4px"><b>Your specialty, before you made captain:</b></p>
+    <select id="captainrolein" style="width:100%; padding:8px; background:#0d0f17; border:1px solid var(--line); color:var(--amber); border-radius:4px; font-size:14px; font-family:inherit; margin-bottom:10px">
+      ${opts}
+    </select>
+    <p class="dim" style="margin-top:-4px; margin-bottom:10px">You can cover that station yourself — but a captain running the engine room isn't running the ship. Hire your own replacement early.</p>`;
+}
+
+export function readCaptainRole(): string | null {
+  const sel = document.getElementById("captainrolein") as HTMLSelectElement | null;
+  return (sel && sel.value) || null;
+}
 
 export function showHelp() {
   modal(`<h2>How to Fly</h2>
@@ -33,10 +51,11 @@ export function newGame() {
 
 export function intro() {
   modal(`<h2>☄ THE KESTREL RUN</h2>
-    <p>The war's over, the Union won, and the paperwork never stops. Out here past the core worlds, folk need things moved — cargo, passengers, secrets. A ship is a spine with room to grow: cabins, cargo, guns, a hydroponics bay full of beans. You can't have everything. That's the job: choosing.</p>
-    <p>Earn credits. Earn a reputation. And when your name means something (<b>12★ prestige</b>), somebody with a very dangerous crate is going to come looking for a captain exactly like you.</p>
+    <p>Somewhere in a Port Solace cantina, a woman in a grey coat is nursing one drink and watching the door. She isn't watching for you. Not yet. But someday, when your name means something, she will be — and what she's carrying will change the whole shape of your sky.</p>
+    <p>That's later. Tonight you're just trying to keep a ship fed, fueled, and flying — cargo, passengers, secrets, whatever pays. Bolt on cabins, cargo, guns, a hydroponics bay full of beans. You can't have everything. That's the job: choosing.</p>
     <p style="margin-bottom:4px"><b>Name your ship:</b></p>
-    <input id="shipnamein" value="Kestrel" maxlength="18" style="width:100%; padding:8px; background:#0d0f17; border:1px solid var(--line); color:var(--amber); border-radius:4px; font-size:15px; font-family:inherit">
+    <input id="shipnamein" value="Kestrel" maxlength="18" style="width:100%; padding:8px; background:#0d0f17; border:1px solid var(--line); color:var(--amber); border-radius:4px; font-size:15px; font-family:inherit; margin-bottom:10px">
+    ${specialtyPickerHTML()}
     <div class="choices">
       <button class="primary" onclick="introStart()">◆ Begin at the beginning — the prologue <span class="dim">(recommended: how you got this ship)</span></button>
       <button onclick="startGame()">Skip it — start docked at Port Solace with 500cr</button>
@@ -46,9 +65,12 @@ export function intro() {
 export function startGame() {
   const input = document.getElementById("shipnamein") as HTMLInputElement | null;
   const name = (input && input.value.trim()) || "Kestrel";
+  const role = readCaptainRole();
   setState(newState(name));
+  S.captainRole = role;
   clearModal();
   log(`You take possession of the ${name} at Port Solace. She's ugly, slow, and yours.`);
+  if (role) log(`You know your way around ${role === "quartermaster" ? "a ledger" : "the " + role + "'s station"} — you can cover it yourself for now. Hire your own replacement soon; a captain who never leaves that station isn't captaining.`);
   log("Tip: hit the Cantina for work, the Market for fuel & food, the Shipyard for modules. ? Help has the full manual.");
   refreshMarket();
   requestRender();
