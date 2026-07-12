@@ -5,7 +5,7 @@ import { fmt } from "../util";
 import { requestRender } from "../bus";
 import { reputation } from "../systems/disposition";
 import { storyCards } from "../systems/silence";
-import { viewportHTML, pedestalHTML, reactorPanelHTML, lifeSupportHTML, commsFullHTML } from "./cockpit";
+import { viewportHTML, pedestalHTML, reactorPanelHTML, lifeSupportHTML, commsFullHTML, bayIsOpen } from "./cockpit";
 import { note as noteHint } from "./notes";
 
 export function selSlot(i: number) { S.sel = S.sel === i ? null : i; requestRender(); }
@@ -25,16 +25,23 @@ const WIRE_COLORS = ["#66b3ff", "#e8c88a", "#9fd4e8", "#67d573", "#b98bd9", "#e6
 
 function rearRackHTML(): string {
   const inst = modInst();
+  // Every device on the boat hangs off the same bus — console instruments,
+  // cockpit hardware, then one lead per installed module bay.
   const units: { n: string; sub: string; c: string; dmg: boolean; off: boolean }[] = [
+    { n: "VIEWPORT DISPLAY DRIVER", sub: "GLASS HEATER + HUD · CRACKED, HOLDS", c: "#4fd6c0", dmg: false, off: false },
     { n: "NAV / CHART COMPUTER", sub: "SIRIUS AVIONICS · NC-7", c: "#66b3ff", dmg: false, off: false },
     { n: "COMMS TRANSCEIVER", sub: "KRAMER RADIOWERKE · RW-40", c: "#e8c88a", dmg: false, off: false },
     { n: "LIFE SUPPORT CONTROLLER", sub: "AEROPURE · LS-200", c: "#9fd4e8", dmg: false, off: false },
+    { n: "LAUNCH INTERLOCK ASSY", sub: "HYUN-DYNE · 04-C", c: "#ffab3d", dmg: false, off: false },
+    { n: "THROTTLE QUADRANT + BURN RELAY", sub: "MAIN DRIVE CONTROL LINKAGE", c: "#e64d3d", dmg: false, off: false },
+    { n: "CARGO BAY DOOR MOTORS", sub: bayIsOpen() ? "DOORS OPEN — MOTORS LIVE" : "DOORS SEALED", c: "#b98bd9", dmg: false, off: false },
+    { n: "AUX PANEL", sub: "UNLABELLED · 3 SWITCHES + 1 BUTTON", c: "#c9bd90", dmg: false, off: false },
   ];
   inst.forEach((m, i) => {
     const md = MODS[m.t];
     units.push({
       n: md.n.toUpperCase(), sub: `BAY ${i + 1} · ${md.pw ? "DRAW " + md.pw + "⚡" : md.gen ? "FEED +" + md.gen + "⚡" : "PASSIVE"}`,
-      c: WIRE_COLORS[(i + 3) % WIRE_COLORS.length], dmg: m.dmg, off: !!md.pw && !m.on,
+      c: WIRE_COLORS[(i + 5) % WIRE_COLORS.length], dmg: m.dmg, off: !!md.pw && !m.on,
     });
   });
   const PITCH = 52, TOP = 10;
@@ -254,7 +261,7 @@ export function shipHTML(): string {
     `<button class="${mobileConsole === v ? "on" : ""}" onclick="shipConsole('${v}')">${label}</button>`;
   const dashbar = `<div class="dashbar">
     <span class="db-lbl">CONSOLE WALL — ${shipSide === "front" ? "INSTRUMENT SIDE" : "SERVICE SIDE"}</span>
-    <button class="fliplatch" onclick="shipFlip()">${shipSide === "front" ? "⇄ SERVICE SIDE · WIRING" : "⇄ FRONT · INSTRUMENTS"}</button>
+    <button class="fliplatch" onclick="shipFlip()">${shipSide === "front" ? "⇄ SERVICE SIDE" : "⇄ INSTRUMENTS"} <span class="key-tab">TAB</span></button>
   </div>`;
   if (shipSide === "rear") {
     return `<div class="cockpit">${viewportHTML()}${dashbar}${rearRackHTML()}</div>`;

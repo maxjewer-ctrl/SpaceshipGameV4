@@ -95,6 +95,18 @@ Object.assign(window as any, {
   __walkGoto: debugGoto,
 });
 
+// TAB flips the console wall between instruments and the service-side
+// wiring while the Ship screen is up. Leave the key alone when a modal is
+// open or the player is typing (ship-name field, etc.).
+document.addEventListener("keydown", (e) => {
+  if (e.key !== "Tab" || !State.S || State.S.screen !== "ship") return;
+  const t = e.target as HTMLElement | null;
+  if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA")) return;
+  if (document.getElementById("overlay")?.classList.contains("show")) return;
+  e.preventDefault();
+  shipFlip();
+});
+
 // ---- boot ----
 // Hot-load content from Supabase if configured (offline-first: this is a no-op
 // when there are no credentials, and falls back to bundled JSON on any error).
