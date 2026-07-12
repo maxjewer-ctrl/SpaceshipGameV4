@@ -61,6 +61,8 @@ import { startGamepadNav } from "./systems/gamepadNav";
 
 setRender(render);
 startGamepadNav();
+// Dev-only self-screenshot helper (window.__shot) — see src/debug/shot.ts.
+if (import.meta.env.DEV) import("./debug/shot").then((m) => m.installShot());
 
 // The UI is string-templated with inline onclick handlers (transitional from
 // the single-file prototype), so every handler reachable from HTML must be a

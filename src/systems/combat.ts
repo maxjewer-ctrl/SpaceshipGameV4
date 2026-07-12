@@ -8,6 +8,7 @@ import { damageModule } from "./actions";
 import { bark, tellBark } from "./barks";
 import { shift } from "./disposition";
 import type { Enemy } from "../types";
+import * as sfx from "../audio";
 
 type MoveId = "laser" | "torpedo" | "ion" | "evasive" | "flee" | "bribe" | "decoy" | "gambit";
 type CombatPhase = "command" | "target" | "aim" | "over";
@@ -395,6 +396,7 @@ function releaseShot() {
   if (C.move === "ion") base *= 0.65;
   if (C.move === "laser") base *= 1.05;
   const dmg = Math.max(1, Math.round(base * (0.3 + score * 1.15)));
+  sfx.weaponFire(C.move as 'laser' | 'torpedo' | 'ion');
   target.hull -= dmg;
   const grade = score > 0.88 ? "perfect lock" : score > 0.62 ? "solid hit" : score > 0.32 ? "glancing hit" : "wild shot";
   C.log.push(`${grade}: ${dmg} damage to ${target.name}.`);
@@ -442,12 +444,14 @@ function enemyTurn(evasive: boolean) {
   if (C.dampen > 0) { total = Math.ceil(total * 0.5); C.dampen--; }
   if (total <= 0) return;
   S.hull -= total;
+  sfx.hullHit();
   C.log.push(`Hostiles rake the hull for ${total} damage${evasive ? " through evasive maneuvers" : ""}.`);
   if (S.hull <= 0) {
     C.log.push("Alarms. Fire. Silence.");
     C.phase = "over"; C.result = "dead"; return;
   }
   if (total >= 8 && rand() < 0.25 && damageModule("Direct hit")) {
+    sfx.systemDamage();
     C.log.push("That one got through to a module. A system just went dark.");
   }
 }

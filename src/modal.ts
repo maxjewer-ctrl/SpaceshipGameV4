@@ -10,6 +10,27 @@ export function closeModal() { MODAL_HTML = null; drawModal(); requestRender(); 
 
 function drawModal() {
   const ov = $("overlay");
-  if (MODAL_HTML) { ov.classList.add("show"); $("modal").innerHTML = MODAL_HTML; }
-  else ov.classList.remove("show");
+  const wrap = $("dlg-portrait-wrap");
+  const img = $("dlg-portrait-img") as HTMLImageElement;
+
+  if (MODAL_HTML) {
+    ov.classList.add("show");
+    $("modal").innerHTML = MODAL_HTML;
+    const portImg = $("modal").querySelector<HTMLImageElement>(".portrait-dialogue img");
+    if (portImg) {
+      img.src = portImg.src;
+      img.alt = portImg.alt;
+      wrap.classList.add("show");
+      ov.classList.add("has-portrait");
+    } else {
+      img.src = "";
+      wrap.classList.remove("show");
+      ov.classList.remove("has-portrait");
+    }
+  } else {
+    ov.classList.remove("show");
+    ov.classList.remove("has-portrait");
+    wrap.classList.remove("show");
+    img.src = "";
+  }
 }

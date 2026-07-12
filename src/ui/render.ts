@@ -12,6 +12,7 @@ import { travelHTML } from "./travel";
 import { buildStationScene } from "./stationwalk";
 import { buildShipScene, crewRosterHTML } from "./shipwalk";
 import * as walk from "./walk";
+import * as sfx from "../audio";
 
 const WALK_SCREENS = ["stationwalk", "shipwalk"];
 
@@ -29,6 +30,11 @@ export function render() {
   renderTicker();
   renderMain();
   renderSide();
+  sfx.update({
+    travel: !!S.travel,
+    hullPct: S.hull / S.hullMax,
+    cautionKey: cautions().map((c) => c.t).join('|'),
+  });
   save();
 }
 
@@ -52,6 +58,7 @@ let cautionAck = "";
 export function masterCaution() {
   const cs = cautions();
   cautionAck = cs.map((c) => c.t).join("|");
+  sfx.ackAlarm();
   modal(`<h2>⚠ Master Caution</h2>
     ${cs.length ? cs.map((c) => `<div class="logline" style="border-left-color:${c.crit ? "var(--red)" : "var(--amber)"};color:${c.crit ? "var(--red)" : "var(--amber)"}">${c.t}</div>`).join("")
       : '<p class="dim">All systems nominal. The board is dark, Captain.</p>'}

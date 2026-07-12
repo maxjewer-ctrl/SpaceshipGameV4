@@ -722,11 +722,37 @@ th{color:var(--dim); font-weight:500; text-transform:uppercase; font-size:11px; 
   align-items:center; justify-content:center; padding:20px;
 }
 #overlay.show{display:flex;}
+#overlay.has-portrait{ align-items:flex-end; justify-content:center; padding:0 24px 28px; }
+/* Hades-style side portrait — hoists character art over the full overlay */
+#dlg-portrait-wrap{
+  display:none; position:absolute; left:0; bottom:0;
+  width:min(40vw,420px); height:min(82vh,680px);
+  pointer-events:none; z-index:1;
+  mask-image:linear-gradient(to right,black 55%,transparent 92%);
+  -webkit-mask-image:linear-gradient(to right,black 55%,transparent 92%);
+}
+#dlg-portrait-wrap.show{ display:block; }
+#dlg-portrait-wrap img{
+  width:100%; height:100%;
+  object-fit:contain; object-position:20% 100%;
+  filter:drop-shadow(-6px 0 28px #000d) brightness(0.93);
+}
+/* on desktop: hide the inline boxed portrait — the side portrait takes over */
+@media (min-width:601px){
+  #overlay.has-portrait .portrait-dialogue{ display:none; }
+  #overlay.has-portrait .dialogue-head{ gap:0; }
+}
+/* on mobile: hide the side portrait, revert to inline boxed portrait */
+@media (max-width:600px){
+  #dlg-portrait-wrap{ display:none !important; }
+  #overlay.has-portrait{ align-items:center; padding:20px; }
+}
 #modal{
   background:var(--panel); border:1px solid var(--amber); border-radius:8px;
   max-width:560px; width:100%; padding:20px; max-height:88vh; overflow-y:auto;
   box-shadow:0 0 40px #000;
 }
+#overlay.has-portrait #modal{ max-width:660px; position:relative; z-index:2; }
 #modal h2{color:var(--amber); margin-bottom:10px; font-size:18px; letter-spacing:1px;}
 #modal p{margin-bottom:10px; line-height:1.55;}
 #modal .choices{display:flex; flex-direction:column; gap:8px; margin-top:14px;}

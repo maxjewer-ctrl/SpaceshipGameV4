@@ -5,6 +5,7 @@ import { requestRender } from "../bus";
 import { advanceDay, waitDay } from "../systems/travel";
 import { cautions } from "./render";
 import { radarBlips } from "./ship";
+import * as sfx from "../audio";
 
 // Physical control positions — switch/lever state, session-only. Losing your
 // throttle setting on reload is realistic enough; none of this is save data.
@@ -38,6 +39,7 @@ export function throttleLive(el: HTMLInputElement) {
 
 export function bayToggle() {
   if (CTL.bayMoving) return;
+  sfx.bayDoors(CTL.bay === 'closed');
   CTL.bayMoving = true;
   requestRender();
   setTimeout(() => {
@@ -55,6 +57,7 @@ export function jettisonGood(g: string) {
   const n = S.cargo[g] || 0;
   if (!n) return;
   S.cargo[g] = 0;
+  sfx.jettison();
   log(`📦 Jettisoned ${n} ${g} — a small fortune tumbling away in your wake.`);
   requestRender();
 }
@@ -67,6 +70,7 @@ export function ventGuard() {
 export function ventFuel() {
   if (!CTL.guard) return;
   CTL.guard = false;
+  sfx.fuelVent();
   const v = Math.min(5, Math.floor(S.fuel));
   if (v <= 0) { log("⛽ Vent valve cycles dry. The tanks have nothing left to give."); requestRender(); return; }
   S.fuel -= v;
@@ -76,6 +80,7 @@ export function ventFuel() {
 
 export function commsTune() {
   CTL.chan = (CTL.chan + 1) % CHANNELS.length;
+  sfx.commsTune();
   requestRender();
 }
 
@@ -86,6 +91,7 @@ export function engageBurn() {
       requestRender();
       return;
     }
+    sfx.engageBurn();
     advanceDay();
   } else {
     waitDay();
