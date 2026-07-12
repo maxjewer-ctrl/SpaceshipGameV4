@@ -4,7 +4,7 @@
 // resolve to content/riders.json entries and run through a tiny effects DSL
 // (the same interpreter every future system will extend).
 import { S, log, whisper } from "../state";
-import { RIDERS, PLANETS, type RiderDef, type RiderEffect } from "../content";
+import { RIDERS, PLANETS, CHARACTERS, type RiderDef, type RiderEffect } from "../content";
 import type { FireWhen } from "../types";
 import { clamp } from "../util";
 import { modal, hasModal } from "../modal";
@@ -112,7 +112,15 @@ export function applyEffects(effects: RiderEffect[]) {
       else S.npcs.push({ key: e.npc.key, name: e.npc.name, disposition: e.npc.disposition, agenda: e.npc.agenda || "dormant", power: e.npc.power || 0, day: S.day });
     }
     if (e.recruit) {
-      S.crew.push({ id: S.uid++, name: e.recruit.name, role: e.recruit.role, fee: 0, salary: e.recruit.salary ?? 8, bundle: genBundle(), daysAboard: 0, questStage: 0 });
+      // A named roster character keeps their handcrafted Tapestry bundle.
+      const cdef = e.recruit.key ? CHARACTERS[e.recruit.key] : null;
+      if (e.recruit.key) S.flags["char_" + e.recruit.key] = true;
+      S.crew.push({
+        id: S.uid++, name: e.recruit.name, role: e.recruit.role, fee: 0,
+        salary: e.recruit.salary ?? 8, key: e.recruit.key,
+        bundle: cdef ? { ...cdef.bundle, traits: cdef.bundle.traits.slice() } : genBundle(),
+        daysAboard: 0, questStage: 0,
+      });
     }
   }
   // guard planet keys referenced in world memories exist (dev sanity)

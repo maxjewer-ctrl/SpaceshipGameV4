@@ -24,7 +24,23 @@ localStorage.removeItem('kestrelrun'); location.reload();
 After any source edit, Vite HMR reloads the page — it will re-run boot, and
 with no save that pops the **intro modal**. Dismiss or drive it (see §4).
 
-## 2. The two accessors you always need
+## 2. Jump to any point in the game: scenarios
+
+`window.__scenario(name)` rebuilds the save at a known state and returns a
+confirmation string. `__scenario()` with no arg lists all presets:
+
+- `fresh` — clean start, docked Solace, 500cr (prologue skipped)
+- `trader` — day 14, 2 cargo holds, pilot+mechanic, 1,800cr
+- `fighter` — day 20, 2×weapons + shields + armory, gunner, engine Mk-II
+- `silence` — day 17: the Broadcast fires on the next day tick
+- `arc` — 12★, day 30, kitted: the grey-coat hook is live at Solace
+- `run` — THE RUN in progress (arc stage 5, 14-day deadline, provisioned)
+- `reckoning` — Voss arc resolved + broadcast: Tribunal threads live
+
+Source: `src/debug/scenarios.ts`. Add presets there when a new phase needs
+repeatable testing.
+
+## 3. The two accessors you always need
 
 - `window.__S()` → the live `GameState` object (read anything: `credits`,
   `fuel`, `food`, `hull`, `day`, `loc`, `docked`, `travel`, `crew`, `jobs`,
@@ -52,7 +68,7 @@ window.__modal = () => {
 
 To click a modal choice: `document.querySelectorAll('#modal .choices button')[i].click()`.
 
-## 3. The handler API (all on `window`)
+## 4. The handler API (all on `window`)
 
 Registered in `src/main.ts`. The important ones:
 
@@ -66,7 +82,7 @@ Registered in `src/main.ts`. The important ones:
 Planet ids: `meridian foundry solace kestrel havens verge` (+ hidden `gate anechoic`).
 Module ids: `fueltank cargohold cabin quarters hydro medbay weapons shields armory workshop smuggler luxcabin reactor`.
 
-## 4. Walking the decks & stations (canvas mini-game)
+## 5. Walking the decks & stations (canvas mini-game)
 
 Walk screens (`shipwalk`, `stationwalk`) render to a `<canvas>` and run their own
 rAF loop. Two debug helpers bypass the sprite movement:
@@ -88,7 +104,7 @@ engine room is far right — its x depends on how many module bays you have:
 `engineX = 30 + 210 + 230 + bays*230`, center `≈ engineX+105, 320`. Prologue
 repair/EVA doors live in the cockpit or engine room per stage.
 
-## 5. Travel events — two kinds, watch the log not just modals
+## 6. Travel events — two kinds, watch the log not just modals
 
 `advanceDay()` rolls a travel event ~42% of days (`src/systems/events.ts`
 `rollEvent`). Two shapes:
@@ -116,7 +132,7 @@ for (let i=0;i<12;i++){
 }
 ```
 
-## 6. Combat — a phased timing duel
+## 7. Combat — a phased timing duel
 
 `startCombat` builds a modal with phases `command → target → aim → over`. Drive
 it with `cAct(...)`:
@@ -151,17 +167,37 @@ window.cAct('release');
 Note: because the box is random but the reticle path is fixed, some boxes cap
 below a perfect lock even at the ideal instant — that's expected.
 
-## 7. Balance / feel notes learned (verify, don't assume — may drift)
+## 8. Crew-gap damage control (minigames when a specialist is missing)
+
+Travel hazards WITHOUT the right crew open interactive modals instead of
+auto-resolving (`src/systems/damagecontrol.ts`, globals `dcValve`/`dcVector`/
+`dcCare`):
+- **No mechanic** + breakdown → valve-guessing scramble (wrong = −hull −fuel,
+  repeat until right).
+- **No pilot** + meteor swarm → pick 1 of 3 vectors; wrong = big hull hit +
+  25% module damage.
+- **No med bay** + sick passenger → pay −3 food −25cr for a 60% cure, or eat
+  the half-fare.
+With the specialist aboard these stay one-line log events. When playtesting
+travel legs, remember a crewless ship now stops on modals for these.
+
+## 9. Balance / feel notes learned (verify, don't assume — may drift)
 
 - Weapons bay is 600cr; a fresh captain (500cr) can't afford one until after a
   cargo run — early combat is flee/bribe territory by design.
-- One weapons bay (8 dmg) **cannot** beat a Pirate Corsair (55 hull) + escort
-  even with perfect aim; incoming is ~15/round from a pair. Shields + 2 weapons,
-  or flee/bribe. Flag "Battle stations vs Corsair with starter gear = death."
+- A lone Pirate Corsair (55 hull) no longer brings an escort (escorts start at
+  60 hull / gunship-class) — it's winnable with 2 weapons bays and good aim.
+  The pirate hail shows an "OUTGUNNED" tell on the fight button when
+  `stats().dmg * 4 < enemy hull`.
+- The combat aim box always spawns ON the reticle sweep path now — a perfect
+  lock is always physically possible.
 - Medicine bought cheap on Meridian (~32) sells ~55 at Verge — a real,
   intended arbitrage; long hauls are where the money and the risk both live.
+- Named recruits (the twelve, `content/characters.json`) surface in their home
+  cantinas; hiring sets `char_<key>`. Ada Nnamdi is a walking patrol landmine
+  (union_deserter) — great for drama testing.
 
-## 8. Always finish with
+## 10. Always finish with
 
 - `read_console_messages { onlyErrors: true }` — confirm no runtime errors.
 - Report state deltas from `__S()` (credits/hull/fuel/prestige/disposition) and

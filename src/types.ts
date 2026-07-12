@@ -42,6 +42,7 @@ export interface CrewRevealed { origin?: boolean; want?: boolean; wound?: boolea
 
 export interface CrewMember {
   id: number; name: string; role: string; fee: number; salary: number;
+  key?: string;          // named roster character (content/characters.json)
   bundle?: CrewBundle;
   daysAboard?: number;   // veterancy tick, drives loyalty & quest timing
   questStage?: number;   // personal-quest progress: 0 dormant, 1 opened, 2 pointed at a world, 3 resolved

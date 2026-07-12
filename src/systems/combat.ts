@@ -83,7 +83,10 @@ function buildTargets(e: Enemy): CombatTarget[] {
   const primary = makeTarget(e, 0, "Lead", 68, 42);
   const targets = [primary];
   const name = e.name.toLowerCase();
-  if (e.hull >= 48 || /corsair|gunship|interdictor|hunter/.test(name)) {
+  // Escorts are for genuine warships. A lone Corsair (55 hull) is a hard but
+  // honest fight for a two-gun freighter; with an escort it was unwinnable
+  // even on perfect aim — playtested, fatal.
+  if (e.hull >= 60 || /gunship|interdictor|hunter/.test(name)) {
     targets.push(makeTarget({ name: escortName(e.name), hull: Math.max(16, Math.round(e.hull * 0.38)), dmg: Math.max(4, Math.round(e.dmg * 0.45)) }, 1, "Escort", 42, 58));
   }
   if (e.hull >= 75 || /interdictor/.test(name)) {
@@ -235,8 +238,15 @@ export function cAct(action: string) {
   if (action === "aim") {
     const t = C.targets.find((x) => x.id === C!.targetId && x.hull > 0);
     if (!t) return;
-    t.aimX = ri(28, 72);
-    t.aimY = ri(28, 72);
+    // Place the target box ON the reticle's actual sweep path (with jitter),
+    // so every box is genuinely hittable. Random-rect placement could land
+    // where the fixed Lissajous sweep never passes — a great shot denied by
+    // dice, which reads as unfair because it is.
+    const move = C.move || "laser";
+    const speed = (move === "torpedo" ? 1.45 : move === "ion" ? 0.92 : 1.12) * C.scenario.aim;
+    const el = 0.6 + rand() * 2.2;
+    t.aimX = Math.min(84, Math.max(16, 50 + Math.sin(el * speed * 3.1) * 38 + ri(-4, 4)));
+    t.aimY = Math.min(72, Math.max(28, 50 + Math.sin(el * speed * 2.2 + 1.7) * 25 + ri(-4, 4)));
     C.phase = "aim";
     C.aimStart = Date.now();
     drawCombat();

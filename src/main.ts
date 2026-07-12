@@ -40,6 +40,9 @@ import { pressStart, pressEnd, interact, debugStep, debugPos, debugGoto } from "
 import { crewTalk, crewHighlight } from "./ui/shipwalk";
 import { wkPay, wkTalk, wkFight } from "./systems/walkEncounters";
 import { ctVibe, ctAbout, ctShip, ctQuest, ctClose, ctQuestHelp, ctQuestSkip } from "./systems/crewtalk";
+import { dcValve, dcVector, dcCare } from "./systems/damagecontrol";
+import { loadScenario } from "./debug/scenarios";
+import { evPirates, evPatrol, evBreakdown, evMeteor, evSalvage, evDistress, evTrader, evPax } from "./systems/events";
 import { loadRemoteContent } from "./supabase/content";
 
 setRender(render);
@@ -84,11 +87,22 @@ Object.assign(window as any, {
   crewTalk, crewHighlight, wkPay, wkTalk, wkFight,
   // crew dialogue — trust-gated topics, personal quests
   ctVibe, ctAbout, ctShip, ctQuest, ctClose, ctQuestHelp, ctQuestSkip,
+  // damage control — crew-gap minigames (no mechanic/pilot/med bay aboard)
+  dcValve, dcVector, dcCare,
   // dev/debug: live state accessor + manual walk-frame stepper (harmless — behind underscores)
   __S: () => State.S,
   __walkStep: debugStep,
   __walkPos: debugPos,
   __walkGoto: debugGoto,
+  __scenario: loadScenario,
+  // dev/debug: force a specific travel event (playtesting encounters on demand)
+  __event: (k: string) => {
+    const evs: Record<string, () => void> = {
+      pirates: evPirates, patrol: evPatrol, breakdown: evBreakdown, meteor: evMeteor,
+      salvage: evSalvage, distress: evDistress, trader: evTrader, pax: evPax,
+    };
+    if (evs[k]) evs[k](); else console.log("events: " + Object.keys(evs).join(", "));
+  },
 });
 
 // ---- boot ----

@@ -1,5 +1,5 @@
 import { S, log } from "../state";
-import { PLANETS, MODS, GOODS, NAMES, MOTIVES, FLAVOR, ROLES, CREWGEN } from "../content";
+import { PLANETS, MODS, GOODS, NAMES, MOTIVES, FLAVOR, ROLES, CREWGEN, CHARACTERS } from "../content";
 import { stats, daysTo, cargoUsed, scargoUsed, paxJobs, vipJobs, planetVisible, isSilenced } from "../derive";
 import { rand, ri, pick } from "../rng";
 import { requestRender } from "../bus";
@@ -30,6 +30,9 @@ export function refreshMarket() {
   const recruits: CrewMember[] = [];
   const rn = ri(0, 2);
   for (let i = 0; i < rn; i++) recruits.push(genRecruit());
+  // Named roster characters drink in their home-world cantinas until hired.
+  const named = namedRecruitHere();
+  if (named) recruits.unshift(named);
   const rumors: string[] = [];
   // Rider-planted rumors (leads, consequences of your own choices) surface first.
   const planted: string[] = S.flags.riderRumors || [];
@@ -131,6 +134,25 @@ export function genRecruit(): CrewMember {
   };
 }
 
+// One of the twelve, if this is their world and you haven't hired them before.
+// They keep showing up until hired — locals have routines.
+function namedRecruitHere(): CrewMember | null {
+  const here = Object.keys(CHARACTERS).filter((k) => {
+    const c = CHARACTERS[k];
+    return c.planets.includes(S.loc)
+      && !S.flags["char_" + k]
+      && !S.crew.some((cm) => cm.key === k);
+  });
+  if (!here.length) return null;
+  const key = pick(here);
+  const c = CHARACTERS[key];
+  return {
+    id: S.uid++, key, name: c.name, role: c.role, fee: c.fee, salary: c.salary,
+    bundle: { ...c.bundle, traits: c.bundle.traits.slice() },
+    daysAboard: 0, questStage: 0,
+  };
+}
+
 export function canAccept(m: Job): [boolean, string] {
   const st = stats();
   for (const need of m.needs || []) {
@@ -184,6 +206,7 @@ export function hire(i: number) {
   S.credits -= r.fee;
   S.market.recruits.splice(i, 1);
   r.daysAboard = 0;
+  if (r.key) S.flags["char_" + r.key] = true; // the named twelve sign on once per game
   S.crew.push(r);
   log(`Hired ${r.name}, ${ROLES[r.role].n}. Salary ${r.salary}cr/day.`);
   bark("hire", { crew: r });

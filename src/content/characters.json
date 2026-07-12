@@ -1,0 +1,170 @@
+{
+  "dez": {
+    "name": "Dessa \"Dez\" Okonkwo", "role": "pilot", "fee": 160, "salary": 12,
+    "planets": ["kestrel", "solace"],
+    "agenda": "honest-with-a-sideline",
+    "hook": "Quietly couriers Frontier Compact mail through your registry. Never contraband — just words the Union would rather not travel.",
+    "bundle": {
+      "origin": "a Kestrel's Rest wheat farm",
+      "want": "enough credits to buy back the family farm",
+      "wound": "knew real hunger young and counts the food stores twice", "woundTag": "hungry_years",
+      "secret": "still sends quiet reports to someone dockside", "secretTag": "informant",
+      "tell": "flies low over any farmland on approach, every time, just to look", "tellSituation": "arrive",
+      "traits": ["loyal", "cautious"]
+    }
+  },
+  "vex": {
+    "name": "Callum Vex", "role": "pilot", "fee": 180, "salary": 14,
+    "planets": ["havens"],
+    "agenda": "dishonest",
+    "hook": "Owes the Red Sky Syndicate more than he'll say. Every port call, some of his pay goes down a hole — and someday the hole asks for the ship's route instead.",
+    "bundle": {
+      "origin": "the back alleys of Haven's Folly",
+      "want": "a clean registry and a name nobody's hunting",
+      "wound": "owes money to people who collect in blood", "woundTag": "debt",
+      "secret": "is wanted under another name in three systems", "secretTag": "wanted",
+      "tell": "checks the same weld on the bulkhead twice before every fight", "tellSituation": "combat_start",
+      "traits": ["reckless", "proud"]
+    }
+  },
+  "brix": {
+    "name": "Brix Halloway", "role": "mechanic", "fee": 130, "salary": 9,
+    "planets": ["foundry"],
+    "agenda": "honest",
+    "hook": "Washed out of the Foundry yards with a prototype tool kit that isn't technically hers. The yard boss hasn't forgotten. Neither has the kit's inventory tag.",
+    "bundle": {
+      "origin": "the Foundry smelter decks",
+      "want": "to prove the academy wrong about washing him out",
+      "wound": "watched a ship they loved come apart in the black", "woundTag": "lost_a_ship",
+      "secret": "is wanted under another name in three systems", "secretTag": "wanted",
+      "tell": "hums a tune from somewhere you can't place when it's quiet", "tellSituation": "quiet",
+      "traits": ["dreamer", "stoic"]
+    }
+  },
+  "tomas": {
+    "name": "Tomas", "role": "mechanic", "fee": 0, "salary": 6,
+    "planets": [],
+    "agenda": "honest",
+    "hook": "Recruited only by settling his bond in a station undercity. How you settle it decides which Tomas you get.",
+    "bundle": {
+      "origin": "a Syndicate debt she's still paying",
+      "want": "one honest job that doesn't end in gunfire",
+      "wound": "was left in a cell once and hasn't forgotten it", "woundTag": "left_behind",
+      "secret": "was somebody important once, before the fall", "secretTag": "rich_once",
+      "tell": "touches the hatch frame on the way out, every single time", "tellSituation": "depart",
+      "traits": ["gentle", "weary"]
+    }
+  },
+  "ada": {
+    "name": "Sgt. Adaeze \"Ada\" Nnamdi", "role": "gunner", "fee": 150, "salary": 11,
+    "planets": ["meridian", "solace"],
+    "agenda": "honest",
+    "hook": "Union marine gunnery sergeant, eleven years gone. She was in orbit over Meridian the day of the 'reactor accident' — and she deserted three weeks later. A patrol scan is a death sentence; the Tribunal would call her a witness.",
+    "bundle": {
+      "origin": "a Union naval academy she washed out of",
+      "want": "to bury someone properly, back where they're from",
+      "wound": "the Union took someone from them and never explained", "woundTag": "union_took_someone",
+      "secret": "is a Union deserter — a patrol scan is a death sentence", "secretTag": "union_deserter",
+      "tell": "goes very quiet when patrols hail", "tellSituation": "patrol",
+      "traits": ["stoic", "haunted"]
+    }
+  },
+  "rook": {
+    "name": "Rook Vandermeer", "role": "gunner", "fee": 140, "salary": 11,
+    "planets": ["verge", "havens"],
+    "agenda": "lapsed-dishonest",
+    "hook": "Flew under a black flag out of Haven's Folly and left it on good-enough terms that his old crew still thinks he's casing ships for them. He isn't. Probably.",
+    "bundle": {
+      "origin": "the back alleys of Haven's Folly",
+      "want": "to stop running long enough to sleep through a night",
+      "wound": "sold out a crew once, or was sold out — won't say which", "woundTag": "betrayed_crew",
+      "secret": "used to fly under a black flag and knows those crews by name", "secretTag": "ex_pirate",
+      "tell": "scans every new dock for a face they never find", "tellSituation": "arrive",
+      "traits": ["chatty", "cynical"]
+    }
+  },
+  "imogen": {
+    "name": "Dr. Imogen Hale", "role": "medic", "fee": 170, "salary": 12,
+    "planets": ["meridian", "foundry"],
+    "agenda": "honest",
+    "hook": "Union research directorate, two doors down from the dispersal-modeling teams. She didn't know what the models were for until she did. Now she practices medicine like a debt — and she's sicker than she lets on.",
+    "bundle": {
+      "origin": "a Meridian orphanage",
+      "want": "one honest job that doesn't end in gunfire",
+      "wound": "doesn't trust doctors — will do their own stitches", "woundTag": "distrusts_doctors",
+      "secret": "is sicker than they let on and hasn't told a soul", "secretTag": "dying",
+      "tell": "stops eating first, quietly, so the others don't notice", "tellSituation": "starving",
+      "traits": ["gentle", "haunted"]
+    }
+  },
+  "corbin": {
+    "name": "\"Saint\" Corbin", "role": "medic", "fee": 110, "salary": 9,
+    "planets": ["havens", "verge"],
+    "agenda": "dishonest",
+    "hook": "Unlicensed street-doc from the under-decks. The best hands on the frontier, and the leakiest mouth — he trades patient talk and ship gossip to an information broker to keep his clinic stocked.",
+    "bundle": {
+      "origin": "nowhere he'll name",
+      "want": "to matter to somebody who isn't paying her",
+      "wound": "knew real hunger young and counts the food stores twice", "woundTag": "hungry_years",
+      "secret": "still sends quiet reports to someone dockside", "secretTag": "informant",
+      "tell": "hums a tune from somewhere you can't place when it's quiet", "tellSituation": "quiet",
+      "traits": ["chatty", "gentle"]
+    }
+  },
+  "bapu": {
+    "name": "Bapu Okafor", "role": "cook", "fee": 80, "salary": 6,
+    "planets": ["kestrel", "solace"],
+    "agenda": "honest",
+    "hook": "Born on a generation ship that never made port, raised in the pilgrim flotillas. He hums while he cooks — an old flotilla hymn, four seconds long, that you will eventually recognize from somewhere much worse.",
+    "bundle": {
+      "origin": "a generation ship that never made port",
+      "want": "passage, eventually, to Elysium — if it's real",
+      "wound": "the deep black past the charts frightens them, badly", "woundTag": "afraid_of_the_deep",
+      "tell": "hums a tune from somewhere you can't place when it's quiet", "tellSituation": "quiet",
+      "secret": "was somebody important once, before the fall", "secretTag": "rich_once",
+      "traits": ["devout", "gentle"]
+    }
+  },
+  "nyla": {
+    "name": "Nyla Sorrensen", "role": "cook", "fee": 90, "salary": 7,
+    "planets": ["verge"],
+    "agenda": "petty-dishonest",
+    "hook": "Quartermastered a mining outfit at Teller's Claim and left with the ledger's rounding errors two weeks before the Claim went quiet. Skims your galley budget out of habit. Would take a bullet for the crew anyway.",
+    "bundle": {
+      "origin": "a Verge Station salvage crew",
+      "want": "a clean registry and a name nobody's hunting",
+      "wound": "knew real hunger young and counts the food stores twice", "woundTag": "hungry_years",
+      "secret": "is wanted under another name in three systems", "secretTag": "wanted",
+      "tell": "stops eating first, quietly, so the others don't notice", "tellSituation": "starving",
+      "traits": ["greedy", "loyal"]
+    }
+  },
+  "elias": {
+    "name": "Elias Wren-Kohl", "role": "quartermaster", "fee": 130, "salary": 10,
+    "planets": ["solace"],
+    "agenda": "honest",
+    "hook": "The Union customs auditor who once tried to audit Harbormaster Vance — and got professionally erased for it. Keeps your books immaculate. Keeps a second, smaller book about her.",
+    "bundle": {
+      "origin": "a Union naval academy she washed out of",
+      "want": "to prove the academy wrong about washing him out",
+      "wound": "the Union took someone from them and never explained", "woundTag": "union_took_someone",
+      "secret": "was somebody important once, before the fall", "secretTag": "rich_once",
+      "tell": "goes very quiet when patrols hail", "tellSituation": "patrol",
+      "traits": ["proud", "cautious"]
+    }
+  },
+  "miri": {
+    "name": "Mirelle \"Miri\" Datta", "role": "quartermaster", "fee": 150, "salary": 11,
+    "planets": ["havens"],
+    "agenda": "dishonest",
+    "hook": "A Red Sky bookkeeper 'on sabbatical.' Your margins improve the day she signs on — and copies of your manifests start improving somebody else's picture of the lanes. The Syndicate grooms reliable captains. You're being groomed.",
+    "bundle": {
+      "origin": "a Syndicate debt she's still paying",
+      "want": "to matter to somebody who isn't paying her",
+      "wound": "sold out a crew once, or was sold out — won't say which", "woundTag": "betrayed_crew",
+      "secret": "still sends quiet reports to someone dockside", "secretTag": "informant",
+      "tell": "scans every new dock for a face they never find", "tellSituation": "arrive",
+      "traits": ["chatty", "greedy"]
+    }
+  }
+}

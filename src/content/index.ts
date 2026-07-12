@@ -11,6 +11,7 @@ import crewgenJson from "./crewgen.json";
 import ridersJson from "./riders.json";
 import reputationJson from "./reputation.json";
 import npcsJson from "./npcs.json";
+import charactersJson from "./characters.json";
 
 export const MODS = modulesJson as Record<string, ModuleDef>;
 export const PLANETS = planetsJson as Record<string, PlanetDef>;
@@ -49,7 +50,22 @@ export interface RiderEffect {
   mission?: MissionGrant;
   plantRider?: { min: number; max: number; key: string };
   npc?: { key: string; name: string; disposition: number; agenda?: string; power?: number };
-  recruit?: { role: string; name: string; salary?: number };
+  recruit?: { role: string; name: string; salary?: number; key?: string };
+}
+
+// ---- Named recruitable characters (the twelve — see docs/CREW_DOSSIERS.md) ----
+export interface CharacterDef {
+  name: string; role: string; fee: number; salary: number;
+  planets: string[];        // home worlds whose cantinas can surface them ([] = scene-only)
+  agenda: string;           // honest/dishonest design intent — future agenda beats read this
+  hook: string;             // one-line dossier summary
+  bundle: {
+    origin: string; want: string;
+    wound: string; woundTag: string;
+    secret: string; secretTag: string;
+    tell: string; tellSituation: string;
+    traits: string[];
+  };
 }
 
 // ---- Station scenes (data-driven NPC dialogue) ----
@@ -94,6 +110,7 @@ export let RIDERS = ridersJson as Record<string, RiderDef>;
 export const CREWGEN = crewgenJson as CrewGen;
 export const REPUTATION = reputationJson as ReputationContent;
 export let NPCS = npcsJson as Record<string, NpcDef>;
+export const CHARACTERS = charactersJson as Record<string, CharacterDef>;
 
 // Merge hot-loaded content over the bundled baseline. Called by the content loader.
 export function applyRemoteContent(patch: {

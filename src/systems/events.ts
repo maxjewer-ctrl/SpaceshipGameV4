@@ -13,6 +13,7 @@ import { plantDelay, flagActive } from "./scheduler";
 import { remember, crewKey, witnessAll } from "./ledger";
 import { shift } from "./disposition";
 import { evNumbersStation, evReturnedShip } from "./silence";
+import { dcBreakdown, dcMeteor, dcSickPassenger } from "./damagecontrol";
 import { planetVisible, isSilenced } from "../derive";
 
 // ---------- daily event roll ----------
@@ -58,10 +59,13 @@ export function evPirates() {
   const e = tough
     ? { name: "Pirate Corsair", hull: 55, dmg: 12, bribe: 280, loot: 250 }
     : { name: "Pirate Skiff", hull: 32, dmg: 8, bribe: 150, loot: 130 };
+  // An honest tactical read before the player commits: four good salvos that
+  // can't crack the lead ship means this fight is a funeral, and the UI says so.
+  const outgunned = stats().dmg * 4 < e.hull;
   modal(`<h2>⚠ Contact — ${e.name}</h2>
     <p>A ${e.name.toLowerCase()} burns hard on an intercept course, weapons hot. The comm crackles: <i>"Cut engines and prepare to be boarded, or be scrap."</i></p>
     <div class="choices">
-      <button onclick="closeModal(); startCombat(${JSON.stringify(e).replace(/"/g, "&quot;")}, pirateWin, pirateLoseFlee)">Battle stations</button>
+      <button onclick="closeModal(); startCombat(${JSON.stringify(e).replace(/"/g, "&quot;")}, pirateWin, pirateLoseFlee)">Battle stations${outgunned ? ' <span class="dim">— tactical readout: OUTGUNNED. This is how ships die.</span>' : ""}</button>
       <button onclick="pirateFlee(${e.dmg})">Punch it and run ${stats().has("pilot") ? "(pilot aboard — good odds)" : ""}</button>
       <button onclick="pirateBribe(${e.bribe})">Pay them off (${bribeCost(e.bribe)}cr)</button>
       <button onclick="pirateSurrender()">Surrender the cargo</button>
@@ -196,21 +200,24 @@ export function evBreakdown() {
   const st = stats();
   // half the time it's a specific system that lets go
   if (rand() < 0.5 && damageModule("Breakdown")) return;
-  let dmg = ri(8, 15);
-  if (st.has("mechanic")) dmg = Math.ceil(dmg / 2);
-  S.hull -= dmg;
-  log(`A coolant line ruptures in the engine room. ${st.has("mechanic") ? "Your mechanic contains it fast" : "You duct-tape it at 3am"} (−${dmg} hull).`);
+  if (st.has("mechanic")) {
+    const dmg = Math.ceil(ri(8, 15) / 2);
+    S.hull -= dmg;
+    log(`A coolant line ruptures in the engine room. Your mechanic contains it fast (−${dmg} hull).`);
+    bark("breakdown", { chance: 0.7 });
+    checkDead("The drive core cascade-failed somewhere dark and empty.");
+    return;
+  }
+  // No mechanic: the problem is yours, hands-on and unfair.
   bark("breakdown", { chance: 0.7 });
-  checkDead("The drive core cascade-failed somewhere dark and empty.");
+  dcBreakdown();
 }
 export function evMeteor() {
   const st = stats();
   if (st.has("pilot")) { log("Micro-meteor swarm ahead — your pilot threads the ship through it like a needle. Not a scratch."); return; }
-  const dmg = Math.max(1, ri(6, 12) - st.shield);
-  S.hull -= dmg;
-  log(`Micro-meteor swarm. The hull sounds like a tin roof in hail (−${dmg} hull).`);
+  // No pilot: gamble the hull on a hunch at the manual helm.
   bark("meteor", { chance: 0.6 });
-  checkDead("A rock the size of a fist ended the whole story.");
+  dcMeteor();
 }
 export function evSalvage() {
   const space = stats().cargoCap - cargoUsed();
@@ -325,7 +332,8 @@ export function evPax() {
       if (rand() < 0.6) { p.sick = false; log(`${p.name} falls ill. The med bay's auto-doc patches them up, mostly.`); }
       else log(`${p.name} falls ill. The auto-doc helps but they're in rough shape. They won't pay full fare like this.`);
     } else {
-      log(`${p.name} falls seriously ill and you have no working med bay. Soup and prayers. They will NOT be paying full fare (−half pay on arrival).`);
+      // No med bay at all: playing nurse is on you, and it costs.
+      dcSickPassenger(j);
     }
     return;
   }
