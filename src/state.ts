@@ -2,7 +2,7 @@ import type { GameState, ModuleInstance } from "./types";
 import { DEFAULT_APPEARANCE } from "./ui/avatarDraw";
 
 export const SAVE_KEY = "kestrelrun";
-export const SAVE_VERSION = 9;
+export const SAVE_VERSION = 10;
 
 // The single mutable game state. `export let` gives live bindings to importers;
 // replace it only through setState so everyone sees the new object.
@@ -124,6 +124,12 @@ export function migrate(s: any): GameState {
   if (s.version < 9) {
     if (!s.portStanding || typeof s.portStanding !== "object") s.portStanding = {};
     s.version = 9;
+  }
+  // v10: Juno Vale's prologue crew record didn't carry a portrait `key` —
+  // saves started before that field existed show her as an icon fallback.
+  if (s.version < 10) {
+    (s.crew || []).forEach((c: any) => { if (c.name === "Juno Vale" && !c.key) c.key = "juno"; });
+    s.version = 10;
   }
   return s as GameState;
 }

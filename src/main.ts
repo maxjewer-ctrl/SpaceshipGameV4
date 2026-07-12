@@ -57,8 +57,10 @@ import { imogenTreatUnion, imogenTreatSyndicate, imogenDecline } from "./systems
 import { loadScenario } from "./debug/scenarios";
 import { evPirates, evPatrol, evBreakdown, evMeteor, evSalvage, evDistress, evTrader, evPax } from "./systems/events";
 import { loadRemoteContent } from "./supabase/content";
+import { startGamepadNav } from "./systems/gamepadNav";
 
 setRender(render);
+startGamepadNav();
 
 // The UI is string-templated with inline onclick handlers (transitional from
 // the single-file prototype), so every handler reachable from HTML must be a
