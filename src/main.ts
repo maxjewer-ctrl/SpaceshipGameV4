@@ -4,7 +4,7 @@ import { render, nav, masterCaution } from "./ui/render";
 import { loadSaved, setState, log } from "./state";
 import * as State from "./state";
 import { closeModal } from "./modal";
-import { selSlot, shipView, shipConsole } from "./ui/ship";
+import { selSlot, shipView, shipConsole, shipFlip } from "./ui/ship";
 import { plotCourse, goModule, launchOpen, launchPress, launchGuard, launchGoto, launchAuto, dockPress, auxFlip, bigRed } from "./ui/bridge";
 import { peelNote } from "./ui/notes";
 import {
@@ -50,7 +50,7 @@ setRender(render);
 // global. This is the single registry of that surface.
 Object.assign(window as any, {
   // navigation & screens
-  nav, ptab, selSlot, selPlanet, closeModal, log, shipView, shipConsole, masterCaution,
+  nav, ptab, selSlot, selPlanet, closeModal, log, shipView, shipConsole, shipFlip, masterCaution,
   // bridge action board + launch/docking sequences + the aux panel
   plotCourse, goModule, launchOpen, launchPress, launchGuard, launchGoto, launchAuto, dockPress, bayForJob,
   auxFlip, bigRed, peelNote,

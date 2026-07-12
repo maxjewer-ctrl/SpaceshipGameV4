@@ -141,16 +141,16 @@ function launchSeqHTML(): string {
     </button>`;
   }).join("<span class='ls-wire'></span>");
   const pilotBtn = !LAUNCH.cleared && !LAUNCH.auto && stats().has("pilot")
-    ? `<button class="primary" style="margin-top:9px; width:100%" onclick="launchAuto()">🧑‍🚀 GIVE THE PILOT THE BOARD</button>` : "";
+    ? `<button class="primary" style="margin-top:9px; width:100%" onclick="launchAuto()">🧑‍🚀 HAND THE BOARD TO YOUR PILOT</button>` : "";
   const state = LAUNCH.cleared
-    ? `<div class="boardstate ok">▮ BOARD GREEN — CHART UNLOCKED. PUNCH IT.</div>`
-    : LAUNCH.auto ? `<div class="boardstate">▮ PILOT HAS THE BOARD — HANDS OFF</div>` : "";
+    ? `<div class="boardstate ok">▮ PRE-FLIGHT COMPLETE — STAR MAP UNLOCKED</div>`
+    : LAUNCH.auto ? `<div class="boardstate">▮ PILOT RUNNING PRE-FLIGHT</div>` : "";
   return `<div class="panel launchpanel">
     <h3>Launch Interlock ${LAUNCH.cleared ? '<span class="v2-tag on">CLEARED</span>' : '<span class="v2-tag off">CLAMPED</span>'}</h3>
     <div class="launchseq">${steps}</div>
     ${pilotBtn}${state}
     ${LAUNCH.cleared || LAUNCH.auto ? "" : note("launch",
-      "left → right, EVERY time.<br>bay first. ask Deke why.<br>clamps hide under the red cover<br>— R.")}
+      "bay doors first, then reactor.<br>clamp release is under the red cover.<br>— R.")}
   </div>`;
 }
 
@@ -224,7 +224,7 @@ function dockSeqHTML(): string {
   return `<div class="panel launchpanel">
     <h3>Docking Approach <span class="v2-tag on">${PLANETS[S.travel!.dest].n.toUpperCase()}</span></h3>
     <div class="launchseq">${steps}</div>
-    ${note("dock", "kill your speed BEFORE you hail.<br>ports remember hot approaches.<br>(so do insurance adjusters)", "blue")}
+    ${note("dock", "kill your speed before you hail —<br>ports fine hot approaches.<br>— R.", "blue")}
   </div>`;
 }
 
@@ -290,12 +290,12 @@ function boardHTML(): string {
       const n = S.market?.missions.length ?? 0;
       items.push(act("blue", "🍺", "FIND AN OPEN CONTRACT", `${n ? n + " job" + (n === 1 ? "" : "s") + " on the board" : "the board refreshes daily"} · cantina`, "goModule('cantina')"));
     }
-    if (bayIsOpen()) items.push(act("amber", "📦", "CARGO BAY OPEN", "hard vacuum where the floor was — seal her before liftoff", "bayToggle()", true));
-    if (LAUNCH.cleared) items.push(act("green", "🚀", "CLEARED FOR DEPARTURE", "she's floating free on thrusters — pick a heading", "nav('map')", true));
-    else items.push(act("green", "🚀", "PREFLIGHT & LAUNCH", LAUNCH.open ? "interlock board is lit below" : "cold ship. wake her up.", "launchOpen()", !LAUNCH.open));
-    items.push(act("dim", "⏳", "HOLD STATION", "burn a day in port. the meter doesn't care.", "waitDay()"));
+    if (bayIsOpen()) items.push(act("amber", "📦", "CARGO BAY OPEN", "doors must be sealed before launch", "bayToggle()", true));
+    if (LAUNCH.cleared) items.push(act("green", "🚀", "CLEARED FOR DEPARTURE", "clamps released — open the star map and pick a destination", "nav('map')", true));
+    else items.push(act("green", "🚀", "PRE-FLIGHT & LAUNCH", LAUNCH.open ? "checks are on the board below" : "run the pre-flight board to unlock departure", "launchOpen()", !LAUNCH.open));
+    items.push(act("dim", "⏳", "HOLD STATION", "pass one day in port — food and payroll still tick", "waitDay()"));
   } else {
-    items.push(act("dim", "⏳", "HOLD POSITION", "adrift. count rivets. wait.", "waitDay()"));
+    items.push(act("dim", "⏳", "HOLD POSITION", "adrift — pass one day", "waitDay()"));
   }
   return `<div class="board">${items.join("")}</div>`;
 }
@@ -376,8 +376,8 @@ function vossThread(): string {
   switch (a.stage) {
     case 0:
       return S.prestige >= 12
-        ? threadCard("◆", "A woman in a grey coat", "She's been asking cantina keepers about a captain with a reputation and no curiosity. Word is she already knows your name. Any cantina will do.")
-        : threadCard("◆", "A rumor with your name on it", `Cantina talk: a scientist wants a captain who doesn't ask questions — but only one whose name carries. <b>${S.prestige}/12★ prestige.</b> Fly contracts, take chances, build the name.`);
+        ? threadCard("◆", "A woman in a grey coat", "A scientist has been asking cantina keepers for you by name. She'll find you in any cantina — walk the station and go in.")
+        : threadCard("◆", "Word from the cantinas", `A scientist is hiring a captain for discreet work, but only one with a reputation: <b>you need 12★ prestige (you have ${S.prestige}★)</b>. Prestige comes from completing contracts — take jobs from cantina boards and deliver on time.`);
     case 1:
       return threadCard("◆", "The sealed crate", "It hums, faintly, if you press your ear to it. You've decided not to do that again. 600cr on delivery at <b>Verge Station</b> — no manifests, no questions.");
     case 2:
@@ -412,13 +412,13 @@ function deadlinesHTML(): string {
     return `<div class="dl${tight ? " low" : ""}">${j.title} <span class="dim">→ ${PLANETS[j.dest].n}</span><span class="dl-d">${left}d</span></div>`;
   });
   if (!rows.length) return "";
-  return `<div class="panel"><h3>Clocks Running</h3>${rows.join("")}</div>`;
+  return `<div class="panel"><h3>Deadlines</h3>${rows.join("")}</div>`;
 }
 
 function feedHTML(): string {
   const items = S.logLines.slice(0, 9).map((l) =>
     `<div class="feed-item${l.bark ? " bark" : ""}"><span class="fi-day">D${l.d}</span><div class="fi-txt">${l.m}</div></div>`).join("");
-  return items || `<div class="dim">Nothing yet. It will not stay that way.</div>`;
+  return items || `<div class="dim">No entries yet.</div>`;
 }
 
 export function bridgeHTML(): string {
@@ -431,12 +431,12 @@ export function bridgeHTML(): string {
     ${showSeq ? launchSeqHTML() : ""}
     <div class="row">
       <div class="col">
-        <div class="panel"><h3>◆ The Thread</h3>${threads || '<div class="dim">Nothing\'s pulling at you. Threads start in cantinas — rumors, faces, work you shouldn\'t take. Go be somebody.</div>'}</div>
+        <div class="panel"><h3>Leads</h3>${threads || '<div class="dim">No active leads. Cantina job boards carry contracts and rumors — that\'s where work starts.</div>'}</div>
         ${storyCards()}
         ${deadlinesHTML()}
       </div>
       <div class="col">
-        <div class="panel"><h3>Ship's Story</h3><div class="feed">${feedHTML()}</div></div>
+        <div class="panel"><h3>Log</h3><div class="feed">${feedHTML()}</div></div>
         ${auxHTML()}
       </div>
     </div>

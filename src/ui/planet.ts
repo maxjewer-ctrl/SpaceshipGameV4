@@ -80,7 +80,7 @@ function marketHTML(): string {
   return `<div class="row"><div class="col">
     <div class="panel"><h3>Commodities <span class="dim">(cargo ${cargoUsed()}/${stats().cargoCap})</span></h3>
       <table><tr><th>Good</th><th>Buy</th><th>Sell</th><th>Held</th><th></th></tr>${rows}</table>
-      ${note("market", "buy where they dig it,<br>sell where they can't.<br>hose sticks — hold it down HARD", "")}
+      ${note("market", "prices drift daily — buy where it's<br>made, sell where it isn't.<br>fuel pump: hold the button down.", "")}
     </div></div>
     <div class="col"><div class="panel"><h3>Provisions</h3>
       <div class="card"><div class="title">⛽ Fuel — ${p.fuelP}cr/unit</div>

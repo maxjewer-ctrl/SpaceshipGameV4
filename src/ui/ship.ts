@@ -15,6 +15,63 @@ export function selSlot(i: number) { S.sel = S.sel === i ? null : i; requestRend
 let shipViewMode: "plan" | "feed" = "plan";
 export function shipView(v: "plan" | "feed") { shipViewMode = v; requestRender(); }
 
+// Front of the console wall (the instruments) or the service side (the
+// wiring). The rear view is cosmetic for now — it draws real cable runs from
+// each racked unit down to the power bus, and damaged units hang loose.
+let shipSide: "front" | "rear" = "front";
+export function shipFlip() { shipSide = shipSide === "front" ? "rear" : "front"; requestRender(); }
+
+const WIRE_COLORS = ["#66b3ff", "#e8c88a", "#9fd4e8", "#67d573", "#b98bd9", "#e64d3d", "#4fd6c0", "#ffab3d"];
+
+function rearRackHTML(): string {
+  const inst = modInst();
+  const units: { n: string; sub: string; c: string; dmg: boolean; off: boolean }[] = [
+    { n: "NAV / CHART COMPUTER", sub: "SIRIUS AVIONICS · NC-7", c: "#66b3ff", dmg: false, off: false },
+    { n: "COMMS TRANSCEIVER", sub: "KRAMER RADIOWERKE · RW-40", c: "#e8c88a", dmg: false, off: false },
+    { n: "LIFE SUPPORT CONTROLLER", sub: "AEROPURE · LS-200", c: "#9fd4e8", dmg: false, off: false },
+  ];
+  inst.forEach((m, i) => {
+    const md = MODS[m.t];
+    units.push({
+      n: md.n.toUpperCase(), sub: `BAY ${i + 1} · ${md.pw ? "DRAW " + md.pw + "⚡" : md.gen ? "FEED +" + md.gen + "⚡" : "PASSIVE"}`,
+      c: WIRE_COLORS[(i + 3) % WIRE_COLORS.length], dmg: m.dmg, off: !!md.pw && !m.on,
+    });
+  });
+  const PITCH = 52, TOP = 10;
+  const pduTop = TOP + units.length * PITCH + 12;
+  const H = pduTop + 78;
+  const n = units.length;
+  const wires = units.map((u, i) => {
+    const ys = TOP + i * PITCH + 24;
+    const xi = Math.round(36 + (n > 1 ? i * (320 / (n - 1)) : 160));
+    if (u.dmg) {
+      // unplugged — the cable hangs dead off the socket
+      return `<path d="M370 ${ys} C 392 ${ys + 20}, 382 ${ys + 60}, 372 ${ys + 96}" stroke="${u.c}" stroke-opacity=".5" stroke-dasharray="5 4"/>
+        <circle cx="372" cy="${ys + 96}" r="4" fill="none" stroke="var(--red)" stroke-width="1.5"/>`;
+    }
+    return `<path d="M370 ${ys} C 396 ${ys + 26}, ${xi} ${pduTop - 40}, ${xi} ${pduTop + 30}" stroke="${u.c}" stroke-opacity="${u.off ? ".28" : ".8"}"/>`;
+  }).join("");
+  const socks = units.map((u, i) => {
+    const xi = n > 1 ? (i * (320 / (n - 1)) + 36) / 400 * 100 : 50;
+    return `<i style="left:${xi.toFixed(1)}%; border-color:${u.c}; ${u.dmg ? "opacity:.25" : ""}"></i>`;
+  }).join("");
+  return `<div class="rearview">
+    <div class="rear-rack" style="height:${H}px">
+      <svg class="rear-wires" viewBox="0 0 400 ${H}" preserveAspectRatio="none" fill="none" stroke-width="2.5">${wires}</svg>
+      ${units.map((u) => `<div class="rearu${u.dmg ? " dmg" : ""}">
+        <span class="ru-led" style="background:${u.dmg ? "var(--red)" : u.off ? "#3a3f48" : "var(--green)"}"></span>
+        <span class="ru-info"><b>${u.n}</b><small>${u.sub}${u.dmg ? " · FAULT — LEAD PULLED" : u.off ? " · POWERED DOWN" : ""}</small></span>
+        <span class="ru-sock" style="border-color:${u.c}"></span>
+      </div>`).join("")}
+      <div class="rear-pdu" style="top:${pduTop}px">
+        <span class="pdu-name">POWER DISTRIBUTION — MAIN BUS <small>HYUN-DYNE PDU-12</small></span>
+        <div class="pdu-socks">${socks}</div>
+      </div>
+    </div>
+    ${noteHint("rear", "don't re-pin the bus bar while<br>the reactor is hot. — R.", "blue")}
+  </div>`;
+}
+
 // Which console the small-screen layout shows. On a phone the three cockpit
 // consoles become pages behind a SYSTEMS / DECK / OPS switcher instead of one
 // endless stack; desktop ignores this entirely (the tabs are display:none).
@@ -195,13 +252,21 @@ export function shipHTML(): string {
   // pilot's seat, physical controls on the pedestal below.
   const conTab = (v: "sys" | "deck" | "ops", label: string) =>
     `<button class="${mobileConsole === v ? "on" : ""}" onclick="shipConsole('${v}')">${label}</button>`;
+  const dashbar = `<div class="dashbar">
+    <span class="db-lbl">CONSOLE WALL — ${shipSide === "front" ? "INSTRUMENT SIDE" : "SERVICE SIDE"}</span>
+    <button class="fliplatch" onclick="shipFlip()">${shipSide === "front" ? "⇄ SERVICE SIDE · WIRING" : "⇄ FRONT · INSTRUMENTS"}</button>
+  </div>`;
+  if (shipSide === "rear") {
+    return `<div class="cockpit">${viewportHTML()}${dashbar}${rearRackHTML()}</div>`;
+  }
   return `<div class="cockpit">
     ${viewportHTML()}
     <div class="con-tabs">
       ${conTab("sys", "⚙ SYSTEMS")}${conTab("deck", "▦ DECK")}${conTab("ops", "☰ OPS")}
     </div>
+    ${dashbar}
     <div class="dash mob-${mobileConsole}">
-    <div class="console con-left">
+    <div class="console con-left"><div class="rack">
       <div class="panel"><h3>Ship Systems</h3>
         <div class="statgrid">
           <span>Cargo</span><b>${cargoUsed()}/${st.cargoCap}</b>
@@ -224,7 +289,7 @@ export function shipHTML(): string {
       ${breakersHTML()}
       <div class="panel"><h3>Faction Standing</h3>${repHtml}</div>
       <div class="panel"><h3>Word on the Street</h3>${repStreetHtml()}</div>
-    </div>
+    </div></div>
     <div class="console con-center">
       <div class="panel"><h3>${S.shipName} — deck schematic</h3>
         <div class="shipframe ${hullState}">
@@ -259,11 +324,11 @@ export function shipHTML(): string {
           <span class="dim">(drive core ${4 + 2 * S.engineLvl}${st.intact("reactor") ? " + aux " + st.intact("reactor") * 3 : ""})</span>
           <div class="cells">${Array.from({ length: st.powerOut }, (_, i) => `<div class="cell ${i < st.powerUse ? "used" : ""}"></div>`).join("")}</div>
         </div>
-        ${noteHint("deckplan", "green = alive · grey = cold<br>red = you already know<br>tap a bay. don't sell the reactor again.", "grease")}
+        ${noteHint("deckplan", "green = powered · grey = off · red = damaged<br>tap a bay to inspect or toggle it", "grease")}
       </div>
       ${selHtml}
     </div>
-    <div class="console con-right">
+    <div class="console con-right"><div class="rack">
       ${lifeSupportHTML()}
       ${commsFullHTML()}
       ${captainsLogHTML()}
@@ -271,7 +336,7 @@ export function shipHTML(): string {
       <div class="panel"><h3>Active Contracts (${S.jobs.length})</h3>${jobsHtml}</div>
       <div class="panel"><h3>Crew (${S.crew.length}/${st.crewCap})</h3>${crewHtml}</div>
       <div class="panel"><h3>Passengers</h3>${paxHtml}</div>
-    </div>
+    </div></div>
     </div>
     ${pedestalHTML()}
   </div>`;

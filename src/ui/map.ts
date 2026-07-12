@@ -118,7 +118,7 @@ export function mapHTML(): string {
     }
   } else {
     info = `<div class="panel"><div class="boardstate">▮ AWAITING DESTINATION — TAP A WORLD</div>
-      ${note("chart", "colors are flags:<br>blue=Union (paperwork)<br>gold=Frontier (cash)<br>red=Syndicate (don't stare)", "blue")}</div>`;
+      ${note("chart", "colors = who runs the port:<br>blue Union · gold Frontier · red Syndicate", "blue")}</div>`;
   }
   // Cockpit framing: the chart is the big console angled toward the pilot's
   // left hand, the destination readout a narrower console to the right —
