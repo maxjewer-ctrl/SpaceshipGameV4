@@ -39,6 +39,7 @@ const keys = new Set<string>();
 const gpDirs = new Set<string>();
 let gpAxis = { x: 0, y: 0 };
 let gpPrevA = false;
+let gpPrevB = false;
 const GP_DEADZONE = 0.35;
 let raf: number | null = null;
 let last = 0;
@@ -51,6 +52,11 @@ let clickTarget: { x: number; y: number } | null = null;
 let clickPath: Array<{ x: number; y: number }> = [];
 let clickStuck = 0;
 let highlightKey: string | null = null;
+const ACTION = { moveSpeed:230, rollSpeed:620, rollDuration:.24, rollCooldown:.7, fireCooldown:.18, projectileSpeed:720 };
+let aim={x:0,y:1}, rollDir={x:0,y:1};
+let rollTime=0, rollCooldown=0, fireCooldown=0;
+let projectiles:Array<{x:number;y:number;vx:number;vy:number;life:number}>=[];
+let dummy:{x:number;y:number;hp:number;hit:number}|null=null;
 
 // Roster panel -> canvas: flash a ring around one actor when its row is clicked.
 export function setHighlight(key: string | null) { highlightKey = key; }
@@ -69,7 +75,8 @@ function bindListeners() {
     if (tag === "INPUT" || tag === "TEXTAREA") return;
     const dir = KEYMAP[e.code];
     if (dir) { keys.add(dir); clearClickMove(); e.preventDefault(); return; }
-    if (e.code === "KeyE" || e.code === "Space") { e.preventDefault(); interact(); }
+    if (e.code === "KeyE") { e.preventDefault(); interact(); }
+    if (e.code === "Space") { e.preventDefault(); startRoll(); }
   });
   document.addEventListener("keyup", (e) => {
     const dir = KEYMAP[e.code];
@@ -134,8 +141,11 @@ export function start(s: WalkScene) {
   ctx = canvas ? canvas.getContext("2d") : null;
   bindListeners();
   bindCanvas();
-  walk3d.mount(canvas?.parentElement || null, s, setClickMove);
+  walk3d.mount(canvas?.parentElement || null, s, { move:setClickMove, aim:setAim, fire });
   configureWalkRuntime(s, pos);
+  projectiles=[]; rollTime=rollCooldown=fireCooldown=0;
+  const dp=nearestLegal(pos.x+150,pos.y)||nearestLegal(pos.x,pos.y-150);
+  dummy=dp?{...dp,hp:5,hit:0}:null;
   last = performance.now();
   if (raf) cancelAnimationFrame(raf);
   raf = requestAnimationFrame(tick);
@@ -172,6 +182,15 @@ export function interact() {
   else if (nearActor) nearActor.onInteract();
 }
 
+function setAim(x:number,y:number){const dx=x-pos.x,dy=y-pos.y,d=Math.hypot(dx,dy);if(d>.001)aim={x:dx/d,y:dy/d};}
+function startRoll(){
+  if(rollCooldown>0||hasModal())return;
+  let x=0,y=0;if(keys.has("up"))y--;if(keys.has("down"))y++;if(keys.has("left"))x--;if(keys.has("right"))x++;
+  if(x||y){const r=walk3d.cameraRelativeMovement(x,y),d=Math.hypot(r.x,r.y)||1;rollDir={x:r.x/d,y:r.y/d};}else rollDir={...aim};
+  rollTime=ACTION.rollDuration;rollCooldown=ACTION.rollCooldown;
+}
+function fire(){if(fireCooldown>0||hasModal())return;projectiles.push({x:pos.x+aim.x*16,y:pos.y+aim.y*16,vx:aim.x*ACTION.projectileSpeed,vy:aim.y*ACTION.projectileSpeed,life:1.1});fireCooldown=ACTION.fireCooldown;}
+
 // ---- gamepad (Xbox/standard-mapping USB controllers) ----
 // Polled once per frame in simulate() rather than event-driven — the Gamepad
 // API has no change events, only a snapshot you read each tick.
@@ -180,7 +199,7 @@ function pollGamepad(dt: number) {
   gpDirs.clear();
   const pads = navigator.getGamepads ? navigator.getGamepads() : [];
   const gp = pads && pads[0];
-  if (!gp) { gpPrevA = false; gpAxis = { x: 0, y: 0 }; return; }
+  if (!gp) { gpPrevA = gpPrevB = false; gpAxis = { x: 0, y: 0 }; return; }
   const ax = gp.axes[0] || 0, ay = gp.axes[1] || 0;
   gpAxis = { x: Math.abs(ax) > .18 ? ax : 0, y: Math.abs(ay) > .18 ? ay : 0 };
   if (ay < -GP_DEADZONE || gp.buttons[12]?.pressed) gpDirs.add("up");
@@ -190,9 +209,13 @@ function pollGamepad(dt: number) {
   const aPressed = !!gp.buttons[0]?.pressed;
   if (aPressed && !gpPrevA) interact();
   gpPrevA = aPressed;
-  // Right stick orbits the 3D chase camera — standard mapping puts it on axes 2/3.
+  const bPressed=!!gp.buttons[1]?.pressed;if(bPressed&&!gpPrevB)startRoll();gpPrevB=bPressed;
+  if(gp.buttons[7]?.pressed)fire();
+  // Right stick aims. Shoulder buttons orbit the elevated camera, keeping
+  // combat aim and camera control available at the same time.
   const rx = gp.axes[2] || 0, ry = gp.axes[3] || 0;
-  if (Math.abs(rx) > CAM_STICK_DEADZONE || Math.abs(ry) > CAM_STICK_DEADZONE) walk3d.nudgeCamera(rx, ry, dt);
+  if (Math.abs(rx) > CAM_STICK_DEADZONE || Math.abs(ry) > CAM_STICK_DEADZONE){const a=walk3d.cameraRelativeMovement(rx,ry),d=Math.hypot(a.x,a.y)||1;aim={x:a.x/d,y:a.y/d};}
+  const orbit=(gp.buttons[5]?.pressed?1:0)-(gp.buttons[4]?.pressed?1:0);if(orbit)walk3d.nudgeCamera(orbit,0,dt);
 }
 
 // ---- geometry ----
@@ -353,6 +376,7 @@ export function debugGoto(x: number, y: number) { pos = { x, y }; simulate(0); }
 function simulate(dt: number) {
   if (!scene) return; // torn down mid-frame
   pollGamepad(dt);
+  rollCooldown=Math.max(0,rollCooldown-dt);fireCooldown=Math.max(0,fireCooldown-dt);if(dummy)dummy.hit=Math.max(0,dummy.hit-dt);
   if (!hasModal()) {
     let vx = 0, vy = 0;
     if (keys.has("up")) vy -= 1;
@@ -383,11 +407,12 @@ function simulate(dt: number) {
       }
       else { vx = dx / dist; vy = dy / dist; }
     }
+    if(rollTime>0){vx=rollDir.x;vy=rollDir.y;rollTime=Math.max(0,rollTime-dt);}
     moving = !!(vx || vy);
     if (moving) {
       const len = Math.hypot(vx, vy) || 1;
       if (len > 1) { vx /= len; vy /= len; }
-      const speed = 230;
+      const speed = rollTime>0 ? ACTION.rollSpeed : ACTION.moveSpeed;
       const nx = pos.x + vx * speed * dt;
       const ny = pos.y + vy * speed * dt;
       // Creep to the wall rather than hard-rejecting the whole step: a large
@@ -405,6 +430,8 @@ function simulate(dt: number) {
       walkPhase += dt * 9;
     }
     syncWalkPhysics(pos);
+    for(const p of projectiles){p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;if(!insideFloors(p.x,p.y))p.life=0;if(dummy&&dummy.hp>0&&Math.hypot(p.x-dummy.x,p.y-dummy.y)<22){dummy.hp--;dummy.hit=.12;p.life=0;}}
+    projectiles=projectiles.filter(p=>p.life>0);
     nearDoor = null;
     let bestD = 46;
     for (const d of scene.doors) { const dd = rectDist(pos.x, pos.y, d); if (dd < bestD) { bestD = dd; nearDoor = d; } }
@@ -416,7 +443,7 @@ function simulate(dt: number) {
     moving = false;
   }
   draw();
-  walk3d.render({ pos, facing, moving, phase: walkPhase, nearDoor, nearActor, time: last });
+  walk3d.render({ pos, facing, moving, phase: walkPhase, nearDoor, nearActor, time: last, aim, rolling:rollTime>0, rollCooldown, projectiles, dummy });
   updateHud();
 }
 
@@ -501,7 +528,7 @@ function updateHud() {
   const roomEl = document.getElementById("wk-room");
   if (roomEl) roomEl.textContent = "◉ " + (r ? r.label.toUpperCase() : "CORRIDOR");
   const statusEl = document.getElementById("wk-status");
-  if (statusEl) statusEl.textContent = scene.status;
+  if (statusEl) statusEl.textContent = `${scene.status} · ROLL ${rollCooldown<=0?"READY":rollCooldown.toFixed(1)+"s"} · LMB FIRE`;
   const descEl = document.getElementById("wk-desc");
   if (descEl) {
     const d = (r && scene.roomDesc && scene.roomDesc[r.id]) || "";

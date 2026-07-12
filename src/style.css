@@ -80,6 +80,12 @@ body{
 #wrap{display:flex; gap:12px; padding:12px 14px; align-items:flex-start; max-width:1280px; margin:0 auto;}
 #main{flex:1; min-width:0;}
 #side{width:270px; flex-shrink:0;}
+/* console screen transitions — toggled by ui/render.ts nav() so switching
+   Ship/Map/Planet/Travel/walk-decks reads as a soft cut, not a hard swap */
+@keyframes screenEnter{ from{opacity:0; transform:translateY(7px) scale(.986);} to{opacity:1; transform:none;} }
+@keyframes screenExit{ from{opacity:1; transform:none;} to{opacity:0; transform:translateY(-5px) scale(.99);} }
+#main.screen-enter{ animation:screenEnter .22s cubic-bezier(.2,.7,.3,1); }
+#main.screen-exit{ animation:screenExit .11s ease-in forwards; }
 button{
   background:#14161b; color:#a8adb7; border:1px solid #2a2e36;
   padding:6px 12px; border-radius:6px; cursor:pointer;
@@ -643,7 +649,7 @@ th{color:var(--dim); font-weight:500; text-transform:uppercase; font-size:11px; 
 .planet-dot:hover circle:nth-of-type(3){ fill:var(--amber); }
 .beacon{ transform-box:fill-box; transform-origin:center; animation:beacon 2.2s ease-out infinite; }
 @keyframes beacon{ 0%{opacity:.9; transform:scale(.7)} 100%{opacity:0; transform:scale(1.5)} }
-@media (prefers-reduced-motion:reduce){ .radar-sweep,.beacon{ animation:none; } }
+@media (prefers-reduced-motion:reduce){ .radar-sweep,.beacon,#main.screen-enter,#main.screen-exit{ animation:none; } }
 /* free-roam walking (station deck + ship interior) */
 .walkscope{ position:relative; border:1px solid #3a4256; border-radius:8px; overflow:hidden;
   background:#070a11; box-shadow:inset 0 0 50px #000c, 0 0 0 3px #0d0f17, 0 10px 26px #000b; }

@@ -72,6 +72,9 @@ const CRT_SHADER = {
 let resizeObserver: ResizeObserver | null = null;
 let clickHandler: ((e: PointerEvent) => void) | null = null;
 let click: ((x: number, y: number) => void) | null = null;
+let aimCallback: ((x:number,y:number)=>void)|null=null;
+let fireCallback:(()=>void)|null=null;
+let actionFx=new THREE.Group();
 const ray = new THREE.Raycaster();
 const pointer = new THREE.Vector2();
 const ground = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
@@ -221,13 +224,13 @@ function rebuild() {
   }
 }
 
-export function mount(container: HTMLElement | null, s: WalkScene, onFloorClick: (x:number,y:number)=>void) {
-  teardown(); host=container; current=s; click=onFloorClick; fallbackCanvas=container?.querySelector("canvas")||null;
+export function mount(container: HTMLElement | null, s: WalkScene, actions: {move:(x:number,y:number)=>void;aim:(x:number,y:number)=>void;fire:()=>void}) {
+  teardown(); host=container; current=s; click=actions.move;aimCallback=actions.aim;fireCallback=actions.fire; fallbackCanvas=container?.querySelector("canvas")||null;
   if(!container) return;
   try {
     renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:"high-performance"}); renderer.setPixelRatio(Math.min(devicePixelRatio,2)); renderer.outputColorSpace=THREE.SRGBColorSpace;
     renderer.domElement.className="walk3d-canvas"; container.insertBefore(renderer.domElement,container.firstChild); if(fallbackCanvas) fallbackCanvas.style.display="none";
-    root=new THREE.Scene(); root.background=new THREE.Color(s.dark?0x05070b:0x0c1420); root.fog=new THREE.Fog(root.background,18,44); root.add(new THREE.HemisphereLight(s.dark?0x7384a0:0xbcdcff,0x1a2130,s.dark ? .6 : 1.7));root.add(new THREE.AmbientLight(s.dark?0x647087:0x91b8df,s.dark?.35:.9));root.add(avatar);
+    root=new THREE.Scene(); root.background=new THREE.Color(s.dark?0x05070b:0x0c1420); root.fog=new THREE.Fog(root.background,18,44); root.add(new THREE.HemisphereLight(s.dark?0x7384a0:0xbcdcff,0x1a2130,s.dark ? .6 : 1.7));root.add(new THREE.AmbientLight(s.dark?0x647087:0x91b8df,s.dark?.35:.9));root.add(avatar,actionFx);
     if(s.dark){flashlight=new THREE.SpotLight(0xc8dcff,3.2,7,Math.PI/5,.55,1.2);flashlight.target=new THREE.Object3D();root.add(flashlight,flashlight.target);}else flashlight=null;
     camera=new THREE.PerspectiveCamera(58,1,.1,100);
     // Post-processing chain: bloom makes every emissive (drive core, LEDs,
@@ -244,14 +247,16 @@ export function mount(container: HTMLElement | null, s: WalkScene, onFloorClick:
       composer.addPass(new OutputPass());
     } catch { composer=null; bloomPass=null; crtPass=null; renderer.toneMapping=THREE.NoToneMapping; }
     signature=""; setScene(s); resizeObserver=new ResizeObserver(resize);resizeObserver.observe(container);resize();
-    clickHandler=(e)=>{if(!renderer||!camera||!current||!click)return;const r=renderer.domElement.getBoundingClientRect();pointer.set((e.clientX-r.left)/r.width*2-1,-((e.clientY-r.top)/r.height*2-1));ray.setFromCamera(pointer,camera);const p=new THREE.Vector3();if(ray.ray.intersectPlane(ground,p))click(p.x/SCALE+current.width/2,p.z/SCALE+current.height/2);};renderer.domElement.addEventListener("pointerdown",clickHandler);
+    const floorPoint=(e:PointerEvent)=>{if(!renderer||!camera||!current)return null;const r=renderer.domElement.getBoundingClientRect();pointer.set((e.clientX-r.left)/r.width*2-1,-((e.clientY-r.top)/r.height*2-1));ray.setFromCamera(pointer,camera);const p=new THREE.Vector3();return ray.ray.intersectPlane(ground,p)?{x:p.x/SCALE+current.width/2,y:p.z/SCALE+current.height/2}:null;};
+    clickHandler=(e)=>{const p=floorPoint(e);if(!p)return;if(e.button===0)fireCallback?.();else if(e.button===2)click?.(p.x,p.y);};renderer.domElement.addEventListener("pointerdown",clickHandler);renderer.domElement.addEventListener("pointermove",(e)=>{const p=floorPoint(e);if(p)aimCallback?.(p.x,p.y);});renderer.domElement.addEventListener("contextmenu",e=>e.preventDefault());
   } catch { teardown(); if(fallbackCanvas) fallbackCanvas.style.display="block"; }
 }
 function resize(){if(!renderer||!camera||!host)return;const r=host.getBoundingClientRect();const w=Math.max(1,r.width),h=Math.max(1,r.height);renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();composer?.setSize(w,h);const pr=Math.min(devicePixelRatio,2);crtPass?.uniforms.resolution.value.set(w*pr,h*pr);}
 export function setScene(s: WalkScene){current=s;const sig=s.id+"|"+s.rooms.map(r=>`${r.id}:${r.moduleType}:${r.moduleIndex}`).join()+"|"+s.doors.map(d=>d.label+d.locked).join()+"|"+s.actors.map(a=>a.key).join()+"|"+S.modules.map(m=>`${m.t}${m.on}${m.dmg}${wearTier(m)}`).join();if(sig!==signature){signature=sig;rebuild();}}
-export function render(v:{pos:{x:number;y:number};facing:string;moving:boolean;phase:number;nearDoor:WalkDoor|null;nearActor:WalkActor|null;time:number}){
+export function render(v:{pos:{x:number;y:number};facing:string;moving:boolean;phase:number;nearDoor:WalkDoor|null;nearActor:WalkActor|null;time:number;aim:{x:number;y:number};rolling:boolean;rollCooldown:number;projectiles:Array<{x:number;y:number}>;dummy:{x:number;y:number;hp:number;hit:number}|null}){
   if(!renderer||!root||!camera||!current)return; const x=wx(v.pos.x),z=wz(v.pos.y);avatar.position.set(x,v.moving?Math.abs(Math.sin(v.phase))*.06:0,z);
   const suit=S.appearance?.suit||"#4779bd",skin=S.appearance?.skin||"#bd8668",trim=S.appearance?.trim||"#e8b04b"; if(!avatar.children.length){const p=addPerson(suit,skin,trim);avatar.add(p);}
+  avatar.rotation.z=v.rolling?-.45:0;avatar.scale.setScalar(v.rolling?.82:1);
   const ang=v.facing==="right"?Math.PI/2:v.facing==="left"?-Math.PI/2:v.facing==="up"?Math.PI:0;avatar.rotation.y=ang;
   const room=current.rooms.find(r=>v.pos.x>=r.x&&v.pos.x<=r.x+r.w&&v.pos.y>=r.y&&v.pos.y<=r.y+r.h);const shake=room?.kind==="engine"?Math.sin(v.time*.045)*.025:0;
   // Stable chase angle: avatar rotation no longer whips the camera 180° when
@@ -261,7 +266,11 @@ export function render(v:{pos:{x:number;y:number};facing:string;moving:boolean;p
   const target=new THREE.Vector3(x+Math.cos(camAngle)*CAM_BASE_DIST+shake,CAM_BASE_HEIGHT+camPitch,z+Math.sin(camAngle)*CAM_BASE_DIST);camera.position.lerp(target,.09);camera.lookAt(x,.65,z);
   if(flashlight){flashlight.position.set(x,1.25,z);flashlight.target.position.set(x+Math.sin(ang)*4,.45,z+Math.cos(ang)*4);}
   for(const a of current.actors){const g=actorMeshes.get(a.key);if(!g)continue;g.position.set(wx(a.x+a.w/2),Math.sin(v.time/700+a.x)*.025,wz(a.y+a.h/2));if(a.bubble&&!g.getObjectByName("bubble")){const b=sprite(a.bubble,"#fff",.65);b.name="bubble";b.position.y=2.55;g.add(b);}else if(!a.bubble){const b=g.getObjectByName("bubble");if(b){g.remove(b);disposeObject(b);}}}
+  actionFx.clear();
+  const aimLine=new THREE.Mesh(new THREE.BoxGeometry(.035,.025,1.15),mat("#70d7ff",.9));aimLine.position.set(x+v.aim.x*.55,.04,z+v.aim.y*.55);aimLine.rotation.y=Math.atan2(v.aim.x,v.aim.y);actionFx.add(aimLine);
+  for(const p of v.projectiles){const m=new THREE.Mesh(new THREE.SphereGeometry(.075,7,5),mat("#70d7ff",2));m.position.set(wx(p.x),.55,wz(p.y));actionFx.add(m);}
+  if(v.dummy){const dm=box(.48,1,.48,mat(v.dummy.hp<=0?"#333842":v.dummy.hit>0?"#ffffff":"#d95b5b",v.dummy.hp>0?.5:0));dm.position.set(wx(v.dummy.x),.5,wz(v.dummy.y));actionFx.add(dm);const dl=sprite(v.dummy.hp>0?`TARGET ${v.dummy.hp}/5`:"TARGET DOWN",v.dummy.hp>0?"#ff9b9b":"#7d8294",.45);dl.position.set(wx(v.dummy.x),1.45,wz(v.dummy.y));actionFx.add(dl);}
   world.traverse((o:any)=>{if(o.userData.spark!==undefined){o.visible=Math.sin(v.time*.025+o.userData.spark)>0;o.position.y=1+(o.userData.spark*.12+v.time*.0004)%1;}if(o.userData.starfield&&S.travel)o.rotation.y=v.time*.00002;});
   if(composer){if(crtPass)crtPass.uniforms.time.value=v.time*.001;composer.render();}else renderer.render(root,camera);
 }
-export function teardown(){resizeObserver?.disconnect();resizeObserver=null;if(renderer&&clickHandler)renderer.domElement.removeEventListener("pointerdown",clickHandler);clickHandler=null;if(root)disposeObject(root);composer?.dispose();bloomPass?.dispose();composer=null;bloomPass=null;crtPass=null;renderer?.dispose();renderer?.domElement.remove();if(fallbackCanvas)fallbackCanvas.style.display="block";renderer=null;root=null;camera=null;flashlight=null;current=null;host=null;fallbackCanvas=null;signature="";world=new THREE.Group();avatar=new THREE.Group();actorMeshes.clear();camYaw=0;camPitch=0;}
+export function teardown(){resizeObserver?.disconnect();resizeObserver=null;if(renderer&&clickHandler)renderer.domElement.removeEventListener("pointerdown",clickHandler);clickHandler=null;if(root)disposeObject(root);composer?.dispose();bloomPass?.dispose();composer=null;bloomPass=null;crtPass=null;renderer?.dispose();renderer?.domElement.remove();if(fallbackCanvas)fallbackCanvas.style.display="block";renderer=null;root=null;camera=null;flashlight=null;current=null;host=null;fallbackCanvas=null;signature="";world=new THREE.Group();avatar=new THREE.Group();actionFx=new THREE.Group();actorMeshes.clear();aimCallback=null;fireCallback=null;camYaw=0;camPitch=0;}

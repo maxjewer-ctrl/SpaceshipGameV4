@@ -18,8 +18,13 @@
 //     creator's ◀ / ▶ pagers — without needing to special-case any of them:
 //     they're all just sibling buttons under a shared parent.
 //   - Right stick: scroll — the modal panel if one's open, else the page.
-import { hasModal } from "../modal";
+//   - B: back out. A modal closes; a console screen other than Ship returns
+//     to Ship (via ui/render.ts's nav(), which now plays a soft exit/enter
+//     transition instead of a hard cut — see the screen-enter/screen-exit
+//     classes it toggles on #main).
+import { hasModal, closeModal } from "../modal";
 import { S } from "../state";
+import { nav } from "../ui/render";
 
 const GP_DEADZONE = 0.5;      // stick deflection needed to register a jump/shoulder step
 const SCROLL_DEADZONE = 0.2;  // finer threshold for analog scroll
@@ -34,7 +39,7 @@ type Dir = "up" | "down" | "left" | "right";
 let timer: number | null = null;
 let focusIndex = 0;
 let lastContext = "";
-let prevA = false, prevLB = false, prevRB = false;
+let prevA = false, prevB = false, prevLB = false, prevRB = false;
 let curDir: Dir | null = null;
 let dirSince = 0, dirLastRepeat = 0;
 
@@ -110,7 +115,14 @@ function tick() {
 
   const pads = navigator.getGamepads ? navigator.getGamepads() : [];
   const gp = Array.from(pads || []).find((p) => !!p);
-  if (!gp) { prevA = prevLB = prevRB = false; curDir = null; return; }
+  if (!gp) { prevA = prevB = prevLB = prevRB = false; curDir = null; return; }
+
+  const bNow = !!gp.buttons[1]?.pressed;
+  if (bNow && !prevB) {
+    if (inModal) closeModal();
+    else if (S.screen !== "ship") nav("ship");
+  }
+  prevB = bNow;
 
   let buttons = focusButtons(inModal);
   if (buttons.length) {

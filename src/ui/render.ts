@@ -16,12 +16,34 @@ import * as sfx from "../audio";
 
 const WALK_SCREENS = ["stationwalk", "shipwalk"];
 
+// Screen swaps used to be a hard cut (innerHTML replaced synchronously, same
+// frame). Now the outgoing screen gets a brief exit fade/slide, THEN the
+// state actually changes and the incoming screen fades/slides in — so
+// switching consoles reads as a transition, not a jump. Safe to defer: nav()
+// is only ever invoked from onclick handlers, never chained with code that
+// expects S.screen to have changed by the time nav() returns.
+const NAV_ANIM_MS = 110;
+let navAnimTimer: number | null = null;
+
 export function nav(scr: string) {
   sfx.uiClick();
-  if (WALK_SCREENS.includes(S.screen) && !WALK_SCREENS.includes(scr)) { walk.teardown(); sfx.walkExit(); }
-  S.screen = scr;
-  if (scr === "planet") refreshMarket();
-  requestRender();
+  const main = document.getElementById("main");
+  const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+  const finish = () => {
+    if (WALK_SCREENS.includes(S.screen) && !WALK_SCREENS.includes(scr)) { walk.teardown(); sfx.walkExit(); }
+    S.screen = scr;
+    if (scr === "planet") refreshMarket();
+    requestRender();
+    const m = document.getElementById("main");
+    if (m) { m.classList.remove("screen-enter"); void m.offsetWidth; m.classList.add("screen-enter"); }
+  };
+  if (main && !reduced) {
+    if (navAnimTimer !== null) clearTimeout(navAnimTimer);
+    main.classList.add("screen-exit");
+    navAnimTimer = window.setTimeout(() => { main.classList.remove("screen-exit"); navAnimTimer = null; finish(); }, NAV_ANIM_MS);
+  } else {
+    finish();
+  }
 }
 
 export function render() {
