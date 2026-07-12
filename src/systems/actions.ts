@@ -184,6 +184,7 @@ export function sellMod(idx: number) {
   if (t === "cabin" && paxJobs().length > st.paxCap - lose * 2) { log("Passengers are using that cabin."); requestRender(); return; }
   if (t === "luxcabin" && vipJobs().length > st.vipCap - lose) { log("Your VIP is in that stateroom."); requestRender(); return; }
   if (t === "quarters" && S.crew.length > st.crewCap - lose * 2) { log("Crew are bunked there — dismiss someone first."); requestRender(); return; }
+  if (t === "fueltank" && st.fuelCap - lose * MODS.fueltank.fuel! <= 0) { log("Can't scrap your last fuel tank — the ship would have nowhere to hold fuel."); requestRender(); return; }
   const gain = Math.round(MODS[t].price * (m.dmg ? 0.4 : 0.6));
   S.modules.splice(S.modules.indexOf(m), 1);
   if (t === "fueltank") S.fuel = Math.min(S.fuel, stats().fuelCap);

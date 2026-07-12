@@ -21,6 +21,7 @@ import { shift } from "./disposition";
 import { plantDelay } from "./scheduler";
 import { clamp } from "../util";
 import { dialogueHeadHTML, crewPortrait, crewPortraitKey } from "../ui/portraits";
+import { minDepartureCost } from "../derive";
 import type { CrewMember } from "../types";
 
 const JUNO_ICON = "🧑‍🔧";
@@ -463,7 +464,12 @@ export function introDebtDoor(): boolean {
 }
 
 export function introDebtScene() {
-  const canPay = S.credits >= 220;
+  const hasIt = S.credits >= 220;
+  // Paying in full is a flat 220cr hit — don't let it leave a broke captain
+  // unable to afford enough fuel to ever leave port again.
+  const wouldStrand = hasIt && S.credits - 220 < minDepartureCost();
+  const canPay = hasIt && !wouldStrand;
+  const payNote = !hasIt ? " (you don't have it)" : wouldStrand ? " (would leave you stranded — no fuel money left)" : "";
   const boxBtn = S.flags.intro_blackbox && !S.flags.blackbox_gone
     ? `<button onclick="introAct('debt_box')">Trade her the raider black box <span class="dim">— debt cleared, +100cr</span></button>` : "";
   modal(`<div class="scene"><div class="scene-loc">Port Solace · harbormaster</div>
@@ -471,7 +477,7 @@ export function introDebtScene() {
     <p>Sela Vance reads the transfer notice like it's a menu she's already bored of. "Osei. Good captain. Paid late, paid always." She looks up, and her eyes do the arithmetic on your jacket, your ship, your day. "Two hundred twenty, plus my sympathy, which is free."</p>
     <p>"How would you like to settle the estate, <i>Captain</i>?"</p>
     <div class="choices">
-      <button ${canPay ? "" : "disabled"} onclick="introAct('debt_pay')">Pay it, in full <span class="dim">— 220cr${canPay ? "" : " (you don't have it)"}</span></button>
+      <button ${canPay ? "" : "disabled"} onclick="introAct('debt_pay')">Pay it, in full <span class="dim">— 220cr${payNote}</span></button>
       <button onclick="introAct('debt_claim')">Sign over the wreck-field salvage claim <span class="dim">— the Vesper families get nothing</span></button>
       ${boxBtn}
       <button onclick="introAct('debt_work')">Work it off — one unmarked crate, no questions</button>

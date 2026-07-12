@@ -14,6 +14,14 @@ export function rand(): number {
 export const ri = (a: number, b: number) => a + Math.floor(rand() * (b - a + 1));
 export const pick = <T>(arr: T[]): T => arr[Math.floor(rand() * arr.length)];
 
+// Like pick(), but won't return `avoid` back-to-back when there's another
+// option — for flavor pools that read as broken when the same line repeats.
+export function pickFresh<T>(arr: T[], avoid: T | null): T {
+  if (arr.length <= 1 || avoid === null) return pick(arr);
+  const pool = arr.filter((x) => x !== avoid);
+  return pool.length ? pick(pool) : pick(arr);
+}
+
 // Deterministic side-stream that does NOT advance game state — for content
 // that must be stable given (seed, key), e.g. future galaxy/sector generation.
 export function fork(key: string): () => number {

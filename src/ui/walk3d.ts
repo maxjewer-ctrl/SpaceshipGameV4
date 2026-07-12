@@ -15,6 +15,9 @@ import bulkheadWallUrl from "../assets/ship/bulkhead-wall.png";
 import engineCoreUrl from "../assets/ship/engine-core.png";
 import cargoWallUrl from "../assets/ship/cargo-wall.png";
 import medbayWallUrl from "../assets/ship/medbay-wall.png";
+import quartersFridgeFrontUrl from "../assets/ship/quarters-fridge-front.png";
+import quartersFridgeSideUrl from "../assets/ship/quarters-fridge-side.png";
+import quartersFridgeTopUrl from "../assets/ship/quarters-fridge-top.png";
 
 const SCALE = 0.02;
 let renderer: THREE.WebGLRenderer | null = null;
@@ -31,6 +34,13 @@ let composer: EffectComposer | null = null;
 let bloomPass: UnrealBloomPass | null = null;
 let crtPass: ShaderPass | null = null;
 let signature = "";
+// A crowded room stacks a nametag/door label per occupant — legible one at a
+// time, a wall of overlapping text once four or five stand near each other.
+// Keep the near-door/near-actor label at full strength and fade the rest, so
+// only what's actually interactable competes for the player's eye.
+let doorLabels = new Map<WalkDoor, THREE.Sprite>();
+let actorLabels = new Map<WalkActor, THREE.Sprite>();
+const LABEL_DIM = 0.32;
 
 // One-pass CRT finish: subtle chromatic aberration, curved-tube scanlines,
 // radial vignette, and animated film grain. Runs after UnrealBloom in the
@@ -41,10 +51,10 @@ const CRT_SHADER = {
     tDiffuse: { value: null as THREE.Texture | null },
     resolution: { value: new THREE.Vector2(1, 1) },
     time: { value: 0 },
-    vignette: { value: 0.75 },
+    vignette: { value: 0.55 },
     grain: { value: 0.028 },
     aberration: { value: 0.0016 },
-    scanline: { value: 0.04 },
+    scanline: { value: 0.032 },
   },
   vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`,
   fragmentShader: `
@@ -119,6 +129,13 @@ function panelTexture(url: string, repeatX = 2.2, repeatY = 1.5): THREE.Texture 
   const t=new THREE.TextureLoader().load(url);
   t.colorSpace=THREE.SRGBColorSpace;t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(repeatX,repeatY);return t;
 }
+function propTexture(url: string): THREE.Texture {
+  const t=new THREE.TextureLoader().load(url);
+  t.colorSpace=THREE.SRGBColorSpace;t.wrapS=t.wrapT=THREE.ClampToEdgeWrapping;return t;
+}
+function texturedMat(url: string, glow = 0.03): THREE.MeshStandardMaterial {
+  return new THREE.MeshStandardMaterial({ color: "#ffffff", map: propTexture(url), roughness: .78, metalness: .16, emissive: "#ffffff", emissiveIntensity: glow });
+}
 function deckTexture(dark: boolean): THREE.CanvasTexture {
   const c=document.createElement("canvas");c.width=256;c.height=256;const x=c.getContext("2d")!;
   x.fillStyle=dark?"#131923":"#26354a";x.fillRect(0,0,256,256);x.strokeStyle=dark?"#303b4c":"#57708c";x.lineWidth=3;
@@ -128,6 +145,19 @@ function deckTexture(dark: boolean): THREE.CanvasTexture {
 }
 function box(w: number, h: number, d: number, material: THREE.Material) {
   return new THREE.Mesh(new THREE.BoxGeometry(w, h, d), material);
+}
+function quartersFridge(): THREE.Mesh {
+  return new THREE.Mesh(
+    new THREE.BoxGeometry(.48, .9, .55),
+    [
+      texturedMat(quartersFridgeSideUrl),
+      texturedMat(quartersFridgeSideUrl),
+      texturedMat(quartersFridgeTopUrl),
+      texturedMat(quartersFridgeSideUrl),
+      texturedMat(quartersFridgeFrontUrl, .05),
+      texturedMat(quartersFridgeSideUrl),
+    ],
+  );
 }
 function sprite(text: string, color = "#d7e6ff", scale = 1): THREE.Sprite {
   const c = document.createElement("canvas"); c.width = 512; c.height = 96;
@@ -174,7 +204,11 @@ function addMachinery(g: THREE.Group, type: string, color: string, online: boole
   else if (type === "cargohold") { const n=Math.max(2,Math.min(8,Math.ceil(cargoUsed()/8))); for(let i=0;i<n;i++) add(box(.5,.45,.5,base),(i%3-.9)*.55,.25+Math.floor(i/3)*.45,(i%2)*.55); }
   else if (type === "reactor" || type === "engine") { add(new THREE.Mesh(new THREE.CylinderGeometry(.55,.55,1.5,14),base),0,.85); }
   else if (type === "medbay") { add(box(1.5,.35,.7,base),0,.3); add(box(.12,.52,.12,mat("#71d98a",online?.5:0)),0,.9); add(box(.52,.12,.12,mat("#71d98a",online?.5:0)),0,.9); }
-  else if (type === "quarters") { add(box(1.55,.25,.65,base),0,.3); add(box(1.55,.25,.65,base),0,.85); }
+  else if (type === "quarters") {
+    add(box(1.55,.25,.65,base),0,.3);
+    add(box(1.55,.25,.65,base),0,.85);
+    add(quartersFridge(),.98,.48,-.42);
+  }
   else if (type === "fuel") { add(new THREE.Mesh(new THREE.CylinderGeometry(.35,.35,1.25,10),base),-.45,.65); add(new THREE.Mesh(new THREE.CylinderGeometry(.35,.35,1.25,10),base),.45,.65); }
   else { add(box(1.5,.65,.75,base),0,.4); }
   if (damaged) for(let i=0;i<5;i++){ const spark=new THREE.Mesh(new THREE.SphereGeometry(.025,4,3),mat("#ff6b3d",1)); spark.position.set((i-2)*.13,1+i*.08,0); spark.userData.spark=i; g.add(spark); }
@@ -183,6 +217,7 @@ function addMachinery(g: THREE.Group, type: string, color: string, online: boole
 function rebuild() {
   if (!root || !current) return;
   root.remove(world); disposeObject(world); world = new THREE.Group(); root.add(world); actorMeshes.clear();
+  doorLabels = new Map(); actorLabels = new Map();
   const dark = !!current.dark;
   const roomTextures: Record<string, THREE.Texture> = {
     general: panelTexture(bulkheadWallUrl),
@@ -198,7 +233,7 @@ function rebuild() {
     const wallKind = r.kind === "engine" || r.moduleType === "reactor" ? "engine"
       : r.kind === "cargo" || r.moduleType === "cargohold" ? "cargo"
       : r.kind === "medbay" || r.moduleType === "medbay" ? "medbay" : "general";
-    const wallMat=mat(dark?"#343d4d":"#7089a4",dark?.04:.12);wallMat.map=roomTextures[wallKind];wallMat.transparent=true;wallMat.opacity=dark?.58:.76;wallMat.depthWrite=false;
+    const wallMat=mat(dark?"#465365":"#8fa7bd",dark?.08:.16);wallMat.map=roomTextures[wallKind];wallMat.transparent=true;wallMat.opacity=dark?.68:.84;wallMat.depthWrite=false;
     [[w,.18,cx,cz-d/2],[w,.18,cx,cz+d/2],[.18,d,cx-w/2,cz],[.18,d,cx+w/2,cz]].forEach(([a,b,x,z])=>{const q=box(a as number,1.85,b as number,wallMat);q.position.set(x as number,.88,z as number);world.add(q);});
     // Tall illuminated corner pylons make room boundaries readable even when
     // the follow camera is looking across several bays.
@@ -211,16 +246,16 @@ function rebuild() {
       stars.setAttribute("position",new THREE.Float32BufferAttribute(pts,3));const field=new THREE.Points(stars,new THREE.PointsMaterial({color:0xd8e8ff,size:.025}));field.userData.starfield=true;world.add(field);
     }
     if(r.moduleType){const g=new THREE.Group(),m=S.modules[r.moduleIndex!]; addMachinery(g,r.moduleType,c,!m?.dmg&&(m?.on!==false),!!m?.dmg,m?wearTier(m)!=="sound":false);g.position.set(cx,0,cz);world.add(g);}
-    const light=new THREE.PointLight(c,dark ? .35 : .9,6.5);light.position.set(cx,2.6,cz);world.add(light);
+    const light=new THREE.PointLight(c,dark ? .55 : 1.05,7.2);light.position.set(cx,2.6,cz);world.add(light);
   }
-  for (const d of current.doors) { const g=box(Math.max(.4,d.w*SCALE),.04,Math.max(.28,d.h*SCALE),mat(d.locked?"#8a3030":"#3d91df",d.locked?.15:.8));g.position.set(wx(d.x+d.w/2),.04,wz(d.y+d.h/2));world.add(g);const l=sprite(d.label,d.locked?"#d77":"#9fd7ff",.55);l.position.set(g.position.x,.75,g.position.z);world.add(l); }
+  for (const d of current.doors) { const g=box(Math.max(.4,d.w*SCALE),.04,Math.max(.28,d.h*SCALE),mat(d.locked?"#8a3030":"#3d91df",d.locked?.15:.8));g.position.set(wx(d.x+d.w/2),.04,wz(d.y+d.h/2));world.add(g);const l=sprite(d.label,d.locked?"#d77":"#9fd7ff",.55);l.position.set(g.position.x,.75,g.position.z);world.add(l);doorLabels.set(d,l); }
   for (const a of current.actors) {
     // No explicit roster colour → deal one from the wardrobe by key hash, so a
     // station concourse is a crowd of strangers instead of identical clones.
     let hv=0; for(let i=0;i<a.key.length;i++) hv=(hv*31+a.key.charCodeAt(i))|0; hv>>>=0;
     const suitC=a.color||WARDROBE[hv%WARDROBE.length], skinC=SKIN3D[(hv>>4)%SKIN3D.length];
     const g=addPerson(suitC,skinC,a.color?"#e8d9b0":"#8fa8c9");
-    const l=sprite(a.label,a.color||"#c9d2e4",.55);l.position.y=1.9;g.add(l);world.add(g);actorMeshes.set(a.key,g);
+    const l=sprite(a.label,a.color||"#c9d2e4",.55);l.position.y=1.9;g.add(l);world.add(g);actorMeshes.set(a.key,g);actorLabels.set(a,l);
   }
 }
 
@@ -238,7 +273,7 @@ export function mount(container: HTMLElement | null, s: WalkScene, actions: {mov
     // adds the tube finish. Guarded separately from the WebGL fallback above —
     // if only post-fx fails we keep plain 3D rather than dropping to 2D.
     try {
-      renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.75;
+      renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.95;
       composer=new EffectComposer(renderer); composer.setPixelRatio(Math.min(devicePixelRatio,2));
       composer.addPass(new RenderPass(root,camera));
       bloomPass=new UnrealBloomPass(new THREE.Vector2(1,1), s.dark?0.75:0.5, 0.55, 0.32);
@@ -266,6 +301,11 @@ export function render(v:{pos:{x:number;y:number};facing:string;moving:boolean;p
   const target=new THREE.Vector3(x+Math.cos(camAngle)*CAM_BASE_DIST+shake,CAM_BASE_HEIGHT+camPitch,z+Math.sin(camAngle)*CAM_BASE_DIST);camera.position.lerp(target,.09);camera.lookAt(x,.65,z);
   if(flashlight){flashlight.position.set(x,1.25,z);flashlight.target.position.set(x+Math.sin(ang)*4,.45,z+Math.cos(ang)*4);}
   for(const a of current.actors){const g=actorMeshes.get(a.key);if(!g)continue;g.position.set(wx(a.x+a.w/2),Math.sin(v.time/700+a.x)*.025,wz(a.y+a.h/2));if(a.bubble&&!g.getObjectByName("bubble")){const b=sprite(a.bubble,"#fff",.65);b.name="bubble";b.position.y=2.55;g.add(b);}else if(!a.bubble){const b=g.getObjectByName("bubble");if(b){g.remove(b);disposeObject(b);}}}
+  // A room full of nametags/door labels reads as a wall of overlapping text;
+  // fade everything but whatever's actually interactable right now so the
+  // player's eye has one thing to land on instead of five stacked signs.
+  for(const [d,l] of doorLabels)(l.material as THREE.SpriteMaterial).opacity=d===v.nearDoor?1:LABEL_DIM;
+  for(const [a,l] of actorLabels)(l.material as THREE.SpriteMaterial).opacity=a===v.nearActor?1:LABEL_DIM;
   actionFx.clear();
   const aimLine=new THREE.Mesh(new THREE.BoxGeometry(.035,.025,1.15),mat("#70d7ff",.9));aimLine.position.set(x+v.aim.x*.55,.04,z+v.aim.y*.55);aimLine.rotation.y=Math.atan2(v.aim.x,v.aim.y);actionFx.add(aimLine);
   for(const p of v.projectiles){const m=new THREE.Mesh(new THREE.SphereGeometry(.075,7,5),mat("#70d7ff",2));m.position.set(wx(p.x),.55,wz(p.y));actionFx.add(m);}

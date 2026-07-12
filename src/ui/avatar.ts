@@ -64,8 +64,7 @@ export function openCreator() {
     </div>
     <p class="dim" style="margin:10px 0 0; font-size:11px">A captain covers their old station until they hire a replacement — but a captain below decks isn't captaining.</p>
     <div class="choices">
-      <button class="primary" onclick="avStart('prologue')">◆ Begin the prologue <span class="dim">(recommended)</span></button>
-      <button onclick="avStart('skip')">Skip — start at Port Solace, 500cr</button>
+      <button class="primary" onclick="avStart('prologue')">◆ Begin</button>
     </div>
   </div>`);
   startPreview();

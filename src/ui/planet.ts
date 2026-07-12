@@ -1,6 +1,6 @@
 import { S } from "../state";
 import { PLANETS, FACS, GOODS, MODS, ROLES } from "../content";
-import { stats, modInst, cargoUsed, daysTo, foodPerDay } from "../derive";
+import { stats, modInst, cargoUsed, daysTo, foodPerDay, fuelShortfallCost } from "../derive";
 import { fmt } from "../util";
 import { requestRender } from "../bus";
 import { refreshMarket, canAccept, needBadges, yardPrice } from "../systems/market";
@@ -43,10 +43,13 @@ function cantinaHTML(): string {
   const p = PLANETS[S.loc];
   const missions = M.missions.length ? M.missions.map((m, i) => {
     const [ok] = canAccept(m);
+    const short = fuelShortfallCost(m.dest);
+    const fuelWarn = short > 0
+      ? `<span class="badge no" title="You'd need ${short}cr more in fuel money to reach ${PLANETS[m.dest].n} right now">⚠ need ${short}cr fuel to reach it</span>` : "";
     return `<div class="card">
       <div class="title">${m.title} <span class="dim">→ ${PLANETS[m.dest].n} (${daysTo(S.loc, m.dest)}d)</span></div>
       <div class="dim">${m.desc}</div>
-      <div>${needBadges(m)} <span class="badge fac">${FACS[m.rep![0]].n} +${m.rep![1]}</span>${m.prestige ? `<span class="badge">+${m.prestige}★</span>` : ""}</div>
+      <div>${needBadges(m)} <span class="badge fac">${FACS[m.rep![0]].n} +${m.rep![1]}</span>${m.prestige ? `<span class="badge">+${m.prestige}★</span>` : ""} ${fuelWarn}</div>
       <div style="margin-top:6px; display:flex; justify-content:space-between; align-items:center">
         <span class="pay">${fmt(m.pay)}cr${m.deadline ? ` <span class="dim">· by day ${m.deadline}</span>` : ""}</span>
         <button ${ok ? "" : "disabled"} onclick="acceptMission(${i})">${ok ? "Accept" : "Can't take"}</button>

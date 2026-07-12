@@ -1,7 +1,7 @@
 import { S, log } from "../state";
 import { PLANETS, GOODS, FLAVOR } from "../content";
 import { stats, cargoUsed, scargoUsed, dist, bribeCost } from "../derive";
-import { rand, ri, pick } from "../rng";
+import { rand, ri, pick, pickFresh } from "../rng";
 import { clamp } from "../util";
 import { modal, closeModal } from "../modal";
 import { startCombat } from "./combat";
@@ -49,7 +49,9 @@ export function evQuiet() {
   if (st.inst("reactor")) lines.push("The auxiliary reactor's hum changes pitch for three seconds and every head on the ship comes up. Then it settles. Everyone pretends they weren't scared.");
   if (S.crew.length === 0) lines.push("You eat dinner alone in the galley with one boot up on the table, like a captain of industry.");
   if (S.modules.some((m) => m.dmg)) lines.push("Something broken rattles behind a panel in time with the drive. You name it Steve.");
-  log(pick(lines));
+  const line = pickFresh(lines, S.flags._lastQuiet ?? null);
+  S.flags._lastQuiet = line;
+  log(line);
   if (!tellBark("quiet")) bark("quiet", { chance: 0.5 });
 }
 

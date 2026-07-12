@@ -1,6 +1,7 @@
 // Pure derivations over the game state. No mutations here.
 import { S } from "./state";
 import { MODS, PLANETS, ROLES } from "./content";
+import { portPriceMult } from "./systems/port";
 import type { ModuleInstance, ShipStats, Job } from "./types";
 
 export function modInst(): ModuleInstance[] {
@@ -96,6 +97,29 @@ export function daysTo(from: string, to: string): number {
 }
 export function fuelTo(from: string, to: string): number {
   return Math.ceil(daysTo(from, to) * stats().fuelDay);
+}
+
+// Rough pump price at a port — used for "can you even afford to leave"
+// warnings. Ignores temporary discounts (guild echo, Bev's stall), which is
+// fine since those only make leaving cheaper than this estimate.
+export function fuelPriceAt(loc: string): number {
+  return Math.max(1, Math.round(PLANETS[loc].fuelP * portPriceMult(loc)));
+}
+
+// Credits needed, right now, to buy enough fuel at the current port to reach
+// a specific destination. 0 if the tank already holds enough.
+export function fuelShortfallCost(destId: string): number {
+  const short = Math.max(0, fuelTo(S.loc, destId) - S.fuel);
+  return short <= 0 ? 0 : Math.ceil(short * fuelPriceAt(S.loc));
+}
+
+// Credits needed, right now, to buy enough fuel to leave this port for the
+// *cheapest reachable* destination. 0 if already possible. Used to stop a
+// captain from spending themselves into a port they can't afford to leave.
+export function minDepartureCost(): number {
+  const dests = Object.keys(PLANETS).filter((k) => k !== S.loc && planetVisible(k) && !isSilenced(k));
+  if (!dests.length) return 0;
+  return Math.min(...dests.map(fuelShortfallCost));
 }
 
 // Warnings surfaced before departure — so a crew gap is a choice you made,

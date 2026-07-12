@@ -5,7 +5,7 @@ import { rand, pick } from "../rng";
 import { clamp } from "../util";
 import { requestRender } from "../bus";
 import { hasModal } from "../modal";
-import { rollEvent, evAdrift } from "./events";
+import { rollEvent, evAdrift, evQuiet } from "./events";
 import { startCombat } from "./combat";
 import { powerRebalance } from "./actions";
 import { refreshMarket } from "./market";
@@ -73,6 +73,10 @@ export function advanceDay() {
   if (rand() < 0.42 || (S.travel.left === 1 && !S.travel.evd)) {
     S.travel.evd = true;
     rollEvent();
+  } else {
+    // Every other day still owes the player a line — advancing the clock in
+    // total silence reads as "did that click even register," not calm.
+    evQuiet();
   }
   requestRender();
 }
