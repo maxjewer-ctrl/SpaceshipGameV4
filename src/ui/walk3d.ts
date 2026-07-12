@@ -133,7 +133,8 @@ function disposeObject(o: THREE.Object3D) {
 // and every actor (their roster colour), so crowds read as people, not pills.
 function addPerson(color: string, skin = "#bd8668", trim = "#9fb6d4"): THREE.Group {
   const g = new THREE.Group();
-  const suitM = mat(color), skinM = mat(skin);
+  // slight self-glow so dark suits don't vanish into dark deck plating
+  const suitM = mat(color, .14), skinM = mat(skin, .08);
   const legG = new THREE.CapsuleGeometry(.09, .3, 3, 6);
   const l1 = new THREE.Mesh(legG, suitM); l1.position.set(-.12, .34, 0); g.add(l1);
   const l2 = new THREE.Mesh(legG, suitM); l2.position.set(.12, .34, 0); g.add(l2);

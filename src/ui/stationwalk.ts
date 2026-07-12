@@ -162,7 +162,9 @@ export function buildStationScene(): WalkScene {
         const gy = r.y + 44 + Math.floor(i / cols) * 56;
         actors.push({
           x: gx, y: gy, w: 30, h: 30, key,
-          label: n.name, icon: n.icon || "◆", color: "#d9a55b",
+          // no colour: walk3d deals wardrobe/skin from the key hash, so the
+          // concourse reads as a crowd of different people, not gold clones
+          label: n.name, icon: n.icon || "◆",
           onInteract: () => openNPC(key),
         });
       });
