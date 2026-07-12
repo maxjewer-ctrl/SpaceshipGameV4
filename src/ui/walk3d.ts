@@ -109,9 +109,11 @@ export function nudgeCamera(rx: number, ry: number, dt: number) {
 // (toward the top of the screen), and left/right remain screen-left/right.
 export function cameraRelativeMovement(screenX: number, screenY: number) {
   const a = CAM_BASE_ANGLE + camYaw;
+  // screen-right must map to the camera's world right-vector, cross(up, camera→avatar);
+  // the previous form negated the horizontal axis, so left/right were swapped.
   return {
-    x: -Math.sin(a) * screenX + Math.cos(a) * screenY,
-    y:  Math.cos(a) * screenX + Math.sin(a) * screenY,
+    x:  Math.sin(a) * screenX + Math.cos(a) * screenY,
+    y: -Math.cos(a) * screenX + Math.sin(a) * screenY,
   };
 }
 
