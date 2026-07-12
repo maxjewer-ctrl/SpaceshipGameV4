@@ -172,7 +172,8 @@ export function interact() {
 // ---- gamepad (Xbox/standard-mapping USB controllers) ----
 // Polled once per frame in simulate() rather than event-driven — the Gamepad
 // API has no change events, only a snapshot you read each tick.
-function pollGamepad() {
+const CAM_STICK_DEADZONE = 0.15;
+function pollGamepad(dt: number) {
   gpDirs.clear();
   const pads = navigator.getGamepads ? navigator.getGamepads() : [];
   const gp = pads && pads[0];
@@ -186,6 +187,9 @@ function pollGamepad() {
   const aPressed = !!gp.buttons[0]?.pressed;
   if (aPressed && !gpPrevA) interact();
   gpPrevA = aPressed;
+  // Right stick orbits the 3D chase camera — standard mapping puts it on axes 2/3.
+  const rx = gp.axes[2] || 0, ry = gp.axes[3] || 0;
+  if (Math.abs(rx) > CAM_STICK_DEADZONE || Math.abs(ry) > CAM_STICK_DEADZONE) walk3d.nudgeCamera(rx, ry, dt);
 }
 
 // ---- geometry ----
@@ -345,7 +349,7 @@ export function debugGoto(x: number, y: number) { pos = { x, y }; simulate(0); }
 
 function simulate(dt: number) {
   if (!scene) return; // torn down mid-frame
-  pollGamepad();
+  pollGamepad(dt);
   if (!hasModal()) {
     let vx = 0, vy = 0;
     if (keys.has("up")) vy -= 1;

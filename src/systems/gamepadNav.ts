@@ -1,50 +1,69 @@
-// Controller navigation for modal dialogue choices — separate from ui/walk.ts's
-// gamepad polling, which only runs while a walk scene's own rAF loop is
-// mounted. Modals (dialogue trees, combat, events, the harbormaster, etc.)
-// can appear on any screen, so this runs its own loop for the lifetime of
-// the app, only acting when a modal is actually open.
+// Controller navigation for anything that isn't the free-roam walk scenes
+// (those get their own gamepad polling in ui/walk.ts, since movement needs
+// their own rAF loop). This runs for the lifetime of the app on its own
+// interval and covers two contexts:
+//   - a modal is open: D-pad/left-stick up-down cycles focus over its
+//     .choices buttons, A activates the focused one.
+//   - a "console" screen (ship/map/planet/travel) with no modal: D-pad
+//     up-down cycles focus over every enabled button on screen, A activates
+//     it, and the left stick's vertical axis scrolls the page continuously
+//     (analog — proportional to how far the stick is pushed).
+// Three.js's free camera during the walk scenes is a separate concern,
+// handled by ui/walk.ts feeding the right stick into ui/walk3d.ts.
 import { hasModal } from "../modal";
+import { S } from "../state";
 
-const GP_DEADZONE = 0.5;
-const POLL_MS = 60; // not rAF: rAF is suspended in backgrounded/headless tabs (see ui/walk.ts)
+const GP_DEADZONE = 0.5;      // digital-feeling threshold for stepping focus
+const SCROLL_DEADZONE = 0.2;  // finer threshold for analog page scroll
+const SCROLL_SPEED = 900;     // px/sec at full stick deflection
+const POLL_MS = 60;           // not rAF: rAF is suspended in backgrounded/headless tabs (see ui/walk.ts)
+const CONSOLE_SCREENS = new Set(["ship", "map", "planet", "travel"]);
+
 let timer: number | null = null;
 let focusIndex = 0;
-let modalWasOpen = false;
+let lastContext = "";
 let prevUp = false, prevDown = false, prevA = false;
 
-function choiceButtons(): HTMLButtonElement[] {
-  const modalEl = document.getElementById("modal");
-  if (!modalEl) return [];
-  return Array.from(modalEl.querySelectorAll(".choices button"))
+function focusButtons(inModal: boolean): HTMLButtonElement[] {
+  const rootId = inModal ? "modal" : "main";
+  const root = document.getElementById(rootId);
+  if (!root) return [];
+  const sel = inModal ? ".choices button" : "button";
+  return Array.from(root.querySelectorAll(sel))
     .filter((b) => !(b as HTMLButtonElement).disabled) as HTMLButtonElement[];
 }
 
 function tick() {
-  const open = hasModal();
-  if (!open) { modalWasOpen = false; return; }
-  if (!modalWasOpen) { focusIndex = 0; modalWasOpen = true; }
+  const inModal = hasModal();
+  const key = inModal ? "modal" : (CONSOLE_SCREENS.has(S.screen) ? "console:" + S.screen : "");
+  if (key !== lastContext) { focusIndex = 0; lastContext = key; }
+  if (!key) return; // walk scenes with no modal open — nothing for this module to do
 
   const pads = navigator.getGamepads ? navigator.getGamepads() : [];
   const gp = Array.from(pads || []).find((p) => !!p);
-  const buttons = choiceButtons();
-  if (!buttons.length) return;
-  if (focusIndex >= buttons.length) focusIndex = buttons.length - 1;
+  if (!gp) { prevUp = prevDown = prevA = false; return; }
 
-  if (gp) {
-    const ay = gp.axes[1] || 0;
-    const upNow = ay < -GP_DEADZONE || !!gp.buttons[12]?.pressed;
-    const downNow = ay > GP_DEADZONE || !!gp.buttons[13]?.pressed;
-    const aNow = !!gp.buttons[0]?.pressed;
+  const buttons = focusButtons(inModal);
+  const ay = gp.axes[1] || 0;
+  // In a modal the stick doubles as the step control (short lists, no need to
+  // scroll). On a console the stick is reserved for analog scrolling, so
+  // stepping focus there is D-pad only.
+  const upNow = inModal ? (ay < -GP_DEADZONE || !!gp.buttons[12]?.pressed) : !!gp.buttons[12]?.pressed;
+  const downNow = inModal ? (ay > GP_DEADZONE || !!gp.buttons[13]?.pressed) : !!gp.buttons[13]?.pressed;
+  const aNow = !!gp.buttons[0]?.pressed;
 
-    if (upNow && !prevUp) focusIndex = (focusIndex - 1 + buttons.length) % buttons.length;
-    if (downNow && !prevDown) focusIndex = (focusIndex + 1) % buttons.length;
+  if (buttons.length) {
+    if (focusIndex >= buttons.length) focusIndex = buttons.length - 1;
+    if (upNow && !prevUp) { focusIndex = (focusIndex - 1 + buttons.length) % buttons.length; buttons[focusIndex]?.scrollIntoView({ block: "nearest" }); }
+    if (downNow && !prevDown) { focusIndex = (focusIndex + 1) % buttons.length; buttons[focusIndex]?.scrollIntoView({ block: "nearest" }); }
     if (aNow && !prevA) buttons[focusIndex]?.click();
-    prevUp = upNow; prevDown = downNow; prevA = aNow;
-  } else {
-    prevUp = prevDown = prevA = false;
+    buttons.forEach((b, i) => b.classList.toggle("gp-focus", i === focusIndex));
   }
+  prevUp = upNow; prevDown = downNow; prevA = aNow;
 
-  buttons.forEach((b, i) => b.classList.toggle("gp-focus", i === focusIndex));
+  if (!inModal && Math.abs(ay) > SCROLL_DEADZONE) {
+    window.scrollBy(0, ay * SCROLL_SPEED * (POLL_MS / 1000));
+  }
 }
 
 export function startGamepadNav() {

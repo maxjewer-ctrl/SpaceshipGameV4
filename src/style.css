@@ -732,8 +732,10 @@ th{color:var(--dim); font-weight:500; text-transform:uppercase; font-size:11px; 
 #modal .choices{display:flex; flex-direction:column; gap:8px; margin-top:14px;}
 #modal .choices button{text-align:left; padding:10px 12px;}
 /* controller focus ring — set by systems/gamepadNav.ts, D-pad/stick moves it,
-   A activates. Distinct from :hover so mouse and pad users don't fight the eye. */
-#modal .choices button.gp-focus{border-color:var(--amber); color:var(--amber); box-shadow:0 0 0 2px var(--amber) inset;}
+   A activates, on both modal choices and the console screens (ship/map/
+   planet/travel). Distinct from :hover so mouse and pad users don't fight
+   the eye. */
+button.gp-focus{border-color:var(--amber); color:var(--amber); box-shadow:0 0 0 2px var(--amber) inset;}
 .clog{background:#0d0f17; border:1px solid var(--line); border-radius:5px; padding:8px; margin:10px 0; max-height:150px; overflow-y:auto; font-size:12px; font-family:var(--mono); color:#aeb4c6;}
 .clog div{padding:2px 0;}
 .clog div:last-child{color:var(--amber);}

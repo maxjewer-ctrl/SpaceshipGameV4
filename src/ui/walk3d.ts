@@ -26,6 +26,21 @@ const ray = new THREE.Raycaster();
 const pointer = new THREE.Vector2();
 const ground = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
 
+// Right-stick camera orbit (fed by ui/walk.ts's gamepad poll). Base chase
+// offset is (3.8, 4.7, 5.4) — camYaw/camPitch are added on top of that so a
+// controller with no input reproduces the original fixed chase view exactly.
+const CAM_BASE_DIST = Math.hypot(3.8, 5.4);
+const CAM_BASE_ANGLE = Math.atan2(5.4, 3.8);
+const CAM_BASE_HEIGHT = 4.7;
+const CAM_PITCH_MIN = -3, CAM_PITCH_MAX = 3;
+let camYaw = 0;
+let camPitch = 0;
+
+export function nudgeCamera(rx: number, ry: number, dt: number) {
+  camYaw -= rx * 2.2 * dt;
+  camPitch = Math.max(CAM_PITCH_MIN, Math.min(CAM_PITCH_MAX, camPitch - ry * 3 * dt));
+}
+
 const wx = (x: number) => (x - (current?.width || 0) / 2) * SCALE;
 const wz = (y: number) => (y - (current?.height || 0) / 2) * SCALE;
 
@@ -130,10 +145,12 @@ export function render(v:{pos:{x:number;y:number};facing:string;moving:boolean;p
   const ang=v.facing==="right"?Math.PI/2:v.facing==="left"?-Math.PI/2:v.facing==="up"?Math.PI:0;avatar.rotation.y=ang;
   const room=current.rooms.find(r=>v.pos.x>=r.x&&v.pos.x<=r.x+r.w&&v.pos.y>=r.y&&v.pos.y<=r.y+r.h);const shake=room?.kind==="engine"?Math.sin(v.time*.045)*.025:0;
   // Stable chase angle: avatar rotation no longer whips the camera 180° when
-  // the player taps up/down. Screen-up is always deck-forward.
-  const target=new THREE.Vector3(x+3.8+shake,4.7,z+5.4);camera.position.lerp(target,.09);camera.lookAt(x,.65,z);
+  // the player taps up/down. Screen-up is always deck-forward, unless the
+  // right stick has orbited the camera off its default heading (nudgeCamera).
+  const camAngle=CAM_BASE_ANGLE+camYaw;
+  const target=new THREE.Vector3(x+Math.cos(camAngle)*CAM_BASE_DIST+shake,CAM_BASE_HEIGHT+camPitch,z+Math.sin(camAngle)*CAM_BASE_DIST);camera.position.lerp(target,.09);camera.lookAt(x,.65,z);
   if(flashlight){flashlight.position.set(x,1.25,z);flashlight.target.position.set(x+Math.sin(ang)*4,.45,z+Math.cos(ang)*4);}
   for(const a of current.actors){const g=actorMeshes.get(a.key);if(!g)continue;g.position.set(wx(a.x+a.w/2),Math.sin(v.time/700+a.x)*.025,wz(a.y+a.h/2));if(a.bubble&&!g.getObjectByName("bubble")){const b=sprite(a.bubble,"#fff",.65);b.name="bubble";b.position.y=2.55;g.add(b);}else if(!a.bubble){const b=g.getObjectByName("bubble");if(b){g.remove(b);disposeObject(b);}}}
   world.traverse((o:any)=>{if(o.userData.spark!==undefined){o.visible=Math.sin(v.time*.025+o.userData.spark)>0;o.position.y=1+(o.userData.spark*.12+v.time*.0004)%1;}if(o.userData.starfield&&S.travel)o.rotation.y=v.time*.00002;});renderer.render(root,camera);
 }
-export function teardown(){resizeObserver?.disconnect();resizeObserver=null;if(renderer&&clickHandler)renderer.domElement.removeEventListener("pointerdown",clickHandler);clickHandler=null;if(root)disposeObject(root);renderer?.dispose();renderer?.domElement.remove();if(fallbackCanvas)fallbackCanvas.style.display="block";renderer=null;root=null;camera=null;flashlight=null;current=null;host=null;fallbackCanvas=null;signature="";world=new THREE.Group();avatar=new THREE.Group();actorMeshes.clear();}
+export function teardown(){resizeObserver?.disconnect();resizeObserver=null;if(renderer&&clickHandler)renderer.domElement.removeEventListener("pointerdown",clickHandler);clickHandler=null;if(root)disposeObject(root);renderer?.dispose();renderer?.domElement.remove();if(fallbackCanvas)fallbackCanvas.style.display="block";renderer=null;root=null;camera=null;flashlight=null;current=null;host=null;fallbackCanvas=null;signature="";world=new THREE.Group();avatar=new THREE.Group();actorMeshes.clear();camYaw=0;camPitch=0;}
