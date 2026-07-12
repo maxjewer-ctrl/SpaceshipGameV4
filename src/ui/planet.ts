@@ -5,6 +5,7 @@ import { fmt } from "../util";
 import { requestRender } from "../bus";
 import { refreshMarket, canAccept, needBadges, yardPrice } from "../systems/market";
 import { arcCantinaCard } from "../systems/arc";
+import { note } from "./notes";
 import { reputation } from "../systems/disposition";
 
 export function ptab(t: string) { S.ptab = t; requestRender(); }
@@ -79,7 +80,7 @@ function marketHTML(): string {
   return `<div class="row"><div class="col">
     <div class="panel"><h3>Commodities <span class="dim">(cargo ${cargoUsed()}/${stats().cargoCap})</span></h3>
       <table><tr><th>Good</th><th>Buy</th><th>Sell</th><th>Held</th><th></th></tr>${rows}</table>
-      <p class="dim" style="margin-top:8px">Prices vary by world and drift daily. Buy where they make it, sell where they can't.</p>
+      ${note("market", "buy where they dig it,<br>sell where they can't.<br>hose sticks — hold it down HARD", "")}
     </div></div>
     <div class="col"><div class="panel"><h3>Provisions</h3>
       <div class="card"><div class="title">⛽ Fuel — ${p.fuelP}cr/unit</div>

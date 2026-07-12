@@ -11,6 +11,8 @@ import { cautions, nav } from "./render";
 import { viewportHTML, bayIsOpen, bayBusy, cycleBay } from "./cockpit";
 import { storyCards } from "../systems/silence";
 import { arrive } from "../systems/travel";
+import { note } from "./notes";
+import { whisper } from "../state";
 
 // "Set course" from a thread card: preselect the destination and open the
 // chart with the course already plotted.
@@ -139,15 +141,16 @@ function launchSeqHTML(): string {
     </button>`;
   }).join("<span class='ls-wire'></span>");
   const pilotBtn = !LAUNCH.cleared && !LAUNCH.auto && stats().has("pilot")
-    ? `<button class="primary" style="margin-top:9px; width:100%" onclick="launchAuto()">🧑‍🚀 PILOT AUTO-SEQUENCE — one press, watch the board</button>` : "";
+    ? `<button class="primary" style="margin-top:9px; width:100%" onclick="launchAuto()">🧑‍🚀 GIVE THE PILOT THE BOARD</button>` : "";
+  const state = LAUNCH.cleared
+    ? `<div class="boardstate ok">▮ BOARD GREEN — CHART UNLOCKED. PUNCH IT.</div>`
+    : LAUNCH.auto ? `<div class="boardstate">▮ PILOT HAS THE BOARD — HANDS OFF</div>` : "";
   return `<div class="panel launchpanel">
-    <h3>Launch Sequence ${LAUNCH.cleared ? '<span class="v2-tag on">CLEARED</span>' : '<span class="v2-tag off">CLAMPED</span>'}</h3>
+    <h3>Launch Interlock ${LAUNCH.cleared ? '<span class="v2-tag on">CLEARED</span>' : '<span class="v2-tag off">CLAMPED</span>'}</h3>
     <div class="launchseq">${steps}</div>
-    ${pilotBtn}
-    <p class="dim" style="margin-top:9px">${LAUNCH.cleared
-      ? "Board is green. The chart is unlocked — pick a heading and punch it."
-      : LAUNCH.auto ? "The pilot has the board. Green lights walking left to right."
-      : "Run the board left to right. The clamps are under a guard cover. Ignition unlocks the star map."}</p>
+    ${pilotBtn}${state}
+    ${LAUNCH.cleared || LAUNCH.auto ? "" : note("launch",
+      "left → right, EVERY time.<br>bay first. ask Deke why.<br>clamps hide under the red cover<br>— R.")}
   </div>`;
 }
 
@@ -221,7 +224,7 @@ function dockSeqHTML(): string {
   return `<div class="panel launchpanel">
     <h3>Docking Approach <span class="v2-tag on">${PLANETS[S.travel!.dest].n.toUpperCase()}</span></h3>
     <div class="launchseq">${steps}</div>
-    <p class="dim" style="margin-top:9px">On the wire. Kill your velocity, raise the port, take the clamps.</p>
+    ${note("dock", "kill your speed BEFORE you hail.<br>ports remember hot approaches.<br>(so do insurance adjusters)", "blue")}
   </div>`;
 }
 
@@ -287,14 +290,71 @@ function boardHTML(): string {
       const n = S.market?.missions.length ?? 0;
       items.push(act("blue", "🍺", "FIND AN OPEN CONTRACT", `${n ? n + " job" + (n === 1 ? "" : "s") + " on the board" : "the board refreshes daily"} · cantina`, "goModule('cantina')"));
     }
-    if (bayIsOpen()) items.push(act("amber", "📦", "CARGO BAY OPEN", "freight loads now — must be sealed before liftoff", "bayToggle()", true));
-    if (LAUNCH.cleared) items.push(act("green", "🚀", "CLEARED FOR DEPARTURE", "the chart is unlocked — pick a heading", "nav('map')", true));
-    else items.push(act("green", "🚀", "PREFLIGHT & LAUNCH", LAUNCH.open ? "checklist on the board below" : "run the launch board, then take the chart", "launchOpen()", !LAUNCH.open));
-    items.push(act("dim", "⏳", "HOLD STATION", "wait a day in port — the meter runs", "waitDay()"));
+    if (bayIsOpen()) items.push(act("amber", "📦", "CARGO BAY OPEN", "hard vacuum where the floor was — seal her before liftoff", "bayToggle()", true));
+    if (LAUNCH.cleared) items.push(act("green", "🚀", "CLEARED FOR DEPARTURE", "she's floating free on thrusters — pick a heading", "nav('map')", true));
+    else items.push(act("green", "🚀", "PREFLIGHT & LAUNCH", LAUNCH.open ? "interlock board is lit below" : "cold ship. wake her up.", "launchOpen()", !LAUNCH.open));
+    items.push(act("dim", "⏳", "HOLD STATION", "burn a day in port. the meter doesn't care.", "waitDay()"));
   } else {
-    items.push(act("dim", "⏳", "HOLD POSITION", "adrift — wait a day", "waitDay()"));
+    items.push(act("dim", "⏳", "HOLD POSITION", "adrift. count rivets. wait.", "waitDay()"));
   }
   return `<div class="board">${items.join("")}</div>`;
+}
+
+// ---------------------------------------------------------------------------
+// The aux panel — switches nobody labelled properly and one button under
+// scratched-out warnings. None of it matters. All of it matters.
+// ---------------------------------------------------------------------------
+const AUX = { defrost: false, cabin: true, mystery: false, pressed: 0 };
+
+export function auxFlip(k: "defrost" | "cabin" | "mystery") {
+  AUX[k] = !AUX[k];
+  if (k === "defrost") whisper(AUX.defrost ? "Defrost hums to life. The haze on the glass gives up slowly." : "Defrost off. The chill starts winning again.");
+  if (k === "cabin") {
+    document.body.classList.toggle("lights-low", !AUX.cabin);
+    whisper(AUX.cabin ? "Cabin lights up. The ship looks honest again." : "Cabin lights down. Just the instrument glow now — easier on the eyes, harder on the soul.");
+  }
+  if (k === "mystery") whisper(AUX.mystery
+    ? "The switch marked ??? clicks over. Somewhere aft, a pump changes its mind."
+    : "??? again. The hum comes back. Four years and you still don't know what it does.");
+  requestRender();
+}
+
+const RED_LINES = [
+  "You pressed it. Nothing happened. Probably.",
+  "A relay clunks somewhere below decks. The lights dip, think about it, recover.",
+  "A fan spins up to a scream, holds it long enough to worry you, settles.",
+  "The button is warm. It's always warm. Why is it warm?",
+  "A speaker crackles: \"—told you not to—\" then static.",
+  "Something in the galley beeps three times. Nothing in the galley has ever beeped.",
+];
+export function bigRed() {
+  AUX.pressed++;
+  if (AUX.pressed === 5) {
+    whisper("You press it a fifth time. A slot you never noticed dispenses one (1) protein bar, then seals forever. Mystery deepened, not solved.");
+  } else {
+    const line = RED_LINES[Math.floor(rand() * RED_LINES.length)];
+    whisper(line);
+    if (line.includes("lights dip")) {
+      document.body.classList.add("brownout");
+      setTimeout(() => document.body.classList.remove("brownout"), 900);
+    }
+  }
+  requestRender();
+}
+
+function auxHTML(): string {
+  const sw = (k: "defrost" | "cabin" | "mystery", label: string) =>
+    `<div class="auxsw${AUX[k] ? " on" : ""}" onclick="auxFlip('${k}')">
+      <div class="bk-well"><div class="bk-handle"></div></div>
+      <span class="aux-lbl">${label}</span>
+    </div>`;
+  return `<div class="auxrow">
+    <span class="aux-plate">AUX</span>
+    ${sw("defrost", "DEFROST")}
+    ${sw("cabin", "CABIN LTS")}
+    ${sw("mystery", "???")}
+    <button class="bigred" onclick="bigRed()"><i></i><span>DO NOT<br>PRESS</span></button>
+  </div>`;
 }
 
 // ---- story threads (full prose under the board) ----
@@ -371,12 +431,13 @@ export function bridgeHTML(): string {
     ${showSeq ? launchSeqHTML() : ""}
     <div class="row">
       <div class="col">
-        <div class="panel"><h3>◆ The Thread</h3>${threads || '<div class="dim">Nothing is pulling at you yet. Threads start in cantinas — rumors, faces, work you maybe should not take.</div>'}</div>
+        <div class="panel"><h3>◆ The Thread</h3>${threads || '<div class="dim">Nothing\'s pulling at you. Threads start in cantinas — rumors, faces, work you shouldn\'t take. Go be somebody.</div>'}</div>
         ${storyCards()}
         ${deadlinesHTML()}
       </div>
       <div class="col">
         <div class="panel"><h3>Ship's Story</h3><div class="feed">${feedHTML()}</div></div>
+        ${auxHTML()}
       </div>
     </div>
   </div>`;

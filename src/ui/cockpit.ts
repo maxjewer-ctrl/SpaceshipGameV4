@@ -115,6 +115,7 @@ export function viewportHTML(): string {
     <div class="vp-stars s1"></div><div class="vp-stars s2"></div><div class="vp-stars s3"></div>
     ${S.travel ? '<div class="vp-streaks"></div>' : ""}${station}
     <div class="vp-glass"></div>
+    <div class="vp-crack"></div>
     <div class="vp-strut vs-l"></div><div class="vp-strut vs-r"></div>
     <div class="vp-cowl"></div>
     <div class="vp-status">${status}</div>

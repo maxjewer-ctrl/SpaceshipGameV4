@@ -6,6 +6,7 @@ import { requestRender } from "../bus";
 import { reputation } from "../systems/disposition";
 import { storyCards } from "../systems/silence";
 import { viewportHTML, pedestalHTML, reactorPanelHTML, lifeSupportHTML, commsFullHTML } from "./cockpit";
+import { note as noteHint } from "./notes";
 
 export function selSlot(i: number) { S.sel = S.sel === i ? null : i; requestRender(); }
 
@@ -258,7 +259,7 @@ export function shipHTML(): string {
           <span class="dim">(drive core ${4 + 2 * S.engineLvl}${st.intact("reactor") ? " + aux " + st.intact("reactor") * 3 : ""})</span>
           <div class="cells">${Array.from({ length: st.powerOut }, (_, i) => `<div class="cell ${i < st.powerUse ? "used" : ""}"></div>`).join("")}</div>
         </div>
-        <p class="dim" style="margin-top:8px">● green = running · ○ grey = powered down · ⛔ red = damaged. Click a bay to inspect, toggle power, or sell.</p>
+        ${noteHint("deckplan", "green = alive · grey = cold<br>red = you already know<br>tap a bay. don't sell the reactor again.", "grease")}
       </div>
       ${selHtml}
     </div>

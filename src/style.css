@@ -1,14 +1,16 @@
 :root{
   --bg:#08090c; --panel:#11141a; --panel2:#0f1116; --line:#21252c;
-  --txt:#d8d5cc; --dim:#8a8f99; --amber:#e8a04a; --green:#5fbf5f; --red:#d0453a; --blue:#5aa7ff;
+  --txt:#e2ded2; --dim:#8a8f99; --amber:#ffab3d; --green:#67d573; --red:#e64d3d; --blue:#66b3ff;
+  --rust:#b4674a; --teal:#4fd6c0;
   --mono:"IBM Plex Mono","Consolas",ui-monospace,monospace;
   --sans:"Barlow Semi Condensed","Segoe UI",system-ui,sans-serif;
+  --hand:"Caveat","Comic Sans MS",cursive;
   --panelgrad:linear-gradient(180deg,#13161c,#0e1015);
 }
 *{box-sizing:border-box; margin:0; padding:0;}
 body{
   background:var(--bg); color:var(--txt);
-  font-family:var(--sans); font-size:14.5px; letter-spacing:.01em;
+  font-family:var(--sans); font-size:15.5px; letter-spacing:.01em;
   background-image:
     radial-gradient(120% 80% at 50% -10%, #12141b 0%, transparent 60%),
     radial-gradient(1px 1px at 20% 30%, #fff8 0%, transparent 100%),
@@ -1496,4 +1498,262 @@ th{color:var(--dim); font-weight:500; text-transform:uppercase; font-size:11px; 
   background:linear-gradient(180deg,#4a1a16,#2a0f0c) !important;
   font-weight:800 !important; letter-spacing:.12em; font-size:13.5px !important;
   padding:14px 12px !important; animation:lstepflash-red .8s ease-in-out infinite;
+}
+
+/* ============================================================ */
+/* THE LIVED-IN PASS — chipped paint, mixed manufacturers,      */
+/* cracked glass, the previous captain's notes                  */
+/* ============================================================ */
+
+/* ---- sticky notes & scrawl: peel-once instructions ---- */
+.stickynote{
+  position:relative; display:inline-block; max-width:280px; cursor:pointer;
+  margin:10px 4px 4px; padding:10px 14px 8px;
+  background:linear-gradient(178deg,#f4e08a 0%,#eccf6e 90%,#d9b954 100%);
+  color:#3a3020; transform:rotate(-2deg);
+  font-family:var(--hand); font-size:18px; line-height:1.25; font-weight:500;
+  box-shadow:2px 4px 9px rgba(0,0,0,.55);
+  border-bottom-right-radius:38% 8%;
+}
+.stickynote::before{ /* tape strip */
+  content:""; position:absolute; top:-7px; left:50%; width:56px; height:15px;
+  transform:translateX(-50%) rotate(1.5deg);
+  background:rgba(222,214,186,.5); border:1px solid rgba(255,255,255,.14);
+}
+.stickynote .sn-peel{
+  position:absolute; right:6px; bottom:3px; font-family:var(--mono);
+  font-size:7.5px; letter-spacing:.08em; color:#3a302088; text-transform:uppercase;
+}
+.stickynote:hover{transform:rotate(-1deg) scale(1.02);}
+.stickynote.blue{
+  background:linear-gradient(178deg,#9cc4e4 0%,#7fadd4 90%,#6a94b8 100%);
+  color:#1c2a3a; transform:rotate(1.6deg);
+}
+.stickynote.grease{
+  background:none; box-shadow:none; border:none; color:#cfd4de; transform:rotate(-.8deg);
+  font-size:19px; text-shadow:0 0 6px rgba(207,212,222,.25); padding:6px 10px 4px;
+  opacity:.85;
+}
+.stickynote.grease::before{display:none;}
+.stickynote.grease .sn-peel{color:#cfd4de66;}
+/* status readout that replaces peeled notes where a state line matters */
+.boardstate{
+  margin-top:9px; padding:6px 10px; border-radius:4px;
+  font-family:var(--mono); font-size:11px; letter-spacing:.14em; color:var(--dim);
+  background:#0a0c0f; border:1px solid #21252c;
+}
+.boardstate.ok{color:var(--green); border-color:#2f5a3a; text-shadow:0 0 8px rgba(103,213,115,.4);}
+
+/* ---- type scale: this is a device you read at arm's length ---- */
+.panel h3{font-size:13.5px;}
+.act .a-t{font-size:16.5px;}
+.act .a-s{font-size:12.5px;}
+.act .a-ic{font-size:26px;}
+.feed-item{font-size:14px;}
+.th-body{font-size:14.5px;}
+.th-title{font-size:14.5px;}
+button{font-size:13.5px;}
+.pill .pv{font-size:13px;}
+#ticker .ttext{font-size:11.5px;}
+
+/* ---- chipped paint on the big handles ---- */
+.act{overflow:hidden;}
+.act::before{
+  content:""; position:absolute; inset:0; pointer-events:none; border-radius:10px;
+  background:
+    radial-gradient(7px 5px at 3% 12%, #05060a 30%, transparent 34%),
+    radial-gradient(5px 8px at 98% 78%, #05060a 30%, transparent 36%),
+    radial-gradient(4px 3px at 88% 4%, #05060a 40%, transparent 46%),
+    radial-gradient(10px 3px at 40% 100%, #05060a 30%, transparent 40%),
+    linear-gradient(115deg, transparent 30%, rgba(255,255,255,.03) 38%, transparent 46%);
+  opacity:.9;
+}
+.act{position:relative;}
+/* drilled screw heads on the launch/dock interlock */
+.launchpanel{position:relative;}
+.launchpanel::before, .launchpanel::after{
+  content:"+"; position:absolute; top:7px; width:11px; height:11px; border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#4a536b,#181c26 75%);
+  color:#0a0c10; font-size:9px; line-height:11px; text-align:center;
+  box-shadow:inset 0 1px 1px #000;
+}
+.launchpanel::before{left:8px; transform:rotate(23deg);}
+.launchpanel::after{right:8px; transform:rotate(-64deg);}
+/* hazard chevrons under the interlock title */
+.launchpanel h3{
+  border-image:none; border-bottom:5px solid;
+  border-image-source:repeating-linear-gradient(-45deg,#e8b04b 0 8px,#141414 8px 16px);
+  border-image-slice:0 0 5 0; padding-bottom:8px;
+}
+
+/* ---- mismatched manufacturers ---- */
+/* every panel carries a maker's plate; each maker aged differently */
+.mfgplate{
+  position:absolute; bottom:4px; right:9px; pointer-events:none;
+  font-family:var(--mono); font-size:6.5px; letter-spacing:.14em; color:#565d68;
+  text-transform:uppercase;
+}
+/* VOSTOK reactor — surplus military, olive drab, stencil letters */
+.v2-reactor{
+  position:relative;
+  background:linear-gradient(180deg,#161a12,#0f120c) !important;
+  border-color:#39402a; border-radius:4px;
+}
+.v2-reactor .v2-head{color:#c8d89a; border-image:linear-gradient(90deg,rgba(200,216,154,.5),transparent) 1;
+  letter-spacing:.26em; font-family:var(--mono); font-size:11px;}
+.v2-reactor::after{
+  content:"VOSTOK ORBITAL · RK-9 · REFURB (3RD)"; position:absolute; bottom:4px; right:9px;
+  font-family:var(--mono); font-size:6.5px; letter-spacing:.14em; color:#5a6244;
+}
+/* AeroPure life support — clinical, rounded, too white for this ship */
+.v2-lifesup{
+  position:relative;
+  background:linear-gradient(180deg,#151b20,#10151a) !important;
+  border-color:#2d4450; border-radius:16px;
+}
+.v2-lifesup .v2-head{color:#9fd4e8; border-image:linear-gradient(90deg,rgba(159,212,232,.5),transparent) 1; font-weight:600;}
+.v2-lifesup::after{
+  content:"AEROPURE™ HABITAT SYSTEMS · STERILE-ISH"; position:absolute; bottom:5px; right:11px;
+  font-family:var(--sans); font-size:7px; letter-spacing:.1em; color:#456573; font-style:italic;
+}
+/* Kramer comms — someone's grandfather's radio, warm and loved */
+.v2-comms{
+  position:relative;
+  background:linear-gradient(180deg,#1c1610,#14100a) !important;
+  border-color:#4a3826; border-radius:10px 10px 4px 4px;
+  box-shadow:inset 0 1px 0 rgba(255,213,138,.08), 0 2px 8px rgba(0,0,0,.5);
+}
+.v2-comms .v2-head{color:#e8c88a; border-image:linear-gradient(90deg,rgba(232,200,138,.5),transparent) 1;}
+.v2-comms::after{
+  content:"KRAMER RADIOWERKE · WEST RIM · EST. ∅"; position:absolute; bottom:4px; right:9px;
+  font-family:var(--mono); font-size:6.5px; letter-spacing:.12em; color:#6e5636;
+}
+/* the launch interlock is HYUN-DYNE and proud of it */
+.launchpanel h3 + *{margin-top:2px;}
+.launchpanel{border-color:#3a3626;}
+.launchseq{position:relative;}
+.launchpanel .launchseq::after{
+  content:"HYUN-DYNE HEAVY · INTERLOCK ASSY 04-C · DO NOT DEFEAT"; position:absolute;
+  bottom:-14px; right:0; font-family:var(--mono); font-size:6.5px; letter-spacing:.12em; color:#565d68;
+}
+.launchpanel .launchseq{margin-bottom:14px;}
+
+/* ---- cracked glass, taped over ---- */
+.vp-crack{
+  position:absolute; right:11%; top:4%; width:150px; height:110px; pointer-events:none; z-index:3;
+  background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="150" height="110"><g stroke="%23cfe0ee" stroke-opacity=".38" fill="none" stroke-width="1"><path d="M75 52 L30 20"/><path d="M75 52 L120 30"/><path d="M75 52 L98 96"/><path d="M75 52 L44 88"/><path d="M75 52 L12 60"/><path d="M58 40 L66 47"/><path d="M96 42 L88 48"/><path d="M84 74 L80 63"/></g><circle cx="75" cy="52" r="3.5" fill="none" stroke="%23cfe0ee" stroke-opacity=".45"/></svg>');
+}
+.vp-crack::before, .vp-crack::after{ /* someone's honest repair */
+  content:""; position:absolute; width:64px; height:15px;
+  background:rgba(214,204,172,.32); border:1px solid rgba(255,255,255,.12);
+  box-shadow:0 1px 3px rgba(0,0,0,.4);
+}
+.vp-crack::before{left:38px; top:40px; transform:rotate(38deg);}
+.vp-crack::after{left:40px; top:42px; transform:rotate(-34deg);}
+
+/* ---- glitched-out parts ---- */
+@keyframes textglitch{
+  0%,93%,100%{opacity:1; transform:none; text-shadow:none;}
+  94%{opacity:.7; transform:translateX(1px); text-shadow:-2px 0 #d0453a, 2px 0 #5aa7ff;}
+  95%{opacity:1; transform:translateX(-1px);}
+  96.5%{opacity:.4; transform:skewX(8deg); text-shadow:2px 0 #d0453a;}
+  97%{opacity:1; transform:none;}
+}
+.brand-text .bt-reg{animation:textglitch 11s steps(1) infinite;}
+.scope-head span:first-child{animation:textglitch 17s steps(1) infinite;}
+.feedstats .fs:nth-child(2) .fv{animation:textglitch 8s steps(1) infinite;}
+/* one bay's display driver is dying — flickers green/wrong */
+@keyframes bayfault{
+  0%,91%,100%{filter:none; opacity:1;}
+  92%{filter:hue-rotate(120deg) saturate(3); opacity:.8;}
+  93%{filter:none; opacity:.3;}
+  94%{filter:hue-rotate(-60deg); opacity:1;}
+  95.5%{filter:none; opacity:1;}
+}
+.v2-baygrid .v2-bay:nth-child(6){animation:bayfault 9s steps(1) infinite;}
+/* dead pixel line on the schematic — it's been there for years */
+.v2-deck::before{
+  background-image:
+    linear-gradient(var(--hololine) 1px,transparent 1px),
+    linear-gradient(90deg,var(--hololine) 1px,transparent 1px),
+    linear-gradient(90deg, transparent 62%, rgba(0,0,0,.75) 62%, rgba(0,0,0,.75) calc(62% + 2px), transparent calc(62% + 2px));
+}
+
+/* ---- the aux panel: switches nobody labelled, and THE button ---- */
+.auxrow{
+  display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+  margin-bottom:12px; padding:11px 13px;
+  background:linear-gradient(180deg,#1b1e28,#12141c);
+  border:1px solid #2c313a; border-radius:8px;
+  box-shadow:inset 0 1px 0 #ffffff12, 0 4px 10px #0008;
+  position:relative;
+}
+.aux-plate{
+  font-family:var(--mono); font-size:9px; letter-spacing:.3em; color:#565d68;
+  border:1px solid #2c313a; border-radius:3px; padding:2px 7px;
+  transform:rotate(-90deg); margin:0 -8px;
+}
+.auxsw{display:flex; flex-direction:column; align-items:center; gap:4px; cursor:pointer;}
+.auxsw .bk-well{width:22px; height:38px; position:relative; background:#0a0c0f; border:1px solid #2c313a; border-radius:4px; box-shadow:inset 0 2px 5px #000c;}
+.auxsw .bk-handle{position:absolute; left:2px; right:2px; height:16px; border-radius:3px;
+  background:linear-gradient(180deg,#454b55,#262a31); border:1px solid #565d68; top:18px; transition:top .1s;}
+.auxsw.on .bk-handle{top:2px;}
+.auxsw .aux-lbl{
+  font-family:var(--hand); font-size:13px; color:#c9bd90; letter-spacing:.03em;
+  background:rgba(222,214,186,.13); padding:0 6px; border-radius:2px; transform:rotate(-2deg);
+}
+.auxsw:nth-child(3) .aux-lbl{transform:rotate(1.5deg);}
+.auxsw:nth-child(4) .aux-lbl{transform:rotate(-3deg);}
+.bigred{
+  margin-left:auto; position:relative; width:74px; height:74px; border-radius:50%; padding:0;
+  border:3px solid #3a2020;
+  background:radial-gradient(circle at 38% 30%, #e6584a, #a02c22 60%, #6e1c15);
+  box-shadow:0 5px 12px #000b, inset 0 2px 4px #ffffff40, inset 0 -6px 10px #00000070, 0 0 18px rgba(230,77,61,.25);
+  color:#ffe3de; font-weight:800; font-size:10px; letter-spacing:.1em; line-height:1.3;
+  animation:actglow 2.2s ease-in-out infinite; --tone:var(--red);
+}
+.bigred:hover{border-color:#5a2a24; color:#fff;}
+.bigred:active{transform:translateY(2px); box-shadow:0 2px 6px #000b, inset 0 3px 8px #00000090;}
+.bigred i{ /* scratched-out warning above the words */
+  position:absolute; top:14px; left:50%; transform:translateX(-50%); width:40px; height:3px;
+  background:repeating-linear-gradient(90deg,#ffe3de88 0 5px,transparent 5px 8px);
+}
+.bigred span{position:relative; top:5px;}
+
+/* ---- cabin state: the whole device reacts ---- */
+body.lights-low #wrap, body.lights-low #topbar, body.lights-low #nav, body.lights-low #ticker{
+  filter:brightness(.82) saturate(1.15);
+}
+body.brownout{animation:brownoutflash .9s steps(2);}
+@keyframes brownoutflash{0%{filter:brightness(1)}30%{filter:brightness(.45)}55%{filter:brightness(.9)}70%{filter:brightness(.6)}100%{filter:brightness(1)}}
+
+/* worn paint on panel corners, everywhere */
+.panel{position:relative;}
+.panel::after{
+  content:""; position:absolute; inset:0; border-radius:10px; pointer-events:none;
+  background:
+    radial-gradient(6px 4px at 1% 8%, #05060a55 40%, transparent 46%),
+    radial-gradient(5px 6px at 99% 92%, #05060a55 40%, transparent 46%);
+}
+@media (prefers-reduced-motion:reduce){
+  .brand-text .bt-reg,.scope-head span:first-child,.feedstats .fs:nth-child(2) .fv,
+  .v2-baygrid .v2-bay:nth-child(6),.bigred{animation:none;}
+}
+
+/* skin intensity pass — the manufacturers should be unmistakable */
+.v2-reactor{border:1px solid #55603a !important; box-shadow:inset 0 0 30px rgba(90,110,50,.12), 0 2px 8px rgba(0,0,0,.5);}
+.v2-reactor .v2-head{
+  background:rgba(200,216,154,.08); margin:-4px -5px 12px; padding:6px 9px 7px;
+  border-bottom:2px solid #55603a; border-image:none;
+}
+.v2-reactor .v2-head::before{content:"⚛ "; }
+.v2-lifesup{border:1px solid #47788c !important; box-shadow:inset 0 0 30px rgba(90,170,210,.10), 0 2px 8px rgba(0,0,0,.5);}
+.v2-lifesup .v2-head{
+  background:rgba(159,212,232,.09); margin:-4px -5px 12px; padding:6px 9px 7px;
+  border-radius:10px; border-bottom:none; border-image:none; letter-spacing:.2em;
+}
+.v2-comms{border:1px solid #6e5636 !important; box-shadow:inset 0 0 26px rgba(190,140,60,.12), 0 2px 8px rgba(0,0,0,.5);}
+.v2-comms .v2-head{
+  background:rgba(232,200,138,.08); margin:-4px -5px 12px; padding:6px 9px 7px;
+  border-bottom:2px solid #6e5636; border-image:none; font-family:var(--sans);
 }

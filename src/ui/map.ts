@@ -3,6 +3,7 @@ import { PLANETS, FACS } from "../content";
 import { daysTo, fuelTo, foodPerDay, planetVisible, isSilenced } from "../derive";
 import { requestRender } from "../bus";
 import { launchCleared } from "./bridge";
+import { note } from "./notes";
 
 export function selPlanet(k: string) { S.selPlanet = k; requestRender(); }
 
@@ -116,7 +117,8 @@ export function mapHTML(): string {
       </div>`;
     }
   } else {
-    info = `<div class="panel"><p class="dim">Select a destination. Planet colors show controlling faction: <span style="color:#5b8dd9">Union</span> · <span style="color:#d9a55b">Frontier</span> · <span style="color:#d96b6b">Syndicate</span>.</p></div>`;
+    info = `<div class="panel"><div class="boardstate">▮ AWAITING DESTINATION — TAP A WORLD</div>
+      ${note("chart", "colors are flags:<br>blue=Union (paperwork)<br>gold=Frontier (cash)<br>red=Syndicate (don't stare)", "blue")}</div>`;
   }
   // Cockpit framing: the chart is the big console angled toward the pilot's
   // left hand, the destination readout a narrower console to the right —

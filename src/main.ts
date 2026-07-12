@@ -5,7 +5,8 @@ import { loadSaved, setState, log } from "./state";
 import * as State from "./state";
 import { closeModal } from "./modal";
 import { selSlot, shipView, shipConsole } from "./ui/ship";
-import { plotCourse, goModule, launchOpen, launchPress, launchGuard, launchGoto, launchAuto, dockPress } from "./ui/bridge";
+import { plotCourse, goModule, launchOpen, launchPress, launchGuard, launchGoto, launchAuto, dockPress, auxFlip, bigRed } from "./ui/bridge";
+import { peelNote } from "./ui/notes";
 import {
   setThrottle, throttleLive, bayToggle, jettisonGood, ventGuard, ventFuel,
   commsTune, engageBurn,
@@ -50,8 +51,9 @@ setRender(render);
 Object.assign(window as any, {
   // navigation & screens
   nav, ptab, selSlot, selPlanet, closeModal, log, shipView, shipConsole, masterCaution,
-  // bridge action board + launch/docking sequences
+  // bridge action board + launch/docking sequences + the aux panel
   plotCourse, goModule, launchOpen, launchPress, launchGuard, launchGoto, launchAuto, dockPress, bayForJob,
+  auxFlip, bigRed, peelNote,
   // fuel hose
   hoseStart, hoseStop,
   // cockpit pedestal — physical controls
