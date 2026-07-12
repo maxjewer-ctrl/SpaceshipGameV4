@@ -4,6 +4,7 @@ import { stats, cargoUsed, scargoUsed, dist, bribeCost } from "../derive";
 import { rand, ri, pick } from "../rng";
 import { clamp } from "../util";
 import { modal, closeModal } from "../modal";
+import { requestRender } from "../bus";
 import { startCombat } from "./combat";
 import { checkDead } from "./gameover";
 import { damageModule } from "./actions";
@@ -13,6 +14,7 @@ import { plantDelay, flagActive } from "./scheduler";
 import { remember, crewKey, witnessAll } from "./ledger";
 import { shift } from "./disposition";
 import { evNumbersStation, evReturnedShip } from "./silence";
+import { bayIsOpen, cycleBay } from "../ui/cockpit";
 import { planetVisible, isSilenced } from "../derive";
 
 // ---------- daily event roll ----------
@@ -230,12 +232,22 @@ export function evDistress() {
   modal(`<h2>📡 Distress Signal</h2>
     <p>A weak beacon: a mining shuttle, life support failing, three souls aboard. Helping costs time and supplies. Space is full of stories about fake beacons, too.</p>
     <div class="choices">
-      <button onclick="distressHelp()">Alter course and help (−3 food)</button>
+      <button onclick="distressHelp()">Alter course and help <span class="dim">(−3 food${bayIsOpen() ? "" : " · bay doors will cycle"})</span></button>
       <button onclick="distressIgnore()">Keep flying. Not your problem.</button>
     </div>`);
 }
 export function distressHelp() {
   closeModal();
+  // Rescue is physical: the survivors come aboard through the bay.
+  if (!bayIsOpen()) {
+    log("📡 You alter course. The bay doors are already cycling before you've finished deciding.");
+    requestRender();
+    cycleBay("open", distressResolve);
+    return;
+  }
+  distressResolve();
+}
+function distressResolve() {
   S.food = Math.max(0, S.food - 3);
   bark("rescue", { chance: 0.8 });
   if (rand() < 0.75) {

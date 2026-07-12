@@ -50,10 +50,18 @@ export function waitDay() {
 
 export function advanceDay() {
   if (!S.travel || S.over) return;
+  // already on the wire — the docking board (Bridge) finishes the trip
+  if (S.travel.left <= 0) { S.screen = "bridge"; requestRender(); return; }
   dayTick(true);
   if (S.over || hasModal()) { requestRender(); return; }
   S.travel.left--;
-  if (S.travel.left <= 0) { arrive(); requestRender(); return; }
+  if (S.travel.left <= 0) {
+    S.travel.left = 0;
+    S.screen = "bridge";
+    log(`📡 On final approach to ${PLANETS[S.travel.dest].n}. Take the docking board, Captain.`);
+    requestRender();
+    return;
+  }
   // events
   if (S.arc.stage === 5 && rand() < 0.45) { evHunter(); requestRender(); return; }
   const arcJob = S.jobs.find((j) => j.arcVoss);

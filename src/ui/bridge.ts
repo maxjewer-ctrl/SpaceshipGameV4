@@ -4,11 +4,13 @@
 // happens next), the launch sequence, and the ship's story as a feed.
 import { S, log } from "../state";
 import { PLANETS } from "../content";
-import { daysTo, fuelTo, stats } from "../derive";
+import { daysTo, fuelTo, stats, isSilenced } from "../derive";
+import { rand } from "../rng";
 import { requestRender } from "../bus";
 import { cautions, nav } from "./render";
 import { viewportHTML, bayIsOpen, bayBusy, cycleBay } from "./cockpit";
 import { storyCards } from "../systems/silence";
+import { arrive } from "../systems/travel";
 
 // "Set course" from a thread card: preselect the destination and open the
 // chart with the course already plotted.
@@ -46,12 +48,13 @@ const LAUNCH = {
   busy: null as StepK | null,       // step currently animating
   guard: false,                     // clamps guard cover lifted
   cleared: false,                   // full board — DEPART unlocked
+  auto: false,                      // the pilot has the board
 };
 
 export function launchCleared() { return LAUNCH.cleared; }
 export function resetLaunch() {
   LAUNCH.open = false; LAUNCH.done = []; LAUNCH.busy = null;
-  LAUNCH.guard = false; LAUNCH.cleared = false;
+  LAUNCH.guard = false; LAUNCH.cleared = false; LAUNCH.auto = false;
 }
 export function launchOpen() { LAUNCH.open = !LAUNCH.open; requestRender(); }
 // From the star map's locked DEPART handle: jump to the checklist.
@@ -72,7 +75,25 @@ function finishStep(k: StepK) {
     nav("map");
     return;
   }
+  // a pilot on the board runs the next switch without being asked
+  if (LAUNCH.auto) {
+    LAUNCH.guard = true;
+    const n = nextStep();
+    if (n) { setTimeout(() => launchPress(n), 320); requestRender(); return; }
+  }
   requestRender();
+}
+
+// One press with a pilot aboard: the whole board cascades on its own.
+export function launchAuto() {
+  if (!S.docked || LAUNCH.cleared || LAUNCH.busy || !stats().has("pilot")) return;
+  LAUNCH.open = true;
+  LAUNCH.auto = true;
+  LAUNCH.guard = true; // pilots flip covers without ceremony
+  log('🧑‍🚀 Your pilot slides into the seat and takes the board. "Sit back, Captain."');
+  const n = nextStep();
+  if (n) launchPress(n);
+  else requestRender();
 }
 
 export function launchPress(k: StepK) {
@@ -117,12 +138,90 @@ function launchSeqHTML(): string {
       <span class="ls-sub">${sub}</span>
     </button>`;
   }).join("<span class='ls-wire'></span>");
+  const pilotBtn = !LAUNCH.cleared && !LAUNCH.auto && stats().has("pilot")
+    ? `<button class="primary" style="margin-top:9px; width:100%" onclick="launchAuto()">🧑‍🚀 PILOT AUTO-SEQUENCE — one press, watch the board</button>` : "";
   return `<div class="panel launchpanel">
     <h3>Launch Sequence ${LAUNCH.cleared ? '<span class="v2-tag on">CLEARED</span>' : '<span class="v2-tag off">CLAMPED</span>'}</h3>
     <div class="launchseq">${steps}</div>
+    ${pilotBtn}
     <p class="dim" style="margin-top:9px">${LAUNCH.cleared
       ? "Board is green. The chart is unlocked — pick a heading and punch it."
+      : LAUNCH.auto ? "The pilot has the board. Green lights walking left to right."
       : "Run the board left to right. The clamps are under a guard cover. Ignition unlocks the star map."}</p>
+  </div>`;
+}
+
+// ---------------------------------------------------------------------------
+// Docking approach — the mirror of launch. When the last leg burns down the
+// ship holds on the wire until the captain kills velocity, raises the port,
+// and takes the clamps. The hail sometimes answers back.
+// ---------------------------------------------------------------------------
+type DockK = "retro" | "hail" | "lock";
+const DOCK_ORDER: DockK[] = ["retro", "hail", "lock"];
+const DOCK_META: Record<DockK, { ic: string; n: string; ms: number }> = {
+  retro: { ic: "🔥", n: "RETRO BURN", ms: 950 },
+  hail: { ic: "📡", n: "HAIL PORT", ms: 1150 },
+  lock: { ic: "⚓", n: "TAKE CLAMPS", ms: 750 },
+};
+const DOCK = { done: [] as DockK[], busy: null as DockK | null };
+// Derived from save state, so a reload mid-approach just re-runs the board.
+export const dockingNow = () => !!S.travel && S.travel.left <= 0;
+const dockNext = (): DockK | null => DOCK_ORDER.find((k) => !DOCK.done.includes(k)) ?? null;
+
+function hailOutcome() {
+  const dest = S.travel!.dest;
+  if (dest === "gate" || dest === "anechoic") { log("📡 You hail. Nothing answers. Nothing was ever going to."); return; }
+  if (isSilenced(dest)) { log("📡 The hail goes out. Carrier hiss comes back. The port is dark."); return; }
+  const r = rand();
+  if (r < 0.6) {
+    log(`📡 "${PLANETS[dest].n} control — berth ${1 + Math.floor(rand() * 40)} is yours. Welcome back, ${S.shipName}."`);
+  } else if (r < 0.85) {
+    const fee = 5 + Math.floor(rand() * 4) * 5;
+    const paid = Math.min(fee, Math.max(0, S.credits));
+    S.credits -= paid;
+    log(`📡 "${PLANETS[dest].n} control. Berth fee ${fee}cr, payable on approach." ${paid < fee ? "They dock the difference against your name." : "The meter starts before the clamps do."} (−${paid}cr)`);
+  } else {
+    log(`📡 Port control, off-script: "Word to the wise, captain — ask around the cantina when you're down. Something's moving."`);
+  }
+}
+
+export function dockPress(k: DockK) {
+  if (!dockingNow() || DOCK.busy || k !== dockNext()) return;
+  DOCK.busy = k;
+  requestRender();
+  setTimeout(() => {
+    DOCK.busy = null;
+    DOCK.done.push(k);
+    if (k === "retro") log("🔥 Retro burn. The stars stop sliding; the docks swell in the glass.");
+    if (k === "hail") hailOutcome();
+    if (k === "lock") {
+      DOCK.done = [];
+      arrive(); // deliveries, scenes, quests — the story owns the moment
+      return;
+    }
+    requestRender();
+  }, DOCK_META[k].ms);
+}
+
+function dockSeqHTML(): string {
+  const next = dockNext();
+  const steps = DOCK_ORDER.map((k) => {
+    const m = DOCK_META[k];
+    const done = DOCK.done.includes(k);
+    const busy = DOCK.busy === k;
+    const active = !done && !busy && k === next && !DOCK.busy;
+    const cls = done ? " ok" : busy ? " busy" : active ? " next" : " locked";
+    return `<button class="lstep${cls}" ${active ? "" : "disabled"} onclick="dockPress('${k}')">
+      <span class="ls-led"></span>
+      <span class="ls-ic">${m.ic}</span>
+      <span class="ls-n">${m.n}</span>
+      <span class="ls-sub">${done ? "✓" : busy ? "···" : active ? "PRESS" : "—"}</span>
+    </button>`;
+  }).join("<span class='ls-wire'></span>");
+  return `<div class="panel launchpanel">
+    <h3>Docking Approach <span class="v2-tag on">${PLANETS[S.travel!.dest].n.toUpperCase()}</span></h3>
+    <div class="launchseq">${steps}</div>
+    <p class="dim" style="margin-top:9px">On the wire. Kill your velocity, raise the port, take the clamps.</p>
   </div>`;
 }
 
@@ -166,6 +265,7 @@ function boardHTML(): string {
   const items: string[] = [];
   if (S.over) return "";
   if (S.travel) {
+    if (dockingNow()) return ""; // the docking board owns the moment
     const lowFuel = S.fuel < st.fuelDay;
     items.push(act("green", "🔥", "ENGAGE BURN", `${PLANETS[S.travel.dest].n} · ${S.travel.left}d out · anything can happen on the lane`, "advanceDay()", true, lowFuel));
     if (lowFuel) items.push(act("red", "⛽", "TANKS DRY", "the drive won't answer — you're drifting", "nav('ship')", true, true));
@@ -267,6 +367,7 @@ export function bridgeHTML(): string {
   return `<div class="cockpit bridge">
     ${viewportHTML()}
     ${boardHTML()}
+    ${dockingNow() ? dockSeqHTML() : ""}
     ${showSeq ? launchSeqHTML() : ""}
     <div class="row">
       <div class="col">

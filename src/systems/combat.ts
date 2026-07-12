@@ -16,6 +16,12 @@ interface CombatState {
   log: string[];
   over: boolean;
   result?: "win" | "fled" | "dead";
+  // the tactical board: weapons must be routed, shields raised (guarded),
+  // and every salvo charges before it leaves the tubes
+  wpn: boolean;
+  shd: boolean;
+  shdGuard: boolean;
+  busy: "" | "wpn" | "shd" | "fire";
 }
 
 let C: CombatState | null = null;
@@ -26,9 +32,50 @@ export function startCombat(e: Enemy, onWin?: () => void, onEscape?: () => void)
     onWin, onEscape,
     log: ["Contact! " + e.name + " is closing to firing range."],
     over: false,
+    wpn: false, shd: false, shdGuard: false, busy: "",
   };
   if (!tellBark("combat_start")) bark("combat_start", { chance: 0.8 });
   drawCombat();
+}
+
+// ---- tactical board switches (free actions — the enemy circles while you
+// work the panel, weapons crews shouting ranges) ----
+export function cSwitch(k: "wpn" | "guard" | "shd") {
+  if (!C || C.over || C.busy) return;
+  if (k === "guard") { C.shdGuard = true; drawCombat(); return; }
+  if (k === "wpn" && !C.wpn) {
+    C.busy = "wpn";
+    drawCombat();
+    setTimeout(() => {
+      if (!C) return;
+      C.busy = ""; C.wpn = true;
+      C.log.push("Weapons capacitors whine up to charge. Targeting solution live.");
+      drawCombat();
+    }, 700);
+    return;
+  }
+  if (k === "shd" && !C.shd && C.shdGuard && stats().shield > 0) {
+    C.busy = "shd";
+    drawCombat();
+    setTimeout(() => {
+      if (!C) return;
+      C.busy = ""; C.shd = true;
+      C.log.push("Shield emitters flare — the viewport ripples blue at the edges.");
+      drawCombat();
+    }, 650);
+  }
+}
+
+// FIRE charges before it executes — hold your nerve while the bar fills.
+export function cFire() {
+  if (!C || C.over || C.busy || !C.wpn) return;
+  C.busy = "fire";
+  drawCombat();
+  setTimeout(() => {
+    if (!C) return;
+    C.busy = "";
+    cAct("fire");
+  }, 800);
 }
 
 function foeIcon(name: string): string {
@@ -56,7 +103,7 @@ function drawCombat() {
         <div class="cbt-ship">🚀</div>
         <div class="cbt-int">HULL ${Math.max(0, Math.round(S.hull))}/${S.hullMax}</div>
         ${gauge(php, php > 40 ? "linear-gradient(90deg,#4f9a55,#6fbf73)" : "linear-gradient(90deg,#a23b3b,#d96b6b)")}
-        ${st.shield ? `<div class="cbt-sub blue">◊ SHIELDS −${st.shield}/hit</div>` : `<div class="cbt-sub">no shields</div>`}
+        ${st.shield ? (C.shd ? `<div class="cbt-sub blue">◊ SHIELDS UP −${st.shield}/hit</div>` : `<div class="cbt-sub">◊ shields cold — raise them</div>`) : `<div class="cbt-sub">no shields</div>`}
       </div>
       <div class="cbt-vs">VS<span class="cbt-range">RANGE ${C.over ? "—" : "CLOSE"}</span></div>
       <div class="combatant foe">
@@ -68,12 +115,30 @@ function drawCombat() {
       </div>
     </div>
     <div class="clog">${C.log.map((l) => "<div>› " + l + "</div>").join("")}</div>
-    ${C.over ? `<div class="choices"><button class="primary" onclick="endCombat()">Continue</button></div>` :
-    `<div class="choices cbt-actions">
-      <button onclick="cAct('fire')">🎯 Fire <span class="dim">— your salvo ~${st.dmg}</span></button>
-      <button onclick="cAct('brace')">🛡 Evasive maneuvers <span class="dim">— halve incoming</span></button>
-      <button onclick="cAct('flee')">🏃 Flee <span class="dim">— ${fleeChance}% break contact</span></button>
-      ${canBribe ? `<button onclick="cAct('bribe')">💰 Bribe <span class="dim">— ${bribeCost(e.bribe!)}cr</span></button>` : ""}
+    ${C.over ? `<div class="choices"><button class="primary" onclick="endCombat()">Continue</button></div>` : `
+    <div class="cbt-board">
+      ${C.wpn
+        ? `<div class="cbtsw on"><span class="ls-led"></span><span class="cs-n">WPN PWR</span><span class="cs-s">HOT</span></div>`
+        : C.busy === "wpn"
+          ? `<div class="cbtsw busy"><span class="ls-led"></span><span class="cs-n">WPN PWR</span><span class="cs-s">···</span></div>`
+          : `<button class="cbtsw next" onclick="cSwitch('wpn')"><span class="ls-led"></span><span class="cs-n">WPN PWR</span><span class="cs-s">ROUTE</span></button>`}
+      ${st.shield <= 0
+        ? `<div class="cbtsw dead"><span class="ls-led"></span><span class="cs-n">SHIELDS</span><span class="cs-s">NO EMITTERS</span></div>`
+        : C.shd
+          ? `<div class="cbtsw on blue"><span class="ls-led"></span><span class="cs-n">SHIELDS</span><span class="cs-s">UP −${st.shield}</span></div>`
+          : C.busy === "shd"
+            ? `<div class="cbtsw busy"><span class="ls-led"></span><span class="cs-n">SHIELDS</span><span class="cs-s">···</span></div>`
+            : C.shdGuard
+              ? `<button class="cbtsw next" onclick="cSwitch('shd')"><span class="ls-led"></span><span class="cs-n">SHIELDS</span><span class="cs-s">RAISE</span></button>`
+              : `<button class="cbtsw guardc" onclick="cSwitch('guard')"><span class="cs-n">GUARD</span><span class="cs-s">flip cover</span></button>`}
+      ${C.busy === "fire"
+        ? `<div class="cbtsw firing"><span class="cs-n">⚡ CHARGING</span><span class="cs-s">▮▮▮</span></div>`
+        : `<button class="cbtsw fire${C.wpn ? " armed" : ""}" ${C.wpn && !C.busy ? "" : "disabled"} onclick="cFire()"><span class="cs-n">🎯 FIRE</span><span class="cs-s">${C.wpn ? "salvo ~" + st.dmg : "route power first"}</span></button>`}
+    </div>
+    <div class="choices cbt-actions">
+      <button ${C.busy ? "disabled" : ""} onclick="cAct('brace')">🛡 Evasive maneuvers <span class="dim">— halve incoming</span></button>
+      <button ${C.busy ? "disabled" : ""} onclick="cAct('flee')">🏃 Flee <span class="dim">— ${fleeChance}% break contact</span></button>
+      ${canBribe ? `<button ${C.busy ? "disabled" : ""} onclick="cAct('bribe')">💰 Bribe <span class="dim">— ${bribeCost(e.bribe!)}cr</span></button>` : ""}
     </div>`}
   </div>`);
 }
@@ -113,12 +178,13 @@ export function cAct(a: string) {
     }
     C.log.push("Not enough credits. They laugh on an open channel.");
   }
-  // enemy turn
+  // enemy turn — shields only help if you actually raised them
+  const sh = C.shd ? st.shield : 0;
   let hit = ri(Math.round(e.dmg * 0.7), Math.round(e.dmg * 1.4));
-  hit = Math.max(1, hit - st.shield);
+  hit = Math.max(1, hit - sh);
   if (braced) hit = Math.ceil(hit / 2);
   S.hull -= hit;
-  C.log.push(`The ${e.name} fires — ${hit} damage${braced ? " (halved)" : ""}${st.shield ? " (shields absorbed " + st.shield + ")" : ""}.`);
+  C.log.push(`The ${e.name} fires — ${hit} damage${braced ? " (halved)" : ""}${sh ? " (shields absorbed " + sh + ")" : ""}.`);
   if (S.hull <= 0) {
     C.log.push("Alarms. Fire. Silence.");
     C.over = true; C.result = "dead"; drawCombat(); return;

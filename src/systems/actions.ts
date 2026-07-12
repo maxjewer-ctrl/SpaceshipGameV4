@@ -116,6 +116,42 @@ export function sellGood(g: string, n: number) {
   log(`Sold ${n} ${GOODS[g].n} @ ${price}cr.`); requestRender();
 }
 
+// ---------- the fuel hose: hold to pump ----------
+// Held pointer = fuel flowing, credits ticking. DOM is patched live so the
+// stream doesn't re-render out from under the finger; releasing commits.
+let hoseTimer: ReturnType<typeof setInterval> | null = null;
+let hosePumped = 0, hoseSpent = 0;
+
+function fuelPrice(): number {
+  const discounted = typeof S.flags.guild_discount === "number" && S.flags.guild_discount > S.day;
+  return Math.max(1, Math.round(PLANETS[S.loc].fuelP * (discounted ? 0.85 : 1)));
+}
+
+export function hoseStart() {
+  if (hoseTimer != null || !S.docked) return;
+  hosePumped = 0; hoseSpent = 0;
+  hoseTimer = setInterval(() => {
+    const p = fuelPrice();
+    const cap = stats().fuelCap;
+    if (S.credits < p || S.fuel >= cap) { hoseStop(); return; }
+    S.credits -= p;
+    S.fuel = Math.min(cap, S.fuel + 1);
+    hosePumped++; hoseSpent += p;
+    const bar = document.getElementById("hosefill");
+    const read = document.getElementById("hoseread");
+    if (bar) bar.style.width = Math.round((S.fuel / cap) * 100) + "%";
+    if (read) read.textContent = `${Math.floor(S.fuel)}/${cap} · ${hoseSpent}cr on the meter`;
+  }, 140);
+}
+
+export function hoseStop() {
+  if (hoseTimer == null) return;
+  clearInterval(hoseTimer);
+  hoseTimer = null;
+  if (hosePumped > 0) log(`⛽ Hose off — pumped ${hosePumped} units, ${hoseSpent}cr on the meter.`);
+  requestRender();
+}
+
 export function buyFuel(n: number) {
   // The miners' guild echo: friendly fuel prices for a season after a rescue.
   const discounted = typeof S.flags.guild_discount === "number" && S.flags.guild_discount > S.day;

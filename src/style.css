@@ -1412,3 +1412,88 @@ th{color:var(--dim); font-weight:500; text-transform:uppercase; font-size:11px; 
 }
 .lguard small{font-size:7px; font-weight:400; letter-spacing:.08em;}
 @media (prefers-reduced-motion:reduce){ .act.flash,.lstep.next,.lstep.ignite.next{animation:none;} }
+
+/* ============ tactical combat board ============ */
+.cbt-board{display:flex; gap:7px; margin-top:12px;}
+.cbtsw{
+  position:relative; flex:1; min-width:0; overflow:hidden;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px;
+  padding:9px 4px 8px; border-radius:8px; border:1px solid #2a2e36;
+  background:linear-gradient(180deg,#14171e,#0e1014);
+  box-shadow:inset 0 1px 0 #ffffff0a, 0 3px 7px #0007;
+  font-family:var(--sans);
+}
+.cbtsw .ls-led{width:8px; height:8px; border-radius:50%; background:#3a3f48;}
+.cbtsw .cs-n{font-family:var(--mono); font-size:9px; font-weight:700; letter-spacing:.1em; color:#8a8f99; white-space:nowrap;}
+.cbtsw .cs-s{font-family:var(--mono); font-size:7.5px; letter-spacing:.06em; color:#5c636e; white-space:nowrap;}
+.cbtsw.next{border-color:var(--amber); cursor:pointer; animation:lstepflash 1s ease-in-out infinite;}
+.cbtsw.next .ls-led{background:var(--amber); box-shadow:0 0 8px var(--amber); animation:pulse 1s infinite;}
+.cbtsw.next .cs-n,.cbtsw.next .cs-s{color:var(--amber);}
+.cbtsw.on{border-color:#2f5a3a;}
+.cbtsw.on .ls-led{background:var(--green); box-shadow:0 0 7px var(--green);}
+.cbtsw.on .cs-s{color:var(--green);}
+.cbtsw.on.blue{border-color:#2d4a6e;}
+.cbtsw.on.blue .ls-led{background:var(--blue); box-shadow:0 0 7px var(--blue);}
+.cbtsw.on.blue .cs-s{color:var(--blue);}
+.cbtsw.busy{border-color:var(--blue);}
+.cbtsw.busy .ls-led{background:var(--blue); box-shadow:0 0 8px var(--blue); animation:alarm .28s infinite;}
+.cbtsw.dead{opacity:.4;}
+.cbtsw.guardc{
+  cursor:pointer; border-color:#e0796d; color:#ffd9d4;
+  background:linear-gradient(180deg,rgba(200,60,50,.94),rgba(150,40,32,.94));
+  background-image:linear-gradient(180deg,rgba(200,60,50,.94),rgba(150,40,32,.94)),repeating-linear-gradient(45deg,transparent 0 9px,#00000026 9px 18px);
+}
+.cbtsw.guardc .cs-n,.cbtsw.guardc .cs-s{color:#ffd9d4;}
+.cbtsw.fire{flex:1.3;}
+.cbtsw.fire.armed{
+  border-color:var(--red); cursor:pointer;
+  background:linear-gradient(180deg,#2a1214,#170d0e);
+  animation:lstepflash-red .9s ease-in-out infinite;
+}
+.cbtsw.fire.armed .cs-n{color:var(--red); font-size:11px;}
+.cbtsw.fire.armed .cs-s{color:#d98a83;}
+.cbtsw.firing{border-color:#ffd77a; background:linear-gradient(180deg,#3a2a10,#1c1408);}
+.cbtsw.firing .cs-n{color:#ffd77a; animation:pulse .2s infinite;}
+.cbtsw.firing .cs-s{color:#ffd77a; letter-spacing:.3em;}
+
+/* ============ the fuel hose — hold to pump ============ */
+.hoser{display:flex; gap:10px; align-items:center; margin-top:8px;}
+.hosebtn{
+  flex:none; width:86px; min-height:58px; border-radius:10px;
+  border:1px solid #8a5d2a; color:var(--amber); font-weight:800; font-size:11px;
+  letter-spacing:.08em; line-height:1.35;
+  background:linear-gradient(180deg,#2a2012,#171107);
+  touch-action:none; user-select:none; -webkit-user-select:none;
+  animation:actglow 1.6s ease-in-out infinite; --tone:var(--amber);
+}
+.hosebtn:active{
+  transform:none; border-color:var(--amber); color:#ffd77a;
+  background:linear-gradient(180deg,#3a2c14,#221808);
+  box-shadow:0 0 24px rgba(232,160,74,.5), inset 0 0 14px rgba(232,160,74,.25) !important;
+  animation:none;
+}
+.hosecol{flex:1; min-width:0; display:flex; flex-direction:column; gap:5px;}
+.hosebar{height:16px; background:#0a0c0f; border:1px solid #23272f; border-radius:5px; overflow:hidden; box-shadow:inset 0 2px 6px #000c;}
+.hosebar i{
+  display:block; height:100%; width:0%;
+  background:repeating-linear-gradient(45deg,var(--amber) 0 8px,#8a4d1e 8px 16px);
+  box-shadow:0 0 8px rgba(232,160,74,.4); transition:width .12s linear;
+}
+
+/* ============ the Run's committal switch ============ */
+.runguard{
+  margin:14px auto 4px; width:180px; height:74px; border-radius:9px; cursor:pointer;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px;
+  background:linear-gradient(180deg,rgba(200,60,50,.94),rgba(150,40,32,.94));
+  background-image:linear-gradient(180deg,rgba(200,60,50,.94),rgba(150,40,32,.94)),repeating-linear-gradient(45deg,transparent 0 12px,#00000026 12px 24px);
+  border:1px solid #e0796d; box-shadow:0 6px 14px #000b, inset 0 1px 0 #ffffff22;
+  font-family:var(--mono); font-size:13px; font-weight:700; letter-spacing:.2em; color:#ffd9d4;
+}
+.runguard small{font-size:8px; font-weight:400; letter-spacing:.12em; color:#ffb8b0;}
+.runguard:hover{border-color:#ffd9d4;}
+.bigcommit{
+  border:1px solid var(--red) !important; color:#ffd9d4 !important;
+  background:linear-gradient(180deg,#4a1a16,#2a0f0c) !important;
+  font-weight:800 !important; letter-spacing:.12em; font-size:13.5px !important;
+  padding:14px 12px !important; animation:lstepflash-red .8s ease-in-out infinite;
+}

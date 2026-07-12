@@ -34,7 +34,7 @@ export function arcCantinaCard(): string {
     return `<div class="card" style="border-color:var(--amber)">
       <div class="title" style="color:var(--amber)">◆ Voss: "Ready when you are, Captain."</div>
       <div class="dim">The Run to Elysium Gate. Once you commit, the Union will know within hours — and the clock starts. Stock fuel and food FIRST.</div>
-      <button class="primary" style="margin-top:8px" onclick="arcStartRun()">Begin the Run</button>
+      <button class="primary" style="margin-top:8px" onclick="arcRunGuard()">Reach for the committal switch</button>
     </div>`;
   }
   return "";
@@ -161,6 +161,25 @@ export function arcHavensScene() {
     <p class="dim">When you begin the Run, Elysium Gate appears on your star map and the countdown starts. Hunters will dog you daily. Stock up FIRST — fuel, food, hull, weapons. This is the part of the story where captains die.</p>
     <div class="choices"><button class="primary" onclick="closeModal()">"I'll say when."</button></div>`);
   log("◆ The core is decrypted. When you're provisioned, see Voss in the Haven's Folly cantina to begin the Run.");
+}
+
+// The Run's ignition lives under a red cover. Flip it, look at the bare
+// switch, and decide whether you're really that captain.
+export function arcRunGuard() {
+  modal(`<h2>◆ The Committal Switch</h2>
+    <p>Voss walks you to the nav station and points at a switch under a red guard cover. Fourteen days. The Union net. No friendly ports, no way back, no version of this where they don't come for you.</p>
+    <p class="dim">Fuel, food, hull, weapons — whatever you were going to do, it's done or it isn't.</p>
+    <div class="runguard" onclick="arcRunArm()">GUARD<small>flip the cover</small></div>
+    <div class="choices"><button onclick="closeModal()">Step back. Not yet.</button></div>`);
+}
+export function arcRunArm() {
+  modal(`<h2>◆ ARMED</h2>
+    <p>The cover is up. The switch is bare and slightly worn, like someone stood here before you and thought about it just as long.</p>
+    <p>Voss, quietly: "Sixty thousand people, Captain."</p>
+    <div class="choices">
+      <button class="bigcommit" onclick="arcStartRun()">⚠ BEGIN THE RUN — 14 DAYS</button>
+      <button onclick="closeModal()">Close the cover. Stand down.</button>
+    </div>`);
 }
 
 export function arcStartRun() {

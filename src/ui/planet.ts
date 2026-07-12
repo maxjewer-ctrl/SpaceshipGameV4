@@ -82,8 +82,18 @@ function marketHTML(): string {
       <p class="dim" style="margin-top:8px">Prices vary by world and drift daily. Buy where they make it, sell where they can't.</p>
     </div></div>
     <div class="col"><div class="panel"><h3>Provisions</h3>
-      <div class="card"><div class="title">⛽ Fuel — ${p.fuelP}cr/unit <span class="dim">(${Math.floor(S.fuel)}/${stats().fuelCap})</span></div>
-        <div style="margin-top:6px"><button onclick="buyFuel(10)">+10</button> <button onclick="buyFuel(999)">Fill tanks (${Math.ceil(stats().fuelCap - S.fuel) * p.fuelP}cr)</button></div></div>
+      <div class="card"><div class="title">⛽ Fuel — ${p.fuelP}cr/unit</div>
+        <div class="hoser">
+          <button class="hosebtn"
+            onpointerdown="hoseStart()" onpointerup="hoseStop()"
+            onpointerleave="hoseStop()" onpointercancel="hoseStop()"
+            oncontextmenu="return false">⛽ HOLD<br>TO PUMP</button>
+          <div class="hosecol">
+            <div class="hosebar"><i id="hosefill" style="width:${Math.round((S.fuel / stats().fuelCap) * 100)}%"></i></div>
+            <span class="dim" id="hoseread">${Math.floor(S.fuel)}/${stats().fuelCap} · hose racked</span>
+          </div>
+        </div>
+        <div style="margin-top:7px"><button onclick="buyFuel(999)">Fill tanks (${Math.ceil(stats().fuelCap - S.fuel) * p.fuelP}cr)</button></div></div>
       <div class="card"><div class="title">🍞 Food — ${p.foodP}cr/unit <span class="dim">(${Math.floor(S.food)} held, eating ${foodPerDay()}/day)</span></div>
         <div style="margin-top:6px"><button onclick="buyFood(10)">+10</button> <button onclick="buyFood(30)">+30</button></div></div>
     </div></div></div>`;

@@ -5,7 +5,7 @@ import { loadSaved, setState, log } from "./state";
 import * as State from "./state";
 import { closeModal } from "./modal";
 import { selSlot, shipView, shipConsole } from "./ui/ship";
-import { plotCourse, goModule, launchOpen, launchPress, launchGuard, launchGoto } from "./ui/bridge";
+import { plotCourse, goModule, launchOpen, launchPress, launchGuard, launchGoto, launchAuto, dockPress } from "./ui/bridge";
 import {
   setThrottle, throttleLive, bayToggle, jettisonGood, ventGuard, ventFuel,
   commsTune, engageBurn,
@@ -16,17 +16,17 @@ import { showHelp, confirmNewGame, newGame, intro, startGame } from "./ui/help";
 import { acceptMission, hire, bayForJob } from "./systems/market";
 import {
   toggleMod, repairSystems, fireCrew, buyGood, sellGood, buyFuel, buyFood,
-  repairShip, buyMod, sellMod, upgradeEngine, buySlots,
+  repairShip, buyMod, sellMod, upgradeEngine, buySlots, hoseStart, hoseStop,
 } from "./systems/actions";
 import { depart, waitDay, advanceDay } from "./systems/travel";
-import { startCombat, cAct, endCombat } from "./systems/combat";
+import { startCombat, cAct, cSwitch, cFire, endCombat } from "./systems/combat";
 import {
   pirateWin, pirateLoseFlee, pirateFlee, pirateBribe, pirateSurrender,
   patrolBribe, patrolRun, patrolSubmit,
   distressHelp, distressIgnore, traderBuy, traderSell, paxMerchantSell, adriftTow,
 } from "./systems/events";
 import {
-  arcMeet, arcAcceptCrate, arcAcceptVoss, arcStartRun,
+  arcMeet, arcAcceptCrate, arcAcceptVoss, arcStartRun, arcRunGuard, arcRunArm,
   ambushHandOver, ambushFight, ambushRun,
   hunterWin, hunterFled, hunterRun, interceptWin, interceptFled,
 } from "./systems/arc";
@@ -50,8 +50,10 @@ setRender(render);
 Object.assign(window as any, {
   // navigation & screens
   nav, ptab, selSlot, selPlanet, closeModal, log, shipView, shipConsole, masterCaution,
-  // bridge action board + launch sequence
-  plotCourse, goModule, launchOpen, launchPress, launchGuard, launchGoto, bayForJob,
+  // bridge action board + launch/docking sequences
+  plotCourse, goModule, launchOpen, launchPress, launchGuard, launchGoto, launchAuto, dockPress, bayForJob,
+  // fuel hose
+  hoseStart, hoseStop,
   // cockpit pedestal — physical controls
   setThrottle, throttleLive, bayToggle, jettisonGood, ventGuard, ventFuel,
   commsTune, engageBurn,
@@ -63,13 +65,13 @@ Object.assign(window as any, {
   // travel
   depart, waitDay, advanceDay,
   // combat
-  startCombat, cAct, endCombat,
+  startCombat, cAct, cSwitch, cFire, endCombat,
   // events
   pirateWin, pirateLoseFlee, pirateFlee, pirateBribe, pirateSurrender,
   patrolBribe, patrolRun, patrolSubmit,
   distressHelp, distressIgnore, traderBuy, traderSell, paxMerchantSell, adriftTow,
   // story arc
-  arcMeet, arcAcceptCrate, arcAcceptVoss, arcStartRun,
+  arcMeet, arcAcceptCrate, arcAcceptVoss, arcStartRun, arcRunGuard, arcRunArm,
   ambushHandOver, ambushFight, ambushRun,
   hunterWin, hunterFled, hunterRun, interceptWin, interceptFled,
   // consequence scheduler
