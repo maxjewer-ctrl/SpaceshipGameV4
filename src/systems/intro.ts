@@ -20,7 +20,7 @@ import { remember, witnessAll, crewKey } from "./ledger";
 import { shift } from "./disposition";
 import { plantDelay } from "./scheduler";
 import { clamp } from "../util";
-import { dialogueHeadHTML, crewPortraitKey } from "../ui/portraits";
+import { dialogueHeadHTML, crewPortrait, crewPortraitKey } from "../ui/portraits";
 import type { CrewMember } from "../types";
 
 const JUNO_ICON = "🧑‍🔧";
@@ -290,7 +290,7 @@ function stgCutter(tookBox: boolean) {
     log("＋6 fuel and +160cr in bearer bonds off the cutter. You leave the black box to spin with its dead. Some answers cost more than they pay.");
   }
   modal(`<div class="scene"><div class="scene-loc">drop-skiff, running lights stuttering</div>
-    ${dialogueHeadHTML(j ? crewPortraitKey(j) : null, JUNO_ICON, "Juno Vale", "your mechanic — reading the panel")}
+    ${dialogueHeadHTML(j ? crewPortrait(j, "worried") : null, JUNO_ICON, "Juno Vale", "your mechanic — reading the panel")}
     <p>The last wreck isn't a wreck. The drop-skiff's cabin is holed, but her aft compartment is sealed — and something inside is <b>knocking</b>. Slow. Deliberate. The rhythm of someone who has been counting their own breaths for hours.</p>
     <p>Juno reads the panel. "One soul. Raider crew, has to be. Air's going amber in there, Captain — she has maybe an hour." A beat. "Your call. She shot at us this morning."</p>
     <div class="choices">
@@ -319,6 +319,7 @@ function stgSkiff(cut: boolean) {
   S.screen = "travel";
   log(`▸ NEXT: course laid in for Port Solace — 3 days, burning ${4}/day. Hit ▸ ENGAGE BURN to advance each day. Watch fuel and food.`);
   modal(`<div class="scene"><div class="scene-loc">${S.shipName} · cockpit</div>
+    ${dialogueHeadHTML(j ? crewPortrait(j, cut ? "neutral" : "angry") : null, JUNO_ICON, "Juno Vale", cut ? "your mechanic" : "your mechanic — saying nothing")}
     <h2>🧭 The Limp</h2>
     <p>You sit in the chair. It's warm from the sun through the glass and from nothing else, and it fits wrong, and you fly anyway, because that is the whole job.</p>
     <p><b>Port Solace, three days.</b> Fuel for maybe four. Food for maybe seven. A drive that sings flat and a crew of one, plus whatever you're carrying that knocks.</p>
@@ -406,7 +407,7 @@ function stgGalleyScene() {
   const j = juno();
   if (!j) { return; }
   modal(`<div class="scene"><div class="scene-loc">${S.shipName} · galley · day 3</div>
-    ${dialogueHeadHTML(crewPortraitKey(j), JUNO_ICON, "Juno Vale", "your mechanic")}
+    ${dialogueHeadHTML(crewPortrait(j, "worried"), JUNO_ICON, "Juno Vale", "your mechanic")}
     <p>You find her in the galley at ship's midnight, running a diagnostic she's already run, drinking Osei's terrible coffee ration because somebody should. She doesn't look up. "Fourteen years I kept that woman's ship alive. Fourteen years, and the one hit I couldn't patch was the one that mattered."</p>
     <p class="dim">Tutorial: crew are people, not stat blocks. Walk the decks and talk to them — trust opens slowly, and what they carry shapes what they'll do for you. What you do in front of them is remembered. All of it.</p>
     <div class="choices">

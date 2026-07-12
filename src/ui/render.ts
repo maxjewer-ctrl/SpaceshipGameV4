@@ -17,7 +17,8 @@ import * as sfx from "../audio";
 const WALK_SCREENS = ["stationwalk", "shipwalk"];
 
 export function nav(scr: string) {
-  if (WALK_SCREENS.includes(S.screen) && !WALK_SCREENS.includes(scr)) walk.teardown();
+  sfx.uiClick();
+  if (WALK_SCREENS.includes(S.screen) && !WALK_SCREENS.includes(scr)) { walk.teardown(); sfx.walkExit(); }
   S.screen = scr;
   if (scr === "planet") refreshMarket();
   requestRender();
@@ -58,6 +59,7 @@ let cautionAck = "";
 export function masterCaution() {
   const cs = cautions();
   cautionAck = cs.map((c) => c.t).join("|");
+  sfx.uiClick();
   sfx.ackAlarm();
   modal(`<h2>⚠ Master Caution</h2>
     ${cs.length ? cs.map((c) => `<div class="logline" style="border-left-color:${c.crit ? "var(--red)" : "var(--amber)"};color:${c.crit ? "var(--red)" : "var(--amber)"}">${c.t}</div>`).join("")

@@ -7,6 +7,7 @@ import { hasModal } from "../modal";
 import { S } from "../state";
 import { drawAvatar } from "./avatarDraw";
 import * as walk3d from "./walk3d";
+import { configureWalkRuntime, disposeWalkRuntime, navPath, syncWalkPhysics } from "../systems/walkRuntime";
 
 export interface WalkRect { x: number; y: number; w: number; h: number; }
 export interface WalkDoor extends WalkRect { label: string; locked?: boolean; lockedHint?: string; action: () => void; }
@@ -134,6 +135,7 @@ export function start(s: WalkScene) {
   bindListeners();
   bindCanvas();
   walk3d.mount(canvas?.parentElement || null, s, setClickMove);
+  configureWalkRuntime(s, pos);
   last = performance.now();
   if (raf) cancelAnimationFrame(raf);
   raf = requestAnimationFrame(tick);
@@ -156,6 +158,7 @@ export function teardown() {
   scene = null; mountedId = null; canvas = null; ctx = null;
   keys.clear(); clearClickMove();
   walk3d.teardown();
+  disposeWalkRuntime();
 }
 
 export function forgetSpawn(sceneId: string) { delete savedPos[sceneId]; }
@@ -230,7 +233,7 @@ function setClickMove(x: number, y: number) {
   const goal = nearestLegal(x, y);
   if (!goal) { clearClickMove(); return; }
   clickTarget = goal;
-  clickPath = findPath(pos, goal);
+  clickPath = navPath(pos, goal) || findPath(pos, goal);
   if (!clickPath.length) clickPath = [goal];
   clickStuck = 0;
 }
@@ -362,6 +365,12 @@ function simulate(dt: number) {
     if (gpDirs.has("left")) vx = Math.min(vx, -1);
     if (gpDirs.has("right")) vx = Math.max(vx, 1);
     if (vx || vy) clearClickMove();
+    // Direct controls follow the visible camera, not fixed map axes. Apply
+    // before click-to-move, whose path waypoints are already in world space.
+    if (vx || vy) {
+      const relative = walk3d.cameraRelativeMovement(vx, vy);
+      vx = relative.x; vy = relative.y;
+    }
     // Point-and-click: move toward click target when no keys held
     if (!vx && !vy && clickTarget) {
       const waypoint = clickPath[0] || clickTarget;
@@ -395,6 +404,7 @@ function simulate(dt: number) {
       else if (vy !== 0) facing = vy > 0 ? "down" : "up";
       walkPhase += dt * 9;
     }
+    syncWalkPhysics(pos);
     nearDoor = null;
     let bestD = 46;
     for (const d of scene.doors) { const dd = rectDist(pos.x, pos.y, d); if (dd < bestD) { bestD = dd; nearDoor = d; } }

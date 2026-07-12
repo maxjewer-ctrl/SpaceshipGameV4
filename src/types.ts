@@ -17,6 +17,7 @@ export interface ModuleInstance { t: string; on: boolean; dmg: boolean; wear?: n
 export interface Appearance {
   head: string;   // HEADS id: human | saurian | insectoid | cyclops | avian | synth
   garb: string;   // GARBS id: jumpsuit | coat | armor
+  frame?: string; // body presentation: feminine | masculine | neutral
   skin: string;   // hex — head/skin color
   suit: string;   // hex — clothing color
   trim: string;   // hex — accent/trim/outline

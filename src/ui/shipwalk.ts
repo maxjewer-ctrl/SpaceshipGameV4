@@ -15,7 +15,9 @@ import { trustTier, dispositionWord } from "../systems/trust";
 import { shipWalkTick } from "../systems/walkEncounters";
 import { introShipDoors, introRoomDesc, introSpawnEngine, introAirlockHint } from "../systems/intro";
 import { teardown, setHighlight, walkInsideFloors } from "./walk";
+import * as sfx from "../audio";
 import type { WalkScene, WalkRoom, WalkRect, WalkDoor, WalkActor } from "./walk";
+import { steerAgent } from "../systems/walkRuntime";
 
 const CAT_COLOR: Record<string, string> = {
   "cat-combat": "#d96b6b", "cat-flow": "#e8b04b", "cat-life": "#57b6c9",
@@ -43,6 +45,7 @@ export function sitChair() { openSchematic(); }
 export function wkInspect(i: number) {
   const m = S.modules[i], md = m && MODS[m.t];
   if (!m || !md) return;
+  sfx.uiClick();
   const wt = wearTier(m);
   const status = m.dmg ? "DAMAGED" : md.pw ? (m.on ? `ONLINE · drawing ${md.pw}⚡` : "POWERED DOWN") : "OPERATIONAL";
   modal(`<h2>${md.icon} ${md.n}</h2><p><b>${status}</b></p>
@@ -178,7 +181,12 @@ export function buildShipScene(): WalkScene {
     width, height,
     floors, rooms, roomDesc, doors, actors,
     spawn,
-    onTick: (moving, dt) => { shipWalkTick(moving, dt); tickCrew(dt, actors, cockpit, quartersRoom, postFor); },
+    onTick: (moving, dt, roomId) => {
+      const room = rooms.find((r) => r.id === roomId);
+      sfx.walkRoom(room?.kind ?? null);
+      shipWalkTick(moving, dt);
+      tickCrew(dt, actors, cockpit, quartersRoom, postFor);
+    },
   };
 }
 
@@ -194,7 +202,7 @@ function tickCrew(dt:number, actors:WalkActor[], cockpit:WalkRect, quarters:Walk
     if(a.timer<=0){if(a.mode==="post"){const r=quarters||cockpit;a.tx=r.x+r.w/2-14;a.ty=r.y+r.h/2-14;a.mode="walking";}
       else if(a.mode==="break"){const r=postFor(c.role);a.tx=r.x+r.w/2-14;a.ty=r.y+r.h-54;a.mode="walking";}
       else {const p=postFor(c.role),atPost=Math.hypot(a.x-(p.x+p.w/2-14),a.y-(p.y+p.h-54))<60;a.mode=atPost?"post":"break";a.timer=20+cosmetic(c.id+S.day)*20;if(cosmetic(c.id+17)<.35){a.bubble=quietLine(c.name);a.bubbleTime=6;}}}
-    if(a.mode==="walking"){const dx=a.tx-a.x,dy=a.ty-a.y,d=Math.hypot(dx,dy);if(d<5){a.mode=(quarters&&a.tx>quarters.x&&a.tx<quarters.x+quarters.w)?"break":"post";a.timer=20+cosmetic(c.id+31)*20;}else{const step=Math.min(d,75*dt),nx=a.x+dx/d*step,ny=a.y+dy/d*step;if(walkInsideFloors(nx+14,a.y+14))a.x=nx;if(walkInsideFloors(a.x+14,ny+14))a.y=ny;}}
+    if(a.mode==="walking"){const dx=a.tx-a.x,dy=a.ty-a.y,d=Math.hypot(dx,dy);if(d<5){a.mode=(quarters&&a.tx>quarters.x&&a.tx<quarters.x+quarters.w)?"break":"post";a.timer=20+cosmetic(c.id+31)*20;}else{const next=steerAgent(a,{x:a.tx,y:a.ty},75,dt);if(walkInsideFloors(next.x+14,a.y+14))a.x=next.x;if(walkInsideFloors(a.x+14,next.y+14))a.y=next.y;}}
     const actor=actors.find(x=>x.key==="crew:"+c.id);if(actor){actor.x=a.x;actor.y=a.y;actor.bubble=a.bubble||undefined;}
   }
 }

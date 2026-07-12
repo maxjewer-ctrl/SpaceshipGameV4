@@ -21,6 +21,7 @@ const PORT_MARKS: Record<string, [string, string]> = {
   aldren_thanks: ["docks", "A dockhand nods at your ship every time you make port here — word got around who stopped, the night of the sweep."],
 };
 import { stationWalkTick } from "../systems/walkEncounters";
+import * as sfx from "../audio";
 import { teardown, forgetSpawn } from "./walk";
 import type { WalkScene, WalkRoom, WalkRect, WalkDoor, WalkActor } from "./walk";
 
@@ -195,7 +196,10 @@ export function buildStationScene(): WalkScene {
     floors, rooms, roomDesc, doors, actors,
     spawn: { x: 550, y: 590 }, // just inside the docks room
     dark,
-    onTick: (moving, dt, roomId) => stationWalkTick(moving, dt, roomId),
+    onTick: (moving, dt, roomId) => {
+      sfx.walkRoom(roomId);
+      stationWalkTick(moving, dt, roomId);
+    },
   };
 }
 

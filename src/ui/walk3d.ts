@@ -11,6 +11,10 @@ import { MODS } from "../content";
 import { cargoUsed } from "../derive";
 import { wearTier } from "../systems/wear";
 import type { WalkActor, WalkDoor, WalkScene } from "./walk";
+import bulkheadWallUrl from "../assets/ship/bulkhead-wall.png";
+import engineCoreUrl from "../assets/ship/engine-core.png";
+import cargoWallUrl from "../assets/ship/cargo-wall.png";
+import medbayWallUrl from "../assets/ship/medbay-wall.png";
 
 const SCALE = 0.02;
 let renderer: THREE.WebGLRenderer | null = null;
@@ -87,6 +91,17 @@ export function nudgeCamera(rx: number, ry: number, dt: number) {
   camPitch = Math.max(CAM_PITCH_MIN, Math.min(CAM_PITCH_MAX, camPitch - ry * 3 * dt));
 }
 
+// Convert screen-relative movement into deck/world axes. This keeps controls
+// intuitive after orbiting the chase camera: up is always away from the camera
+// (toward the top of the screen), and left/right remain screen-left/right.
+export function cameraRelativeMovement(screenX: number, screenY: number) {
+  const a = CAM_BASE_ANGLE + camYaw;
+  return {
+    x: -Math.sin(a) * screenX + Math.cos(a) * screenY,
+    y:  Math.cos(a) * screenX + Math.sin(a) * screenY,
+  };
+}
+
 const wx = (x: number) => (x - (current?.width || 0) / 2) * SCALE;
 const wz = (y: number) => (y - (current?.height || 0) / 2) * SCALE;
 
@@ -97,14 +112,9 @@ const SKIN3D = ["#c9977a", "#a8714f", "#8a5a3c", "#e0b490", "#6d4a33", "#b98a68"
 function mat(color: THREE.ColorRepresentation, emissive = 0): THREE.MeshStandardMaterial {
   return new THREE.MeshStandardMaterial({ color, roughness: .72, metalness: .25, emissive: color, emissiveIntensity: emissive });
 }
-function panelTexture(dark: boolean): THREE.CanvasTexture {
-  const c=document.createElement("canvas");c.width=256;c.height=256;const x=c.getContext("2d")!;
-  x.fillStyle=dark?"#171c26":"#303c4d";x.fillRect(0,0,256,256);
-  x.strokeStyle=dark?"#303847":"#60748d";x.lineWidth=3;
-  for(let i=0;i<=256;i+=64){x.beginPath();x.moveTo(i,0);x.lineTo(i,256);x.stroke();x.beginPath();x.moveTo(0,i);x.lineTo(256,i);x.stroke();}
-  x.strokeStyle=dark?"#586270":"#91abc4";x.lineWidth=2;
-  for(let y=20;y<256;y+=64)for(let xx=20;xx<256;xx+=64){x.strokeRect(xx,y,24,12);x.fillStyle="#0b1018";x.fillRect(xx+5,y+4,4,4);}
-  const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(3,2);return t;
+function panelTexture(url: string, repeatX = 2.2, repeatY = 1.5): THREE.Texture {
+  const t=new THREE.TextureLoader().load(url);
+  t.colorSpace=THREE.SRGBColorSpace;t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(repeatX,repeatY);return t;
 }
 function deckTexture(dark: boolean): THREE.CanvasTexture {
   const c=document.createElement("canvas");c.width=256;c.height=256;const x=c.getContext("2d")!;
@@ -170,12 +180,22 @@ function addMachinery(g: THREE.Group, type: string, color: string, online: boole
 function rebuild() {
   if (!root || !current) return;
   root.remove(world); disposeObject(world); world = new THREE.Group(); root.add(world); actorMeshes.clear();
-  const dark = !!current.dark, panels=panelTexture(dark), deck=deckTexture(dark);
+  const dark = !!current.dark;
+  const roomTextures: Record<string, THREE.Texture> = {
+    general: panelTexture(bulkheadWallUrl),
+    engine: panelTexture(engineCoreUrl, 1, 1),
+    cargo: panelTexture(cargoWallUrl, 1.5, 1.15),
+    medbay: panelTexture(medbayWallUrl, 1.5, 1.15),
+  };
+  const deck=deckTexture(dark);
   if(current.id==="ship"){const hullMat=mat("#111b29");hullMat.emissiveIntensity=.08;const hull=box(current.width*SCALE,.08,current.height*SCALE,hullMat);hull.position.set(0,-.18,0);world.add(hull);}
   for (const f of current.floors) { const fm=mat(dark?"#252e3e":"#466080",dark?.05:.16);fm.map=deck;const m=box(f.w*SCALE,.12,f.h*SCALE,fm); m.position.set(wx(f.x+f.w/2),-.08,wz(f.y+f.h/2)); world.add(m); }
   for (const r of current.rooms) {
     const c=r.color|| (dark?"#465064":"#5a83b7"), cx=wx(r.x+r.w/2), cz=wz(r.y+r.h/2), w=r.w*SCALE,d=r.h*SCALE;
-    const wallMat=mat(dark?"#343d4d":"#7089a4",dark?.04:.12);wallMat.map=panels;wallMat.transparent=true;wallMat.opacity=dark?.5:.62;wallMat.depthWrite=false;
+    const wallKind = r.kind === "engine" || r.moduleType === "reactor" ? "engine"
+      : r.kind === "cargo" || r.moduleType === "cargohold" ? "cargo"
+      : r.kind === "medbay" || r.moduleType === "medbay" ? "medbay" : "general";
+    const wallMat=mat(dark?"#343d4d":"#7089a4",dark?.04:.12);wallMat.map=roomTextures[wallKind];wallMat.transparent=true;wallMat.opacity=dark?.58:.76;wallMat.depthWrite=false;
     [[w,.18,cx,cz-d/2],[w,.18,cx,cz+d/2],[.18,d,cx-w/2,cz],[.18,d,cx+w/2,cz]].forEach(([a,b,x,z])=>{const q=box(a as number,1.85,b as number,wallMat);q.position.set(x as number,.88,z as number);world.add(q);});
     // Tall illuminated corner pylons make room boundaries readable even when
     // the follow camera is looking across several bays.

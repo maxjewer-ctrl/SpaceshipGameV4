@@ -1,4 +1,5 @@
 import { S, log, mk } from "../state";
+import * as sfx from "../audio";
 import { MODS, PLANETS, GOODS, FLAVOR } from "../content";
 import { stats, modInst, cargoUsed, scargoUsed, paxJobs, vipJobs } from "../derive";
 import { pick } from "../rng";
@@ -32,9 +33,11 @@ export function toggleMod(i: number) {
       requestRender(); return;
     }
     m.on = true;
+    sfx.moduleToggle(true);
     log(MODS[m.t].n + " powered up. The deck plating hums a little louder.");
   } else {
     m.on = false;
+    sfx.moduleToggle(false);
     log(MODS[m.t].n + " powered down. One less light in the black.");
   }
   requestRender();

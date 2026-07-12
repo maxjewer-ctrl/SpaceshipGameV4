@@ -30,6 +30,21 @@ async function domShot(full: boolean): Promise<string> {
   const clone = root.cloneNode(true) as HTMLElement;
   clone.setAttribute("xmlns", "http://www.w3.org/1999/xhtml");
   clone.querySelectorAll("script").forEach((s) => s.remove());
+  // SVG foreignObject cannot load external resources — even same-origin URLs.
+  // Inline every <img> src as a data URI so portraits and icons render.
+  const liveImgs = Array.from(document.querySelectorAll("img"));
+  const cloneImgs = Array.from(clone.querySelectorAll("img"));
+  await Promise.all(cloneImgs.map(async (_ci, i) => {
+    const ci = _ci as HTMLImageElement;
+    const live = liveImgs[i] as HTMLImageElement | undefined;
+    if (!live?.src || !live.complete || live.naturalWidth === 0) return;
+    try {
+      const tmp = document.createElement("canvas");
+      tmp.width = live.naturalWidth; tmp.height = live.naturalHeight;
+      tmp.getContext("2d")!.drawImage(live, 0, 0);
+      ci.src = tmp.toDataURL();
+    } catch { /* tainted — leave as-is */ }
+  }));
   // <canvas> serializes blank inside foreignObject — swap each clone canvas
   // for an <img> carrying the live canvas's current bitmap.
   const liveCv = Array.from(document.querySelectorAll("canvas"));

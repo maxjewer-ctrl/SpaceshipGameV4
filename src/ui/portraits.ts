@@ -11,6 +11,8 @@ import nyla from "../assets/portraits/nyla.png";
 import elias from "../assets/portraits/elias.png";
 import miri from "../assets/portraits/miri.png";
 import juno from "../assets/portraits/juno.png";
+import junoWorried from "../assets/portraits/juno-worried.png";
+import junoAngry from "../assets/portraits/juno-angry.png";
 import pip7 from "../assets/portraits/pip7.png";
 import storeOwner from "../assets/portraits/store-owner.png";
 import type { CrewMember } from "../types";
@@ -20,8 +22,13 @@ const CREW_PORTRAITS: Record<string, string> = {
   juno, pip7,
 };
 
-export function crewPortrait(c: Pick<CrewMember, "key">): string | null {
-  return c.key ? CREW_PORTRAITS[c.key] || null : null;
+const CREW_EXPRESSIONS: Record<string, Record<string, string>> = {
+  juno: { worried: junoWorried, angry: junoAngry },
+};
+
+export function crewPortrait(c: Pick<CrewMember, "key">, expression = "neutral"): string | null {
+  if (!c.key) return null;
+  return CREW_EXPRESSIONS[c.key]?.[expression] || CREW_PORTRAITS[c.key] || null;
 }
 
 export function crewPortraitKey(c: Pick<CrewMember, "key">): string | null {

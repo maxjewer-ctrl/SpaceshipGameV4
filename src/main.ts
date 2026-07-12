@@ -14,7 +14,7 @@ import { ptab } from "./ui/planet";
 import { showHelp, closeHelp, confirmNewGame, newGame, intro, startGame } from "./ui/help";
 import { introStart, introAct } from "./systems/intro";
 import {
-  openCreator, avName, avRandomName, avFace, avHead, avGarb, avSkin, avSuit, avTrim, avStart,
+  openCreator, avName, avRandomName, avFace, avLook, avHead, avGarb, avSkin, avSuit, avTrim, avStart,
 } from "./ui/avatar";
 import { acceptMission, hire } from "./systems/market";
 import {
@@ -76,7 +76,7 @@ Object.assign(window as any, {
   // meta
   showHelp, closeHelp, confirmNewGame, newGame, intro, startGame,
   // character creator
-  openCreator, avName, avRandomName, avFace, avHead, avGarb, avSkin, avSuit, avTrim, avStart,
+  openCreator, avName, avRandomName, avFace, avLook, avHead, avGarb, avSkin, avSuit, avTrim, avStart,
   // prologue campaign (DEAD RECKONING)
   introStart, introAct,
   // planet actions

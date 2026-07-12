@@ -724,19 +724,95 @@ th{color:var(--dim); font-weight:500; text-transform:uppercase; font-size:11px; 
 #overlay.show{display:flex;}
 /* Hades-style: pin dialogue column to bottom-right, portrait free on the left */
 #overlay.has-portrait{ align-items:flex-end; justify-content:flex-end; padding:0 40px 32px; }
-/* Portrait — full-height figure, no box, fades right */
+/* Scene atmosphere — environmental glow behind the portrait */
+#dlg-scene-bg{
+  display:none; position:absolute; inset:0; z-index:0; pointer-events:none;
+}
+#dlg-scene-bg.show{ display:block; }
+/* engine room — amber heat from below-left, faint conduit grid */
+#overlay[data-scene="engine"] #dlg-scene-bg{
+  background:
+    radial-gradient(ellipse at 16% 82%,rgba(200,110,15,0.55) 0%,rgba(140,70,8,0.25) 28%,transparent 58%),
+    radial-gradient(ellipse at 38% 100%,rgba(90,45,5,0.35) 0%,transparent 40%),
+    repeating-linear-gradient(0deg,transparent 0,transparent 47px,rgba(220,150,30,0.035) 48px),
+    repeating-linear-gradient(90deg,transparent 0,transparent 47px,rgba(220,150,30,0.035) 48px);
+}
+/* cockpit — cool instrument blue, faint star haze above */
+#overlay[data-scene="cockpit"] #dlg-scene-bg{
+  background:
+    radial-gradient(ellipse at 18% 55%,rgba(20,75,180,0.45) 0%,rgba(10,50,120,0.2) 32%,transparent 58%),
+    radial-gradient(ellipse at 50% 8%,rgba(30,100,200,0.18) 0%,transparent 45%),
+    radial-gradient(circle at 7% 25%,rgba(100,200,255,0.1) 0%,transparent 18%);
+}
+/* space / debris field — cold void, deep blue-purple */
+#overlay[data-scene="space"] #dlg-scene-bg{
+  background:
+    radial-gradient(ellipse at 20% 50%,rgba(20,28,80,0.6) 0%,rgba(10,14,50,0.3) 32%,transparent 58%),
+    radial-gradient(ellipse at 6% 12%,rgba(70,90,180,0.18) 0%,transparent 28%),
+    radial-gradient(ellipse at 30% 0%,rgba(40,20,100,0.15) 0%,transparent 35%);
+}
+/* sick bay / medical — clinical blue-white */
+#overlay[data-scene="medical"] #dlg-scene-bg{
+  background:
+    radial-gradient(ellipse at 18% 60%,rgba(60,130,200,0.35) 0%,rgba(30,80,150,0.15) 35%,transparent 60%),
+    radial-gradient(ellipse at 40% 90%,rgba(20,60,120,0.2) 0%,transparent 40%);
+}
+/* galley — warm amber, lived-in */
+#overlay[data-scene="galley"] #dlg-scene-bg{
+  background:
+    radial-gradient(ellipse at 18% 72%,rgba(170,95,20,0.4) 0%,rgba(110,60,10,0.2) 30%,transparent 55%),
+    radial-gradient(ellipse at 40% 100%,rgba(80,40,5,0.25) 0%,transparent 40%);
+}
+/* station / port — muted teal, artificial light */
+#overlay[data-scene="station"] #dlg-scene-bg{
+  background:
+    radial-gradient(ellipse at 18% 65%,rgba(20,110,100,0.38) 0%,rgba(10,70,65,0.18) 30%,transparent 55%),
+    radial-gradient(ellipse at 45% 100%,rgba(10,60,55,0.22) 0%,transparent 40%);
+}
+/* generic ship — neutral steel blue */
+#overlay[data-scene="ship"] #dlg-scene-bg{
+  background:
+    radial-gradient(ellipse at 18% 68%,rgba(30,55,90,0.38) 0%,rgba(18,35,65,0.18) 32%,transparent 58%);
+}
+/* Portrait — full-height figure, fades right; mask pushed later for visible edge */
 #dlg-portrait-wrap{
   display:none; position:absolute; left:0; bottom:0;
   width:min(42vw,480px); height:min(96vh,800px);
   pointer-events:none; z-index:1;
-  mask-image:linear-gradient(to right,black 48%,transparent 82%);
-  -webkit-mask-image:linear-gradient(to right,black 48%,transparent 82%);
+  mask-image:linear-gradient(to right,black 58%,transparent 88%);
+  -webkit-mask-image:linear-gradient(to right,black 58%,transparent 88%);
 }
 #dlg-portrait-wrap.show{ display:block; }
+/* Base portrait — neutral rim (warm top-right hair light) */
 #dlg-portrait-wrap img{
   width:100%; height:100%;
   object-fit:contain; object-position:20% 100%;
-  filter:drop-shadow(-4px 0 24px #000e) brightness(0.9);
+  filter:
+    drop-shadow(-3px 0 20px #000d)
+    drop-shadow(7px -5px 22px rgba(180,155,90,0.55))
+    brightness(1.05);
+}
+/* Scene-matched rim lights */
+#overlay[data-scene="engine"] #dlg-portrait-wrap img{
+  filter:drop-shadow(-3px 0 22px #000d) drop-shadow(9px -5px 26px rgba(230,140,25,0.85)) drop-shadow(6px 4px 18px rgba(180,90,10,0.45)) brightness(1.12);
+}
+#overlay[data-scene="cockpit"] #dlg-portrait-wrap img{
+  filter:drop-shadow(-3px 0 22px #000d) drop-shadow(8px -5px 24px rgba(110,190,255,0.75)) brightness(1.08);
+}
+#overlay[data-scene="space"] #dlg-portrait-wrap img{
+  filter:drop-shadow(-3px 0 22px #000e) drop-shadow(7px -4px 22px rgba(70,110,220,0.6)) brightness(1.04);
+}
+#overlay[data-scene="medical"] #dlg-portrait-wrap img{
+  filter:drop-shadow(-3px 0 22px #000d) drop-shadow(8px -4px 22px rgba(130,210,250,0.65)) brightness(1.08);
+}
+#overlay[data-scene="galley"] #dlg-portrait-wrap img{
+  filter:drop-shadow(-3px 0 22px #000d) drop-shadow(8px -5px 24px rgba(210,155,40,0.7)) brightness(1.1);
+}
+#overlay[data-scene="station"] #dlg-portrait-wrap img{
+  filter:drop-shadow(-3px 0 22px #000d) drop-shadow(8px -4px 22px rgba(70,210,175,0.6)) brightness(1.07);
+}
+#overlay[data-scene="ship"] #dlg-portrait-wrap img{
+  filter:drop-shadow(-3px 0 22px #000d) drop-shadow(7px -4px 20px rgba(140,175,220,0.55)) brightness(1.06);
 }
 /* Dialogue column: name banner stacked above modal box */
 #dlg-dialogue-col{ display:contents; }
@@ -1066,6 +1142,14 @@ button.gp-focus{border-color:var(--amber); color:var(--amber); box-shadow:0 0 0 
   font-weight:700; font-size:12px; letter-spacing:.16em; color:var(--amber);
   border-bottom:1px solid; border-image:linear-gradient(90deg,rgba(232,160,74,.5),transparent) 1;
   padding-bottom:6px; margin-bottom:10px;
+}
+.v2-reactor{
+  position:relative; overflow:hidden; isolation:isolate;
+  background:linear-gradient(rgba(8,10,14,.79),rgba(8,10,14,.9)),var(--engine-core) center 38%/cover no-repeat;
+}
+.v2-reactor::after{
+  content:""; position:absolute; inset:0; pointer-events:none; z-index:-1;
+  background:radial-gradient(circle at 50% 38%,rgba(77,210,255,.15),transparent 35%);
 }
 .v2-tag{ font-family:var(--mono); font-size:9.5px; font-weight:600; letter-spacing:.14em;
   padding:4px 10px; border-radius:5px; border:1px solid; }

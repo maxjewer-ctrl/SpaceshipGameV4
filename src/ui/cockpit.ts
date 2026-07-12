@@ -6,6 +6,7 @@ import { advanceDay, waitDay } from "../systems/travel";
 import { cautions } from "./render";
 import { radarBlips } from "./ship";
 import * as sfx from "../audio";
+import engineCoreUrl from "../assets/ship/engine-core.png";
 
 // Physical control positions — switch/lever state, session-only. Losing your
 // throttle setting on reload is realistic enough; none of this is save data.
@@ -23,6 +24,7 @@ const CHANNELS = ["GUARD 121.5", "PORT CONTROL", "TRAFFIC SCOPE", "OPEN BAND"];
 
 export function setThrottle(v: number | string) {
   CTL.throttle = Math.max(0, Math.min(100, Math.round(+v || 0)));
+  sfx.uiClick();
   requestRender();
 }
 
@@ -64,6 +66,7 @@ export function jettisonGood(g: string) {
 
 export function ventGuard() {
   CTL.guard = !CTL.guard;
+  sfx.guardFlip();
   requestRender();
 }
 
@@ -255,7 +258,7 @@ export function reactorPanelHTML(): string {
     { name: "SHD", deg: shdDeg, clr: "var(--blue)", val: "−" + st.shield + "/hit" },
     { name: "WPN", deg: wpnDeg, clr: "var(--red)", val: "~" + st.dmg + " dmg" },
   ];
-  return `<div class="panel v2-reactor">
+  return `<div class="panel v2-reactor" style="--engine-core:url('${engineCoreUrl}')">
     <div class="v2-head"><span>REACTOR &amp; POWER</span><span class="v2-tag ${online ? "on" : "off"}">${online ? "ONLINE" : "OFFLINE"}</span></div>
     <div class="v2-slider-row">
       <span class="v2-slbl">OUTPUT</span><span class="v2-sval">${st.powerOut}⚡</span>
@@ -353,4 +356,3 @@ export function commsFullHTML(): string {
     </div>
   </div>`;
 }
-

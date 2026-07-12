@@ -5,7 +5,7 @@
 // preview breathing while the modal is open.
 import type { Appearance } from "../types";
 import { modal } from "../modal";
-import { HEADS, GARBS, SKINS, SUITS, TRIMS, DEFAULT_APPEARANCE, drawAvatar } from "./avatarDraw";
+import { HEADS, GARBS, AVATAR_LOOKS, SKINS, SUITS, TRIMS, DEFAULT_APPEARANCE, drawAvatar } from "./avatarDraw";
 import { ROLES } from "../content";
 import { startGame } from "./help";
 import { introStart } from "../systems/intro";
@@ -19,6 +19,7 @@ const NAME_POOL = [
 interface Draft { captainName: string; app: Appearance; }
 let draft: Draft = { captainName: "Cass Ardent", app: { ...DEFAULT_APPEARANCE } };
 let previewDir = "down";
+let lookIndex = 2;
 let previewRAF: number | null = null;
 
 // Read by help.startGame() and systems/intro.introStart() at start time.
@@ -50,6 +51,8 @@ export function openCreator() {
         <input id="shipnamein" value="Kestrel" maxlength="18" class="cc-input">
         <label class="cc-lbl">Former specialty</label>
         <select id="captainrolein" class="cc-input">${roleOpts}</select>
+        <div class="cc-cyc"><span>Look</span>
+          <button onclick="avLook(-1)">◀</button><b id="cc-look">${AVATAR_LOOKS[lookIndex][0]}</b><button onclick="avLook(1)">▶</button></div>
         <div class="cc-cyc"><span>Species</span>
           <button onclick="avHead(-1)">◀</button><b id="cc-head">${HEADS[idx(HEADS, draft.app.head)].name}</b><button onclick="avHead(1)">▶</button></div>
         <div class="cc-cyc"><span>Attire</span>
@@ -98,6 +101,12 @@ export function avRandomName() {
   if (el) el.value = draft.captainName;
 }
 export function avFace(dir: string) { previewDir = dir; }
+export function avLook(d: number) {
+  lookIndex = (lookIndex + d + AVATAR_LOOKS.length) % AVATAR_LOOKS.length;
+  const [label, head, garb, frame] = AVATAR_LOOKS[lookIndex];
+  draft.app.head = head; draft.app.garb = garb; draft.app.frame = frame;
+  setText("cc-look", label); setText("cc-head", HEADS[idx(HEADS, head)].name); setText("cc-garb", GARBS[idx(GARBS, garb)].name);
+}
 
 export function avHead(d: number) {
   const i = (idx(HEADS, draft.app.head) + d + HEADS.length) % HEADS.length;
