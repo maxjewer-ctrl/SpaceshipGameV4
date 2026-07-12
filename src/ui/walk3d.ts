@@ -90,6 +90,10 @@ export function nudgeCamera(rx: number, ry: number, dt: number) {
 const wx = (x: number) => (x - (current?.width || 0) / 2) * SCALE;
 const wz = (y: number) => (y - (current?.height || 0) / 2) * SCALE;
 
+// Civilian wardrobe + skin tones for actors without an explicit roster colour.
+const WARDROBE = ["#3a4a63", "#4f3a55", "#54402e", "#2f5240", "#5a3333", "#39505c", "#4a4436", "#333a52"];
+const SKIN3D = ["#c9977a", "#a8714f", "#8a5a3c", "#e0b490", "#6d4a33", "#b98a68"];
+
 function mat(color: THREE.ColorRepresentation, emissive = 0): THREE.MeshStandardMaterial {
   return new THREE.MeshStandardMaterial({ color, roughness: .72, metalness: .25, emissive: color, emissiveIntensity: emissive });
 }
@@ -186,7 +190,14 @@ function rebuild() {
     const light=new THREE.PointLight(c,dark ? .35 : .9,6.5);light.position.set(cx,2.6,cz);world.add(light);
   }
   for (const d of current.doors) { const g=box(Math.max(.4,d.w*SCALE),.04,Math.max(.28,d.h*SCALE),mat(d.locked?"#8a3030":"#3d91df",d.locked?.15:.8));g.position.set(wx(d.x+d.w/2),.04,wz(d.y+d.h/2));world.add(g);const l=sprite(d.label,d.locked?"#d77":"#9fd7ff",.55);l.position.set(g.position.x,.75,g.position.z);world.add(l); }
-  for (const a of current.actors) { const g=addPerson(a.color||"#d9a55b"); const l=sprite(a.label,a.color||"#d9a55b",.55);l.position.y=1.9;g.add(l);world.add(g);actorMeshes.set(a.key,g); }
+  for (const a of current.actors) {
+    // No explicit roster colour → deal one from the wardrobe by key hash, so a
+    // station concourse is a crowd of strangers instead of identical clones.
+    let hv=0; for(let i=0;i<a.key.length;i++) hv=(hv*31+a.key.charCodeAt(i))|0; hv>>>=0;
+    const suitC=a.color||WARDROBE[hv%WARDROBE.length], skinC=SKIN3D[(hv>>4)%SKIN3D.length];
+    const g=addPerson(suitC,skinC,a.color?"#e8d9b0":"#8fa8c9");
+    const l=sprite(a.label,a.color||"#c9d2e4",.55);l.position.y=1.9;g.add(l);world.add(g);actorMeshes.set(a.key,g);
+  }
 }
 
 export function mount(container: HTMLElement | null, s: WalkScene, onFloorClick: (x:number,y:number)=>void) {

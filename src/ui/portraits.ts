@@ -9,14 +9,15 @@ import corbin from "../assets/portraits/corbin.png";
 import bapu from "../assets/portraits/bapu.png";
 import nyla from "../assets/portraits/nyla.png";
 import elias from "../assets/portraits/elias.png";
+import miri from "../assets/portraits/miri.png";
+import juno from "../assets/portraits/juno.png";
+import pip7 from "../assets/portraits/pip7.png";
 import storeOwner from "../assets/portraits/store-owner.png";
 import type { CrewMember } from "../types";
 
 const CREW_PORTRAITS: Record<string, string> = {
-  dez, vex, brix, tomas, ada, rook, imogen, corbin, bapu, nyla, elias,
-  // Juno Vale has no portrait of her own yet — borrowing Brix's face (same
-  // mechanic role, same "Foundry smelter decks" origin) until real art lands.
-  juno: brix,
+  dez, vex, brix, tomas, ada, rook, imogen, corbin, bapu, nyla, elias, miri,
+  juno, pip7,
 };
 
 export function crewPortrait(c: Pick<CrewMember, "key">): string | null {

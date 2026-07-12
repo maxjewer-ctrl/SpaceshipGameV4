@@ -1,4 +1,4 @@
-# CREW DOSSIERS — the twelve who might sign on
+# CREW DOSSIERS — the people who might sign on
 
 Every one of these people exists in the sector before you meet them and keeps
 existing after. Each has a **role ability** (the mechanical reason to hire),
@@ -189,6 +189,27 @@ really is better, though.
 **Influence on the player:** The devil's bargain hire — prosperity now,
 entanglement on a schedule you don't control. Pairs horribly (wonderfully)
 with Elias if you ever crew both.
+
+### ★☆ PIP-7 — *Port Solace / Foundry*
+**Ability:** quartermaster — +15% contract pay and cheaper bribes; its freight
+scanner also makes an excellent spirit level.
+**Chassis:** A waist-high logistics unit on one broad central wheel with two
+stabilizer casters, folding manipulator arms, mismatched amber optics, and
+cream-and-navy panels repaired often enough that no two bolts match. PIP-7 is
+old, practical, and only cute when it is trying to get away with something.
+**Backstory:** Built for a Port Solace freight cooperative, PIP-7 checked a crew
+of nine aboard the courier *Patient Arithmetic* and was ordered to remain on the
+dock. The ship departed. It never arrived. The cooperative folded before the
+search did, leaving the unit decommissioned with one job still open.
+**Intentions:** Honest, with an old directive it cannot quite disobey. Wants to
+deliver the courier's final encrypted manifest to the destination hidden inside
+it — once it trusts a captain enough to unlock the route.
+**Alliances:** Dockworkers remember it fondly. Union registry systems insist the
+*Patient Arithmetic* never existed.
+**Tell:** Counts every soul before departure, pauses, and counts one more time.
+**Influence on the player:** A low-salary, high-utility companion whose personal
+quest turns bookkeeping into a missing-ship mystery. Its loyalty is not
+programmed; deciding that is the point of the story.
 
 ---
 

@@ -51,7 +51,9 @@ async function domShot(full: boolean): Promise<string> {
 // to the viewport instead of the whole scrollable page.
 export function installShot() {
   (window as any).__shot = (opts: { full?: boolean } = {}) => {
+    // A visible modal means the interesting pixels are DOM, not the 3D canvas.
+    const modalOpen = document.getElementById("overlay")?.classList.contains("show");
     const canvas = document.querySelector(".walk3d-canvas") as HTMLCanvasElement | null;
-    return canvas ? canvasShot(canvas) : domShot(opts.full !== false);
+    return canvas && !modalOpen ? canvasShot(canvas) : domShot(opts.full !== false);
   };
 }

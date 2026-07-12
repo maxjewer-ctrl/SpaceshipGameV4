@@ -722,37 +722,62 @@ th{color:var(--dim); font-weight:500; text-transform:uppercase; font-size:11px; 
   align-items:center; justify-content:center; padding:20px;
 }
 #overlay.show{display:flex;}
-#overlay.has-portrait{ align-items:flex-end; justify-content:center; padding:0 24px 28px; }
-/* Hades-style side portrait — hoists character art over the full overlay */
+/* Hades-style: pin dialogue column to bottom-right, portrait free on the left */
+#overlay.has-portrait{ align-items:flex-end; justify-content:flex-end; padding:0 40px 32px; }
+/* Portrait — full-height figure, no box, fades right */
 #dlg-portrait-wrap{
   display:none; position:absolute; left:0; bottom:0;
-  width:min(40vw,420px); height:min(82vh,680px);
+  width:min(42vw,480px); height:min(96vh,800px);
   pointer-events:none; z-index:1;
-  mask-image:linear-gradient(to right,black 55%,transparent 92%);
-  -webkit-mask-image:linear-gradient(to right,black 55%,transparent 92%);
+  mask-image:linear-gradient(to right,black 48%,transparent 82%);
+  -webkit-mask-image:linear-gradient(to right,black 48%,transparent 82%);
 }
 #dlg-portrait-wrap.show{ display:block; }
 #dlg-portrait-wrap img{
   width:100%; height:100%;
   object-fit:contain; object-position:20% 100%;
-  filter:drop-shadow(-6px 0 28px #000d) brightness(0.93);
+  filter:drop-shadow(-4px 0 24px #000e) brightness(0.9);
 }
-/* on desktop: hide the inline boxed portrait — the side portrait takes over */
+/* Dialogue column: name banner stacked above modal box */
+#dlg-dialogue-col{ display:contents; }
+/* Name banner — floats above the modal, outside the box border */
+#dlg-name-plate{
+  display:none;
+  padding:6px 20px 6px 14px;
+  background:linear-gradient(100deg,#0d111ae8,#090c12d8);
+  border:1px solid var(--amber); border-bottom:none;
+  border-radius:5px 5px 0 0;
+  position:relative; z-index:3;
+  align-self:flex-start;
+}
+#dlg-name-plate.show{ display:block; }
+#dlg-name-plate h2{
+  color:var(--amber); margin:0 0 1px !important;
+  font-size:15px; letter-spacing:2px; text-transform:uppercase;
+}
+#dlg-name-plate p{ margin:0 !important; font-size:11px; }
+/* In portrait mode: dialogue column is a flex column, modal constrained right */
+#overlay.has-portrait #dlg-dialogue-col{
+  display:flex; flex-direction:column; align-items:flex-start;
+  max-width:500px; width:100%; position:relative; z-index:2;
+}
+/* Hide the inline dialogue-head — name plate and portrait take over */
 @media (min-width:601px){
-  #overlay.has-portrait .portrait-dialogue{ display:none; }
-  #overlay.has-portrait .dialogue-head{ gap:0; }
+  #overlay.has-portrait .dialogue-head{ display:none; }
 }
-/* on mobile: hide the side portrait, revert to inline boxed portrait */
+/* Mobile: hide external elements, revert overlay to centered, restore inline head */
 @media (max-width:600px){
-  #dlg-portrait-wrap{ display:none !important; }
+  #dlg-portrait-wrap,#dlg-name-plate{ display:none !important; }
   #overlay.has-portrait{ align-items:center; padding:20px; }
+  #overlay.has-portrait #dlg-dialogue-col{ display:contents; }
+  #overlay.has-portrait .dialogue-head{ display:flex; }
 }
 #modal{
   background:var(--panel); border:1px solid var(--amber); border-radius:8px;
   max-width:560px; width:100%; padding:20px; max-height:88vh; overflow-y:auto;
   box-shadow:0 0 40px #000;
 }
-#overlay.has-portrait #modal{ max-width:660px; position:relative; z-index:2; }
+#overlay.has-portrait #modal{ max-width:500px; border-radius:0 8px 8px 8px; position:relative; z-index:2; }
 #modal h2{color:var(--amber); margin-bottom:10px; font-size:18px; letter-spacing:1px;}
 #modal p{margin-bottom:10px; line-height:1.55;}
 #modal .choices{display:flex; flex-direction:column; gap:8px; margin-top:14px;}
@@ -846,6 +871,31 @@ button.gp-focus{border-color:var(--amber); color:var(--amber); box-shadow:0 0 0 
 .space-target:disabled{ cursor:default; opacity:1; }
 .space-target.dead{ opacity:.3; filter:grayscale(1); }
 .target-icon{ font-size:24px; line-height:1; text-shadow:0 0 12px currentColor; }
+/* drawn foe silhouettes (combat.ts foeShipSVG) */
+.foe-ship{ width:52px; height:34px; display:block; filter:drop-shadow(0 0 6px #d0453a44); }
+.foe-ship .fsh{ fill:#392c33; stroke:#a25b5b; stroke-width:1.2; }
+.foe-ship .fsh2{ fill:#221b22; stroke:#7c4a4a; stroke-width:1; }
+.foe-ship .fsf{ fill:#552e39; stroke:#a25b5b; stroke-width:1; }
+.foe-ship .fse{ fill:#ffb057; animation:engPulse 1.1s ease-in-out infinite alternate; }
+.foe-ship .fsc{ fill:#ff6b5a; animation:engPulse .7s ease-in-out infinite alternate; }
+.foe-ship.hurt{ animation:foeFlicker 1.7s steps(2,end) infinite; }
+.foe-ship.crit{ animation:foeFlicker .5s steps(2,end) infinite; filter:drop-shadow(0 0 9px #ff5030aa); }
+.space-target:hover:not(:disabled) .fsh,.space-target.selected .fsh{ stroke:var(--amber); }
+@keyframes engPulse{ from{opacity:.5} to{opacity:1} }
+@keyframes foeFlicker{ 0%,74%{opacity:1} 75%,100%{opacity:.5} }
+/* weapon FX — tracers + impact rings, injected by combat.ts flushFX() */
+.fx-tracer{ position:absolute; z-index:7; height:2px; transform-origin:0 50%; pointer-events:none; }
+.fx-tracer i{ display:block; height:100%; background:linear-gradient(90deg,transparent,currentColor 30%,#fff);
+  box-shadow:0 0 7px currentColor; transform:scaleX(0); transform-origin:0 50%; animation:tracer .55s ease-out forwards; }
+.fx-tracer.ret i{ animation-delay:.5s; background:linear-gradient(90deg,currentColor,#fff 80%,#fff); }
+@keyframes tracer{ 0%{transform:scaleX(0); opacity:0} 15%{opacity:1} 70%{transform:scaleX(1); opacity:1} 100%{transform:scaleX(1); opacity:0} }
+.fx-impact{ position:absolute; z-index:7; width:12px; height:12px; margin:-6px; border-radius:50%;
+  border:2px solid currentColor; pointer-events:none; opacity:0; animation:impact .5s ease-out .38s forwards; }
+.fx-impact.big{ width:18px; height:18px; margin:-9px; border-width:3px; }
+.fx-impact.ret{ animation-delay:.9s; }
+@keyframes impact{ 0%{opacity:1; transform:scale(.4); box-shadow:0 0 20px currentColor} 100%{opacity:0; transform:scale(2.8)} }
+.battle-window.fx-hit{ animation:winShake .32s ease-in-out 1s; }
+@keyframes winShake{ 0%,100%{transform:none} 25%{transform:translate(4px,-3px)} 55%{transform:translate(-4px,3px)} 80%{transform:translate(2px,1px)} }
 .target-name{
   font-family:var(--mono); font-size:8px; letter-spacing:.1em; text-transform:uppercase;
   max-width:74px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;

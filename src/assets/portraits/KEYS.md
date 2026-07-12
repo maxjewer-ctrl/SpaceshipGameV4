@@ -31,6 +31,7 @@ the CRT panel styling.
 | key | who |
 |---|---|
 | `juno` | Juno Vale — prologue engineer, Foundry smelter decks, gruff/loyal |
+| `pip7` | PIP-7 — rolling logistics AI, quartermaster, chatty/loyal |
 | `voss` | Dr. Elara Voss — the woman in the grey coat (main arc) |
 
 ## Generic crew fallbacks (procedural hires, one per role)

@@ -166,5 +166,19 @@
       "tell": "scans every new dock for a face they never find", "tellSituation": "arrive",
       "traits": ["chatty", "greedy"]
     }
+  },
+  "pip7": {
+    "name": "PIP-7", "role": "quartermaster", "fee": 120, "salary": 5,
+    "planets": ["solace", "foundry"],
+    "agenda": "honest-with-a-buried-directive",
+    "hook": "A rolling dockside logistics AI whose last ship never returned. PIP-7 can price a cargo lot by listening to the crate settle — but an encrypted final manifest is still waiting for the right destination.",
+    "bundle": {
+      "origin": "a decommissioned Port Solace freight cooperative",
+      "want": "to deliver the final manifest its missing crew entrusted to it",
+      "wound": "was ordered to stay on the dock while its ship departed and vanished", "woundTag": "left_behind",
+      "secret": "carries an encrypted route stamped with a ship registry the Union erased", "secretTag": "black_manifest",
+      "tell": "counts every soul aboard before departure, then counts one more time", "tellSituation": "depart",
+      "traits": ["chatty", "loyal"]
+    }
   }
 }

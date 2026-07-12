@@ -125,12 +125,50 @@ function escortName(name: string) {
   return "Escort Skiff";
 }
 
-function foeIcon(name: string): string {
-  const n = name.toLowerCase();
-  if (/drone|screen/.test(n)) return "◆";
-  if (/union|cutter|gunship|hunter|interdictor/.test(n)) return "▰";
-  if (/pirate|corsair|skiff|raider|vengeance|seeker/.test(n)) return "✦";
-  return "◇";
+// Drawn silhouettes instead of icon glyphs: each archetype is a tiny inline
+// SVG with a pulsing engine and a damage-flicker class as its hull drops.
+function foeShipSVG(t: CombatTarget): string {
+  const n = t.name.toLowerCase();
+  const hp = Math.max(0, t.hull / t.maxhull);
+  const cls = t.hull <= 0 ? "" : hp < 0.35 ? " crit" : hp < 0.7 ? " hurt" : "";
+  let body: string;
+  if (/drone|screen/.test(n)) {
+    body = `<path class="fsh" d="M24 5 39 16 24 27 9 16Z"/><circle class="fsc" cx="24" cy="16" r="3.4"/>`;
+  } else if (/union|cutter|gunship|hunter|interdictor|lattice|patrol/.test(n)) {
+    body = `<path class="fsh" d="M5 20 13 11 40 11 45 15.5 40 20 13 21.5Z"/><rect class="fsh2" x="17" y="6.5" width="13" height="5" rx="2"/><rect class="fsh2" x="34" y="13" width="9" height="2.6" rx="1.2"/><circle class="fse" cx="8" cy="15.8" r="2.4"/>`;
+  } else if (/pirate|corsair|skiff|raider|vengeance|seeker|wolf|knife|scav/.test(n)) {
+    body = `<path class="fsh" d="M6 16 20 7 44 14 44 18 20 25Z"/><path class="fsf" d="M19 8 28 2.5 33 9.5Z"/><path class="fsf" d="M19 24 28 29.5 33 22.5Z"/><circle class="fse" cx="9.5" cy="16" r="2.4"/>`;
+  } else {
+    body = `<path class="fsh" d="M6 18 15 8.5 37 8.5 44 16 37 23.5 15 23.5Z"/><rect class="fsh2" x="20" y="12" width="12" height="8" rx="2"/><circle class="fse" cx="9" cy="16" r="2.4"/>`;
+  }
+  return `<svg class="foe-ship${cls}" viewBox="0 0 48 32">${body}</svg>`;
+}
+
+// ---- transient weapon FX ----
+// Queued by the combat logic, flushed into the freshly-rendered .battle-window
+// right after modal() replaces the DOM — pure CSS animations from there.
+interface PendingFX { kind: "shot" | "return"; x: number; y: number; color: string; score?: number; }
+let pendingFX: PendingFX[] = [];
+
+function flushFX() {
+  const win = document.querySelector(".battle-window") as HTMLElement | null;
+  if (!win) { pendingFX = []; return; }
+  const px = 44, py = 72; // player nose, in % of the window (hull sits bottom-left)
+  for (const fx of pendingFX) {
+    const [x1, y1, x2, y2] = fx.kind === "shot" ? [px, py, fx.x, fx.y] : [fx.x, fx.y, px, py];
+    const dx = (x2 - x1) * win.clientWidth / 100, dy = (y2 - y1) * win.clientHeight / 100;
+    const tr = document.createElement("div");
+    tr.className = "fx-tracer" + (fx.kind === "return" ? " ret" : "");
+    tr.style.cssText = `left:${x1}%;top:${y1}%;width:${Math.hypot(dx, dy)}px;transform:rotate(${Math.atan2(dy, dx) * 180 / Math.PI}deg);color:${fx.color}`;
+    tr.innerHTML = "<i></i>";
+    win.appendChild(tr);
+    const imp = document.createElement("div");
+    imp.className = "fx-impact" + ((fx.score ?? 0) > 0.62 ? " big" : "") + (fx.kind === "return" ? " ret" : "");
+    imp.style.cssText = `left:${x2}%;top:${y2}%;color:${fx.color}`;
+    win.appendChild(imp);
+    if (fx.kind === "return") win.classList.add("fx-hit");
+  }
+  pendingFX = [];
 }
 
 function esc(s: string): string {
@@ -202,6 +240,7 @@ function drawCombat() {
     ${phaseHTML(selectedMove, selectedTarget, fleeChance)}
     <div class="clog">${C.log.slice(-5).map((l) => "<div>› " + esc(l) + "</div>").join("")}</div>
   </div>`);
+  flushFX();
 }
 
 function targetHTML(t: CombatTarget) {
@@ -211,7 +250,7 @@ function targetHTML(t: CombatTarget) {
   return `<button class="space-target ${dead ? "dead" : ""} ${selected ? "selected" : ""}"
       style="left:${t.x}%; top:${t.y}%"
       ${dead || C?.phase === "aim" ? "disabled" : `onclick="cAct('target:${t.id}')"`}>
-    <span class="target-icon">${foeIcon(t.name)}</span>
+    ${foeShipSVG(t)}
     <span class="target-name">${esc(t.role)}</span>
     <span class="target-hp"><i style="width:${hp}%"></i></span>
   </button>`;
@@ -397,6 +436,8 @@ function releaseShot() {
   if (C.move === "laser") base *= 1.05;
   const dmg = Math.max(1, Math.round(base * (0.3 + score * 1.15)));
   sfx.weaponFire(C.move as 'laser' | 'torpedo' | 'ion');
+  pendingFX.push({ kind: "shot", x: target.x, y: target.y, score,
+    color: C.move === "ion" ? "#5aa7ff" : C.move === "torpedo" ? "#e8843b" : "#ffd66b" });
   target.hull -= dmg;
   const grade = score > 0.88 ? "perfect lock" : score > 0.62 ? "solid hit" : score > 0.32 ? "glancing hit" : "wild shot";
   C.log.push(`${grade}: ${dmg} damage to ${target.name}.`);
@@ -445,6 +486,7 @@ function enemyTurn(evasive: boolean) {
   if (total <= 0) return;
   S.hull -= total;
   sfx.hullHit();
+  for (const e of aliveTargets()) pendingFX.push({ kind: "return", x: e.x, y: e.y, color: "#ff5d4d" });
   C.log.push(`Hostiles rake the hull for ${total} damage${evasive ? " through evasive maneuvers" : ""}.`);
   if (S.hull <= 0) {
     C.log.push("Alarms. Fire. Silence.");

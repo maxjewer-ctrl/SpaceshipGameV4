@@ -23,9 +23,6 @@ import { clamp } from "../util";
 import { dialogueHeadHTML, crewPortraitKey } from "../ui/portraits";
 import type { CrewMember } from "../types";
 
-// Juno has no drop-in portrait art (like the named recruit roster does), so
-// every dialogue head for her falls back to a fixed icon — same contract
-// dialogueHeadHTML uses everywhere else art is missing.
 const JUNO_ICON = "🧑‍🔧";
 
 export const introStage = (): number => (typeof S?.flags?.intro === "number" ? S.flags.intro : 0);
