@@ -30,6 +30,21 @@ async function domShot(full: boolean): Promise<string> {
   const clone = root.cloneNode(true) as HTMLElement;
   clone.setAttribute("xmlns", "http://www.w3.org/1999/xhtml");
   clone.querySelectorAll("script").forEach((s) => s.remove());
+  // <canvas> serializes blank inside foreignObject — swap each clone canvas
+  // for an <img> carrying the live canvas's current bitmap.
+  const liveCv = Array.from(document.querySelectorAll("canvas"));
+  Array.from(clone.querySelectorAll("canvas")).forEach((cc, i) => {
+    const live = liveCv[i]; if (!live) return;
+    try {
+      const img = document.createElement("img");
+      img.setAttribute("src", live.toDataURL());
+      img.setAttribute("style", cc.getAttribute("style") || "");
+      img.setAttribute("class", cc.getAttribute("class") || "");
+      img.setAttribute("width", String(live.clientWidth || live.width));
+      img.setAttribute("height", String(live.clientHeight || live.height));
+      cc.parentNode?.replaceChild(img, cc);
+    } catch { /* tainted canvas — leave the blank */ }
+  });
   const xml = new XMLSerializer().serializeToString(clone);
   const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='${w}' height='${h}'><foreignObject x='0' y='0' width='${w}' height='${h}'>${xml}</foreignObject></svg>`;
   const url = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
