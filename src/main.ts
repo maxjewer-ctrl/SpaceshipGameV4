@@ -11,7 +11,7 @@ import {
 } from "./ui/cockpit";
 import { selPlanet } from "./ui/map";
 import { ptab } from "./ui/planet";
-import { showHelp, confirmNewGame, newGame, intro, startGame } from "./ui/help";
+import { showHelp, closeHelp, confirmNewGame, newGame, intro, startGame } from "./ui/help";
 import { introStart, introAct } from "./systems/intro";
 import {
   openCreator, avName, avRandomName, avFace, avHead, avGarb, avSkin, avSuit, avTrim, avStart,
@@ -70,7 +70,7 @@ Object.assign(window as any, {
   setThrottle, throttleLive, bayToggle, jettisonGood, ventGuard, ventFuel,
   commsTune, engageBurn,
   // meta
-  showHelp, confirmNewGame, newGame, intro, startGame,
+  showHelp, closeHelp, confirmNewGame, newGame, intro, startGame,
   // character creator
   openCreator, avName, avRandomName, avFace, avHead, avGarb, avSkin, avSuit, avTrim, avStart,
   // prologue campaign (DEAD RECKONING)

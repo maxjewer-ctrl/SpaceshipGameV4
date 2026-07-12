@@ -14,6 +14,9 @@ import type { CrewMember } from "../types";
 
 const CREW_PORTRAITS: Record<string, string> = {
   dez, vex, brix, tomas, ada, rook, imogen, corbin, bapu, nyla, elias,
+  // Juno Vale has no portrait of her own yet — borrowing Brix's face (same
+  // mechanic role, same "Foundry smelter decks" origin) until real art lands.
+  juno: brix,
 };
 
 export function crewPortrait(c: Pick<CrewMember, "key">): string | null {

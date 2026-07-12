@@ -20,7 +20,13 @@ import { remember, witnessAll, crewKey } from "./ledger";
 import { shift } from "./disposition";
 import { plantDelay } from "./scheduler";
 import { clamp } from "../util";
+import { dialogueHeadHTML, crewPortraitKey } from "../ui/portraits";
 import type { CrewMember } from "../types";
+
+// Juno has no drop-in portrait art (like the named recruit roster does), so
+// every dialogue head for her falls back to a fixed icon — same contract
+// dialogueHeadHTML uses everywhere else art is missing.
+const JUNO_ICON = "🧑‍🔧";
 
 export const introStage = (): number => (typeof S?.flags?.intro === "number" ? S.flags.intro : 0);
 export const introActive = (): boolean => introStage() >= 1 && !S.flags.intro_done;
@@ -55,6 +61,7 @@ export function introStart() {
   // the trust system, tells, and her deserter secret all run on the normal rails.
   const j: CrewMember = {
     id: S.uid++, name: "Juno Vale", role: "mechanic", fee: 0, salary: 6,
+    key: "juno",
     daysAboard: 40, questStage: 0, questDest: null, perk: false,
     revealed: { origin: true },
     bundle: {
@@ -186,8 +193,9 @@ function stgGoodbye(properly: boolean) {
 // ---------- stage 2 → 3: DIY repairs ----------
 function stgRig() {
   const can40 = S.credits >= 40;
+  const j = juno();
   modal(`<div class="scene"><div class="scene-loc">${S.shipName} · engine room</div>
-    <h2>🔥 The Drive Core</h2>
+    ${dialogueHeadHTML(j ? crewPortraitKey(j) : null, JUNO_ICON, "Juno Vale", "your mechanic — head-deep in the drive core")}
     <p>Juno already has the casing open. "Feed line's cooked and the regulator's shrapnel. I can bring her up, but I need patch stock — and there's three ways to get it, Captain, none of them free."</p>
     <div class="choices">
       <button onclick="introAct('rig_plate')">Cannibalize hull plating for patch stock <span class="dim">— −6 hull</span></button>
@@ -216,7 +224,7 @@ function stgRigDone(how: string) {
   log(`🔧 ${line}`);
   log("▸ NEXT: the tanks are nearly dry — 3 fuel won't reach anywhere. The wrecks outside are still holding fuel. Suit up in the cockpit for a salvage EVA.");
   modal(`<div class="scene"><div class="scene-loc">${S.shipName} · engine room</div>
-    <h2>🔥 She Lives</h2>
+    ${dialogueHeadHTML(j ? crewPortraitKey(j) : null, JUNO_ICON, "Juno Vale", "your mechanic")}
     <p>${line}</p>
     <p>The core catches on the third try — a half-tone flat, like a hymn sung by somebody angry — and every gauge on the ship blinks awake. Juno wipes her hands and looks at you for orders.</p>
     <p>"We've got <b>3 fuel</b>, Captain. Port Solace is three days' burn. You can't math that into working." She nods at the glass, at the slow-tumbling dead outside. "But <i>they're</i> still holding fuel."</p>
@@ -226,8 +234,9 @@ function stgRigDone(how: string) {
 
 // ---------- stage 3 → 4: the salvage sweep ----------
 function stgEva() {
+  const j = juno();
   modal(`<div class="scene"><div class="scene-loc">Kestrel lane · debris field</div>
-    <h2>🧑‍🚀 The Field</h2>
+    ${dialogueHeadHTML(j ? crewPortraitKey(j) : null, JUNO_ICON, "Juno Vale", "your mechanic — suited up")}
     <p>Outside is very quiet and very full. The <b>Vesper</b> hangs in two pieces, her spine glowing faintly where it parted. Beyond her, the raider cutter that killed her — dark, holed, spinning slow. And further out, a drop-skiff, mostly intact, running lights stuttering.</p>
     <p>Juno takes the tether anchor. "Vesper first. She'd want it to be us and not some claim-jumper."</p>
     <div class="choices"><button class="primary" onclick="introAct('vesper')">Cross to the Vesper</button></div></div>`);
@@ -274,6 +283,7 @@ function stgCutterIntro() {
 }
 
 function stgCutter(tookBox: boolean) {
+  const j = juno();
   S.fuel = Math.min(40, S.fuel + 6);
   S.credits += 160;
   if (tookBox) {
@@ -283,7 +293,7 @@ function stgCutter(tookBox: boolean) {
     log("＋6 fuel and +160cr in bearer bonds off the cutter. You leave the black box to spin with its dead. Some answers cost more than they pay.");
   }
   modal(`<div class="scene"><div class="scene-loc">drop-skiff, running lights stuttering</div>
-    <h2>🧑‍🚀 The Skiff</h2>
+    ${dialogueHeadHTML(j ? crewPortraitKey(j) : null, JUNO_ICON, "Juno Vale", "your mechanic — reading the panel")}
     <p>The last wreck isn't a wreck. The drop-skiff's cabin is holed, but her aft compartment is sealed — and something inside is <b>knocking</b>. Slow. Deliberate. The rhythm of someone who has been counting their own breaths for hours.</p>
     <p>Juno reads the panel. "One soul. Raider crew, has to be. Air's going amber in there, Captain — she has maybe an hour." A beat. "Your call. She shot at us this morning."</p>
     <div class="choices">
@@ -348,7 +358,7 @@ function stgPatrolHail() {
     ? `<button onclick="introAct('patrol_handover')">Transfer your raider survivor to their brig</button>` : "";
   const boxLine = S.flags.intro_blackbox ? " You think about the black box under your bunk, and about who might be named in it." : "";
   modal(`<div class="scene"><div class="scene-loc">Kestrel lane · day 2</div>
-    <h2>🛰 TUV LATTICE</h2>
+    ${dialogueHeadHTML(null, "🛰", "TUV Lattice", "Union patrol corvette — hailing")}
     <p>The Union patrol corvette finds you before noon, the way they always do — polite, unhurried, guns politely and unhurriedly live. <i>"Freighter, this is Union vessel Lattice. We show you departing a weapons-discharge zone. Report status and souls aboard."</i></p>
     <p>Juno has gone very, very quiet at the engineering board.${boxLine}</p>
     <p class="dim">A dead captain is paperwork. Out here, paperwork is politics: the Union counts everything, and remembers what doesn't add up.</p>
@@ -399,7 +409,7 @@ function stgGalleyScene() {
   const j = juno();
   if (!j) { return; }
   modal(`<div class="scene"><div class="scene-loc">${S.shipName} · galley · day 3</div>
-    <h2>🧑‍🚀 Juno, After</h2>
+    ${dialogueHeadHTML(crewPortraitKey(j), JUNO_ICON, "Juno Vale", "your mechanic")}
     <p>You find her in the galley at ship's midnight, running a diagnostic she's already run, drinking Osei's terrible coffee ration because somebody should. She doesn't look up. "Fourteen years I kept that woman's ship alive. Fourteen years, and the one hit I couldn't patch was the one that mattered."</p>
     <p class="dim">Tutorial: crew are people, not stat blocks. Walk the decks and talk to them — trust opens slowly, and what they carry shapes what they'll do for you. What you do in front of them is remembered. All of it.</p>
     <div class="choices">
@@ -459,7 +469,7 @@ export function introDebtScene() {
   const boxBtn = S.flags.intro_blackbox && !S.flags.blackbox_gone
     ? `<button onclick="introAct('debt_box')">Trade her the raider black box <span class="dim">— debt cleared, +100cr</span></button>` : "";
   modal(`<div class="scene"><div class="scene-loc">Port Solace · harbormaster</div>
-    <h2>🛃 Harbormaster Vance</h2>
+    ${dialogueHeadHTML(null, "🛃", "Harbormaster Vance", "Port Solace harbormaster")}
     <p>Sela Vance reads the transfer notice like it's a menu she's already bored of. "Osei. Good captain. Paid late, paid always." She looks up, and her eyes do the arithmetic on your jacket, your ship, your day. "Two hundred twenty, plus my sympathy, which is free."</p>
     <p>"How would you like to settle the estate, <i>Captain</i>?"</p>
     <div class="choices">

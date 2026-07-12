@@ -22,7 +22,48 @@ export function showHelp() {
     <p><b>Economy tips:</b> food is dirt-cheap on Kestrel's Rest; modules are 15% off at Foundry; goods bought at their source world sell high on the frontier. Medicine from Meridian → Verge is a classic.</p>
     <p><b>Don't:</b> run out of fuel mid-flight (ruinous tow fees), run out of food (crew starve and quit), skip payroll, or fly weaponless through pirate country with full holds.</p>
     <p><b>The Run:</b> the endgame is a timed dash against the Union net — Oregon Trail rules. Provision like your life depends on it. It does.</p>
-    <div class="choices"><button class="primary" onclick="closeModal()">Back to the black</button></div>`);
+    <div class="panel" style="margin-top:14px">
+      <h3>🎮 Controller</h3>
+      <p id="gp-status" class="dim">Checking for a controller…</p>
+      <p class="dim" style="margin-top:6px">Wired Xbox / standard-mapping USB controllers: left stick or D-pad moves in the walking scenes (Walk Ship / Station), A interacts. Browsers only report a controller after it's woken up — press any button or move a stick on it now.</p>
+    </div>
+    <div class="choices"><button class="primary" onclick="closeHelp()">Back to the black</button></div>`);
+  startGamepadWatch();
+}
+
+// ---- controller detection (surfaced in the Help modal — see systems/intro.ts
+// tutorial callout and ui/walk.ts pollGamepad for the actual movement wiring) ----
+let gpWatchHandle: number | null = null;
+
+function startGamepadWatch() {
+  stopGamepadWatch();
+  updateGamepadStatus();
+  gpWatchHandle = window.setInterval(updateGamepadStatus, 200);
+}
+
+function stopGamepadWatch() {
+  if (gpWatchHandle !== null) { clearInterval(gpWatchHandle); gpWatchHandle = null; }
+}
+
+function updateGamepadStatus() {
+  const el = document.getElementById("gp-status");
+  if (!el) { stopGamepadWatch(); return; } // modal closed some other way — stop polling
+  const pads = navigator.getGamepads ? navigator.getGamepads() : [];
+  const gp = Array.from(pads || []).find((p) => !!p);
+  if (!gp) {
+    el.innerHTML = `<span style="color:var(--bad,#d96b6b)">✕ No controller detected.</span> Plug in a wired controller and press a button on it.`;
+    return;
+  }
+  const nonStandard = gp.mapping !== "standard" ? ` <span class="dim">(non-standard button mapping — Up/Down/Left/Right and A may not line up)</span>` : "";
+  const btn = (i: number) => (gp.buttons[i]?.pressed ? "●" : "○");
+  const ax = gp.axes.slice(0, 2).map((v) => v.toFixed(2)).join(", ");
+  el.innerHTML = `<span style="color:var(--good,#6fbf73)">✓ Connected:</span> ${gp.id}${nonStandard}<br>` +
+    `stick: [${ax}] · D-pad ▲${btn(12)} ▼${btn(13)} ◀${btn(14)} ▶${btn(15)} · A${btn(0)} B${btn(1)} X${btn(2)} Y${btn(3)}`;
+}
+
+export function closeHelp() {
+  stopGamepadWatch();
+  closeModal();
 }
 
 export function confirmNewGame() {
