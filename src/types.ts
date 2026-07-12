@@ -9,6 +9,16 @@ export interface ModuleDef {
 
 export interface ModuleInstance { t: string; on: boolean; dmg: boolean; }
 
+// The captain's chosen look — set in the character creator, drawn by the shared
+// avatar renderer (ui/avatarDraw.ts) for both the preview and the walking sprite.
+export interface Appearance {
+  head: string;   // HEADS id: human | saurian | insectoid | cyclops | avian | synth
+  garb: string;   // GARBS id: jumpsuit | coat | armor
+  skin: string;   // hex — head/skin color
+  suit: string;   // hex — clothing color
+  trim: string;   // hex — accent/trim/outline
+}
+
 export interface PlanetDef {
   n: string; x: number; y: number; fac: string;
   fuelP: number; foodP: number; tag: string; d: string;
@@ -138,6 +148,8 @@ export interface GameState {
   hull: number; hullMax: number; prestige: number;
   engineLvl: number; slotsMax: number;
   loc: string; docked: boolean;
+  captainName: string;
+  appearance: Appearance;
   // The captain's own pre-command specialty. They can cover that one station
   // personally — but a captain below decks isn't captaining (contract pay
   // penalty until the role is hired).

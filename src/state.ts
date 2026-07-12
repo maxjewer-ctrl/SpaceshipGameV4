@@ -1,7 +1,8 @@
 import type { GameState, ModuleInstance } from "./types";
+import { DEFAULT_APPEARANCE } from "./ui/avatarDraw";
 
 export const SAVE_KEY = "kestrelrun";
-export const SAVE_VERSION = 7;
+export const SAVE_VERSION = 8;
 
 // The single mutable game state. `export let` gives live bindings to importers;
 // replace it only through setState so everyone sees the new object.
@@ -19,6 +20,8 @@ export function newState(shipName: string): GameState {
     shipName: shipName || "Kestrel",
     day: 1, credits: 500, fuel: 30, food: 20, hull: 100, hullMax: 100, prestige: 0,
     engineLvl: 1, slotsMax: 6, loc: "solace", docked: true,
+    captainName: "Cass Ardent",
+    appearance: { ...DEFAULT_APPEARANCE },
     captainRole: null,
     screen: "ship", ptab: "cantina", sel: null, selPlanet: null,
     rep: { union: 0, frontier: 0, syndicate: 0 },
@@ -108,6 +111,13 @@ export function migrate(s: any): GameState {
   if (s.version < 7) {
     if (s.captainRole === undefined) s.captainRole = null;
     s.version = 7;
+  }
+  // v8: captain identity — name + character-creator appearance. Older saves get
+  // the default look so their walking sprite renders.
+  if (s.version < 8) {
+    if (!s.captainName) s.captainName = "Cass Ardent";
+    if (!s.appearance || typeof s.appearance !== "object") s.appearance = { ...DEFAULT_APPEARANCE };
+    s.version = 8;
   }
   return s as GameState;
 }

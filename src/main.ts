@@ -13,6 +13,9 @@ import { selPlanet } from "./ui/map";
 import { ptab } from "./ui/planet";
 import { showHelp, confirmNewGame, newGame, intro, startGame } from "./ui/help";
 import { introStart, introAct } from "./systems/intro";
+import {
+  openCreator, avName, avRandomName, avFace, avHead, avGarb, avSkin, avSuit, avTrim, avStart,
+} from "./ui/avatar";
 import { acceptMission, hire } from "./systems/market";
 import {
   toggleMod, repairSystems, fireCrew, buyGood, sellGood, buyFuel, buyFood,
@@ -65,6 +68,8 @@ Object.assign(window as any, {
   commsTune, engageBurn,
   // meta
   showHelp, confirmNewGame, newGame, intro, startGame,
+  // character creator
+  openCreator, avName, avRandomName, avFace, avHead, avGarb, avSkin, avSuit, avTrim, avStart,
   // prologue campaign (DEAD RECKONING)
   introStart, introAct,
   // planet actions

@@ -70,7 +70,7 @@ function renderTop() {
   const run = S.arc.stage === 5 && S.arc.deadline ? pill("RUN", "DAY " + S.arc.deadline, "low", "Deadline") : "";
   $("topbar").innerHTML =
     `<span class="brand"><span class="brand-diamond"><i></i></span>
-      <span class="brand-text"><span class="bt-name">${S.shipName}</span><br><span class="bt-reg">REG ${reg}</span></span>
+      <span class="brand-text"><span class="bt-name">${S.shipName}</span><br><span class="bt-reg">CAPT. ${(S.captainName || "").toUpperCase()} · REG ${reg}</span></span>
     </span>
     <span class="pills">` +
     pill("CR", fmt(S.credits), S.credits < 100 ? "low" : "amber", "Credits") +

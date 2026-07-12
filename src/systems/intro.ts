@@ -15,6 +15,7 @@ import { modal, closeModal } from "../modal";
 import { requestRender } from "../bus";
 import { clearSave } from "../state";
 import { readCaptainRole } from "../ui/help";
+import { getCaptainName, getAppearance } from "../ui/avatar";
 import { remember, witnessAll, crewKey } from "./ledger";
 import { shift } from "./disposition";
 import { plantDelay } from "./scheduler";
@@ -35,6 +36,8 @@ export function introStart() {
   const role = readCaptainRole();
   clearSave();
   setState(newState(name));
+  S.captainName = getCaptainName();
+  S.appearance = getAppearance();
   S.captainRole = role;
   // The ship as the fight left her: drive down, bunkroom caved in, tanks holed.
   S.credits = 85;

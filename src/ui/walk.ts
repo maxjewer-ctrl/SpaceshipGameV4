@@ -4,6 +4,8 @@
 // around isn't interrupted every time an unrelated state change (credits
 // ticking, a bark firing) calls requestRender() elsewhere in the game.
 import { hasModal } from "../modal";
+import { S } from "../state";
+import { drawAvatar } from "./avatarDraw";
 
 export interface WalkRect { x: number; y: number; w: number; h: number; }
 export interface WalkDoor extends WalkRect { label: string; locked?: boolean; lockedHint?: string; action: () => void; }
@@ -387,33 +389,9 @@ function draw() {
     ctx.strokeStyle = scene.dark ? "#8a8fa066" : "#e8b04b66";
     ctx.lineWidth = 1.5; ctx.setLineDash([3, 3]); ctx.stroke(); ctx.setLineDash([]);
   }
-  drawPlayer(ctx, pos.x, pos.y, facing, moving, walkPhase, scene.dark);
-}
-
-function drawPlayer(c: CanvasRenderingContext2D, x: number, y: number, dir: string, isMoving: boolean, phase: number, dark?: boolean) {
-  const amber = dark ? "#8a8fa0" : "#e8b04b";
-  const glow = dark ? "#8a8fa055" : "#e8b04b66";
-  const bob = isMoving ? Math.sin(phase) * 2 : 0;
-  const legOff = isMoving ? Math.sin(phase * 1.6) * 4 : 0;
-  c.save();
-  c.translate(x, y + bob);
-  c.beginPath(); c.ellipse(0, 12, 12, 5, 0, 0, Math.PI * 2);
-  c.fillStyle = "#00000055"; c.fill();
-  c.strokeStyle = amber; c.lineWidth = 3; c.lineCap = "round";
-  c.beginPath(); c.moveTo(-4, 4); c.lineTo(-4 + legOff * 0.3, 14); c.stroke();
-  c.beginPath(); c.moveTo(4, 4); c.lineTo(4 - legOff * 0.3, 14); c.stroke();
-  c.beginPath();
-  c.moveTo(-8, 4); c.lineTo(-6, -12); c.lineTo(6, -12); c.lineTo(8, 4); c.closePath();
-  c.fillStyle = dark ? "#20232c" : "#1c2131"; c.fill();
-  c.strokeStyle = amber; c.lineWidth = 1.5; c.stroke();
-  c.beginPath(); c.arc(0, -18, 8, 0, Math.PI * 2);
-  c.fillStyle = dark ? "#20232c" : "#1c2131"; c.fill();
-  c.strokeStyle = amber; c.lineWidth = 1.5; c.stroke();
-  let ox = 0, oy = 2;
-  if (dir === "left") { ox = -3; oy = 0; } else if (dir === "right") { ox = 3; oy = 0; } else if (dir === "up") { ox = 0; oy = -3; }
-  c.beginPath(); c.arc(ox, -18 + oy, 3, 0, Math.PI * 2);
-  c.fillStyle = amber; c.shadowColor = glow; c.shadowBlur = 8; c.fill(); c.shadowBlur = 0;
-  c.restore();
+  // The captain's chosen avatar (character creator) — same renderer as the
+  // creator preview, so the sprite you walk is the one you built.
+  drawAvatar(ctx, pos.x, pos.y, S.appearance, { dir: facing, moving, phase: walkPhase, dark: scene.dark });
 }
 
 function updateHud() {
