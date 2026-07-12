@@ -130,9 +130,12 @@ export function buildStationScene(): WalkScene {
       const npcs = npcsInRoom(r.id);
       npcs.forEach((key, i) => {
         const n = NPCS[key];
+        // Spread wider than the 40px interact radius so picking the NPC you
+        // meant is a walk, not a lottery, when a room holds three of them.
         const cols = Math.min(npcs.length, 3);
-        const gx = r.x + 30 + (i % cols) * 56;
-        const gy = r.y + 44 + Math.floor(i / cols) * 50;
+        const spacing = cols > 1 ? Math.max(64, Math.floor((r.w - 70) / (cols - 1))) : 0;
+        const gx = r.x + 30 + (i % cols) * spacing;
+        const gy = r.y + 44 + Math.floor(i / cols) * 56;
         actors.push({
           x: gx, y: gy, w: 30, h: 30, key,
           label: n.name, icon: n.icon || "◆", color: "#d9a55b",

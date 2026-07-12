@@ -106,7 +106,14 @@ export function modCategory(t: string): string {
 // The player never sees the raw playstyle meters — only how they're talked about.
 function repStreetHtml(): string {
   const rep = reputation();
-  if (!rep) return `<div class="dim">You're still a nobody out here. Fly enough runs, make enough choices, and the lanes will start telling stories about you.</div>`;
+  if (!rep) {
+    // Prestige and the hidden disposition meters are different systems — but
+    // "a nobody" next to a 12★ badge reads as a bug. Acknowledge the fame,
+    // keep the character question open.
+    if (S.prestige >= 10) return `<div class="dim">${S.prestige}★ and climbing — the lanes know your ship on sight now. What they're still deciding is what kind of captain flies her. You're writing that part every day.</div>`;
+    if (S.prestige >= 5) return `<div class="dim">The name is starting to travel — ${S.prestige}★ worth of kept promises. Keep flying, and the lanes will decide what kind of story you are.</div>`;
+    return `<div class="dim">You're still a nobody out here. Fly enough runs, make enough choices, and the lanes will start telling stories about you.</div>`;
+  }
   const loud = rep.strength >= 20 ? "Your name carries all the way to the core worlds."
     : rep.strength >= 12 ? "It's a reputation now, not a rumor." : "The talk is starting to follow you.";
   return `<div class="card" style="border-color:var(--amber)">

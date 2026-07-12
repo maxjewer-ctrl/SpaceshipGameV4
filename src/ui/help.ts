@@ -51,9 +51,10 @@ export function startGame() {
   S.appearance = getAppearance();
   S.captainRole = role;
   clearModal();
-  log(`Captain ${S.captainName} takes possession of the ${name} at Port Solace. She's ugly, slow, and yours.`);
-  if (role) log(`You know your way around ${role === "quartermaster" ? "a ledger" : "the " + role + "'s station"} — you can cover it yourself for now. Hire your own replacement soon; a captain who never leaves that station isn't captaining.`);
+  // log() unshifts — write the story line LAST so it reads FIRST.
   log("Tip: hit the Cantina for work, the Market for fuel & food, the Shipyard for modules. ? Help has the full manual.");
+  if (role) log(`You know your way around ${role === "quartermaster" ? "a ledger" : "the " + role + "'s station"} — you can cover it yourself for now. Hire your own replacement soon; a captain who never leaves that station isn't captaining.`);
+  log(`Captain ${S.captainName} takes possession of the ${name} at Port Solace. She's ugly, slow, and yours.`);
   refreshMarket();
   requestRender();
 }

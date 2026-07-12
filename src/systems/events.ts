@@ -54,16 +54,32 @@ export function evQuiet() {
 }
 
 // ---------- pirates ----------
+// The hostile roster scales with the calendar — scav drones any fresh captain
+// can actually beat, skiffs as the working threat, corsairs as the wall, and
+// the rare lane-wolf gunship as the "not today" encounter. Variety in what's
+// shooting at you is variety in what the right answer is.
 export function evPirates() {
-  const tough = S.day > 22 || rand() < 0.3;
-  const e = tough
-    ? { name: "Pirate Corsair", hull: 55, dmg: 12, bribe: 280, loot: 250 }
-    : { name: "Pirate Skiff", hull: 32, dmg: 8, bribe: 150, loot: 130 };
+  const roll = rand();
+  let e: { name: string; hull: number; dmg: number; bribe: number; loot: number };
+  let hail: string;
+  if (S.day <= 12 && roll < 0.45) {
+    e = { name: "Scav Drone", hull: 16, dmg: 4, bribe: 40, loot: 60 };
+    hail = `An automated scavenger drone locks on, thrusters stuttering — somebody's harvest bot gone feral. Its threat library is older than your registry: <i>"SURRENDER SALVAGE. COMPLY."</i>`;
+  } else if (S.day > 15 && roll > 0.88) {
+    e = { name: "Lane-Wolf Gunship", hull: 62, dmg: 14, bribe: 380, loot: 340 };
+    hail = `A lane-wolf gunship rises off the ecliptic where it's been lying cold — a professional's ambush. The hail is almost courteous: <i>"Nothing personal, Captain. Cargo and credits, or we open you like a tin."</i>`;
+  } else if (S.day > 22 ? roll < 0.55 : roll < 0.3) {
+    e = { name: "Pirate Corsair", hull: 55, dmg: 12, bribe: 280, loot: 250 };
+    hail = `A pirate corsair burns hard on an intercept course, weapons hot. The comm crackles: <i>"Cut engines and prepare to be boarded, or be scrap."</i>`;
+  } else {
+    e = { name: "Pirate Skiff", hull: 32, dmg: 8, bribe: 150, loot: 130 };
+    hail = `A pirate skiff burns hard on an intercept course, weapons hot. The comm crackles: <i>"Cut engines and prepare to be boarded, or be scrap."</i>`;
+  }
   // An honest tactical read before the player commits: four good salvos that
   // can't crack the lead ship means this fight is a funeral, and the UI says so.
   const outgunned = stats().dmg * 4 < e.hull;
   modal(`<h2>⚠ Contact — ${e.name}</h2>
-    <p>A ${e.name.toLowerCase()} burns hard on an intercept course, weapons hot. The comm crackles: <i>"Cut engines and prepare to be boarded, or be scrap."</i></p>
+    <p>${hail}</p>
     <div class="choices">
       <button onclick="closeModal(); startCombat(${JSON.stringify(e).replace(/"/g, "&quot;")}, pirateWin, pirateLoseFlee)">Battle stations${outgunned ? ' <span class="dim">— tactical readout: OUTGUNNED. This is how ships die.</span>' : ""}</button>
       <button onclick="pirateFlee(${e.dmg})">Punch it and run ${stats().has("pilot") ? "(pilot aboard — good odds)" : ""}</button>

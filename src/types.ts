@@ -79,7 +79,9 @@ export interface Market {
   prices: Record<string, number>; rumors: string[];
 }
 
-export interface Travel { from: string; dest: string; total: number; left: number; }
+// evd: did anything happen this leg yet? Quiet short hops force one event on
+// their final day — dead air teaches players that travel is a loading screen.
+export interface Travel { from: string; dest: string; total: number; left: number; evd?: boolean; }
 
 export interface ArcState {
   stage: number; deadline: number | null;

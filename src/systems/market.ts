@@ -24,11 +24,24 @@ export function refreshMarket() {
   for (const g in GOODS) {
     prices[g] = Math.round(GOODS[g].base * p.goods[g] * (0.9 + rand() * 0.25));
   }
+  // The job board should mostly say YES: cap gated missions (needing modules,
+  // prestige, berths you don't have) at ~1/3 of the board. A new captain who
+  // reads four contracts and can take one learns "not for you"; that's the
+  // wrong first lesson.
   const missions: Job[] = [];
   const n = ri(3, 5);
-  for (let i = 0; i < n; i++) { const m = genMission(); if (m) missions.push(m); }
+  let guard = 16;
+  while (missions.length < n && guard-- > 0) {
+    const m = genMission();
+    if (!m) continue;
+    const gated = !canAccept(m)[0];
+    const gatedAlready = missions.filter((x) => !canAccept(x)[0]).length;
+    if (gated && gatedAlready >= Math.max(1, Math.floor(n / 3))) continue;
+    missions.push(m);
+  }
+  // Crews shouldn't be luck-gated: every cantina has at least one hand for hire.
   const recruits: CrewMember[] = [];
-  const rn = ri(0, 2);
+  const rn = ri(1, 3);
   for (let i = 0; i < rn; i++) recruits.push(genRecruit());
   // Named roster characters drink in their home-world cantinas until hired.
   const named = namedRecruitHere();

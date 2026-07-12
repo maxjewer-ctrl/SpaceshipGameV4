@@ -32,6 +32,7 @@ import {
   arcMeet, arcAcceptCrate, arcAcceptVoss, arcStartRun,
   ambushHandOver, ambushFight, ambushRun,
   hunterWin, hunterFled, hunterRun, interceptWin, interceptFled,
+  runPicketAround, runPicketThread, runNetDecoy, runNetSilent, runNetPush,
 } from "./systems/arc";
 import { riderFight } from "./systems/scheduler";
 import { sceneChoose, sceneContinue } from "./systems/scene";
@@ -87,6 +88,7 @@ Object.assign(window as any, {
   arcMeet, arcAcceptCrate, arcAcceptVoss, arcStartRun,
   ambushHandOver, ambushFight, ambushRun,
   hunterWin, hunterFled, hunterRun, interceptWin, interceptFled,
+  runPicketAround, runPicketThread, runNetDecoy, runNetSilent, runNetPush,
   // consequence scheduler
   riderFight,
   // station scenes (dialogue-tree modal choices)

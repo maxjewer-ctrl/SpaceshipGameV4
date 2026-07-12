@@ -41,6 +41,11 @@ export function learn(key: string, line: string) {
 export function silenceTick() {
   const c = sil();
   if (S.over) return;
+  // The conductor: two campaigns never share a stage. The Silence holds its
+  // breath during the prologue and the Run — its clocks simply resume after,
+  // so nothing is lost, only deferred past someone else's climax.
+  if (S.arc.stage === 5) return;
+  if (typeof S.flags.intro === "number" && !S.flags.intro_done) return;
   // Scene-granted fragments (set as plain flags by the dialogue DSL) also count
   // toward the threshold — check it here so every route can tip the Dimming.
   if (c.stage === 1 && c.nextDay === null && knowledgeCount() >= 3) {

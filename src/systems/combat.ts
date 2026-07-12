@@ -9,7 +9,7 @@ import { bark, tellBark } from "./barks";
 import { shift } from "./disposition";
 import type { Enemy } from "../types";
 
-type MoveId = "laser" | "torpedo" | "ion" | "evasive" | "flee" | "bribe";
+type MoveId = "laser" | "torpedo" | "ion" | "evasive" | "flee" | "bribe" | "decoy" | "gambit";
 type CombatPhase = "command" | "target" | "aim" | "over";
 
 interface CombatTarget extends Enemy {
@@ -41,6 +41,11 @@ interface CombatState {
   targetId: number | null;
   aimStart: number;
   scenario: Scenario;
+  // alternate solutions — once each per engagement
+  decoyUsed: boolean;
+  gambitUsed: boolean;
+  dampen: number;      // rounds of halved incoming (mechanic's cold restart)
+  evadeBoost: number;  // additive flee-odds bonus this combat
 }
 
 const MOVES: Array<{ id: MoveId; name: string; desc: string; needsTarget?: boolean }> = [
@@ -74,6 +79,10 @@ export function startCombat(e: Enemy, onWin?: () => void, onEscape?: () => void)
     targetId: null,
     aimStart: 0,
     scenario,
+    decoyUsed: false,
+    gambitUsed: false,
+    dampen: 0,
+    evadeBoost: 0,
   };
   if (!tellBark("combat_start")) bark("combat_start", { chance: 0.8 });
   drawCombat();
@@ -129,6 +138,34 @@ function esc(s: string): string {
 
 function aliveTargets() {
   return C ? C.targets.filter((t) => t.hull > 0) : [];
+}
+
+// ---- alternate solutions: not every fight is a shooting problem ----
+function isPirateFoe(): boolean {
+  return !!C && /pirate|scav|corsair|skiff|raider|lane-wolf/i.test(C.targets[0].name);
+}
+function cargoTotal(): number { return S.cargo.ore + S.cargo.med + S.cargo.lux; }
+
+// One crew gambit per engagement, chosen by who's actually aboard: an
+// ex-pirate talks, a gunner overloads, a mechanic vanishes you sideways.
+function gambitInfo(): { kind: string; name: string; desc: string } | null {
+  if (!C || C.gambitUsed) return null;
+  if (S.crew.some((c) => c.key === "rook") && isPirateFoe())
+    return { kind: "parley", name: "Rook's Parley", desc: "he knows these crews by name — talk them down" };
+  if (S.crew.some((c) => c.role === "gunner") && stats().inst("weapons") > 0)
+    return { kind: "overcharge", name: "Gunner's Overcharge", desc: "one guaranteed perfect lance — hard on the capacitors" };
+  if (S.crew.some((c) => c.role === "mechanic"))
+    return { kind: "coldstart", name: "Cold Restart", desc: "dump & relight the drive: incoming halved 2 rounds, +20% escape" };
+  return null;
+}
+
+function availableMoves(): Array<{ id: MoveId; name: string; desc: string }> {
+  const list: Array<{ id: MoveId; name: string; desc: string }> = [...MOVES];
+  if (C && !C.decoyUsed && isPirateFoe() && cargoTotal() >= 3)
+    list.push({ id: "decoy", name: "Cargo Decoy", desc: "jettison 3 goods — raiders break for the loot" });
+  const gi = gambitInfo();
+  if (gi) list.push({ id: "gambit", name: gi.name, desc: gi.desc });
+  return list;
 }
 
 function drawCombat() {
@@ -212,7 +249,7 @@ function phaseHTML(selectedMove: typeof MOVES[number] | undefined, selectedTarge
     </div>`;
   }
   return `<div class="move-grid">
-    ${MOVES.map((m) => {
+    ${availableMoves().map((m) => {
     const disabled = (m.id === "bribe" && !C!.targets[0].bribe) ? "disabled" : "";
     const extra = m.id === "flee" ? ` · ${fleeChance}%` : m.id === "bribe" ? ` · ${bribeCost(C!.targets[0].bribe || 0)}cr` : "";
     return `<button ${disabled} onclick="cAct('move:${m.id}')"><b>${esc(m.name)}</b><span>${esc(m.desc)}${extra}</span></button>`;
@@ -288,6 +325,60 @@ function chooseMove(move: MoveId) {
     finishRound();
     return;
   }
+  if (move === "decoy") {
+    C.decoyUsed = true;
+    let need = 3;
+    for (const g of ["ore", "med", "lux"]) {
+      const d = Math.min(need, S.cargo[g]);
+      S.cargo[g] -= d; need -= d;
+      if (!need) break;
+    }
+    if (rand() < 0.85) {
+      C.log.push("You blow the hold latches — three units of cargo tumble out, glittering. The hostiles break formation for the loot, and you burn hard the other way.");
+      C.phase = "over"; C.result = "fled"; drawCombat(); return;
+    }
+    C.log.push("They don't even slow down for it — professionals. The cargo spins away, wasted.");
+    enemyTurn(false);
+    finishRound();
+    return;
+  }
+  if (move === "gambit") {
+    const gi = gambitInfo();
+    if (!gi) return;
+    C.gambitUsed = true;
+    if (gi.kind === "parley") {
+      if (rand() < 0.65) {
+        C.log.push("Rook takes the channel and says four names, a dock number, and a date. Long silence. Then: \"...tell Knife-Eight we're square.\" The hostiles stand down and burn away.");
+        C.phase = "over"; C.result = "fled"; drawCombat(); return;
+      }
+      C.log.push("Whoever's flying today doesn't owe Rook anything. The answer comes back as guns.");
+      enemyTurn(false); finishRound(); return;
+    }
+    if (gi.kind === "overcharge") {
+      const t = aliveTargets()[0];
+      const st = stats();
+      const dmg = Math.max(1, Math.round(st.dmg * 1.75 * 1.4));
+      t.hull -= dmg;
+      C.log.push(`Your gunner dumps the capacitor bank into one perfect lance: ${dmg} damage to ${t.name}.`);
+      const w = S.modules.find((m) => m.t === "weapons" && !m.dmg);
+      if (w && rand() < 0.25) { w.dmg = true; C.log.push("The overcharge cooks a weapons bay — it'll need yard time."); }
+      if (t.hull <= 0) {
+        C.log.push(`${t.name} breaks apart and spins out of formation.`);
+        if (!aliveTargets().length) {
+          C.log.push("The scope clears. Nothing hostile remains.");
+          C.phase = "over"; C.result = "win"; bark("combat_win", { chance: 0.7 }); drawCombat(); return;
+        }
+      }
+      enemyTurn(false); finishRound(); return;
+    }
+    // coldstart — the mechanic's escape play
+    C.dampen = 2;
+    C.evadeBoost = 0.2;
+    C.log.push("Your mechanic dumps the drive and relights it on a new vector. Every targeting solution behind you goes stale at once.");
+    enemyTurn(true);
+    finishRound();
+    return;
+  }
   C.targetId = aliveTargets()[0]?.id ?? null;
   C.phase = "target";
   drawCombat();
@@ -348,6 +439,7 @@ function enemyTurn(evasive: boolean) {
     if (evasive) hit = Math.ceil(hit / 2);
     total += hit;
   }
+  if (C.dampen > 0) { total = Math.ceil(total * 0.5); C.dampen--; }
   if (total <= 0) return;
   S.hull -= total;
   C.log.push(`Hostiles rake the hull for ${total} damage${evasive ? " through evasive maneuvers" : ""}.`);
@@ -370,7 +462,7 @@ function finishRound() {
 
 function fleeOdds() {
   const st = stats();
-  return 0.35 + (st.has("pilot") ? 0.25 : 0) + S.engineLvl * 0.08;
+  return 0.35 + (st.has("pilot") ? 0.25 : 0) + S.engineLvl * 0.08 + (C?.evadeBoost || 0);
 }
 
 export function endCombat() {

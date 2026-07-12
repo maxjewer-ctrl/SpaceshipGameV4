@@ -52,19 +52,25 @@ export function advanceDay() {
   S.travel.left--;
   if (S.travel.left <= 0) { arrive(); requestRender(); return; }
   // The prologue scripts its own travel days — no random lane events on top.
-  if (introTravelBeat()) { requestRender(); return; }
+  if (introTravelBeat()) { S.travel.evd = true; requestRender(); return; }
   // events
-  if (S.arc.stage === 5 && rand() < 0.45) { evHunter(); requestRender(); return; }
+  if (S.arc.stage === 5 && rand() < 0.45) { S.travel.evd = true; evHunter(); requestRender(); return; }
   const arcJob = S.jobs.find((j) => j.arcVoss);
   if (arcJob && !S.arc.ambushed && S.travel.dest === "havens") {
     S.arc.ambushed = true;
+    S.travel.evd = true;
     evAmbush();
     requestRender();
     return;
   }
   // Planted consequences take priority over fresh random noise.
-  if (checkScheduler()) { requestRender(); return; }
-  if (rand() < 0.42) rollEvent();
+  if (checkScheduler()) { S.travel.evd = true; requestRender(); return; }
+  // No dead legs: if a hop has been pure silence, its last full day always
+  // rolls something — even a quiet-flavor beat beats three clicks of nothing.
+  if (rand() < 0.42 || (S.travel.left === 1 && !S.travel.evd)) {
+    S.travel.evd = true;
+    rollEvent();
+  }
   requestRender();
 }
 

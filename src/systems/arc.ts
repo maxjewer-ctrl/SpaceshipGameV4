@@ -2,7 +2,7 @@
 // content_arcs — for now it's the reference implementation the DSL must match.
 import { S, log } from "../state";
 import { stats, paxJobs, vipJobs, cargoUsed, daysTo } from "../derive";
-import { rand } from "../rng";
+import { rand, ri } from "../rng";
 import { clamp, fmt } from "../util";
 import { modal, closeModal } from "../modal";
 import { requestRender } from "../bus";
@@ -184,13 +184,80 @@ export function arcStartRun() {
     <div class="choices"><button class="primary" onclick="closeModal()">Punch it.</button></div>`);
 }
 
+// The Run's daily pressure rotates through three shapes — a straight fight, a
+// picket to outmaneuver, and a listening net with no combat at all — so the
+// dash reads as a manhunt, not the same modal five days straight.
 export function evHunter() {
+  const beat = (S.flags.run_beat || 0) % 3;
+  S.flags.run_beat = beat + 1;
+  if (beat === 1) { evRunPicket(); return; }
+  if (beat === 2) { evRunNet(); return; }
   modal(`<h2>⚠ Hunter-Killer on Intercept</h2>
     <p>A sleek Union hunter drops out of high burn, weapons already cycling. No hails. No demands. They're not here to arrest anyone anymore.</p>
     <div class="choices">
       <button onclick="closeModal(); startCombat({name:'Union Hunter-Killer', hull:58, dmg:15}, hunterWin, hunterFled)">Turn and fight</button>
       <button onclick="hunterRun()">Evade (${Math.round((0.35 + (stats().has("pilot") ? 0.25 : 0) + S.engineLvl * 0.08) * 100)}%)</button>
     </div>`);
+}
+
+function evRunPicket() {
+  modal(`<h2>⚠ Picket Line</h2>
+    <p>Two Union interceptors hold station across the lane ahead, drives cold, running dark — a tripwire with guns. They haven't seen you yet. The wide way around costs fuel you'd rather keep.</p>
+    <div class="choices">
+      <button onclick="runPicketAround()">Burn wide around them <span class="dim">— −4 fuel, clean</span></button>
+      <button onclick="runPicketThread()">Thread the line dark <span class="dim">— nerve and drift, no burn</span></button>
+      <button onclick="closeModal(); startCombat({name:'Union Interceptor', hull:40, dmg:11}, hunterWin, hunterFled)">Hit the picket before it wakes</button>
+    </div>`);
+}
+export function runPicketAround() {
+  closeModal();
+  S.fuel = Math.max(0, S.fuel - 4);
+  log("◆ You swing wide of the picket line, engines feathered, and lose four units of fuel buying silence. Nobody stirs.");
+  requestRender();
+}
+export function runPicketThread() {
+  closeModal();
+  shift("daring", 1, "threaded a Union picket dark");
+  const st = stats();
+  const chance = 0.5 + (st.has("pilot") ? 0.25 : 0) + S.engineLvl * 0.06;
+  if (rand() < chance) {
+    log("◆ Drives cold, transponder dead, you drift straight through the middle of their tripwire. Voss doesn't breathe for an hour. Neither do you.");
+  } else {
+    log("◆ A proximity buoy pings you halfway through the line. The near interceptor lights its drive.");
+    startCombat({ name: "Union Interceptor", hull: 40, dmg: 11 }, hunterWin, hunterFled);
+  }
+  requestRender();
+}
+
+function evRunNet() {
+  modal(`<h2>📡 The Listening Net</h2>
+    <p>The band fills with soft, patient pinging — a Union drone net sweeping the lane, triangulating everything that moves. No guns out here. Just ears, and every hour they listen, the hunters behind you get a cleaner fix.</p>
+    <div class="choices">
+      <button onclick="runNetDecoy()">Rig a decoy beacon from spares <span class="dim">— −80cr, they chase the ghost</span></button>
+      <button onclick="runNetSilent()">Go silent and drift through <span class="dim">— costs most of a day</span></button>
+      <button onclick="runNetPush()">Push through at full burn <span class="dim">— they'll vector something onto you</span></button>
+    </div>`);
+}
+export function runNetDecoy() {
+  closeModal();
+  if (S.credits < 80) { log("◆ Not enough spare credits for decoy parts. You'll have to drift or push."); evRunNet(); return; }
+  S.credits -= 80;
+  log("◆ The decoy beacon tumbles away squawking your transponder codes. Somewhere behind you, hunters converge on eighty credits of scrap.");
+  requestRender();
+}
+export function runNetSilent() {
+  closeModal();
+  if (S.travel) S.travel.left++;
+  log("◆ You cut everything and drift through the net like wreckage. It works — but the deadline doesn't drift with you. (+1 day to this leg)");
+  requestRender();
+}
+export function runNetPush() {
+  closeModal();
+  shift("daring", 1, "ran a listening net at full burn");
+  const hit = ri(5, 10);
+  S.hull = Math.max(1, S.hull - hit);
+  log(`◆ You redline it through the net. The fix they get is good enough for a long-range volley as you clear the far side (−${hit} hull).`);
+  requestRender();
 }
 export function hunterWin() { S.prestige += 2; log("◆ Hunter-killer destroyed. Voss doesn't celebrate. Neither do you. (+2 prestige)"); }
 export function hunterFled() { log("◆ You shook the hunter — this time."); }
