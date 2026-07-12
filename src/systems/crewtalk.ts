@@ -9,6 +9,7 @@ import { requestRender } from "../bus";
 import { ROLES, PLANETS } from "../content";
 import { sentiment, crewKey, remember, strongestMemory, hasMemory } from "./ledger";
 import { trustTier, dispositionWord } from "./trust";
+import { dialogueHeadHTML, crewPortraitKey } from "../ui/portraits";
 import { stats } from "../derive";
 import { pick } from "../rng";
 import { fmt } from "../util";
@@ -43,8 +44,7 @@ function renderCrewTalk() {
     : `${S.shipName} · ${ROLES[c.role]?.n || c.role}`;
   modal(`<div class="scene">
     <div class="scene-loc">${where}</div>
-    <h2>🧑‍🚀 ${c.name}</h2>
-    <p class="dim">${TIER_LABEL[tier]} · <span class="ctword ${dw.cls}">${dw.word}</span></p>
+    ${dialogueHeadHTML(crewPortraitKey(c), "🧑‍🚀", c.name, `${TIER_LABEL[tier]} · <span class="ctword ${dw.cls}">${dw.word}</span>`)}
     ${lastLine ? `<p>${lastLine}</p>` : `<p class="dim">${c.name} looks up as you approach.</p>`}
     <div class="choices">
       <button onclick="ctVibe()">How are you holding up?</button>

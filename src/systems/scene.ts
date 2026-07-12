@@ -8,6 +8,7 @@ import type { SceneChoice } from "../content";
 import { stats, paxJobs, vipJobs, cargoUsed, isSilenced } from "../derive";
 import { modal, closeModal } from "../modal";
 import { requestRender } from "../bus";
+import { dialogueHeadHTML } from "../ui/portraits";
 import { applyEffects } from "./scheduler";
 
 // ---- requirement checks (shared by scene choices and NPC gates) ----
@@ -64,7 +65,7 @@ function renderNode(key: string, nodeKey: string) {
     return `<button ${ok ? "" : "disabled"} onclick="sceneChoose('${key}','${nodeKey}',${i})">${c.label}${ok ? "" : ` <span class="dim">— ${why}</span>`}</button>`;
   }).join("");
   modal(`<div class="scene"><div class="scene-loc">${PLANETS[S.loc].n} · station</div>
-    <h2>${npc.icon || "◆"} ${npc.name}</h2>
+    ${dialogueHeadHTML(key, npc.icon || "◆", npc.name, npc.blurb)}
     <p>${node.text}</p>
     <div class="choices">${choices}</div></div>`);
 }
@@ -81,7 +82,7 @@ export function sceneChoose(key: string, nodeKey: string, idx: number) {
   };
   if (c.reply) {
     pendingAfter = after;
-    modal(`<div class="scene"><h2>${npc.icon || "◆"} ${npc.name}</h2>
+    modal(`<div class="scene">${dialogueHeadHTML(key, npc.icon || "◆", npc.name)}
       <p>${c.reply}</p>
       <div class="choices"><button class="primary" onclick="sceneContinue()">Continue</button></div></div>`);
   } else {

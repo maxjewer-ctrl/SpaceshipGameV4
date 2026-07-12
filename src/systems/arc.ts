@@ -1,6 +1,7 @@
 // The Voss / Elysium Gate storyline. In Phase 1 this becomes data in
 // content_arcs — for now it's the reference implementation the DSL must match.
 import { S, log } from "../state";
+import { dialogueHeadHTML } from "../ui/portraits";
 import { stats, paxJobs, vipJobs, cargoUsed, daysTo } from "../derive";
 import { rand, ri } from "../rng";
 import { clamp, fmt } from "../util";
@@ -49,7 +50,7 @@ export function arcCantinaCard(): string {
 }
 
 export function arcMeet() {
-  modal(`<h2>◆ Dr. Elara Voss</h2>
+  modal(`${dialogueHeadHTML("voss", "🧥", "Dr. Elara Voss", "the woman in the grey coat")}
     <p>"Captain. I'll be brief. I have a crate — sealed, heavy, and very much not your business what's inside. It needs to reach <b>Verge Station</b> intact. No manifests, no questions."</p>
     <p>"The Union would prefer it didn't arrive. That's all you need to know, and honestly more than is safe."</p>
     <p class="dim">Requires 4 free cargo space. Pays 600cr on delivery.</p>
