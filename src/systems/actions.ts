@@ -4,6 +4,7 @@ import { stats, modInst, cargoUsed, scargoUsed, paxJobs, vipJobs } from "../deri
 import { pick } from "../rng";
 import { requestRender } from "../bus";
 import { yardPrice } from "./market";
+import { portPriceMult, hasPortMark } from "./port";
 import { strongestMemory, sentiment, crewKey } from "./ledger";
 
 // ---------- power grid ----------
@@ -117,13 +118,18 @@ export function sellGood(g: string, n: number) {
 }
 
 export function buyFuel(n: number) {
-  // The miners' guild echo: friendly fuel prices for a season after a rescue.
-  const discounted = typeof S.flags.guild_discount === "number" && S.flags.guild_discount > S.day;
-  const p = Math.max(1, Math.round(PLANETS[S.loc].fuelP * (discounted ? 0.85 : 1)));
+  // Three things move the pump price: the miners' guild echo (a season of
+  // gratitude after a rescue), your standing at THIS port, and Bev's salvage
+  // stall if you set her up here.
+  const guild = typeof S.flags.guild_discount === "number" && S.flags.guild_discount > S.day;
+  const bev = hasPortMark(S.loc, "bev_stall");
+  const mult = portPriceMult(S.loc) * (guild ? 0.85 : 1) * (bev ? 0.9 : 1);
+  const p = Math.max(1, Math.round(PLANETS[S.loc].fuelP * mult));
   n = Math.min(n, Math.floor(S.credits / p), Math.floor(stats().fuelCap - S.fuel));
   if (n <= 0) { log("Tanks full or pockets empty."); requestRender(); return; }
   S.credits -= n * p; S.fuel += n;
-  log(`Refueled ${n} units @ ${p}cr${discounted ? " (guild discount)" : ""}.`); requestRender();
+  const tags = [guild ? "guild" : "", bev ? "Bev's stall" : "", portPriceMult(S.loc) < 1 ? "regular's rate" : portPriceMult(S.loc) > 1 ? "revised fees" : ""].filter(Boolean).join(", ");
+  log(`Refueled ${n} units @ ${p}cr${tags ? " (" + tags + ")" : ""}.`); requestRender();
 }
 
 export function buyFood(n: number) {

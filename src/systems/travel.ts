@@ -20,6 +20,7 @@ import { silenceTick, silenceArrive } from "./silence";
 import { introTravelBeat, introArrive } from "./intro";
 import { checkCrewQuests, checkCrewDeparture } from "./crewtalk";
 import { checkAgendaBeats } from "./agendabeats";
+import { bumpStanding } from "./port";
 import type { Job } from "../types";
 
 export function depart(destId: string) {
@@ -235,6 +236,9 @@ export function completePay(j: Job) {
   S.credits += pay;
   S.prestige += j.prestige || 0;
   if (j.rep) S.rep[j.rep[0]] = clamp(S.rep[j.rep[0]] + (j.rep[1] || 1), -20, 20);
+  // Delivering here earns goodwill at THIS port — the surest way to become a
+  // regular somewhere is to keep showing up with the goods.
+  bumpStanding(S.loc, (j.prestige || 0) >= 3 ? 2 : 1);
   // campaign missions report completion via flags (scenes gate on job_<tag>)
   if (j.tag) S.flags["job_" + j.tag] = true;
   log(`✓ ${j.title} — paid ${Math.round(pay).toLocaleString()}cr${j.prestige ? ", +" + j.prestige + " prestige" : ""}.`);

@@ -51,6 +51,10 @@ export interface RiderEffect {
   plantRider?: { min: number; max: number; key: string };
   npc?: { key: string; name: string; disposition: number; agenda?: string; power?: number };
   recruit?: { role: string; name: string; salary?: number; key?: string };
+  // per-station standing nudge at the current port, and a location-stamped
+  // set-dressing mark (see systems/port.ts)
+  standing?: number;
+  portMark?: string;
 }
 
 // ---- Named recruitable characters (the twelve — see docs/CREW_DOSSIERS.md) ----

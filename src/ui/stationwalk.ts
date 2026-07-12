@@ -7,7 +7,18 @@ import { PLANETS, NPCS } from "../content";
 import { requestRender } from "../bus";
 import { npcsInRoom, openNPC } from "../systems/scene";
 import { introDebtDoor, introDebtScene } from "../systems/intro";
+import { hasPortMark, standingWord, standingGreeting } from "../systems/port";
 import { isSilenced } from "../derive";
+
+// Location-stamped consequence set-dressing: a permanent physical change to
+// ONE station, keyed to something you did there. { mark: [room, appended prose] }
+const PORT_MARKS: Record<string, [string, string]> = {
+  bev_stall: ["market", "Off the main floor, a salvage stall you paid to exist: Bev works it now, and waves you over. Her fuel runs cheap for the ship that cleared her ledger."],
+  tomas_chair: ["undercity", "The recycler line runs one chair short these days. The crew leave it empty on purpose — the seat of a man who got out."],
+  tomas_bonded: ["undercity", "Tomas still works the line, head down, cheap as ever. He doesn't look up when you pass. The other hands do, and then they don't."],
+  aldren_berth: ["docks", "The berth where a family slept one night is roped off now, unassigned. Nobody on this deck will say why. You could."],
+  aldren_thanks: ["docks", "A dockhand nods at your ship every time you make port here — word got around who stopped, the night of the sweep."],
+};
 import { stationWalkTick } from "../systems/walkEncounters";
 import { teardown, forgetSpawn } from "./walk";
 import type { WalkScene, WalkRoom, WalkRect, WalkDoor, WalkActor } from "./walk";
@@ -147,12 +158,24 @@ export function buildStationScene(): WalkScene {
 
   const roomDesc: Record<string, string> = {};
   for (const r of ROOMS) roomDesc[r.id] = (dark ? DARK_DESC[r.id] : ROOM_DESC[r.id]) || "";
+  if (!dark) {
+    // Consequence set-dressing: mark prose is appended to its room.
+    for (const key in PORT_MARKS) {
+      if (!hasPortMark(S.loc, key)) continue;
+      const [room, text] = PORT_MARKS[key];
+      roomDesc[room] = ((roomDesc[room] || "") + " " + text).trim();
+    }
+    // Your standing colours the berth prose — the port greets you at the ramp.
+    const greet = standingGreeting(S.loc);
+    if (greet) roomDesc.docks = ((roomDesc.docks || "") + " " + greet).trim();
+  }
 
   const p = PLANETS[S.loc];
+  const swrd = dark ? "" : standingWord(S.loc);
   return {
     id: "station:" + S.loc,
     title: `${p.n} — Station Deck${dark ? " (dark)" : ""}`,
-    status: dark ? "SIGNAL LOST · AUTOMATION ONLY" : `${p.n.toUpperCase()} STATION`,
+    status: dark ? "SIGNAL LOST · AUTOMATION ONLY" : `${p.n.toUpperCase()} STATION${swrd && swrd !== "NEUTRAL" ? " · " + swrd : ""}`,
     width: 1000, height: 700,
     floors, rooms, roomDesc, doors, actors,
     spawn: { x: 550, y: 590 }, // just inside the docks room

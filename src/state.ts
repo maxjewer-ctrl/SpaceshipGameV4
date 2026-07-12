@@ -2,7 +2,7 @@ import type { GameState, ModuleInstance } from "./types";
 import { DEFAULT_APPEARANCE } from "./ui/avatarDraw";
 
 export const SAVE_KEY = "kestrelrun";
-export const SAVE_VERSION = 8;
+export const SAVE_VERSION = 9;
 
 // The single mutable game state. `export let` gives live bindings to importers;
 // replace it only through setState so everyone sees the new object.
@@ -32,6 +32,7 @@ export function newState(shipName: string): GameState {
     arc: { stage: 0, deadline: null, betrayed: false, ambushed: false, done: false },
     scheduled: [], ledger: [], npcs: [], flags: {},
     disposition: { mercy: 0, law: 0, daring: 0 },
+    portStanding: {},
     campaign: { silence: { stage: 0, silenced: [], nextDay: null, nextWorld: null, billDay: null } },
     starve: 0, unpaid: 0, uid: 1, over: false, won: false, dead: false,
   };
@@ -118,6 +119,11 @@ export function migrate(s: any): GameState {
     if (!s.captainName) s.captainName = "Cass Ardent";
     if (!s.appearance || typeof s.appearance !== "object") s.appearance = { ...DEFAULT_APPEARANCE };
     s.version = 8;
+  }
+  // v9: per-station standing. Old saves start every port neutral.
+  if (s.version < 9) {
+    if (!s.portStanding || typeof s.portStanding !== "object") s.portStanding = {};
+    s.version = 9;
   }
   return s as GameState;
 }

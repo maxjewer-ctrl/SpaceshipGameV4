@@ -12,6 +12,7 @@ import { requestRender } from "../bus";
 import { startCombat } from "./combat";
 import { remember } from "./ledger";
 import { reputation, shift, type Axis } from "./disposition";
+import { bumpStanding, markPort } from "./port";
 import { genBundle } from "./market";
 import { rand } from "../rng";
 import type { Job } from "../types";
@@ -95,6 +96,8 @@ export function applyEffects(effects: RiderEffect[]) {
       remember(`world:${w.planet}`, w.fact, w.weight, w.note);
     }
     if (e.dispo) shift(e.dispo.axis as Axis, e.dispo.n);
+    if (e.standing) bumpStanding(S.loc, e.standing);
+    if (e.portMark) markPort(S.loc, e.portMark);
     if (e.plantRider) plantDelay(e.plantRider.min, e.plantRider.max, e.plantRider.key);
     if (e.mission) {
       const m = e.mission;

@@ -124,8 +124,12 @@ The rule: **campaigns knock; they never enter uninvited.**
 
 ## Build order (post-this-pass)
 
-1. **Port standing + consequence set-dressing** (pillar 3) — highest feel
-   per effort; the ledger infrastructure already exists.
+1. ✅ **Port standing + consequence set-dressing** (pillar 3) — shipped.
+   `S.portStanding` per station; delivering/helping raises it, betrayals sink
+   it; drives fuel/berth pricing, the station-deck greeting, and a ship-screen
+   readout. Three location-stamped set-dressing marks wired (Bev's fuel stall,
+   Tomas's empty chair / head-down bonded, the Aldrens' roped berth / grateful
+   dockhand). DSL verbs `standing` + `portMark` added for cheap future marks.
 2. **Module wear + refit loop** (pillar 1) — fixes the economy ceiling.
 3. **Veterancy ranks + scars** (pillar 2) — data model first, barks read it.
 4. **Survey contracts + POI map marks** (pillar 4).

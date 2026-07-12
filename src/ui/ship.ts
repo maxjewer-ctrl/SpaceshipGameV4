@@ -6,6 +6,7 @@ import { requestRender } from "../bus";
 import { reputation } from "../systems/disposition";
 import { storyCards } from "../systems/silence";
 import { introCard } from "../systems/intro";
+import { standingWord } from "../systems/port";
 import { viewportHTML, pedestalHTML, reactorPanelHTML, lifeSupportHTML, commsFullHTML } from "./cockpit";
 
 export function selSlot(i: number) { S.sel = S.sel === i ? null : i; requestRender(); }
@@ -192,6 +193,13 @@ export function shipHTML(): string {
     return `<div style="font-size:12px">${FACS[f].n} <span class="dim">(${v > 0 ? "+" : ""}${v})</span></div>
       <div class="repbar"><div class="f" style="left:0;width:${pct}%;background:${FACS[f].c};color:${FACS[f].c}"></div></div>`;
   }).join("");
+  // Per-port standing — only ports you've actually made an impression at show.
+  const knownPorts = Object.keys(PLANETS)
+    .filter((k) => !PLANETS[k].hidden && Math.abs((S.portStanding && S.portStanding[k]) || 0) >= 1);
+  const portHtml = knownPorts.length
+    ? knownPorts.map((k) => `<div style="font-size:12px; display:flex; justify-content:space-between">
+        <span>${PLANETS[k].n}</span><span class="dim">${standingWord(k)}</span></div>`).join("")
+    : `<div class="dim">You haven't left a mark on any port yet. Deliver, help, or cross someone — the station remembers.</div>`;
   // Cockpit framing: viewport glass up top, consoles angled toward the
   // pilot's seat, physical controls on the pedestal below.
   return `<div class="cockpit">
@@ -219,6 +227,7 @@ export function shipHTML(): string {
       ${reactorPanelHTML()}
       ${breakersHTML()}
       <div class="panel"><h3>Faction Standing</h3>${repHtml}</div>
+      <div class="panel"><h3>Port Standing</h3>${portHtml}</div>
       <div class="panel"><h3>Word on the Street</h3>${repStreetHtml()}</div>
     </div>
     <div class="console con-center">

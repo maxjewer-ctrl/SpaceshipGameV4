@@ -175,6 +175,10 @@ export interface GameState {
   // hidden playstyle meters — how you operate, not what you own. Content reads
   // these; the player never sees the raw numbers, only "word on the street".
   disposition: Disposition;
+  // Per-station standing (NOT faction): how a specific port feels about you,
+  // moved by what you do there and for it. Read for fees, contracts, prose.
+  // Clamped -10..10. Absent key = neutral (0).
+  portStanding: Record<string, number>;
   campaign: CampaignState;
   starve: number; unpaid: number; uid: number;
   over: boolean; won: boolean; dead: boolean;
