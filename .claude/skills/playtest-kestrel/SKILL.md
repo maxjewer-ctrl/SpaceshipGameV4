@@ -9,6 +9,10 @@ The game is a browser TypeScript app (Vite). It exposes debug accessors on
 `window` and drives every action through global handler functions, so you can
 play it end to end from the browser MCP tools without clicking a single button.
 
+> To **see** what the game renders (screenshots hang in the preview browser),
+> use the **see-the-game** skill — `window.__shot()` → `.shots/latest.png` →
+> Read. This skill is about DRIVING the game; that one is about SEEING it.
+
 ## 1. Launch & reset
 
 ```
