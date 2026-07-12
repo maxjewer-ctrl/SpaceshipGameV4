@@ -36,6 +36,7 @@ let walkPhase = 0;
 let moving = false;
 const keys = new Set<string>();
 const gpDirs = new Set<string>();
+let gpAxis = { x: 0, y: 0 };
 let gpPrevA = false;
 const GP_DEADZONE = 0.35;
 let raf: number | null = null;
@@ -46,6 +47,7 @@ let listenersBound = false;
 let nearDoor: WalkDoor | null = null;
 let nearActor: WalkActor | null = null;
 let clickTarget: { x: number; y: number } | null = null;
+let clickPath: Array<{ x: number; y: number }> = [];
 let clickStuck = 0;
 let highlightKey: string | null = null;
 
@@ -65,7 +67,7 @@ function bindListeners() {
     const tag = (document.activeElement && document.activeElement.tagName) || "";
     if (tag === "INPUT" || tag === "TEXTAREA") return;
     const dir = KEYMAP[e.code];
-    if (dir) { keys.add(dir); clickTarget = null; e.preventDefault(); return; }
+    if (dir) { keys.add(dir); clearClickMove(); e.preventDefault(); return; }
     if (e.code === "KeyE" || e.code === "Space") { e.preventDefault(); interact(); }
   });
   document.addEventListener("keyup", (e) => {
@@ -83,7 +85,7 @@ function bindCanvas() {
     const sy = scene.height / rect.height;
     const tx = (e.clientX - rect.left) * sx;
     const ty = (e.clientY - rect.top) * sy;
-    clickTarget = { x: tx, y: ty };
+    setClickMove(tx, ty);
   });
 }
 
@@ -131,7 +133,7 @@ export function start(s: WalkScene) {
   ctx = canvas ? canvas.getContext("2d") : null;
   bindListeners();
   bindCanvas();
-  walk3d.mount(canvas?.parentElement || null, s, (x, y) => { clickTarget = { x, y }; });
+  walk3d.mount(canvas?.parentElement || null, s, setClickMove);
   last = performance.now();
   if (raf) cancelAnimationFrame(raf);
   raf = requestAnimationFrame(tick);
@@ -152,7 +154,7 @@ export function teardown() {
   raf = null;
   if (scene) savedPos[scene.id] = { ...pos };
   scene = null; mountedId = null; canvas = null; ctx = null;
-  keys.clear(); clickTarget = null;
+  keys.clear(); clearClickMove();
   walk3d.teardown();
 }
 
@@ -174,8 +176,9 @@ function pollGamepad() {
   gpDirs.clear();
   const pads = navigator.getGamepads ? navigator.getGamepads() : [];
   const gp = pads && pads[0];
-  if (!gp) { gpPrevA = false; return; }
+  if (!gp) { gpPrevA = false; gpAxis = { x: 0, y: 0 }; return; }
   const ax = gp.axes[0] || 0, ay = gp.axes[1] || 0;
+  gpAxis = { x: Math.abs(ax) > .18 ? ax : 0, y: Math.abs(ay) > .18 ? ay : 0 };
   if (ay < -GP_DEADZONE || gp.buttons[12]?.pressed) gpDirs.add("up");
   if (ay > GP_DEADZONE || gp.buttons[13]?.pressed) gpDirs.add("down");
   if (ax < -GP_DEADZONE || gp.buttons[14]?.pressed) gpDirs.add("left");
@@ -214,6 +217,51 @@ function creepAxis(from: number, to: number, legal: (v: number) => boolean): num
 function rectDist(px: number, py: number, r: WalkRect): number {
   const cx = clampNum(px, r.x, r.x + r.w), cy = clampNum(py, r.y, r.y + r.h);
   return Math.hypot(px - cx, py - cy);
+}
+
+function clearClickMove() { clickTarget = null; clickPath = []; clickStuck = 0; }
+
+function setClickMove(x: number, y: number) {
+  if (!scene) return;
+  const goal = nearestLegal(x, y);
+  if (!goal) { clearClickMove(); return; }
+  clickTarget = goal;
+  clickPath = findPath(pos, goal);
+  if (!clickPath.length) clickPath = [goal];
+  clickStuck = 0;
+}
+
+function nearestLegal(x: number, y: number): { x: number; y: number } | null {
+  if (insideFloors(x, y)) return { x, y };
+  for (let radius = 8; radius <= 72; radius += 8) for (let i = 0; i < 16; i++) {
+    const a = i * Math.PI / 8, px = x + Math.cos(a) * radius, py = y + Math.sin(a) * radius;
+    if (insideFloors(px, py)) return { x: px, y: py };
+  }
+  return null;
+}
+
+// Small-grid A* over the exact same insideFloors() predicate as manual movement.
+// It makes a click in another room route through the connector instead of
+// repeatedly steering into the room wall.
+function findPath(from: {x:number;y:number}, to: {x:number;y:number}): Array<{x:number;y:number}> {
+  if (!scene) return [];
+  const step = 16, cols = Math.ceil(scene.width / step), rows = Math.ceil(scene.height / step);
+  const cell = (p:{x:number;y:number}) => ({ x: clampNum(Math.round(p.x/step),0,cols-1), y: clampNum(Math.round(p.y/step),0,rows-1) });
+  const start=cell(from), end=cell(to), key=(x:number,y:number)=>y*cols+x;
+  const open=[start], came=new Map<number,number>(), score=new Map<number,number>([[key(start.x,start.y),0]]), closed=new Set<number>();
+  let found=false;
+  while(open.length && closed.size<12000){
+    let bi=0,bf=Infinity; for(let i=0;i<open.length;i++){const n=open[i],f=(score.get(key(n.x,n.y))||0)+Math.abs(n.x-end.x)+Math.abs(n.y-end.y);if(f<bf){bf=f;bi=i;}}
+    const cur=open.splice(bi,1)[0],ck=key(cur.x,cur.y); if(closed.has(ck))continue; closed.add(ck);
+    if(cur.x===end.x&&cur.y===end.y){found=true;break;}
+    for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const nx=cur.x+dx,ny=cur.y+dy,nk=key(nx,ny);if(nx<0||ny<0||nx>=cols||ny>=rows||closed.has(nk)||!insideFloors(nx*step,ny*step))continue;const ng=(score.get(ck)||0)+1;if(ng<(score.get(nk)??Infinity)){score.set(nk,ng);came.set(nk,ck);open.push({x:nx,y:ny});}}
+  }
+  if(!found)return[];
+  const out:Array<{x:number;y:number}>=[]; let k=key(end.x,end.y),guard=0;
+  while(k!==key(start.x,start.y)&&guard++<12000){out.push({x:(k%cols)*step,y:Math.floor(k/cols)*step});const prev=came.get(k);if(prev===undefined)return[];k=prev;}
+  out.reverse();
+  const compact=out.filter((p,i,a)=>i===0||i===a.length-1||((p.x-a[i-1].x)!==(a[i+1].x-p.x)||(p.y-a[i-1].y)!==(a[i+1].y-p.y)));
+  compact.push(to); return compact;
 }
 
 function hashStr(s: string): number {
@@ -300,22 +348,32 @@ function simulate(dt: number) {
   pollGamepad();
   if (!hasModal()) {
     let vx = 0, vy = 0;
-    if (keys.has("up") || gpDirs.has("up")) vy -= 1;
-    if (keys.has("down") || gpDirs.has("down")) vy += 1;
-    if (keys.has("left") || gpDirs.has("left")) vx -= 1;
-    if (keys.has("right") || gpDirs.has("right")) vx += 1;
+    if (keys.has("up")) vy -= 1;
+    if (keys.has("down")) vy += 1;
+    if (keys.has("left")) vx -= 1;
+    if (keys.has("right")) vx += 1;
+    vx += gpAxis.x; vy += gpAxis.y;
+    if (gpDirs.has("up")) vy = Math.min(vy, -1);
+    if (gpDirs.has("down")) vy = Math.max(vy, 1);
+    if (gpDirs.has("left")) vx = Math.min(vx, -1);
+    if (gpDirs.has("right")) vx = Math.max(vx, 1);
+    if (vx || vy) clearClickMove();
     // Point-and-click: move toward click target when no keys held
     if (!vx && !vy && clickTarget) {
-      const dx = clickTarget.x - pos.x;
-      const dy = clickTarget.y - pos.y;
+      const waypoint = clickPath[0] || clickTarget;
+      const dx = waypoint.x - pos.x;
+      const dy = waypoint.y - pos.y;
       const dist = Math.hypot(dx, dy);
-      if (dist < 6) { clickTarget = null; clickStuck = 0; }
+      if (dist < 7) {
+        if (clickPath.length) clickPath.shift();
+        if (!clickPath.length && Math.hypot(clickTarget.x-pos.x,clickTarget.y-pos.y)<8) clearClickMove();
+      }
       else { vx = dx / dist; vy = dy / dist; }
     }
     moving = !!(vx || vy);
     if (moving) {
       const len = Math.hypot(vx, vy) || 1;
-      vx /= len; vy /= len;
+      if (len > 1) { vx /= len; vy /= len; }
       const speed = 230;
       const nx = pos.x + vx * speed * dt;
       const ny = pos.y + vy * speed * dt;
@@ -327,7 +385,7 @@ function simulate(dt: number) {
       pos.y = creepAxis(pos.y, ny, (v) => insideFloors(pos.x, v));
       if (clickTarget && Math.hypot(pos.x - prevX, pos.y - prevY) < 0.5) {
         clickStuck += dt;
-        if (clickStuck > 0.3) { clickTarget = null; clickStuck = 0; }
+        if (clickStuck > 0.45) setClickMove(clickTarget.x, clickTarget.y);
       } else { clickStuck = 0; }
       if (Math.abs(vx) > Math.abs(vy)) facing = vx > 0 ? "right" : "left";
       else if (vy !== 0) facing = vy > 0 ? "down" : "up";

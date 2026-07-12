@@ -7,6 +7,7 @@ import { refreshMarket, canAccept, needBadges, yardPrice } from "../systems/mark
 import { arcCantinaCard } from "../systems/arc";
 import { reputation } from "../systems/disposition";
 import { refitCost, wearTier } from "../systems/wear";
+import { crewPortrait, portraitFigure, storeOwnerPortrait } from "./portraits";
 
 // Names of modules currently worn or failing — the refit card's honest pitch.
 function wornList(): string[] {
@@ -52,18 +53,24 @@ function cantinaHTML(): string {
       </div></div>`;
   }).join("") : `<div class="dim">The job board is picked clean. Wait a day or fly on.</div>`;
   const recruits = M.recruits.length ? M.recruits.map((r, i) =>
-    `<div class="card"><div class="title">${r.name} <span class="dim">— ${ROLES[r.role].n}</span></div>
-     <div class="dim">${ROLES[r.role].d}</div>
-     <div style="margin-top:6px; display:flex; justify-content:space-between; align-items:center">
-       <span class="dim">Fee ${r.fee}cr · salary ${r.salary}cr/day</span>
-       <button onclick="hire(${i})">Hire</button>
-     </div></div>`).join("") : `<div class="dim">Nobody worth hiring tonight — just regulars and bad decisions.</div>`;
+    `<div class="card recruit-card">
+      ${portraitFigure(crewPortrait(r), r.name, "portrait-recruit")}
+      <div class="recruit-copy">
+        <div class="title">${r.name} <span class="dim">— ${ROLES[r.role].n}</span></div>
+        <div class="dim">${ROLES[r.role].d}</div>
+        <div style="margin-top:6px; display:flex; justify-content:space-between; align-items:center; gap:8px">
+          <span class="dim">Fee ${r.fee}cr · salary ${r.salary}cr/day</span>
+          <button onclick="hire(${i})">Hire</button>
+        </div>
+      </div>
+    </div>`).join("") : `<div class="dim">Nobody worth hiring tonight — just regulars and bad decisions.</div>`;
   const rep = reputation();
   const repCard = rep && rep.strength >= 12
     ? `<div class="card" style="border-color:var(--amber)"><div class="dim" style="font-style:italic">${rep.street} <span style="color:var(--amber)">— they mean you.</span></div></div>`
     : "";
   const rumors = repCard + M.rumors.map((r) => `<div class="card"><div class="dim" style="font-style:italic">${r}</div></div>`).join("");
   return `<div class="cantina-hero">
+    <img class="cantina-owner" src="${storeOwnerPortrait()}" alt="Cantina owner">
     <div class="cantina-glass">
       <div class="cantina-sign">
         <span>${p.n}</span>

@@ -114,6 +114,55 @@ button.tab-on{background:#2a2012; border-color:#8a5d2a; color:var(--amber);}
 table{width:100%; border-collapse:collapse;}
 td,th{padding:5px 8px; text-align:left; border-bottom:1px solid var(--line); font-size:13px;}
 th{color:var(--dim); font-weight:500; text-transform:uppercase; font-size:11px; letter-spacing:1px;}
+.cantina-hero{
+  position:relative; min-height:260px; margin-bottom:12px; overflow:hidden;
+  border:1px solid #2f3948; border-radius:8px;
+  background:
+    linear-gradient(180deg,rgba(5,7,10,.08),rgba(5,7,10,.72)),
+    url("./assets/cantina-backdrop.png") center 45%/cover no-repeat;
+  box-shadow:inset 0 0 54px #000c,0 10px 26px #0009;
+}
+.cantina-hero::after{
+  content:""; position:absolute; left:0; right:0; bottom:0; height:76px; z-index:4;
+  background:linear-gradient(180deg,#3b2412,#17100b 68%,#090807);
+  border-top:1px solid #8a5d2a88; box-shadow:0 -12px 24px #0008,inset 0 1px 0 #ffffff20;
+}
+.cantina-owner{
+  position:absolute; z-index:3; right:8%; bottom:28px; height:238px; max-width:42%;
+  object-fit:contain; object-position:50% 100%;
+  filter:drop-shadow(0 14px 18px #000b);
+}
+.cantina-glass{ position:absolute; inset:0; z-index:5; pointer-events:none; }
+.cantina-glass::before{
+  content:""; position:absolute; inset:0;
+  background:repeating-linear-gradient(0deg,rgba(255,255,255,.035) 0 1px,transparent 1px 4px);
+  mix-blend-mode:screen; opacity:.35;
+}
+.cantina-sign{
+  position:absolute; left:14px; top:12px; padding:7px 11px; border:1px solid #8a5d2a99; border-radius:5px;
+  background:#0b0d11cc; box-shadow:0 0 18px #e8a04a33;
+  font-family:var(--mono); text-transform:uppercase; letter-spacing:.12em;
+}
+.cantina-sign span{ display:block; color:#9aa0b4; font-size:8px; }
+.cantina-sign b{ display:block; color:var(--amber); font-size:14px; margin-top:1px; }
+.cantina-bar-lights{ position:absolute; left:18%; right:18%; top:0; display:flex; justify-content:space-around; }
+.cantina-bar-lights i{
+  width:34px; height:70px; display:block;
+  background:radial-gradient(ellipse at 50% 72%,#ffdca0cc,#e8a04a44 36%,transparent 70%);
+  filter:blur(.2px);
+}
+.cantina-crowd{ position:absolute; left:4%; bottom:64px; width:42%; height:80px; opacity:.55; }
+.cantina-crowd i{
+  position:absolute; bottom:0; width:34px; height:54px; border-radius:18px 18px 6px 6px;
+  background:linear-gradient(180deg,#151922,#08090c);
+  box-shadow:0 -10px 20px #0008;
+}
+.cantina-crowd i:nth-child(1){ left:0; height:46px; }
+.cantina-crowd i:nth-child(2){ left:38px; height:62px; }
+.cantina-crowd i:nth-child(3){ left:82px; height:50px; }
+.cantina-crowd i:nth-child(4){ left:132px; height:70px; }
+.cantina-crowd i:nth-child(5){ left:182px; height:48px; }
+.cantina-row .panel{ border-color:#2b3039; }
 /* ship visual — CRT deck schematic */
 .shipframe{
   position:relative; border:1px solid #3a4256; border-radius:8px; overflow:hidden;
@@ -620,6 +669,24 @@ th{color:var(--dim); font-weight:500; text-transform:uppercase; font-size:11px; 
 /* scene / dialogue modal */
 .scene .scene-loc{ font-family:var(--mono); font-size:9px; letter-spacing:2px; color:var(--dim); text-transform:uppercase; margin-bottom:6px; }
 .scene .choices button{ text-align:left; }
+.dialogue-head{ display:flex; align-items:flex-end; gap:14px; margin:0 0 12px; }
+.dialogue-title{ min-width:0; flex:1; }
+.dialogue-title h2{ margin-bottom:3px !important; }
+.portrait{
+  position:relative; flex:none; overflow:hidden;
+  background:linear-gradient(180deg,#162032,#080b12);
+  border:1px solid #334057; border-radius:8px;
+  box-shadow:inset 0 0 24px #0008,0 8px 20px #0008;
+}
+.portrait img{ display:block; width:100%; height:100%; object-fit:contain; object-position:50% 100%; filter:drop-shadow(0 10px 16px #0009); }
+.portrait-dialogue{ width:138px; height:178px; margin-top:-4px; }
+.portrait-fallback{
+  width:72px; height:72px; flex:none; display:flex; align-items:center; justify-content:center;
+  border:1px solid #334057; border-radius:8px; background:#0d1019; font-size:34px;
+}
+.recruit-card{ display:flex; gap:10px; align-items:stretch; min-height:118px; overflow:hidden; }
+.portrait-recruit{ width:86px; height:118px; align-self:stretch; margin:-4px 0 -4px -4px; border-radius:5px; }
+.recruit-copy{ min-width:0; flex:1; align-self:center; }
 /* crew dialogue — trust-word chips, reused in both the talk modal and roster */
 .ctword{ font-weight:600; }
 .ctword.warm{ color:var(--green); }
@@ -802,6 +869,10 @@ th{color:var(--dim); font-weight:500; text-transform:uppercase; font-size:11px; 
   .cbt-status{ grid-template-columns:1fr; }
   .cbt-command{ grid-template-columns:1fr; }
   .fire-button{ min-width:0; }
+  .dialogue-head{ align-items:center; }
+  .portrait-dialogue{ width:96px; height:126px; }
+  .recruit-card{ min-height:100px; }
+  .portrait-recruit{ width:72px; height:104px; }
 }
 .repbar{height:7px; background:#0a0c0f; border:1px solid #21252c; border-radius:4px; overflow:hidden; position:relative; margin:3px 0 9px;}
 .repbar .f{height:100%; position:absolute; top:0; box-shadow:0 0 6px currentColor;}

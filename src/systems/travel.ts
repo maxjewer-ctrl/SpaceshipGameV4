@@ -20,6 +20,7 @@ import { silenceTick, silenceArrive } from "./silence";
 import { introTravelBeat, introArrive } from "./intro";
 import { checkCrewQuests, checkCrewDeparture } from "./crewtalk";
 import { checkAgendaBeats } from "./agendabeats";
+import { checkImogenQuest } from "./imogenquest";
 import { bumpStanding } from "./port";
 import { accrueWear } from "./wear";
 import type { Job } from "../types";
@@ -216,6 +217,7 @@ export function arrive() {
   checkCrewQuests();
   checkCrewDeparture();
   checkAgendaBeats();
+  checkImogenQuest();
 }
 
 export function completePay(j: Job) {

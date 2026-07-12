@@ -1,48 +1,41 @@
-// Portrait resolver for dialogue UIs. Art drops into
-// src/assets/portraits/<key>.png (or .webp/.jpg) — see the key manifest in
-// src/assets/portraits/KEYS.md — and lights up automatically via Vite's
-// build-time glob. Anything missing falls back to a styled icon tile, so the
-// dialogue UI reads finished with or without the art.
+import dez from "../assets/portraits/dez.png";
+import vex from "../assets/portraits/vex.png";
+import brix from "../assets/portraits/brix.png";
+import tomas from "../assets/portraits/tomas.png";
+import ada from "../assets/portraits/ada.png";
+import rook from "../assets/portraits/rook.png";
+import imogen from "../assets/portraits/imogen.png";
+import corbin from "../assets/portraits/corbin.png";
+import bapu from "../assets/portraits/bapu.png";
+import nyla from "../assets/portraits/nyla.png";
+import elias from "../assets/portraits/elias.png";
+import storeOwner from "../assets/portraits/store-owner.png";
 import type { CrewMember } from "../types";
 
-const FILES = import.meta.glob("../assets/portraits/*.{png,webp,jpg}", {
-  eager: true, query: "?url", import: "default",
-}) as Record<string, string>;
+const CREW_PORTRAITS: Record<string, string> = {
+  dez, vex, brix, tomas, ada, rook, imogen, corbin, bapu, nyla, elias,
+};
 
-function urlFor(key: string): string | null {
-  for (const ext of ["png", "webp", "jpg"]) {
-    const hit = FILES[`../assets/portraits/${key}.${ext}`];
-    if (hit) return hit;
-  }
-  return null;
+export function crewPortrait(c: Pick<CrewMember, "key">): string | null {
+  return c.key ? CREW_PORTRAITS[c.key] || null : null;
 }
 
-// Which portrait file a crew member wants: named characters by roster key,
-// Juno by name (prologue crew), procedural hires by role.
-export function crewPortraitKey(c: CrewMember): string {
-  if (c.key) return c.key;
-  if (c.name.startsWith("Juno Vale")) return "juno";
-  if (c.name.startsWith("Tomas")) return "tomas";
-  return "crew_" + c.role;
+export function crewPortraitKey(c: Pick<CrewMember, "key">): string | null {
+  return crewPortrait(c);
 }
 
-// An <img> if the art exists, else a styled icon tile. Both share .dlg-portrait
-// so the dialogue layout is identical either way.
-export function portraitHTML(key: string, icon: string, name: string, size = 76): string {
-  const url = urlFor(key);
-  if (url) {
-    return `<img class="dlg-portrait" src="${url}" alt="${name}" style="width:${size}px;height:${size}px">`;
-  }
-  return `<span class="dlg-portrait dlg-portrait-fallback" style="width:${size}px;height:${size}px;font-size:${Math.round(size * 0.48)}px" aria-label="${name}">${icon}</span>`;
+export function portraitFigure(src: string | null, alt: string, cls = ""): string {
+  if (!src) return "";
+  return `<div class="portrait ${cls}"><img src="${src}" alt="${alt}"></div>`;
 }
 
-// Standard dialogue header: portrait beside the name, subtitle underneath.
-export function dialogueHeadHTML(key: string, icon: string, name: string, sub?: string): string {
-  return `<div class="dlg-head">
-    ${portraitHTML(key, icon, name)}
-    <div class="dlg-head-text">
-      <h2>${name}</h2>
-      ${sub ? `<div class="dim" style="margin-top:2px">${sub}</div>` : ""}
-    </div>
+export function dialogueHeadHTML(src: string | null, fallbackIcon: string, name: string, subline = ""): string {
+  return `<div class="dialogue-head">
+    ${src ? `<div class="portrait portrait-dialogue"><img src="${src}" alt="${name}"></div>` : `<div class="portrait-fallback">${fallbackIcon}</div>`}
+    <div class="dialogue-title"><h2>${name}</h2>${subline ? `<p class="dim">${subline}</p>` : ""}</div>
   </div>`;
+}
+
+export function storeOwnerPortrait(): string {
+  return storeOwner;
 }

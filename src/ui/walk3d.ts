@@ -32,6 +32,22 @@ const wz = (y: number) => (y - (current?.height || 0) / 2) * SCALE;
 function mat(color: THREE.ColorRepresentation, emissive = 0): THREE.MeshStandardMaterial {
   return new THREE.MeshStandardMaterial({ color, roughness: .72, metalness: .25, emissive: color, emissiveIntensity: emissive });
 }
+function panelTexture(dark: boolean): THREE.CanvasTexture {
+  const c=document.createElement("canvas");c.width=256;c.height=256;const x=c.getContext("2d")!;
+  x.fillStyle=dark?"#171c26":"#303c4d";x.fillRect(0,0,256,256);
+  x.strokeStyle=dark?"#303847":"#60748d";x.lineWidth=3;
+  for(let i=0;i<=256;i+=64){x.beginPath();x.moveTo(i,0);x.lineTo(i,256);x.stroke();x.beginPath();x.moveTo(0,i);x.lineTo(256,i);x.stroke();}
+  x.strokeStyle=dark?"#586270":"#91abc4";x.lineWidth=2;
+  for(let y=20;y<256;y+=64)for(let xx=20;xx<256;xx+=64){x.strokeRect(xx,y,24,12);x.fillStyle="#0b1018";x.fillRect(xx+5,y+4,4,4);}
+  const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(3,2);return t;
+}
+function deckTexture(dark: boolean): THREE.CanvasTexture {
+  const c=document.createElement("canvas");c.width=256;c.height=256;const x=c.getContext("2d")!;
+  x.fillStyle=dark?"#131923":"#26354a";x.fillRect(0,0,256,256);x.strokeStyle=dark?"#303b4c":"#57708c";x.lineWidth=3;
+  for(let i=0;i<=256;i+=32){x.beginPath();x.moveTo(i,0);x.lineTo(i,256);x.stroke();x.beginPath();x.moveTo(0,i);x.lineTo(256,i);x.stroke();}
+  x.strokeStyle=dark?"#222b38":"#3d526a";for(let i=0;i<256;i+=64)x.strokeRect(i+5,i%128+5,54,22);
+  const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(8,5);return t;
+}
 function box(w: number, h: number, d: number, material: THREE.Material) {
   return new THREE.Mesh(new THREE.BoxGeometry(w, h, d), material);
 }
@@ -70,12 +86,16 @@ function addMachinery(g: THREE.Group, type: string, color: string, online: boole
 function rebuild() {
   if (!root || !current) return;
   root.remove(world); disposeObject(world); world = new THREE.Group(); root.add(world); actorMeshes.clear();
-  const dark = !!current.dark;
-  for (const f of current.floors) { const m=box(f.w*SCALE,.12,f.h*SCALE,mat(dark?"#151923":"#222b3b")); m.position.set(wx(f.x+f.w/2),-.08,wz(f.y+f.h/2)); world.add(m); }
+  const dark = !!current.dark, panels=panelTexture(dark), deck=deckTexture(dark);
+  if(current.id==="ship"){const hullMat=mat("#111b29");hullMat.emissiveIntensity=.08;const hull=box(current.width*SCALE,.08,current.height*SCALE,hullMat);hull.position.set(0,-.18,0);world.add(hull);}
+  for (const f of current.floors) { const fm=mat(dark?"#202938":"#39506c",dark?.03:.1);fm.map=deck;const m=box(f.w*SCALE,.12,f.h*SCALE,fm); m.position.set(wx(f.x+f.w/2),-.08,wz(f.y+f.h/2)); world.add(m); }
   for (const r of current.rooms) {
     const c=r.color|| (dark?"#465064":"#5a83b7"), cx=wx(r.x+r.w/2), cz=wz(r.y+r.h/2), w=r.w*SCALE,d=r.h*SCALE;
-    const wallMat=mat(dark?"#242a35":"#39485d");
-    [[w,.18,cx,cz-d/2],[w,.18,cx,cz+d/2],[.18,d,cx-w/2,cz],[.18,d,cx+w/2,cz]].forEach(([a,b,x,z])=>{const q=box(a as number,1.1,b as number,wallMat);q.position.set(x as number,.5,z as number);world.add(q);});
+    const wallMat=mat(dark?"#343d4d":"#7089a4",dark?.03:.1);wallMat.map=panels;wallMat.transparent=true;wallMat.opacity=dark?.42:.5;wallMat.depthWrite=false;
+    [[w,.18,cx,cz-d/2],[w,.18,cx,cz+d/2],[.18,d,cx-w/2,cz],[.18,d,cx+w/2,cz]].forEach(([a,b,x,z])=>{const q=box(a as number,1.85,b as number,wallMat);q.position.set(x as number,.88,z as number);world.add(q);});
+    // Tall illuminated corner pylons make room boundaries readable even when
+    // the follow camera is looking across several bays.
+    for(const [px,pz] of [[cx-w/2,cz-d/2],[cx+w/2,cz-d/2],[cx-w/2,cz+d/2],[cx+w/2,cz+d/2]]){const p=box(.16,2.45,.16,mat(c,.65));p.position.set(px,1.18,pz);world.add(p);}
     const trim=box(Math.max(.5,w-.3),.04,.05,mat(c,.8)); trim.position.set(cx,.04,cz-d/2+.12); world.add(trim);
     const label=sprite(`${r.icon||""} ${r.label}`.trim(),c,.75); label.position.set(cx,1.75,cz); world.add(label);
     if(r.kind==="cockpit"){
@@ -96,7 +116,7 @@ export function mount(container: HTMLElement | null, s: WalkScene, onFloorClick:
   try {
     renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:"high-performance"}); renderer.setPixelRatio(Math.min(devicePixelRatio,2)); renderer.outputColorSpace=THREE.SRGBColorSpace;
     renderer.domElement.className="walk3d-canvas"; container.insertBefore(renderer.domElement,container.firstChild); if(fallbackCanvas) fallbackCanvas.style.display="none";
-    root=new THREE.Scene(); root.background=new THREE.Color(s.dark?0x05070b:0x070b14); root.fog=new THREE.Fog(root.background,8,22); root.add(new THREE.HemisphereLight(s.dark?0x7384a0:0xa9c9ff,0x090b10,s.dark ? .35 : .75));root.add(avatar);
+    root=new THREE.Scene(); root.background=new THREE.Color(s.dark?0x05070b:0x0c1420); root.fog=new THREE.Fog(root.background,10,26); root.add(new THREE.HemisphereLight(s.dark?0x7384a0:0xbcdcff,0x111827,s.dark ? .45 : 1.25));root.add(new THREE.AmbientLight(s.dark?0x647087:0x91b8df,s.dark?.25:.65));root.add(avatar);
     if(s.dark){flashlight=new THREE.SpotLight(0xc8dcff,3.2,7,Math.PI/5,.55,1.2);flashlight.target=new THREE.Object3D();root.add(flashlight,flashlight.target);}else flashlight=null;
     camera=new THREE.PerspectiveCamera(58,1,.1,100); signature=""; setScene(s); resizeObserver=new ResizeObserver(resize);resizeObserver.observe(container);resize();
     clickHandler=(e)=>{if(!renderer||!camera||!current||!click)return;const r=renderer.domElement.getBoundingClientRect();pointer.set((e.clientX-r.left)/r.width*2-1,-((e.clientY-r.top)/r.height*2-1));ray.setFromCamera(pointer,camera);const p=new THREE.Vector3();if(ray.ray.intersectPlane(ground,p))click(p.x/SCALE+current.width/2,p.z/SCALE+current.height/2);};renderer.domElement.addEventListener("pointerdown",clickHandler);
@@ -109,7 +129,9 @@ export function render(v:{pos:{x:number;y:number};facing:string;moving:boolean;p
   const suit=S.appearance?.suit||"#4779bd",skin=S.appearance?.skin||"#bd8668"; if(!avatar.children.length){const p=addPerson(suit,skin);avatar.add(p);}
   const ang=v.facing==="right"?Math.PI/2:v.facing==="left"?-Math.PI/2:v.facing==="up"?Math.PI:0;avatar.rotation.y=ang;
   const room=current.rooms.find(r=>v.pos.x>=r.x&&v.pos.x<=r.x+r.w&&v.pos.y>=r.y&&v.pos.y<=r.y+r.h);const shake=room?.kind==="engine"?Math.sin(v.time*.045)*.025:0;
-  const back=new THREE.Vector3(Math.sin(ang)*-3.4+shake,3.3,Math.cos(ang)*-3.4);const target=new THREE.Vector3(x,0,z).add(back);camera.position.lerp(target,.09);camera.lookAt(x,.75,z);
+  // Stable chase angle: avatar rotation no longer whips the camera 180° when
+  // the player taps up/down. Screen-up is always deck-forward.
+  const target=new THREE.Vector3(x+3.8+shake,4.7,z+5.4);camera.position.lerp(target,.09);camera.lookAt(x,.65,z);
   if(flashlight){flashlight.position.set(x,1.25,z);flashlight.target.position.set(x+Math.sin(ang)*4,.45,z+Math.cos(ang)*4);}
   for(const a of current.actors){const g=actorMeshes.get(a.key);if(!g)continue;g.position.set(wx(a.x+a.w/2),Math.sin(v.time/700+a.x)*.025,wz(a.y+a.h/2));if(a.bubble&&!g.getObjectByName("bubble")){const b=sprite(a.bubble,"#fff",.65);b.name="bubble";b.position.y=2.55;g.add(b);}else if(!a.bubble){const b=g.getObjectByName("bubble");if(b){g.remove(b);disposeObject(b);}}}
   world.traverse((o:any)=>{if(o.userData.spark!==undefined){o.visible=Math.sin(v.time*.025+o.userData.spark)>0;o.position.y=1+(o.userData.spark*.12+v.time*.0004)%1;}if(o.userData.starfield&&S.travel)o.rotation.y=v.time*.00002;});renderer.render(root,camera);

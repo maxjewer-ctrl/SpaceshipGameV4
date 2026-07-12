@@ -53,6 +53,7 @@ import {
   abNylaConfront, abNylaAsk, abNylaIgnore,
   abMiriEnd, abMiriKeep,
 } from "./systems/agendabeats";
+import { imogenTreatUnion, imogenTreatSyndicate, imogenDecline } from "./systems/imogenquest";
 import { loadScenario } from "./debug/scenarios";
 import { evPirates, evPatrol, evBreakdown, evMeteor, evSalvage, evDistress, evTrader, evPax } from "./systems/events";
 import { loadRemoteContent } from "./supabase/content";
@@ -110,6 +111,8 @@ Object.assign(window as any, {
   abRookTalk, abRookDark, abRookConfront,
   abNylaConfront, abNylaAsk, abNylaIgnore,
   abMiriEnd, abMiriKeep,
+  // Dr. Imogen Hale — bonded-trust quest (her illness, kept secret until earned)
+  imogenTreatUnion, imogenTreatSyndicate, imogenDecline,
   // dev/debug: live state accessor + manual walk-frame stepper (harmless — behind underscores)
   __S: () => State.S,
   __walkStep: debugStep,
