@@ -7,6 +7,7 @@ import { reputation } from "../systems/disposition";
 import { storyCards } from "../systems/silence";
 import { introCard } from "../systems/intro";
 import { standingWord } from "../systems/port";
+import { wearTier } from "../systems/wear";
 import { viewportHTML, pedestalHTML, reactorPanelHTML, lifeSupportHTML, commsFullHTML } from "./cockpit";
 
 export function selSlot(i: number) { S.sel = S.sel === i ? null : i; requestRender(); }
@@ -162,8 +163,15 @@ export function shipHTML(): string {
                     : `<b class="dim">○ POWERED DOWN</b> <span class="dim">· would draw ${md.pw}⚡</span>`) :
       (md.gen ? `<b style="color:var(--green)">● GENERATING</b> <span class="dim">· +${md.gen}⚡</span>`
               : '<b style="color:var(--green)">● OPERATIONAL</b> <span class="dim">· passive, no power draw</span>');
+    const wt = wearTier(m);
+    const wearLine = wt === "failing"
+      ? `<p style="margin-bottom:6px"><b class="low">🔩 FAILING</b> <span class="dim">— worn past trusting; it can quit any day. Refit at a dry dock.</span></p>`
+      : wt === "worn"
+        ? `<p style="margin-bottom:6px"><b style="color:var(--amber)">🔩 WORN</b> <span class="dim">— running, but trouble picks on worn systems first.</span></p>`
+        : "";
     selHtml = `<div class="panel"><h3>${md.icon} ${md.n}</h3>
       <p style="margin-bottom:6px">${status}</p>
+      ${wearLine}
       <p class="dim" style="margin-bottom:8px">${md.d}</p>
       ${m.dmg ? '<p class="dim" style="margin-bottom:8px">Repair at any shipyard dry dock (80cr), or a mechanic may jury-rig it in flight.</p>' : ""}
       <div style="display:flex; gap:6px; flex-wrap:wrap">

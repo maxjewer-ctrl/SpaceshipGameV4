@@ -44,7 +44,10 @@ export function toggleMod(i: number) {
 export function damageModule(cause?: string): boolean {
   const cands = S.modules.filter((m) => !MODS[m.t].core && !m.dmg);
   if (!cands.length) return false;
-  const m = pick(cands);
+  // Trouble finds the worn parts first — wear is reliability, and neglect
+  // chooses which system pays for the next bad day.
+  const worn = cands.filter((m) => (m.wear || 0) >= 55);
+  const m = pick(worn.length ? worn : cands);
   m.dmg = true;
   log(`🔧 ${cause || "Malfunction"}: ${MODS[m.t].n} OFFLINE — ${FLAVOR.dmgFlavor[m.t] || "Something important breaks."}`);
   // knock-on effects of losing the module

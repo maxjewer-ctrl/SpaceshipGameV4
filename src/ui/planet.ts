@@ -6,6 +6,14 @@ import { requestRender } from "../bus";
 import { refreshMarket, canAccept, needBadges, yardPrice } from "../systems/market";
 import { arcCantinaCard } from "../systems/arc";
 import { reputation } from "../systems/disposition";
+import { refitCost, wearTier } from "../systems/wear";
+
+// Names of modules currently worn or failing — the refit card's honest pitch.
+function wornList(): string[] {
+  return S.modules
+    .filter((m) => !MODS[m.t].core && wearTier(m) !== "sound")
+    .map((m) => MODS[m.t].n + (wearTier(m) === "failing" ? " (FAILING)" : ""));
+}
 
 export function ptab(t: string) { S.ptab = t; requestRender(); }
 
@@ -31,6 +39,7 @@ export function planetHTML(): string {
 function cantinaHTML(): string {
   const M = S.market!;
   const arcCard = arcCantinaCard();
+  const p = PLANETS[S.loc];
   const missions = M.missions.length ? M.missions.map((m, i) => {
     const [ok] = canAccept(m);
     return `<div class="card">
@@ -54,7 +63,17 @@ function cantinaHTML(): string {
     ? `<div class="card" style="border-color:var(--amber)"><div class="dim" style="font-style:italic">${rep.street} <span style="color:var(--amber)">— they mean you.</span></div></div>`
     : "";
   const rumors = repCard + M.rumors.map((r) => `<div class="card"><div class="dim" style="font-style:italic">${r}</div></div>`).join("");
-  return `<div class="row">
+  return `<div class="cantina-hero">
+    <div class="cantina-glass">
+      <div class="cantina-sign">
+        <span>${p.n}</span>
+        <b>CANTINA</b>
+      </div>
+      <div class="cantina-bar-lights"><i></i><i></i><i></i></div>
+      <div class="cantina-crowd"><i></i><i></i><i></i><i></i><i></i></div>
+    </div>
+  </div>
+  <div class="row cantina-row">
     <div class="col">
       ${arcCard ? `<div class="panel"><h3>◆ The Grey Coat</h3>${arcCard}</div>` : ""}
       <div class="panel"><h3>Job Board</h3>${missions}</div>
@@ -120,6 +139,9 @@ function yardHTML(): string {
         <div class="card"><div class="title">⚡ System repairs — 80cr/module ${dmgd.length ? `<span class="low">(${dmgd.length} damaged)</span>` : '<span class="dim">(all systems nominal)</span>'}</div>
           ${dmgd.length ? `<div class="dim">${dmgd.map((m) => MODS[m.t].n).join(", ")}</div>` : ""}
           <div style="margin-top:6px"><button ${dmgd.length ? "" : "disabled"} onclick="repairSystems()">Restore all systems (${dmgd.length * 80}cr)</button></div></div>
+        <div class="card"><div class="title">🔩 Full refit ${wornList().length ? `<span class="low">(${wornList().join(", ")})</span>` : '<span class="dim">(nothing worn)</span>'}</div>
+          <div class="dim">Flying wears the ship: worn systems break first, failing ones quit on their own. A refit strips and trues everything back to spec.</div>
+          <div style="margin-top:6px"><button ${refitCost() > 0 && S.credits >= refitCost() ? "" : "disabled"} onclick="refitShip()">Refit all worn systems (${refitCost()}cr)</button></div></div>
         <div class="card"><div class="title">🔥 Drive Core — Mk-${["", "I", "II", "III"][S.engineLvl]}</div>
           <div class="dim">Faster travel: fewer days means less fuel, less food, fewer chances for trouble. Helps you flee, and each mark adds +2 reactor power.</div>
           <div style="margin-top:6px"><button ${S.engineLvl < 3 && S.credits >= engCost ? "" : "disabled"} onclick="upgradeEngine()">${S.engineLvl < 3 ? `Upgrade to Mk-${["", "", "II", "III"][S.engineLvl + 1]} (${engCost}cr)` : "Maxed out"}</button></div></div>

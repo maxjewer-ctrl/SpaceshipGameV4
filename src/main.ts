@@ -43,8 +43,9 @@ import {
 import { pressStart, pressEnd, interact, debugStep, debugPos, debugGoto } from "./ui/walk";
 import { crewTalk, crewHighlight } from "./ui/shipwalk";
 import { wkPay, wkTalk, wkFight } from "./systems/walkEncounters";
-import { ctVibe, ctAbout, ctShip, ctQuest, ctClose, ctQuestHelp, ctQuestSkip } from "./systems/crewtalk";
+import { ctVibe, ctAbout, ctShip, ctQuest, ctWorld, ctClose, ctQuestHelp, ctQuestSkip } from "./systems/crewtalk";
 import { dcValve, dcVector, dcCare } from "./systems/damagecontrol";
+import { refitShip } from "./systems/wear";
 import {
   abVexPay, abVexRefuse, abVexReport,
   abCorbinConfront, abCorbinCut, abCorbinIgnore,
@@ -75,7 +76,7 @@ Object.assign(window as any, {
   introStart, introAct,
   // planet actions
   acceptMission, hire, fireCrew, buyGood, sellGood, buyFuel, buyFood,
-  repairShip, repairSystems, buyMod, sellMod, toggleMod, upgradeEngine, buySlots,
+  repairShip, repairSystems, buyMod, sellMod, toggleMod, upgradeEngine, buySlots, refitShip,
   // travel
   depart, waitDay, advanceDay,
   // combat
@@ -100,7 +101,7 @@ Object.assign(window as any, {
   walkPressStart: pressStart, walkPressEnd: pressEnd, walkInteract: interact,
   crewTalk, crewHighlight, wkPay, wkTalk, wkFight,
   // crew dialogue — trust-gated topics, personal quests
-  ctVibe, ctAbout, ctShip, ctQuest, ctClose, ctQuestHelp, ctQuestSkip,
+  ctVibe, ctAbout, ctShip, ctQuest, ctWorld, ctClose, ctQuestHelp, ctQuestSkip,
   // damage control — crew-gap minigames (no mechanic/pilot/med bay aboard)
   dcValve, dcVector, dcCare,
   // agenda beats — the named twelve's honest/dishonest objectives billing due

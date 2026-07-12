@@ -31,6 +31,11 @@ export interface BarkDef {
   when: string; text: string;
   traits?: string[]; role?: string; secretTag?: string; wound?: string;
   origin?: string; sentimentMin?: number; sentimentMax?: number;
+  // world-state gates — let ambient chatter forward the plot as it unfolds
+  silMin?: number;   // Long Silence stage at least N
+  arcMin?: number;   // Voss arc stage at least N
+  flag?: string;     // requires S.flags[flag]
+  loc?: string;      // only at this planet
 }
 export interface MissionGrant {
   kind: string; title: string; dest: string; pay: number;
@@ -116,13 +121,23 @@ export const REPUTATION = reputationJson as ReputationContent;
 export let NPCS = npcsJson as Record<string, NpcDef>;
 export const CHARACTERS = charactersJson as Record<string, CharacterDef>;
 
-// Merge hot-loaded content over the bundled baseline. Called by the content loader.
+// Merge hot-loaded content over the bundled baseline. Called by the content
+// loader. MERGE, never replace: bundled JSON is the baseline (per the loader's
+// contract) — a stale remote copy must not erase newer bundled content. Remote
+// rows that duplicate bundled ones de-dupe away; genuinely new ones append.
 export function applyRemoteContent(patch: {
   barks?: BarkDef[]; riders?: Record<string, RiderDef>;
   rumors?: string[]; quiet?: string[];
 }) {
-  if (patch.barks && patch.barks.length) BARKS = patch.barks;
+  if (patch.barks && patch.barks.length) {
+    const seen = new Set(BARKS.map((b) => b.when + "|" + b.text));
+    BARKS = [...BARKS, ...patch.barks.filter((b) => !seen.has(b.when + "|" + b.text))];
+  }
   if (patch.riders) RIDERS = { ...RIDERS, ...patch.riders };
-  if (patch.rumors && patch.rumors.length) FLAVOR.rumors = patch.rumors;
-  if (patch.quiet && patch.quiet.length) FLAVOR.quiet = patch.quiet;
+  if (patch.rumors && patch.rumors.length) {
+    for (const r of patch.rumors) if (!FLAVOR.rumors.includes(r)) FLAVOR.rumors.push(r);
+  }
+  if (patch.quiet && patch.quiet.length) {
+    for (const q of patch.quiet) if (!FLAVOR.quiet.includes(q)) FLAVOR.quiet.push(q);
+  }
 }

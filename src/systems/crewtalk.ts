@@ -7,7 +7,7 @@ import { S, log } from "../state";
 import { modal, closeModal, hasModal } from "../modal";
 import { requestRender } from "../bus";
 import { ROLES, PLANETS } from "../content";
-import { sentiment, crewKey, remember, strongestMemory } from "./ledger";
+import { sentiment, crewKey, remember, strongestMemory, hasMemory } from "./ledger";
 import { trustTier, dispositionWord } from "./trust";
 import { stats } from "../derive";
 import { pick } from "../rng";
@@ -38,8 +38,11 @@ function renderCrewTalk() {
   const dw = dispositionWord(c);
   const rev = c.revealed || (c.revealed = {});
   const questBtn = rev.want ? `<button onclick="ctQuest()">${questLabel(c)}</button>` : "";
+  const where = S.docked && S.screen === "stationwalk"
+    ? `${PLANETS[S.loc].n} · off duty`
+    : `${S.shipName} · ${ROLES[c.role]?.n || c.role}`;
   modal(`<div class="scene">
-    <div class="scene-loc">${S.shipName} · ${ROLES[c.role]?.n || c.role}</div>
+    <div class="scene-loc">${where}</div>
     <h2>🧑‍🚀 ${c.name}</h2>
     <p class="dim">${TIER_LABEL[tier]} · <span class="ctword ${dw.cls}">${dw.word}</span></p>
     ${lastLine ? `<p>${lastLine}</p>` : `<p class="dim">${c.name} looks up as you approach.</p>`}
@@ -47,10 +50,55 @@ function renderCrewTalk() {
       <button onclick="ctVibe()">How are you holding up?</button>
       <button onclick="ctAbout()">Tell me about yourself</button>
       <button onclick="ctShip()">About the ship</button>
+      <button onclick="ctWorld()">What do you make of all this?</button>
       ${questBtn}
       <button class="primary" onclick="ctClose()">Nod and move on</button>
     </div>
   </div>`);
+}
+
+// ---- "What do you make of all this?" — the state of the world, in their voice.
+// Reads the campaigns and the current port; each NEW subject shared deepens
+// trust once (talking through big events together is how crews become crews).
+function worldLine(c: CrewMember): string {
+  const sil = S.campaign.silence;
+  const pick2 = <T,>(arr: T[]): T => arr[(c.id + S.day) % arr.length];
+  const share = (bucket: string, line: string): string => {
+    const fact = "talked_through_" + bucket;
+    if (!hasMemory(crewKey(c), fact)) {
+      remember(crewKey(c), fact, 1, `You and ${c.name} talked through ${bucket.replace(/_/g, " ")} like crewmates, not staff.`);
+    }
+    return line;
+  };
+  // campaign states, most dramatic first
+  if (S.arc.stage === 5) return share("the_run", pick2([
+    `"What do I make of it? Fourteen days, the whole Union net, and us." A short laugh. "I make us even money, Captain. Don't tell the odds I said so."`,
+    `"I keep thinking about the people at that Gate. Eleven years hiding. We're the first good news they'll ever get — if we're fast."`,
+  ]));
+  if (S.flags.silence_answered) return share("the_answer", `"You talked to it. It talked BACK." ${c.name} shakes their head slowly. "I was there and I don't believe it. Every world woke up... I'm glad it was this ship. I'd have hated hearing it secondhand."`);
+  if (S.flags.silence_stilled) return share("the_stilling", `${c.name} is quiet a moment. "We're the only ones who know the sky used to have one more voice in it. That's ours to carry now. I'm not sorry. I'm not exactly proud either."`);
+  if (sil.stage === 3) return share("the_bearing", `"The Anechoic." ${c.name} says the word like it costs something. "We pulled a bearing out of a dead station and now we KNOW where it lives. Knowing's the part you can't undo, Captain."`);
+  if (sil.stage === 2) return share("the_dimming", pick2([
+    `"${sil.silenced.length ? "Whole worlds" : "Stations"} going quiet mid-sentence." ${c.name} wipes clean hands on a rag, twice. "My whole life the black was empty. Empty was BETTER."`,
+    `"Everybody dockside talks about it in the same small voice. Nobody says 'what if it's us next.' Everybody means it."`,
+  ]));
+  if (sil.stage === 1) return share("the_broadcast", `"Four seconds, every radio, everywhere at once." ${c.name} shrugs, not casually. "Equipment failure, the Union says. Sure. All of it. At once. In tune."`);
+  if (S.flags.reckoning_started) return share("the_tribunal", `"Sixty thousand names and we're hauling the witnesses." ${c.name} looks at you straight. "This is the good kind of dangerous, Captain. Don't let anyone tell you different."`);
+  if (S.flags.arc_resolved && S.flags.arc_broadcast) return share("the_gate", `"I think about the Gate sometimes. Kids growing up in a hollow moon because of what somebody signed." A beat. "We moved the needle on that. Whatever else we haul, we did that."`);
+  // no campaign live — talk about where you are
+  const portLines: Record<string, string> = {
+    meridian: `"Meridian gives me the crawls, honestly. All that glass and nobody looks up. Eleven years since the 'accident' and the whole planet acts like grief is a customs violation."`,
+    foundry: `"Foundry's honest, at least. Everything here is exactly as ugly as it looks, priced fair. You know where you stand — downwind of the smelters."`,
+    solace: `"Solace is everybody's second-favorite port. Nobody's from here, everybody's been here, half the sector owes it money. Good place to be a captain. Bad place to be broke."`,
+    kestrel: `"The Rest is what the frontier's supposed to be, isn't it? Bread and horizon. If the Union squeezes these folk much harder, something's going to give — and I know which side of it I'm standing on."`,
+    havens: `"The Folly runs on the honest kind of dishonesty — everyone knows the rules because nobody wrote them down. Watch the quartermasters and never gamble with a man missing exactly one finger."`,
+    verge: `"Last light before the black. I always sleep badly here. It's not the noise — it's the direction the quiet comes from."`,
+  };
+  if (S.docked && portLines[S.loc]) return share("port_" + S.loc, portLines[S.loc]);
+  return pick2([
+    `"The sector's holding its breath about something, Captain. Prices say so before people do. Keep the tanks full — that's all I know."`,
+    `"Big empty, small ship, decent company. There are worse ways to be poor."`,
+  ]);
 }
 
 // ---- "How are you holding up?" — always on the table, reads real state ----
@@ -266,6 +314,13 @@ export function ctQuest() {
   const c = activeCrewId != null ? findCrew(activeCrewId) : undefined;
   if (!c) return;
   lastLine = questLine(c);
+  requestRender();
+  renderCrewTalk();
+}
+export function ctWorld() {
+  const c = activeCrewId != null ? findCrew(activeCrewId) : undefined;
+  if (!c) return;
+  lastLine = worldLine(c);
   requestRender();
   renderCrewTalk();
 }

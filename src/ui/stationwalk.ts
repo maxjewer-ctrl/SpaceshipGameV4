@@ -8,6 +8,7 @@ import { requestRender } from "../bus";
 import { npcsInRoom, openNPC } from "../systems/scene";
 import { introDebtDoor, introDebtScene } from "../systems/intro";
 import { hasPortMark, standingWord, standingGreeting } from "../systems/port";
+import { openCrewTalk } from "../systems/crewtalk";
 import { isSilenced } from "../derive";
 
 // Location-stamped consequence set-dressing: a permanent physical change to
@@ -114,6 +115,17 @@ export function buildStationScene(): WalkScene {
         locked: dark,
         lockedHint: dark ? "Locked down. Nothing answers." : undefined,
         action: () => stationEnter(r.tab!),
+      });
+    }
+    // One off-duty crew member loiters by the ramp, rotating daily — the ship
+    // follows you ashore, and shore is where the real talks happen. Top-right
+    // of the docks keeps them clear of the doors' interact radius.
+    if (r.id === "docks" && !dark && S.crew.length) {
+      const c = S.crew[S.day % S.crew.length];
+      actors.push({
+        x: r.x + r.w - 62, y: r.y + 14, w: 28, h: 28, key: "crew:" + c.id,
+        label: c.name + " (off duty)", icon: "🧑‍🚀", color: "#5b8dd9",
+        onInteract: () => openCrewTalk(c.id),
       });
     }
     if (r.id === "harbor" && introDebtDoor()) {

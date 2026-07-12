@@ -21,6 +21,7 @@ import { introTravelBeat, introArrive } from "./intro";
 import { checkCrewQuests, checkCrewDeparture } from "./crewtalk";
 import { checkAgendaBeats } from "./agendabeats";
 import { bumpStanding } from "./port";
+import { accrueWear } from "./wear";
 import type { Job } from "../types";
 
 export function depart(destId: string) {
@@ -150,6 +151,8 @@ export function dayTick(traveling: boolean) {
   if (S.arc.stage === 5 && S.arc.deadline && S.day > S.arc.deadline) {
     arcIntercept();
   }
+  // the ship ages in flight — worn systems are tomorrow's breakdowns
+  accrueWear(traveling);
   // the Long Silence advances on its own clock
   silenceTick();
 }

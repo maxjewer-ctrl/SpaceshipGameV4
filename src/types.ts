@@ -7,7 +7,10 @@ export interface ModuleDef {
   gen?: number;  // reactor power generated
 }
 
-export interface ModuleInstance { t: string; on: boolean; dmg: boolean; }
+// wear 0-100: accrues in flight, drives RELIABILITY (worn modules break first,
+// failing ones quit on their own schedule). Reset by a dry-dock refit — the
+// ship is never finished, only currently holding together.
+export interface ModuleInstance { t: string; on: boolean; dmg: boolean; wear?: number; }
 
 // The captain's chosen look — set in the character creator, drawn by the shared
 // avatar renderer (ui/avatarDraw.ts) for both the preview and the walking sprite.

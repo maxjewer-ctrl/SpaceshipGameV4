@@ -25,6 +25,11 @@ function gateOk(b: BarkDef, c: CrewMember): boolean {
   if (b.origin && (!bd || !bd.origin.toLowerCase().includes(b.origin.toLowerCase()))) return false;
   if (b.sentimentMin !== undefined && sentiment(crewKey(c)) < b.sentimentMin) return false;
   if (b.sentimentMax !== undefined && sentiment(crewKey(c)) > b.sentimentMax) return false;
+  // world-state gates: ambient chatter tracks the plot as it unfolds
+  if (b.silMin !== undefined && S.campaign.silence.stage < b.silMin) return false;
+  if (b.arcMin !== undefined && S.arc.stage < b.arcMin) return false;
+  if (b.flag && !S.flags[b.flag]) return false;
+  if (b.loc && S.loc !== b.loc) return false;
   return true;
 }
 
@@ -62,10 +67,13 @@ export function bark(
 }
 
 // A crew member's "tell" — the behavioural giveaway — surfaced in-context. This
-// is how the hidden Tapestry sheet leaks without ever being shown.
+// is how the hidden Tapestry sheet leaks without ever being shown. Tells are
+// occasional (60%): a giveaway that fires EVERY time isn't a tell, it's a
+// billboard — and it was starving all other chatter in that situation.
 export function tellBark(situation: string): boolean {
   const tellers = S.crew.filter((c) => c.bundle && c.bundle.tellSituation === situation);
   if (!tellers.length) return false;
+  if (cosRand() > 0.6) return false;
   const c = cosPick(tellers);
   whisper(`${c.name} ${c.bundle!.tell}.`);
   return true;
