@@ -11,7 +11,11 @@
     "meshy:list": "node --env-file=.env scripts/meshy/list.mjs",
     "meshy:generate": "node --env-file=.env scripts/meshy/generate.mjs",
     "meshy:download": "node --env-file=.env scripts/meshy/download.mjs",
-    "meshy:batch": "node --env-file=.env scripts/meshy/generate-batch.mjs"
+    "meshy:batch": "node --env-file=.env scripts/meshy/generate-batch.mjs",
+    "meshy:rig": "node --env-file=.env scripts/meshy/rig.mjs",
+    "meshy:animate": "node --env-file=.env scripts/meshy/animate.mjs",
+    "meshy:retexture": "node --env-file=.env scripts/meshy/retexture.mjs",
+    "meshy:optimize": "node scripts/meshy/optimize.mjs"
   },
   "devDependencies": {
     "@types/three": "^0.185.1",

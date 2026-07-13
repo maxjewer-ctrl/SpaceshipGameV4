@@ -1,0 +1,23 @@
+{
+  "crew-vex": {
+    "name": "crew-vex",
+    "sourceTaskId": "019f58a0-42ef-7fb7-92a0-941f3bddaa9b",
+    "rigTaskId": "019f5d1d-1703-7941-a8cf-5110ae3c37f0",
+    "heightMeters": 1.75,
+    "riggedAt": "2026-07-13T20:14:06.285Z",
+    "animations": {
+      "idle": {
+        "rawPath": "scripts/meshy/raw/crew-vex-idle.glb",
+        "source": "animation-api",
+        "actionId": 0,
+        "animTaskId": "019f5d1d-c2f5-7546-8aed-3b5d575dfbdc",
+        "optimizedPath": "src/assets/models/crew-vex-idle.glb"
+      },
+      "walk": {
+        "rawPath": "scripts/meshy/raw/crew-vex-walk.glb",
+        "source": "rig-free",
+        "optimizedPath": "src/assets/models/crew-vex-walk.glb"
+      }
+    }
+  }
+}

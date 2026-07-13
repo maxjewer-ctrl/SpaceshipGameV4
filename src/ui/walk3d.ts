@@ -7,6 +7,8 @@ import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPa
 import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass.js";
 import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
+import { clone as cloneSkinned } from "three/examples/jsm/utils/SkeletonUtils.js";
 import { S } from "../state";
 import { MODS } from "../content";
 import { cargoUsed } from "../derive";
@@ -42,6 +44,14 @@ let avatar = new THREE.Group();
 let actorMeshes = new Map<string, THREE.Group>();
 let actorRigs = new Map<string, CharacterRig>();
 let captainRig: CharacterRig | null = null;
+// Per-actor idle/walk AnimationMixer for Meshy-rigged crew (see loadCrewModel).
+// Weight-blended so a future patrol/wander behaviour can fade into a walk cycle
+// instead of popping between poses; today's actors are stationary so it settles
+// on idle, but the switch is exercised whenever a.x/a.y actually change.
+interface CrewMotion { mixer: THREE.AnimationMixer; idleAction: THREE.AnimationAction | null; walkAction: THREE.AnimationAction | null; walkWeight: number; }
+let crewMotions = new Map<string, CrewMotion>();
+let prevActorPos = new Map<string, { x: number; y: number }>();
+let lastFrameTime = 0;
 let flashlight: THREE.SpotLight | null = null;
 let composer: EffectComposer | null = null;
 let bloomPass: UnrealBloomPass | null = null;
@@ -141,25 +151,59 @@ const wz = (y: number) => (y - (current?.height || 0) / 2) * SCALE;
 // Civilian wardrobe + skin tones for actors without an explicit roster colour.
 const WARDROBE = ["#3a4a63", "#4f3a55", "#54402e", "#2f5240", "#5a3333", "#39505c", "#4a4436", "#333a52"];
 const SKIN3D = ["#c9977a", "#a8714f", "#8a5a3c", "#e0b490", "#6d4a33", "#b98a68"];
+const crewDraco = new DRACOLoader();
+crewDraco.setDecoderPath(`${import.meta.env.BASE_URL}draco/gltf/`);
 const crewGltfLoader = new GLTFLoader();
-const crewModelUrls = import.meta.glob<string>("../assets/models/crew-*.glb", { query: "?url", import: "default" });
-const crewModelCache = new Map<string, Promise<THREE.Object3D | null>>();
+crewGltfLoader.setDRACOLoader(crewDraco);
+// Rigged crew ship two clips (idle always, walk when Meshy produced one) as
+// separate optimized GLBs sharing one skeleton; the static single-file glob
+// (old un-rigged meshes) is the fallback for crew not yet run through the
+// Meshy rig+animate pipeline (see scripts/meshy/rig.mjs, animate.mjs).
+const crewIdleUrls = import.meta.glob<string>("../assets/models/crew-*-idle.glb", { query: "?url", import: "default" });
+const crewWalkUrls = import.meta.glob<string>("../assets/models/crew-*-walk.glb", { query: "?url", import: "default" });
+const crewStaticUrls = import.meta.glob<string>(
+  ["../assets/models/crew-*.glb", "!../assets/models/crew-*-idle.glb", "!../assets/models/crew-*-walk.glb"],
+  { query: "?url", import: "default" },
+);
 
-function loadCrewModel(key: string): Promise<THREE.Object3D | null> {
-  const urlLoader = crewModelUrls[`../assets/models/crew-${key}.glb`];
-  if (!urlLoader) return Promise.resolve(null);
+interface CrewModelSet { scene: THREE.Object3D; idleClip: THREE.AnimationClip | null; walkClip: THREE.AnimationClip | null; }
+const crewModelCache = new Map<string, Promise<CrewModelSet | null>>();
+
+function loadGltfScene(urlLoader: () => Promise<string>) {
+  return urlLoader().then((url) => crewGltfLoader.loadAsync(url));
+}
+
+function loadCrewModel(key: string): Promise<CrewModelSet | null> {
   const cached = crewModelCache.get(key);
   if (cached) return cached;
-  const pending = urlLoader()
-    .then((url) => crewGltfLoader.loadAsync(url))
-    .then((gltf) => gltf.scene)
-    .catch(() => null);
+  const idleLoader = crewIdleUrls[`../assets/models/crew-${key}-idle.glb`];
+  const walkLoader = crewWalkUrls[`../assets/models/crew-${key}-walk.glb`];
+  const staticLoader = crewStaticUrls[`../assets/models/crew-${key}.glb`];
+  let pending: Promise<CrewModelSet | null>;
+  if (idleLoader) {
+    pending = Promise.all([loadGltfScene(idleLoader), walkLoader ? loadGltfScene(walkLoader) : Promise.resolve(null)])
+      .then(([idleGltf, walkGltf]) => ({
+        scene: idleGltf.scene,
+        idleClip: idleGltf.animations[0] ?? null,
+        walkClip: walkGltf?.animations[0] ?? null,
+      }))
+      .catch(() => null);
+  } else if (staticLoader) {
+    pending = loadGltfScene(staticLoader)
+      .then((gltf) => ({ scene: gltf.scene, idleClip: null, walkClip: null }))
+      .catch(() => null);
+  } else {
+    pending = Promise.resolve(null);
+  }
   crewModelCache.set(key, pending);
   return pending;
 }
 
 function fitCrewModel(src: THREE.Object3D, targetHeight = 1.28): THREE.Object3D {
-  const model = src.clone(true);
+  // SkeletonUtils.clone (not Object3D.clone) — a plain clone duplicates
+  // SkinnedMesh nodes without relinking their skeleton.bones, so every rigged
+  // crew instance would silently share and fight over one skeleton's pose.
+  const model = cloneSkinned(src);
   const b = new THREE.Box3().setFromObject(model);
   const size = new THREE.Vector3(); b.getSize(size);
   if (size.y > 0.0001) model.scale.multiplyScalar(targetHeight / size.y);
@@ -174,14 +218,22 @@ function fitCrewModel(src: THREE.Object3D, targetHeight = 1.28): THREE.Object3D 
   return model;
 }
 
-function attachCrewModel(group: THREE.Group, modelKey: string | undefined, fallback: THREE.Object3D) {
+function attachCrewModel(group: THREE.Group, modelKey: string | undefined, fallback: THREE.Object3D, actorKey?: string) {
   if (!modelKey) return;
-  loadCrewModel(modelKey).then((src) => {
-    if (!src || !group.parent) return;
-    const model = fitCrewModel(src, modelKey === "pip7" ? .9 : 1.28);
+  loadCrewModel(modelKey).then((data) => {
+    if (!data || !group.parent) return;
+    const model = fitCrewModel(data.scene, modelKey === "pip7" ? .9 : 1.28);
     model.name = `mesh:${modelKey}`;
     fallback.visible = false;
     group.add(model);
+    if (actorKey && (data.idleClip || data.walkClip)) {
+      const mixer = new THREE.AnimationMixer(model);
+      const idleAction = data.idleClip ? mixer.clipAction(data.idleClip) : null;
+      const walkAction = data.walkClip ? mixer.clipAction(data.walkClip) : null;
+      idleAction?.play();
+      if (walkAction) { walkAction.play(); walkAction.setEffectiveWeight(0); }
+      crewMotions.set(actorKey, { mixer, idleAction, walkAction, walkWeight: 0 });
+    }
   });
 }
 
@@ -385,7 +437,7 @@ function addMachinery(g: THREE.Group, type: string, color: string, online: boole
 
 function rebuild() {
   if (!root || !current) return;
-  root.remove(world); disposeObject(world); world = new THREE.Group(); root.add(world); actorMeshes.clear(); actorRigs.clear();
+  root.remove(world); disposeObject(world); world = new THREE.Group(); root.add(world); actorMeshes.clear(); actorRigs.clear(); crewMotions.clear(); prevActorPos.clear();
   doorLabels = new Map(); actorLabels = new Map();
   const dark = !!current.dark;
   const isDustwell = current.id === "station:dustwell";
@@ -448,7 +500,7 @@ function rebuild() {
     let hv=0; for(let i=0;i<a.key.length;i++) hv=(hv*31+a.key.charCodeAt(i))|0; hv>>>=0;
     const suitC=a.color||WARDROBE[hv%WARDROBE.length], skinC=SKIN3D[(hv>>4)%SKIN3D.length];
     const g=new THREE.Group();
-    const rig=addPerson(suitC,skinC,a.color?"#e8d9b0":"#8fa8c9",hv);g.add(rig.group);attachCrewModel(g,a.modelKey,rig.group);
+    const rig=addPerson(suitC,skinC,a.color?"#e8d9b0":"#8fa8c9",hv);g.add(rig.group);attachCrewModel(g,a.modelKey,rig.group,a.key);
     actorRigs.set(a.key,rig);
     const l=sprite(a.label,a.color||"#c9d2e4",.55);l.position.y=1.9;g.add(l);world.add(g);actorMeshes.set(a.key,g);actorLabels.set(a,l);
   }
@@ -500,7 +552,21 @@ export function render(v:{pos:{x:number;y:number};facing:string;moving:boolean;p
   const camAngle=CAM_BASE_ANGLE+camYaw;
   const target=new THREE.Vector3(x+Math.cos(camAngle)*CAM_BASE_DIST*camZoom+shake,CAM_BASE_HEIGHT*camZoom+camPitch,z+Math.sin(camAngle)*CAM_BASE_DIST*camZoom);camera.position.lerp(target,.09);camera.lookAt(x,.65,z);
   if(flashlight){flashlight.position.set(x,1.25,z);flashlight.target.position.set(x+Math.sin(ang)*4,.45,z+Math.cos(ang)*4);}
-  for(const a of current.actors){const g=actorMeshes.get(a.key);if(!g)continue;g.position.set(wx(a.x+a.w/2),0,wz(a.y+a.h/2));if(a.bubble&&!g.getObjectByName("bubble")){const b=sprite(a.bubble,"#fff",.65);b.name="bubble";b.position.y=2.55;g.add(b);}else if(!a.bubble){const b=g.getObjectByName("bubble");if(b){g.remove(b);disposeObject(b);}}}
+  const dt=Math.min(.1,Math.max(0,lastFrameTime?(v.time-lastFrameTime)/1000:.016));lastFrameTime=v.time;
+  for(const a of current.actors){
+    const g=actorMeshes.get(a.key);if(!g)continue;g.position.set(wx(a.x+a.w/2),0,wz(a.y+a.h/2));
+    if(a.bubble&&!g.getObjectByName("bubble")){const b=sprite(a.bubble,"#fff",.65);b.name="bubble";b.position.y=2.55;g.add(b);}else if(!a.bubble){const b=g.getObjectByName("bubble");if(b){g.remove(b);disposeObject(b);}}
+    const prev=prevActorPos.get(a.key);const moving=prev?Math.abs(a.x-prev.x)+Math.abs(a.y-prev.y)>.02:false;prevActorPos.set(a.key,{x:a.x,y:a.y});
+    const motion=crewMotions.get(a.key);
+    if(motion){
+      motion.mixer.update(dt);
+      if(motion.walkAction&&motion.idleAction){
+        motion.walkWeight=THREE.MathUtils.damp(motion.walkWeight,moving?1:0,6,dt);
+        motion.walkAction.setEffectiveWeight(motion.walkWeight);
+        motion.idleAction.setEffectiveWeight(1-motion.walkWeight);
+      }
+    }
+  }
   // A room full of nametags/door labels reads as a wall of overlapping text;
   // fade everything but whatever's actually interactable right now so the
   // player's eye has one thing to land on instead of five stacked signs.
@@ -513,4 +579,4 @@ export function render(v:{pos:{x:number;y:number};facing:string;moving:boolean;p
   world.traverse((o:any)=>{if(o.userData.spark!==undefined){o.visible=Math.sin(v.time*.025+o.userData.spark)>0;o.position.y=1+(o.userData.spark*.12+v.time*.0004)%1;}if(o.userData.starfield&&S.travel)o.rotation.y=v.time*.00002;});
   if(composer){if(crtPass)crtPass.uniforms.time.value=v.time*.001;composer.render();}else renderer.render(root,camera);
 }
-export function teardown(){resizeObserver?.disconnect();resizeObserver=null;if(renderer&&clickHandler)renderer.domElement.removeEventListener("pointerdown",clickHandler);clickHandler=null;if(root)disposeObject(root);composer?.dispose();bloomPass?.dispose();composer=null;bloomPass=null;crtPass=null;renderer?.dispose();renderer?.domElement.remove();if(fallbackCanvas)fallbackCanvas.style.display="block";renderer=null;root=null;camera=null;flashlight=null;current=null;host=null;fallbackCanvas=null;signature="";world=new THREE.Group();avatar=new THREE.Group();actionFx=new THREE.Group();actorMeshes.clear();actorRigs.clear();captainRig=null;doorLabels=new Map();actorLabels=new Map();aimCallback=null;fireCallback=null;camYaw=0;camPitch=0;}
+export function teardown(){resizeObserver?.disconnect();resizeObserver=null;if(renderer&&clickHandler)renderer.domElement.removeEventListener("pointerdown",clickHandler);clickHandler=null;if(root)disposeObject(root);composer?.dispose();bloomPass?.dispose();composer=null;bloomPass=null;crtPass=null;renderer?.dispose();renderer?.domElement.remove();if(fallbackCanvas)fallbackCanvas.style.display="block";renderer=null;root=null;camera=null;flashlight=null;current=null;host=null;fallbackCanvas=null;signature="";world=new THREE.Group();avatar=new THREE.Group();actionFx=new THREE.Group();actorMeshes.clear();actorRigs.clear();crewMotions.clear();prevActorPos.clear();lastFrameTime=0;captainRig=null;doorLabels=new Map();actorLabels=new Map();aimCallback=null;fireCallback=null;camYaw=0;camPitch=0;}
