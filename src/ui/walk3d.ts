@@ -454,7 +454,7 @@ function rebuild() {
     }
   }
   const corridorWallMat=isDustwell?mat("#6b4a30",.05):mat(dark?"#5f6671":"#aeb7c0",dark?.1:.18);
-  if(!isDustwell){corridorWallMat.map=roomTextures.corridor;corridorWallMat.transparent=true;corridorWallMat.opacity=dark?.72:.86;corridorWallMat.depthWrite=false;}
+  if(!isDustwell){corridorWallMat.map=roomTextures.corridor;corridorWallMat.transparent=true;corridorWallMat.opacity=dark?.85:.95;corridorWallMat.depthWrite=false;}
   for (const f of current.floors) {
     const w=f.w*SCALE,d=f.h*SCALE,isRoom=current.rooms.some((r)=>matchesRect(f,r));
     const fm=isRoom?mat(isDustwell?"#7a5230":dark?"#252e3e":"#466080",isDustwell?.06:dark?.05:.16):(isDustwell?mat("#8a5a34",.04):corridorFloorMat(w,d,dark));
@@ -474,12 +474,19 @@ function rebuild() {
       : r.moduleType === "shields" ? "shield"
       : r.moduleType === "fueltank" || r.moduleType === "workshop" || r.moduleType === "smuggler" || r.moduleType === "cabin" || r.moduleType === "luxcabin" ? "utility"
       : "general";
-    const wallMat=mat(isDustwell?"#d9b98a":dark?"#465365":"#8fa7bd",isDustwell?.04:dark?.08:.16);wallMat.map=roomTextures[wallKind];wallMat.transparent=true;wallMat.opacity=dark?.68:.84;wallMat.depthWrite=false;
+    // Solid-reading walls: opacity was low enough (.68-.84) that every room
+    // was see-through into whatever was behind it — a corridor's worth of
+    // rooms all bleeding into frame at once read as haze, not a ship. Nearly
+    // opaque still keeps the depthWrite:false blend safe at shared edges
+    // without the x-ray effect.
+    const wallMat=mat(isDustwell?"#d9b98a":dark?"#465365":"#8fa7bd",isDustwell?.04:dark?.08:.16);wallMat.map=roomTextures[wallKind];wallMat.transparent=true;wallMat.opacity=dark?.88:.96;wallMat.depthWrite=false;
     [[w,.18,cx,cz-d/2],[w,.18,cx,cz+d/2],[.18,d,cx-w/2,cz],[.18,d,cx+w/2,cz]].forEach(([a,b,x,z])=>{const q=box(a as number,1.85,b as number,wallMat);q.position.set(x as number,.88,z as number);world.add(q);});
-    // Tall illuminated corner pylons make room boundaries readable even when
-    // the follow camera is looking across several bays.
-    for(const [px,pz] of [[cx-w/2,cz-d/2],[cx+w/2,cz-d/2],[cx-w/2,cz+d/2],[cx+w/2,cz+d/2]]){const p=box(.16,2.45,.16,mat(c,.32));p.position.set(px,1.18,pz);world.add(p);}
-    const trim=box(Math.max(.5,w-.3),.04,.05,mat(c,.45)); trim.position.set(cx,.04,cz-d/2+.12); world.add(trim);
+    // Corner pylons mark room boundaries at a glance from the follow camera —
+    // toned down from the original pass, which ran four saturated neon rods
+    // per room at full room height; across several adjacent bays that read as
+    // a picket fence of clashing colour instead of quiet edge-lighting.
+    for(const [px,pz] of [[cx-w/2,cz-d/2],[cx+w/2,cz-d/2],[cx-w/2,cz+d/2],[cx+w/2,cz+d/2]]){const p=box(.1,1.9,.1,mat(c,.2));p.position.set(px,.95,pz);world.add(p);}
+    const trim=box(Math.max(.5,w-.3),.04,.05,mat(c,.35)); trim.position.set(cx,.04,cz-d/2+.12); world.add(trim);
     const label=sprite(`${r.icon||""} ${r.label}`.trim(),c,.62); label.position.set(cx,2.72,cz); world.add(label);
     if(r.kind==="cockpit"){
       const glass=box(Math.max(1,w*.7),1.15,.04,mat("#071323",.15));glass.position.set(cx,.78,cz-d/2+.1);world.add(glass);
@@ -492,6 +499,15 @@ function rebuild() {
   if (isDustwell) spawnDesertProps(world, current);
   for (const d of current.doors) { const g=box(Math.max(.4,d.w*SCALE),.04,Math.max(.28,d.h*SCALE),mat(d.locked?"#8a3030":"#3d91df",d.locked?.15:.8));g.position.set(wx(d.x+d.w/2),.04,wz(d.y+d.h/2));world.add(g);const l=sprite(d.label,d.locked?"#d77":"#9fd7ff",.55);l.position.set(g.position.x,.75,g.position.z);world.add(l);doorLabels.set(d,l); }
   for (const a of current.actors) {
+    // Not every actor is a person. Ship module bays and the captain's chair
+    // are interact points standing in for furniture already drawn by
+    // addMachinery/the room itself (see the `if(r.moduleType)` block above) —
+    // rendering them as a wardrobe-dressed mannequin with the module's name
+    // floating over its head duplicated the room's own ceiling label and left
+    // every bay looking staffed by an invisible crew. They still work as
+    // interact targets (walk.ts's 2D sim owns proximity/prompts); they just
+    // get no 3D body of their own.
+    if (a.key.startsWith("module:") || a.key === "captains-chair") continue;
     // No explicit roster colour → deal one from the wardrobe by key hash, so a
     // station concourse is a crowd of strangers instead of identical clones.
     let hv=0; for(let i=0;i<a.key.length;i++) hv=(hv*31+a.key.charCodeAt(i))|0; hv>>>=0;
