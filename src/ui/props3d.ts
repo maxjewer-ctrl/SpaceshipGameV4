@@ -38,18 +38,16 @@ const propModelUrls = import.meta.glob<string>(
 const gltfCache = new Map<string, Promise<THREE.Group | null>>();
 
 function placeholderMesh(p: PropPlacement): THREE.Group {
+  // A soft solid block in the prop's own colour — stands in for the ~1s while
+  // the GLB streams in. Deliberately NOT the old bright wireframe cage, which
+  // read as a sci-fi hologram in a weathered frontier town and drew the eye to
+  // exactly the thing that isn't loaded yet.
   const g = new THREE.Group();
-  const mat = new THREE.MeshStandardMaterial({ color: p.placeholderColor, roughness: 0.85, metalness: 0.15, wireframe: false, transparent: true, opacity: 0.55 });
-  const mesh = new THREE.Mesh(new THREE.CapsuleGeometry(p.placeholderRadius * 0.6, p.placeholderHeight * 0.7, 4, 8), mat);
+  const mat = new THREE.MeshStandardMaterial({ color: p.placeholderColor, roughness: 0.9, metalness: 0.1, transparent: true, opacity: 0.72 });
+  const mesh = new THREE.Mesh(new THREE.CapsuleGeometry(p.placeholderRadius * 0.7, p.placeholderHeight * 0.66, 4, 8), mat);
   mesh.position.y = p.placeholderHeight / 2;
   mesh.castShadow = true;
   g.add(mesh);
-  const edges = new THREE.LineSegments(
-    new THREE.EdgesGeometry(new THREE.CylinderGeometry(p.placeholderRadius, p.placeholderRadius, p.placeholderHeight, 8)),
-    new THREE.LineBasicMaterial({ color: 0xffb464, transparent: true, opacity: 0.4 })
-  );
-  edges.position.y = p.placeholderHeight / 2;
-  g.add(edges);
   g.userData.isPlaceholder = true;
   return g;
 }

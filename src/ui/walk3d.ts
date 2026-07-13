@@ -204,9 +204,12 @@ function desertPlankTexture(): THREE.CanvasTexture {
 }
 function sandTexture(): THREE.CanvasTexture {
   const c = document.createElement("canvas"); c.width = 256; c.height = 256; const x = c.getContext("2d")!;
-  x.fillStyle = "#8a5a34"; x.fillRect(0, 0, 256, 256);
+  // Lighter, warmer packed sand — the old value sat too close to the plank
+  // walls, so from top-down floor and fence read as one brown mass. This lifts
+  // the ground a full value above the walls so rooms read as bounded spaces.
+  x.fillStyle = "#c19064"; x.fillRect(0, 0, 256, 256);
   const r = fork("tex:sand");
-  for (let i = 0; i < 3000; i++) { x.fillStyle = r() < .5 ? "rgba(40,22,10,.10)" : "rgba(210,160,100,.10)"; x.fillRect(r() * 256, r() * 256, 2, 2); }
+  for (let i = 0; i < 3000; i++) { x.fillStyle = r() < .5 ? "rgba(60,34,16,.09)" : "rgba(240,200,150,.12)"; x.fillRect(r() * 256, r() * 256, 2, 2); }
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(6, 4); return t;
 }
 // The 10 Meshy-generated spaceport props (see scripts/meshy/, src/spaceport/),
@@ -221,18 +224,22 @@ function spawnDesertProps(g: THREE.Group, scene: WalkScene) {
   const place = (name: string, x: number, z: number, h: number, rotY = 0, color = 0x8a6a4a) =>
     spawnProp(g, { name, x, z, rotY, placeholderRadius: h * .3, placeholderHeight: h, placeholderColor: color });
 
-  place("cargo-shuttle", docks.x + .3, docks.z - 1.3, 0.85, 1.6);
-  place("beacon-lamp", docks.x - 2.0, docks.z + 1.1, 1.3);
-  place("beacon-lamp", docks.x + 2.0, docks.z + 1.1, 1.3);
-  place("mooring-post", docks.x - 1.9, docks.z - .3, 1.0);
-  place("mooring-post", docks.x + 1.9, docks.z - .3, 1.0);
-  place("cargo-hauler", drydock.x - .6, drydock.z + .8, 1.0, 1.1);
-  place("fuel-tank", drydock.x + 1.1, drydock.z - .6, 1.3);
-  place("water-tower", concourse.x - 1.6, concourse.z - 1.2, 3.2, 0.3);
-  place("windmill-turbine", concourse.x + 1.8, concourse.z + 1.0, 4.0, -0.5);
-  place("cargo-crate", market.x + 1.2, market.z + .9, 0.6, 0.6);
-  place("barrel-stack", market.x - 1.1, market.z - .8, 0.8);
-  place("satellite-dish", harbor.x + 1.3, harbor.z - .9, 1.2, -0.3);
+  // Heights trimmed and tall props pulled toward room centres for the fixed
+  // top-down camera: at this angle anything over ~2.5m mostly shows its lid and
+  // its silhouette clips through the waist-high fences, so the windmill and
+  // water tower are shorter and sit clear of the walls rather than on the edge.
+  place("cargo-shuttle", docks.x + .3, docks.z - 1.0, 0.85, 1.6);
+  place("beacon-lamp", docks.x - 1.7, docks.z + 1.0, 1.15);
+  place("beacon-lamp", docks.x + 1.7, docks.z + 1.0, 1.15);
+  place("mooring-post", docks.x - 1.6, docks.z - .3, 0.9);
+  place("mooring-post", docks.x + 1.6, docks.z - .3, 0.9);
+  place("cargo-hauler", drydock.x - .5, drydock.z + .6, 0.95, 1.1);
+  place("fuel-tank", drydock.x + 1.0, drydock.z - .5, 1.15);
+  place("water-tower", concourse.x - 1.1, concourse.z - .9, 2.5, 0.3);
+  place("windmill-turbine", concourse.x + 1.0, concourse.z + .7, 2.6, -0.5);
+  place("cargo-crate", market.x + 1.0, market.z + .8, 0.6, 0.6);
+  place("barrel-stack", market.x - 1.0, market.z - .7, 0.75);
+  place("satellite-dish", harbor.x + 1.1, harbor.z - .8, 1.1, -0.3);
 }
 function box(w: number, h: number, d: number, material: THREE.Material) {
   return new THREE.Mesh(new THREE.BoxGeometry(w, h, d), material);
@@ -416,7 +423,7 @@ function rebuild() {
   if(!isDustwell){corridorWallMat.map=roomTextures.corridor;corridorWallMat.transparent=true;corridorWallMat.opacity=dark?.72:.86;corridorWallMat.depthWrite=false;}
   for (const f of current.floors) {
     const w=f.w*SCALE,d=f.h*SCALE,isRoom=current.rooms.some((r)=>matchesRect(f,r));
-    const fm=isRoom?mat(isDustwell?"#7a5230":dark?"#252e3e":"#466080",isDustwell?.06:dark?.05:.16):(isDustwell?mat("#8a5a34",.04):corridorFloorMat(w,d,dark));
+    const fm=isRoom?mat(isDustwell?"#a9764a":dark?"#252e3e":"#466080",isDustwell?.08:dark?.05:.16):(isDustwell?mat("#b5895a",.06):corridorFloorMat(w,d,dark));
     if(isRoom)fm.map=deck; else if(isDustwell)fm.map=sandTexture();
     const m=box(w,.12,d,fm); m.position.set(wx(f.x+f.w/2),-.08,wz(f.y+f.h/2)); world.add(m);
     if(!isRoom) addPathBorder(world,m.position.x,m.position.z,w,d,corridorWallMat);
@@ -438,9 +445,11 @@ function rebuild() {
     // see over an outdoor town's fences, where a station's bulkheads can rise.
     const wallH=isDustwell?1.05:1.85;
     [[w,.18,cx,cz-d/2],[w,.18,cx,cz+d/2],[.18,d,cx-w/2,cz],[.18,d,cx+w/2,cz]].forEach(([a,b,x,z])=>{const q=box(a as number,wallH,b as number,wallMat);q.position.set(x as number,wallH/2-.04,z as number);world.add(q);});
-    // Tall illuminated corner pylons make room boundaries readable even when
-    // the follow camera is looking across several bays.
-    for(const [px,pz] of [[cx-w/2,cz-d/2],[cx+w/2,cz-d/2],[cx-w/2,cz+d/2],[cx+w/2,cz+d/2]]){const p=box(.16,2.45,.16,mat(c,.32));p.position.set(px,1.18,pz);world.add(p);}
+    // Corner posts mark room boundaries. Ships get tall illuminated pylons;
+    // Dustwell gets squat weathered fence posts (no glow) that suit an outdoor
+    // frontier town and don't tower over the waist-high plank walls.
+    const pylonH=isDustwell?1.25:2.45, pylonMat=isDustwell?mat("#5a3d26",.04):mat(c,.32);
+    for(const [px,pz] of [[cx-w/2,cz-d/2],[cx+w/2,cz-d/2],[cx-w/2,cz+d/2],[cx+w/2,cz+d/2]]){const p=box(isDustwell?.13:.16,pylonH,isDustwell?.13:.16,pylonMat);p.position.set(px,pylonH/2,pz);world.add(p);}
     const trim=box(Math.max(.5,w-.3),.04,.05,mat(c,.45)); trim.position.set(cx,.04,cz-d/2+.12); world.add(trim);
     const label=sprite(`${r.icon||""} ${r.label}`.trim(),c,.62); label.position.set(cx,2.72,cz); world.add(label);
     if(r.kind==="cockpit"){
@@ -471,7 +480,11 @@ export function mount(container: HTMLElement | null, s: WalkScene, actions: {mov
     renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:"high-performance"}); renderer.setPixelRatio(Math.min(devicePixelRatio,2)); renderer.outputColorSpace=THREE.SRGBColorSpace;
     renderer.domElement.className="walk3d-canvas"; container.insertBefore(renderer.domElement,container.firstChild);
     const isDesert = s.id === "station:dustwell";
-    root=new THREE.Scene(); root.background=new THREE.Color(s.dark?0x05070b:isDesert?0xc27a48:0x0c1420); root.fog=new THREE.Fog(root.background,34,85); root.add(new THREE.HemisphereLight(s.dark?0x7384a0:isDesert?0xe8b078:0xbcdcff,isDesert?0x3a2818:0x1a2130,s.dark ? .6 : 1.7));root.add(new THREE.AmbientLight(s.dark?0x647087:isDesert?0xc98858:0x91b8df,s.dark?.35:.9));root.add(avatar,actionFx);
+    root=new THREE.Scene(); root.background=new THREE.Color(s.dark?0x05070b:isDesert?0xc98a54:0x0c1420); root.fog=new THREE.Fog(root.background,34,85); root.add(new THREE.HemisphereLight(s.dark?0x7384a0:isDesert?0xf0ca96:0xbcdcff,isDesert?0x5a3f28:0x1a2130,s.dark ? .6 : isDesert ? 1.15 : 1.7));root.add(new THREE.AmbientLight(s.dark?0x647087:isDesert?0xc99a68:0x91b8df,s.dark?.35:isDesert?.6:.9));root.add(avatar,actionFx);
+    // Desert sun: a warm high directional gives the flat top-down town some
+    // form and lifts the shadowed room interiors — kept modest so it shapes
+    // rather than blows out (bloom amplifies the bright sand).
+    if(isDesert){const sun=new THREE.DirectionalLight(0xffe0b0,.6);sun.position.set(-6,12,4);root.add(sun);}
     if(s.dark){flashlight=new THREE.SpotLight(0xc8dcff,3.2,7,Math.PI/5,.55,1.2);flashlight.target=new THREE.Object3D();root.add(flashlight,flashlight.target);}else flashlight=null;
     camera=new THREE.PerspectiveCamera(CAM_FOV,1,.1,100);
     // Post-processing chain: bloom makes every emissive (drive core, LEDs,
@@ -479,10 +492,14 @@ export function mount(container: HTMLElement | null, s: WalkScene, actions: {mov
     // adds the tube finish. Guarded separately from the WebGL fallback above —
     // if only post-fx fails we keep plain 3D rather than dropping to 2D.
     try {
-      renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.95;
+      // Lower exposure for the desert: its sunlit sand is far brighter than a
+      // dim ship interior, so the same 1.95 blows the highlights to white.
+      renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=isDesert?1.35:1.95;
       composer=new EffectComposer(renderer); composer.setPixelRatio(Math.min(devicePixelRatio,2));
       composer.addPass(new RenderPass(root,camera));
-      bloomPass=new UnrealBloomPass(new THREE.Vector2(1,1), s.dark?0.75:0.5, 0.55, 0.32);
+      // Gentle bloom in daylight — the desert has no emissives to make radiate,
+      // so a strong threshold would just haze the whole bright scene.
+      bloomPass=new UnrealBloomPass(new THREE.Vector2(1,1), s.dark?0.75:isDesert?0.22:0.5, 0.55, isDesert?0.5:0.32);
       composer.addPass(bloomPass);
       crtPass=new ShaderPass(CRT_SHADER); composer.addPass(crtPass);
       composer.addPass(new OutputPass());

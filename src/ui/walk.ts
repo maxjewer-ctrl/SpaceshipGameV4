@@ -152,9 +152,10 @@ export function start(s: WalkScene) {
   bindListeners();
   mountWalk3d(s);
   projectiles=[]; rollTime=rollCooldown=fireCooldown=0;
-  // Practice target: action scenes only (until real foot encounters land) —
-  // your own deck and friendly stations have nothing to shoot at.
-  if (s.action) {
+  // Practice target only in HOSTILE action scenes (silenced/dark) — a friendly
+  // frontier town like Dustwell is action-mode for movement feel, but a red
+  // TARGET dummy on its landing pad reads as a bug, not a town.
+  if (s.action && s.dark) {
     const dp=nearestLegal(pos.x+150,pos.y)||nearestLegal(pos.x,pos.y-150);
     dummy=dp?{...dp,hp:5,hit:0}:null;
   } else dummy=null;
