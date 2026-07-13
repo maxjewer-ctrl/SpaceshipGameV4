@@ -8,6 +8,7 @@ import { storyCards } from "../systems/silence";
 import { introCard } from "../systems/intro";
 import { standingWord } from "../systems/port";
 import { wearTier } from "../systems/wear";
+import { ensureSlots, bayCount } from "../systems/actions";
 import { viewportHTML, pedestalHTML, reactorPanelHTML, lifeSupportHTML, commsFullHTML } from "./cockpit";
 
 export function selSlot(i: number) { S.sel = S.sel === i ? null : i; requestRender(); }
@@ -131,11 +132,20 @@ export function shipHTML(): string {
   const hullPct = Math.max(0, S.hull / S.hullMax);
   const hullState = hullPct < 0.35 ? "hull-crit" : hullPct < 0.7 ? "hull-warn" : "";
   const reg = "KR-" + (((S.seed >>> 0) % 8999) + 1000); // stable registry number
-  // v2-style module bay cards: fill-level overlay, LED dot, category tag
+  // v2-style module bay cards: fill-level overlay, LED dot, category tag.
+  // Cards render by bay SLOT, not install order — this grid IS the deck plan
+  // the walkable interior is generated from, empty bays included. With a
+  // module selected, clicking an empty bay moves it there.
+  ensureSlots();
+  const nBays = Math.max(10, bayCount());
+  const bySlot = Array.from({ length: nBays }, (_, i) => inst.find((m) => m.slot === i) || null);
+  const carrying = S.sel != null && S.sel >= 0 && inst[S.sel] ? S.sel : null;
   let slotsHtml = "";
-  for (let i = 0; i < 10; i++) {
-    if (i < inst.length) {
-      const m = inst[i], md = MODS[m.t];
+  for (let i = 0; i < nBays; i++) {
+    const m = bySlot[i];
+    if (m) {
+      const md = MODS[m.t];
+      const idx = inst.indexOf(m);
       const cat = modCategory(m.t);
       const led = m.dmg ? "var(--red)" : (md.pw ? (m.on ? "var(--green)" : "#3a3f48") : "var(--green)");
       const fill = m.dmg ? "30%" : (md.pw && m.on ? "60%" : "15%");
@@ -143,14 +153,16 @@ export function shipHTML(): string {
       const tagC = m.dmg ? "var(--red)" : "#7fb8dd";
       const nameC = m.dmg ? "var(--red)" : "#cfeaff";
       const tag = md.pw ? (m.on ? `ON ${md.pw}⚡` : `OFF`) : (md.gen ? `+${md.gen}⚡` : "PSV");
-      const cls = (m.dmg ? " dmgd" : "") + (!m.dmg && md.pw && !m.on ? " offline" : "") + (S.sel === i ? " selected" : "");
-      slotsHtml += `<div class="v2-bay ${cat}${cls}" onclick="selSlot(${i})" title="${md.n}${m.dmg ? " — DAMAGED" : (md.pw && !m.on ? " — powered down" : "")}">
+      const cls = (m.dmg ? " dmgd" : "") + (!m.dmg && md.pw && !m.on ? " offline" : "") + (S.sel === idx ? " selected" : "");
+      slotsHtml += `<div class="v2-bay ${cat}${cls}" onclick="selSlot(${idx})" title="${md.n}${m.dmg ? " — DAMAGED" : (md.pw && !m.on ? " — powered down" : "")}">
         <div class="v2-bay-fill" style="height:${fill};background:${fillC}"></div>
         <div class="v2-bay-top"><span class="v2-bay-tag" style="color:${tagC}">${tag}</span><span class="v2-bay-led" style="background:${led};box-shadow:0 0 6px ${led}"></span></div>
         <div class="v2-bay-bot"><span class="v2-bay-icon">${md.icon}</span><span class="v2-bay-name" style="color:${nameC}">${md.n}</span></div>
       </div>`;
     } else if (i < S.slotsMax) {
-      slotsHtml += `<div class="v2-bay empty" onclick="selSlot(-1)"><div class="v2-bay-bot"><span class="v2-bay-icon">＋</span><span class="v2-bay-name dim">empty bay</span></div></div>`;
+      slotsHtml += carrying != null
+        ? `<div class="v2-bay empty" onclick="moveModTo(${carrying},${i})" title="Move ${MODS[inst[carrying].t].n} to this bay"><div class="v2-bay-bot"><span class="v2-bay-icon">⇄</span><span class="v2-bay-name dim">move here</span></div></div>`
+        : `<div class="v2-bay empty" onclick="selSlot(-1)"><div class="v2-bay-bot"><span class="v2-bay-icon">＋</span><span class="v2-bay-name dim">empty bay</span></div></div>`;
     } else {
       slotsHtml += `<div class="v2-bay locked"><div class="v2-bay-bot"><span class="v2-bay-icon">🔒</span><span class="v2-bay-name dim">hull expansion</span></div></div>`;
     }
@@ -176,8 +188,11 @@ export function shipHTML(): string {
       ${m.dmg ? '<p class="dim" style="margin-bottom:8px">Repair at any shipyard dry dock (80cr), or a mechanic may jury-rig it in flight.</p>' : ""}
       <div style="display:flex; gap:6px; flex-wrap:wrap">
         ${md.pw && !m.dmg ? `<button onclick="toggleMod(${S.sel})">${m.on ? "⏻ Power down" : "⏻ Power up (+" + md.pw + "⚡)"}</button>` : ""}
+        <button ${m.slot! > 0 ? "" : "disabled"} onclick="moveModTo(${S.sel},${m.slot! - 1})" title="Swap toward the bow">◀ Fore</button>
+        <button ${m.slot! < S.slotsMax - 1 ? "" : "disabled"} onclick="moveModTo(${S.sel},${m.slot! + 1})" title="Swap toward the stern">Aft ▶</button>
         <button ${S.docked ? "" : "disabled"} onclick="sellMod(${S.sel})">Sell for ${Math.round(md.price * (m.dmg ? 0.4 : 0.6))}cr${S.docked ? "" : " (dock first)"}</button>
-      </div></div>`;
+      </div>
+      <p class="dim" style="margin-top:8px">Bay ${m.slot! + 1} of ${S.slotsMax}. Click an empty bay to move this module there — the deck you walk mirrors this arrangement.</p></div>`;
   } else if (S.sel === -1) {
     selHtml = `<div class="panel"><h3>Empty Slot</h3><p class="dim">Buy modules at any planet's Shipyard. Foundry runs 15% off.</p></div>`;
   }

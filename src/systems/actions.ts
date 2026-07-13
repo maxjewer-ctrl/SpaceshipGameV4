@@ -156,6 +156,42 @@ export function repairShip() {
   log(`Yard crew patched ${pts} hull for ${pts * 4}cr.`); requestRender();
 }
 
+// Bay slots persist the player's arrangement from the ship schematic; the
+// walkable deck is generated straight from them, empties included. Heals
+// pre-slot saves (and any duplicate or negative slots) by dealing first-free
+// bays in install order — idempotent, call before reading slots. Slots past
+// slotsMax are left alone: overfull ships (debug scenarios, legacy saves)
+// must keep every module visible, not silently drop the tail.
+export function ensureSlots() {
+  const used = new Set<number>();
+  for (const m of modInst()) {
+    if (m.slot == null || m.slot < 0 || used.has(m.slot)) m.slot = undefined;
+    else used.add(m.slot);
+  }
+  let next = 0;
+  for (const m of modInst()) {
+    if (m.slot == null) { while (used.has(next)) next++; m.slot = next; used.add(next); }
+  }
+}
+
+// Highest bay index the ship currently needs to display: at least every
+// unlockable slot, plus any overfull spill.
+export function bayCount(): number {
+  return Math.max(S.slotsMax, ...modInst().map((m) => (m.slot ?? 0) + 1));
+}
+
+// Rearrange the deck: move a module into a bay slot, swapping if occupied.
+// The walk deck mirrors these slots, so this is literally re-plumbing the ship.
+export function moveModTo(instIdx: number, slot: number) {
+  ensureSlots();
+  const m = modInst()[instIdx];
+  if (!m || slot < 0 || slot >= S.slotsMax || m.slot === slot) return;
+  const other = modInst().find((x) => x.slot === slot);
+  if (other) other.slot = m.slot;
+  m.slot = slot;
+  requestRender();
+}
+
 export function buyMod(t: string) {
   if (modInst().length >= S.slotsMax) { log("No free slot — buy a hull expansion."); requestRender(); return; }
   const price = yardPrice(t);
@@ -163,6 +199,7 @@ export function buyMod(t: string) {
   S.credits -= price;
   const m = mk(t);
   S.modules.push(m);
+  ensureSlots(); // the new module takes the first open bay; rearrange on the Ship screen
   const st = stats();
   if (MODS[t].pw && st.powerUse > st.powerOut) {
     m.on = false;

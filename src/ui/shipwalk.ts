@@ -1,12 +1,13 @@
 // The walkable ship interior: a corridor spine from cockpit to drive core,
-// module bays branching off alternating sides — generated fresh from whatever
-// is actually installed, so buying or losing a module changes the deck you walk.
+// module bays branching off alternating sides — one per hull slot, in the
+// arrangement set on the ship schematic, so moving, buying, or losing a
+// module changes the deck you walk. Unoccupied slots are empty rooms.
 import { S } from "../state";
 import { MODS, ROLES } from "../content";
 import { requestRender } from "../bus";
 import { modal } from "../modal";
 import { modCategory } from "./ship";
-import { toggleMod } from "../systems/actions";
+import { toggleMod, ensureSlots, bayCount } from "../systems/actions";
 import { wearTier, wearOf } from "../systems/wear";
 import { BARKS } from "../content";
 import { fork } from "../rng";
@@ -99,25 +100,14 @@ function hullOutline(
   ];
 }
 
-// Bow→stern zoning: modules slot into the part of the ship they belong to
-// instead of trailing off the spine in purchase order. Combat sits forward
-// behind the cockpit (guns at the nose, the armory that feeds them next
-// door), habitation midship where it's quiet, the medbay central so it's
-// equidistant from anywhere an injury happens, cargo and fuel aft, and
-// engineering hard against the drive core. Within a zone, install order
-// still breaks ties (the sort is stable), so duplicates cluster.
-const ZONE_RANK: Record<string, number> = {
-  weapons: 0, armory: 1, shields: 2,            // combat, forward
-  luxcabin: 10, cabin: 11, quarters: 12,        // habitation
-  medbay: 20, hydro: 21,                        // life & care, midship
-  cargohold: 30, smuggler: 31, fueltank: 32,    // flow, aft
-  workshop: 40, reactor: 41,                    // engineering, at the core
-};
-
 export function buildShipScene(): WalkScene {
-  const bays = S.modules.map((m, index) => ({ m, index }))
-    .filter(({m}) => !MODS[m.t].core)
-    .sort((a, b) => (ZONE_RANK[a.m.t] ?? 25) - (ZONE_RANK[b.m.t] ?? 25));
+  // One walkable bay per hull SLOT, in the arrangement the player set on the
+  // ship schematic — unoccupied slots become empty rooms (bare plating you
+  // can stand in), so the deck plan and the module selector are literally
+  // the same map, and a hull expansion visibly lengthens the ship.
+  ensureSlots();
+  const inst = S.modules.map((m, index) => ({ m, index })).filter(({m}) => !MODS[m.t].core);
+  const bays = Array.from({ length: bayCount() }, (_, slot) => inst.find(({m}) => m.slot === slot) || null);
 
   const spineY = 320, spineH = 90, roomW = 210, roomH = 150;
   const cockpit: WalkRect & { id: string } = { id: "cockpit", x: 30, y: spineY - spineH / 2 - (roomH - spineH) / 2, w: roomW, h: roomH };
@@ -165,7 +155,7 @@ export function buildShipScene(): WalkScene {
   let quartersRoom: (WalkRect & { id: string }) | null = null;
   const bayRoomByType: Record<string, WalkRect & { id: string }> = {};
 
-  bays.forEach(({m, index}, i) => {
+  bays.forEach((bay, i) => {
     const up = i % 2 === 0;
     const rx = cockpit.x + cockpit.w + gap / 2 + i * gap;
     const ry = up ? spineY - spineH / 2 - roomH - 30 : spineY + spineH / 2 + 30;
@@ -177,6 +167,12 @@ export function buildShipScene(): WalkScene {
     floors.push(up
       ? { x: connX, y: rect.y + rect.h, w: 46, h: (spineY - spineH / 2) - (rect.y + rect.h) }
       : { x: connX, y: spineY + spineH / 2, w: 46, h: rect.y - (spineY + spineH / 2) });
+    if (!bay) {
+      rooms.push({ id, x: rect.x, y: rect.y, w: rect.w, h: rect.h, label: "Empty Bay", icon: "▢", color: "#3a3f48" });
+      roomDesc[id] = "Bare deck plating and capped conduit stubs — room for a module. Shipyards sell them planetside.";
+      return;
+    }
+    const { m, index } = bay;
     const md = MODS[m.t];
     rooms.push({ id, x: rect.x, y: rect.y, w: rect.w, h: rect.h, label: md.n, icon: md.icon, color: CAT_COLOR[modCategory(m.t)], kind: ROOM_KIND[m.t], moduleIndex: index, moduleType: m.t });
     roomDesc[id] = `${md.n} — ${moduleStatus(m)}. ${md.d}`;
