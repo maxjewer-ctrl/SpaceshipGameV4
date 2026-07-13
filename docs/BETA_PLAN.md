@@ -179,11 +179,15 @@ ModalQueue (§3.4) and save-transient hardening + slots.
   idempotent). ~2s, no browser. `test/README.md` documents it and how it
   differs from the browser skills. The choice-branch coverage it can't reach
   yet unlocks once §3.4 makes a modal choice callable data.
-- **CI** (GitHub Actions): ✅ `.github/workflows/ci.yml` runs rng-lint, tsc,
-  the vitest harness, build, and a bundle-size budget (`check-bundle.mjs` —
-  total gzipped JS under 1.5 MB; currently ~311 KB, three.js is the floor).
-  Still to add: content validation (schema-check every JSON file; every
-  `dest`, `flag`, `eventKey` reference resolves).
+- **CI** (GitHub Actions): ✅ `.github/workflows/ci.yml` runs rng-lint,
+  content-lint, tsc, the vitest harness, build, and a bundle-size budget
+  (`check-bundle.mjs` — total gzipped JS under 1.5 MB; currently ~311 KB,
+  three.js is the floor). Content validation ✅ (`check-content.mjs`):
+  every planet / faction / room / rider / character reference across all 13
+  content JSONs must resolve, and each station's `signature.link` must point
+  at a room it actually keeps (not one it drops) — the class of bug the
+  per-station layout work could have shipped. Proven to catch a dropped-room
+  link and restored.
 - **Save hardening:** UI transients (`screen`, `ptab`, `sel`, `selPlanet`)
   out of the save payload; save slots (3) + export/import as JSON file.
 - Exit: game plays identically — action verbs now live only in action-mode

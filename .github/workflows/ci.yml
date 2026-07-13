@@ -22,6 +22,9 @@ jobs:
       - name: RNG lint (no Math.random outside src/rng.ts)
         run: npm run lint:rng
 
+      - name: Content integrity (every planet/faction/room/rider reference resolves)
+        run: npm run lint:content
+
       - name: Typecheck
         run: npm run typecheck
 
