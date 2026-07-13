@@ -194,20 +194,31 @@ function attachCrewModel(group: THREE.Group, modelKey: string | undefined, fallb
 function mat(color: THREE.ColorRepresentation, emissive = 0): THREE.MeshStandardMaterial {
   return new THREE.MeshStandardMaterial({ color, roughness: .72, metalness: .25, emissive: color, emissiveIntensity: emissive });
 }
+// Every fine repeating texture (deck grating, wall panels, floor grid) is
+// viewed at a steep grazing angle from the chase camera — a corridor floor
+// stretching into the distance is the textbook case where isotropic
+// mipmapping under-samples one axis of the minification footprint and the
+// fine pattern breaks into a shimmering, camera-motion-reactive diagonal
+// moiré (exactly what reads as "static that moves and covers everything").
+// Anisotropic filtering samples along the true elongated footprint instead
+// of approximating it as square, which is the standard fix. None of these
+// textures set it, so it silently defaulted to 1 (off) on every one of them.
+function maxAniso(): number { return renderer?.capabilities.getMaxAnisotropy() ?? 1; }
 function panelTexture(url: string, repeatX = 2.2, repeatY = 1.5): THREE.Texture {
   const t=new THREE.TextureLoader().load(url);
-  t.colorSpace=THREE.SRGBColorSpace;t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(repeatX,repeatY);return t;
+  t.colorSpace=THREE.SRGBColorSpace;t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(repeatX,repeatY);t.anisotropy=maxAniso();return t;
 }
 function floorPanelTexture(url: string, w: number, d: number): THREE.Texture {
   const t = new THREE.TextureLoader().load(url);
   t.colorSpace = THREE.SRGBColorSpace;
   t.wrapS = t.wrapT = THREE.RepeatWrapping;
   t.repeat.set(Math.max(1, w / 1.8), Math.max(1, d / 1.8));
+  t.anisotropy = maxAniso();
   return t;
 }
 function propTexture(url: string): THREE.Texture {
   const t=new THREE.TextureLoader().load(url);
-  t.colorSpace=THREE.SRGBColorSpace;t.wrapS=t.wrapT=THREE.ClampToEdgeWrapping;return t;
+  t.colorSpace=THREE.SRGBColorSpace;t.wrapS=t.wrapT=THREE.ClampToEdgeWrapping;t.anisotropy=maxAniso();return t;
 }
 function texturedMat(url: string, glow = 0.03): THREE.MeshStandardMaterial {
   return new THREE.MeshStandardMaterial({ color: "#ffffff", map: propTexture(url), roughness: .78, metalness: .16, emissive: "#ffffff", emissiveIntensity: glow });
@@ -217,7 +228,7 @@ function deckTexture(dark: boolean): THREE.CanvasTexture {
   x.fillStyle=dark?"#131923":"#26354a";x.fillRect(0,0,256,256);x.strokeStyle=dark?"#303b4c":"#57708c";x.lineWidth=3;
   for(let i=0;i<=256;i+=32){x.beginPath();x.moveTo(i,0);x.lineTo(i,256);x.stroke();x.beginPath();x.moveTo(0,i);x.lineTo(256,i);x.stroke();}
   x.strokeStyle=dark?"#222b38":"#3d526a";for(let i=0;i<256;i+=64)x.strokeRect(i+5,i%128+5,54,22);
-  const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(8,5);return t;
+  const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(8,5);t.anisotropy=maxAniso();return t;
 }
 // Dustwell-only re-skin textures (canvas-generated, same pattern as deckTexture)
 // — weathered planks instead of bulkhead panels, packed sand instead of deck grating.
@@ -227,13 +238,13 @@ function desertPlankTexture(): THREE.CanvasTexture {
   x.strokeStyle = "rgba(30,16,8,.35)"; x.lineWidth = 3;
   for (let i = 0; i <= 256; i += 26) { x.beginPath(); x.moveTo(i, 0); x.lineTo(i, 256); x.stroke(); }
   for (let i = 0; i < 500; i++) { x.fillStyle = `rgba(20,10,5,${Math.random() * .12})`; x.fillRect(Math.random() * 256, Math.random() * 256, 2, 2); }
-  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(2.2, 1.5); return t;
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(2.2, 1.5); t.anisotropy = maxAniso(); return t;
 }
 function sandTexture(): THREE.CanvasTexture {
   const c = document.createElement("canvas"); c.width = 256; c.height = 256; const x = c.getContext("2d")!;
   x.fillStyle = "#8a5a34"; x.fillRect(0, 0, 256, 256);
   for (let i = 0; i < 3000; i++) { x.fillStyle = Math.random() < .5 ? "rgba(40,22,10,.10)" : "rgba(210,160,100,.10)"; x.fillRect(Math.random() * 256, Math.random() * 256, 2, 2); }
-  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(6, 4); return t;
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(6, 4); t.anisotropy = maxAniso(); return t;
 }
 // The 10 Meshy-generated spaceport props (see scripts/meshy/, src/spaceport/),
 // scattered one per Dustwell room so the town actually looks like the desert
