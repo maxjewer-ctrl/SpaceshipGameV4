@@ -38,5 +38,10 @@
   {
     "name": "cargo-shuttle",
     "prompt": "small weathered cargo shuttle spacecraft parked on landing struts, western frontier sci-fi design, patched hull plating, low poly game asset"
+  },
+  {
+    "name": "job-board",
+    "pbr": true,
+    "prompt": "weathered digital job board terminal kiosk, tall standing pillar with a glowing amber holographic screen displaying scrolling contracts and bounty notices, riveted rusted metal frame, western frontier sci-fi spaceport tech, dust and wear, low poly game asset, no text"
   }
 ]
