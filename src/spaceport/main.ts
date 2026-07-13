@@ -109,6 +109,7 @@ tick();
 // canvas bitmap to the /__shot dev middleware (see vite.config.ts).
 if (import.meta.env.DEV) {
   (window as any).__cam = { camera, controls };
+  (window as any).__propRoot = propRoot;
   (window as any).__shot = async () => {
     controls.update();
     composer.render();

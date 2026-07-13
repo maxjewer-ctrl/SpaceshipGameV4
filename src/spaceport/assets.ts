@@ -110,6 +110,72 @@ function fitToHeight(model: THREE.Object3D, targetHeight: number) {
   model.position.y -= box2.min.y;
 }
 
+// Meshy bakes illegible glyphs into any in-mesh "text" (a known limitation of
+// text-to-3D generation), so the job-board's screen labels are rendered as
+// crisp canvas-texture decals mounted just proud of the model's front face
+// instead of relying on the generated texture.
+function screenLabelTexture(text: string, accent: string): THREE.CanvasTexture {
+  const w = 256, h = 128;
+  const canvas = document.createElement("canvas");
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext("2d")!;
+  ctx.fillStyle = "#160c08";
+  ctx.fillRect(0, 0, w, h);
+  const grad = ctx.createLinearGradient(0, 0, 0, h);
+  grad.addColorStop(0, "rgba(255,150,60,0.18)");
+  grad.addColorStop(1, "rgba(255,90,40,0.05)");
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, w, h);
+  ctx.strokeStyle = accent;
+  ctx.lineWidth = 6;
+  ctx.strokeRect(3, 3, w - 6, h - 6);
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  let size = 46;
+  const maxTextWidth = w - 40;
+  do {
+    ctx.font = `bold ${size}px 'Courier New', monospace`;
+    size -= 2;
+  } while (ctx.measureText(text).width > maxTextWidth && size > 14);
+  ctx.shadowColor = accent;
+  ctx.shadowBlur = 18;
+  ctx.fillStyle = accent;
+  ctx.fillText(text, w / 2, h / 2 + 2);
+  ctx.shadowBlur = 0;
+  for (let y = 0; y < h; y += 4) {
+    ctx.fillStyle = "rgba(0,0,0,0.12)";
+    ctx.fillRect(0, y, w, 1);
+  }
+  const t = new THREE.CanvasTexture(canvas);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+
+// Local-space rig for the job-board's front face, measured by loading the
+// GLB and inspecting its bounding box/orientation at the SPACEPORT_PROPS
+// placement (x:4, z:11, rotY:-0.5): the pillar's front normal in its own
+// local frame, plus the three screen bands read top to bottom.
+function attachJobBoardScreens(real: THREE.Group) {
+  const normal = new THREE.Vector3(0.479, 0, 0.878).normalize();
+  const labels: { text: string; y: number; w: number; h: number; accent: string }[] = [
+    { text: "JOBS", y: 0.69, w: 0.24, h: 0.15, accent: "#ffcf6b" },
+    { text: "CONTRACTS", y: 0.27, w: 0.26, h: 0.19, accent: "#ff9d4a" },
+    { text: "BOUNTIES", y: -0.13, w: 0.26, h: 0.19, accent: "#ff6a4a" },
+  ];
+  const lookTarget = new THREE.Vector3();
+  for (const l of labels) {
+    const tex = screenLabelTexture(l.text, l.accent);
+    const mat = new THREE.MeshBasicMaterial({ map: tex, toneMapped: false, depthTest: false });
+    const mesh = new THREE.Mesh(new THREE.PlaneGeometry(l.w, l.h), mat);
+    mesh.renderOrder = 10;
+    mesh.position.set(normal.x * 0.42, l.y, normal.z * 0.42);
+    lookTarget.copy(mesh.position).add(normal);
+    mesh.lookAt(lookTarget);
+    real.add(mesh);
+  }
+}
+
 export interface SpawnResult {
   group: THREE.Group;
   loaded: boolean;
@@ -129,6 +195,7 @@ export async function spawnProp(scene: THREE.Group, p: PropPlacement): Promise<S
     const real = model.clone(true);
     fitToHeight(real, p.placeholderHeight);
     real.scale.multiplyScalar(p.scale ?? 1);
+    if (p.name === "job-board") attachJobBoardScreens(real);
     anchor.remove(ph);
     anchor.add(real);
     return { group: anchor, loaded: true };
