@@ -161,15 +161,29 @@ playtest gate met, committed, pushed — plus the new rule: **CI green**.
 ### Phase A — FOUNDATIONS & THE KNIFE (~2–3 weeks)
 Everything in §3, plus:
 
-- **Headless simulation harness.** The systems layer already runs on plain
-  state + handlers; with modals as queue data (3.4) it runs in Node. Add
-  vitest: scenario regression runs (7 scenarios × N seeds × 40 days, assert
-  no errors/NaN/soft-locks), migration tests (a fixture save per version),
-  and property checks (credits/fuel/hull never NaN or negative-when-clamped).
-  This converts the LLM playtest loop from the *only* net into the *feel* net.
-- **CI** (GitHub Actions): tsc, vitest, build, bundle-size budget, content
-  validation (schema-check every JSON file; every `dest`, `flag`, `eventKey`
-  reference resolves).
+**Progress (2026-07-13):** the knife has landed — action layer scoped to
+hostile ground + fixed follow camera (§3.1); Rapier/three-pathfinding/yuka/
+quarks + the 2D walk fallback cut (§3.2); realtime aim minigame still pending
+its Phase C replacement (§3.3); dead HTML surfaces archived (§3.5); `Math.random`
+exterminated + lint-gated (§3.6). The **headless simulation harness and CI are
+in** (this section, below). Still open in Phase A: the typed dispatcher +
+ModalQueue (§3.4) and save-transient hardening + slots.
+
+- **Headless simulation harness.** ✅ Shipped. `hasModal()` was always pure
+  in-memory state and `requestRender()` a no-op until wired, so the systems
+  layer runs in Node today — `drawModal()` now no-ops without a DOM skeleton
+  (the seed of the §3.4 ModalQueue decoupling). vitest + jsdom: 7 scenarios ×
+  40 seeds × 40 days asserting no NaN / negative / throw / soft-lock (a
+  failure prints the exact `scenario/seed/day`), scenario-load soundness, and
+  migration (a v1 fixture + every intermediate version → current, sound,
+  idempotent). ~2s, no browser. `test/README.md` documents it and how it
+  differs from the browser skills. The choice-branch coverage it can't reach
+  yet unlocks once §3.4 makes a modal choice callable data.
+- **CI** (GitHub Actions): ✅ `.github/workflows/ci.yml` runs rng-lint, tsc,
+  the vitest harness, build, and a bundle-size budget (`check-bundle.mjs` —
+  total gzipped JS under 1.5 MB; currently ~311 KB, three.js is the floor).
+  Still to add: content validation (schema-check every JSON file; every
+  `dest`, `flag`, `eventKey` reference resolves).
 - **Save hardening:** UI transients (`screen`, `ptab`, `sel`, `selPlanet`)
   out of the save payload; save slots (3) + export/import as JSON file.
 - Exit: game plays identically — action verbs now live only in action-mode

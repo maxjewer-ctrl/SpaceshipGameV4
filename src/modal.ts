@@ -1,12 +1,19 @@
-import { $ } from "./util";
 import { requestRender } from "./bus";
 
+// Modal STATE is a plain in-memory string, deliberately independent of the DOM:
+// hasModal() (the guard every system gates on) is pure, so the whole sim runs
+// headlessly in Node — the renderer below simply no-ops when the DOM skeleton
+// isn't mounted. (This is the seed of the ModalQueue decoupling in BETA_PLAN.)
 let MODAL_HTML: string | null = null;
 
 export function modal(html: string) { MODAL_HTML = html; drawModal(); }
 export function hasModal() { return MODAL_HTML !== null; }
 export function clearModal() { MODAL_HTML = null; drawModal(); }
 export function closeModal() { MODAL_HTML = null; drawModal(); requestRender(); }
+
+// Read the current modal HTML (headless harness inspects/dismisses modals
+// without a DOM). Null when no modal is open.
+export function modalHTML() { return MODAL_HTML; }
 
 function sceneKey(modalEl: HTMLElement): string {
   const t = (modalEl.querySelector(".scene-loc")?.textContent || "").toLowerCase();
@@ -20,15 +27,18 @@ function sceneKey(modalEl: HTMLElement): string {
 }
 
 function drawModal() {
-  const ov = $("overlay");
-  const wrap = $("dlg-portrait-wrap");
-  const img = $("dlg-portrait-img") as HTMLImageElement;
-  const namePlate = $("dlg-name-plate");
-  const sceneBg = $("dlg-scene-bg");
+  // Headless / pre-boot: no DOM skeleton mounted → render is a no-op. Modal
+  // state (MODAL_HTML) has already been set by the caller and drives hasModal().
+  const ov = typeof document !== "undefined" ? document.getElementById("overlay") : null;
+  if (!ov) return;
+  const wrap = document.getElementById("dlg-portrait-wrap")!;
+  const img = document.getElementById("dlg-portrait-img") as HTMLImageElement;
+  const namePlate = document.getElementById("dlg-name-plate")!;
+  const sceneBg = document.getElementById("dlg-scene-bg")!;
 
   if (MODAL_HTML) {
     ov.classList.add("show");
-    const modalEl = $("modal");
+    const modalEl = document.getElementById("modal")!;
     modalEl.innerHTML = MODAL_HTML;
     const portImg = modalEl.querySelector<HTMLImageElement>(".portrait-dialogue img");
     const titleEl = modalEl.querySelector<HTMLElement>(".dialogue-title");

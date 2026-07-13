@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: RNG lint (no Math.random outside src/rng.ts)
+        run: npm run lint:rng
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Simulation harness (scenarios × seeds × 40 days, migrations)
+        run: npm test
+
+      - name: Production build
+        run: npx vite build
+
+      - name: Bundle-size budget
+        # Beta budget (BETA_PLAN §2): total app+vendor JS under 1.5 MB gzipped.
+        # Fails the build if the bundle balloons — three.js is the floor, so
+        # this guards against a second heavy dependency slipping back in.
+        run: node scripts/check-bundle.mjs
