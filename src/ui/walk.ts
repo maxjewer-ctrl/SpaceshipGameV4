@@ -24,6 +24,10 @@ export interface WalkScene {
   actors: WalkActor[];
   spawn: { x: number; y: number };
   dark?: boolean;
+  // Action mode: the Hades-style kit (aim/fire/roll, quicker stride) is live.
+  // Only planet surfaces and hostile (silenced) stations set this — your own
+  // ship and friendly decks are navigation/dialogue space, no combat verbs.
+  action?: boolean;
   onTick?: (moving: boolean, dt: number, roomId: string | null) => void;
 }
 
@@ -51,7 +55,10 @@ let clickTarget: { x: number; y: number } | null = null;
 let clickPath: Array<{ x: number; y: number }> = [];
 let clickStuck = 0;
 let highlightKey: string | null = null;
-const ACTION = { moveSpeed:230, rollSpeed:620, rollDuration:.24, rollCooldown:.7, fireCooldown:.18, projectileSpeed:720 };
+// Two strides: decks are for walking and talking; action scenes move quicker.
+const DECK_SPEED = 230;
+const ACTION = { moveSpeed:320, rollSpeed:620, rollDuration:.24, rollCooldown:.7, fireCooldown:.18, projectileSpeed:720 };
+const inAction = () => !!scene?.action;
 let aim={x:0,y:1}, rollDir={x:0,y:1};
 let rollTime=0, rollCooldown=0, fireCooldown=0;
 let projectiles:Array<{x:number;y:number;vx:number;vy:number;life:number}>=[];
@@ -66,15 +73,16 @@ function loadWalk3d(): Promise<Walk3D> {
   return walk3dLoading;
 }
 
-function cameraRelativeMovement(x: number, y: number) {
-  return walk3d?.cameraRelativeMovement(x, y) ?? { x, y };
-}
-
 function mountWalk3d(s: WalkScene) {
   const parent = canvas?.parentElement || null;
+  const id = s.id;
   void loadWalk3d().then((m) => {
-    if (scene !== s || mountedId !== s.id) return;
-    m.mount(parent, s, { move:setClickMove, aim:setAim, fire });
+    // Compare by scene id, not object identity: any interleaved render()
+    // rebuilds the scene object (ensureRunning), and the first-ever mount
+    // awaits the whole three.js chunk — an identity check silently stranded
+    // that first walk screen on the 2D fallback. Mount the freshest object.
+    if (!scene || mountedId !== id) return;
+    m.mount(parent, scene, { move:setClickMove, aim:setAim, fire });
   });
 }
 
@@ -131,7 +139,7 @@ export function mountHTML(s: WalkScene): string {
           <canvas id="walkcanvas" width="${s.width}" height="${s.height}"></canvas>
           <div class="walk-prompt" id="wk-prompt"></div>
         </div>
-        <div class="scope-foot"><span id="wk-status"></span><span>[E] interact</span></div>
+        <div class="scope-foot"><span id="wk-status"></span><span>[E] interact${s.action ? " · [SPACE] roll" : ""}</span></div>
       </div>
     </div>
     <p class="dim" id="wk-desc" style="margin-top:8px; min-height:16px"></p>
@@ -164,8 +172,12 @@ export function start(s: WalkScene) {
   mountWalk3d(s);
   configureWalkRuntime(s, pos);
   projectiles=[]; rollTime=rollCooldown=fireCooldown=0;
-  const dp=nearestLegal(pos.x+150,pos.y)||nearestLegal(pos.x,pos.y-150);
-  dummy=dp?{...dp,hp:5,hit:0}:null;
+  // Practice target: action scenes only (until real foot encounters land) —
+  // your own deck and friendly stations have nothing to shoot at.
+  if (s.action) {
+    const dp=nearestLegal(pos.x+150,pos.y)||nearestLegal(pos.x,pos.y-150);
+    dummy=dp?{...dp,hp:5,hit:0}:null;
+  } else dummy=null;
   last = performance.now();
   if (raf) cancelAnimationFrame(raf);
   raf = requestAnimationFrame(tick);
@@ -204,18 +216,20 @@ export function interact() {
 
 function setAim(x:number,y:number){const dx=x-pos.x,dy=y-pos.y,d=Math.hypot(dx,dy);if(d>.001)aim={x:dx/d,y:dy/d};}
 function startRoll(){
-  if(rollCooldown>0||hasModal())return;
+  if(!inAction()||rollCooldown>0||hasModal())return;
+  // Fixed camera: screen axes ARE world axes, so the roll direction is the
+  // held movement direction directly (or the aim direction when standing).
   let x=0,y=0;if(keys.has("up"))y--;if(keys.has("down"))y++;if(keys.has("left"))x--;if(keys.has("right"))x++;
-  if(x||y){const r=cameraRelativeMovement(x,y),d=Math.hypot(r.x,r.y)||1;rollDir={x:r.x/d,y:r.y/d};}else rollDir={...aim};
+  if(x||y){const d=Math.hypot(x,y);rollDir={x:x/d,y:y/d};}else rollDir={...aim};
   rollTime=ACTION.rollDuration;rollCooldown=ACTION.rollCooldown;
 }
-function fire(){if(fireCooldown>0||hasModal())return;projectiles.push({x:pos.x+aim.x*16,y:pos.y+aim.y*16,vx:aim.x*ACTION.projectileSpeed,vy:aim.y*ACTION.projectileSpeed,life:1.1});fireCooldown=ACTION.fireCooldown;}
+function fire(){if(!inAction()||fireCooldown>0||hasModal())return;projectiles.push({x:pos.x+aim.x*16,y:pos.y+aim.y*16,vx:aim.x*ACTION.projectileSpeed,vy:aim.y*ACTION.projectileSpeed,life:1.1});fireCooldown=ACTION.fireCooldown;}
 
 // ---- gamepad (Xbox/standard-mapping USB controllers) ----
 // Polled once per frame in simulate() rather than event-driven — the Gamepad
 // API has no change events, only a snapshot you read each tick.
-const CAM_STICK_DEADZONE = 0.15;
-function pollGamepad(dt: number) {
+const AIM_STICK_DEADZONE = 0.15;
+function pollGamepad(_dt: number) {
   gpDirs.clear();
   const pads = navigator.getGamepads ? navigator.getGamepads() : [];
   const gp = pads && pads[0];
@@ -229,13 +243,14 @@ function pollGamepad(dt: number) {
   const aPressed = !!gp.buttons[0]?.pressed;
   if (aPressed && !gpPrevA) interact();
   gpPrevA = aPressed;
-  const bPressed=!!gp.buttons[1]?.pressed;if(bPressed&&!gpPrevB)startRoll();gpPrevB=bPressed;
-  if(gp.buttons[7]?.pressed)fire();
-  // Right stick aims. Shoulder buttons orbit the elevated camera, keeping
-  // combat aim and camera control available at the same time.
-  const rx = gp.axes[2] || 0, ry = gp.axes[3] || 0;
-  if (Math.abs(rx) > CAM_STICK_DEADZONE || Math.abs(ry) > CAM_STICK_DEADZONE){const a=cameraRelativeMovement(rx,ry),d=Math.hypot(a.x,a.y)||1;aim={x:a.x/d,y:a.y/d};}
-  const orbit=(gp.buttons[5]?.pressed?1:0)-(gp.buttons[4]?.pressed?1:0);if(orbit)walk3d?.nudgeCamera(orbit,0,dt);
+  if (inAction()) {
+    const bPressed=!!gp.buttons[1]?.pressed;if(bPressed&&!gpPrevB)startRoll();gpPrevB=bPressed;
+    if(gp.buttons[7]?.pressed)fire();
+    // Right stick aims. Camera is fixed (screen axes = world axes), so the
+    // stick direction is the aim direction directly — no transform.
+    const rx = gp.axes[2] || 0, ry = gp.axes[3] || 0;
+    if (Math.abs(rx) > AIM_STICK_DEADZONE || Math.abs(ry) > AIM_STICK_DEADZONE){const d=Math.hypot(rx,ry)||1;aim={x:rx/d,y:ry/d};}
+  } else gpPrevB = !!gp.buttons[1]?.pressed;
 }
 
 // ---- geometry ----
@@ -408,13 +423,8 @@ function simulate(dt: number) {
     if (gpDirs.has("down")) vy = Math.max(vy, 1);
     if (gpDirs.has("left")) vx = Math.min(vx, -1);
     if (gpDirs.has("right")) vx = Math.max(vx, 1);
+    // Fixed semi-top-down camera: screen axes are world axes, no transform.
     if (vx || vy) clearClickMove();
-    // Direct controls follow the visible camera, not fixed map axes. Apply
-    // before click-to-move, whose path waypoints are already in world space.
-    if (vx || vy) {
-      const relative = cameraRelativeMovement(vx, vy);
-      vx = relative.x; vy = relative.y;
-    }
     // Point-and-click: move toward click target when no keys held
     if (!vx && !vy && clickTarget) {
       const waypoint = clickPath[0] || clickTarget;
@@ -432,7 +442,7 @@ function simulate(dt: number) {
     if (moving) {
       const len = Math.hypot(vx, vy) || 1;
       if (len > 1) { vx /= len; vy /= len; }
-      const speed = rollTime>0 ? ACTION.rollSpeed : ACTION.moveSpeed;
+      const speed = rollTime>0 ? ACTION.rollSpeed : inAction() ? ACTION.moveSpeed : DECK_SPEED;
       const nx = pos.x + vx * speed * dt;
       const ny = pos.y + vy * speed * dt;
       // Creep to the wall rather than hard-rejecting the whole step: a large
@@ -548,7 +558,9 @@ function updateHud() {
   const roomEl = document.getElementById("wk-room");
   if (roomEl) roomEl.textContent = "◉ " + (r ? r.label.toUpperCase() : "CORRIDOR");
   const statusEl = document.getElementById("wk-status");
-  if (statusEl) statusEl.textContent = `${scene.status} · ROLL ${rollCooldown<=0?"READY":rollCooldown.toFixed(1)+"s"} · LMB FIRE`;
+  if (statusEl) statusEl.textContent = inAction()
+    ? `${scene.status} · ROLL ${rollCooldown<=0?"READY":rollCooldown.toFixed(1)+"s"} · LMB FIRE`
+    : scene.status;
   const descEl = document.getElementById("wk-desc");
   if (descEl) {
     const d = (r && scene.roomDesc && scene.roomDesc[r.id]) || "";

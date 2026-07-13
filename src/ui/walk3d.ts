@@ -99,33 +99,19 @@ const ray = new THREE.Raycaster();
 const pointer = new THREE.Vector2();
 const ground = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
 
-// Right-stick camera orbit (fed by ui/walk.ts's gamepad poll). Base chase
-// offset is (3.8, 4.7, 5.4) — camYaw/camPitch are added on top of that so a
-// controller with no input reproduces the original fixed chase view exactly.
-const CAM_BASE_DIST = Math.hypot(3.8, 5.4);
-const CAM_BASE_ANGLE = Math.atan2(5.4, 3.8);
-const CAM_BASE_HEIGHT = 4.7;
-const CAM_PITCH_MIN = -3, CAM_PITCH_MAX = 3;
-let camYaw = 0;
-let camPitch = 0;
-
-export function nudgeCamera(rx: number, ry: number, dt: number) {
-  camYaw -= rx * 2.2 * dt;
-  camPitch = Math.max(CAM_PITCH_MIN, Math.min(CAM_PITCH_MAX, camPitch - ry * 3 * dt));
-}
-
-// Convert screen-relative movement into deck/world axes. This keeps controls
-// intuitive after orbiting the chase camera: up is always away from the camera
-// (toward the top of the screen), and left/right remain screen-left/right.
-export function cameraRelativeMovement(screenX: number, screenY: number) {
-  const a = CAM_BASE_ANGLE + camYaw;
-  // screen-right must map to the camera's world right-vector, cross(up, camera→avatar);
-  // the previous form negated the horizontal axis, so left/right were swapped.
-  return {
-    x:  Math.sin(a) * screenX + Math.cos(a) * screenY,
-    y: -Math.cos(a) * screenX + Math.sin(a) * screenY,
-  };
-}
+// Fixed semi-top-down follow camera. It sits due "south" of the avatar
+// (+z, the direction game-y grows) and looks down at ~68°, so screen-up is
+// exactly world-up on the deck plan and input needs no camera transform.
+// Steep enough that room walls rarely sit between camera and avatar (Dustwell
+// walls are opaque), shallow enough that people still read as figures, not
+// dots. There is deliberately no orbit: one authored angle, everywhere — the
+// whole camera-relative-movement bug class (see a56feda) dies with it.
+// Long-lens setup: narrow FOV from far away keeps the deck plan reading
+// near-orthographic (walls stay near-vertical on screen) instead of the
+// keystone splay a wide lens gives at this tilt.
+const CAM_OFFSET_Z = 6.5;
+const CAM_HEIGHT = 15.5;
+const CAM_FOV = 30;
 
 const wx = (x: number) => (x - (current?.width || 0) / 2) * SCALE;
 const wz = (y: number) => (y - (current?.height || 0) / 2) * SCALE;
@@ -446,7 +432,10 @@ function rebuild() {
       : r.moduleType === "fueltank" || r.moduleType === "workshop" || r.moduleType === "smuggler" || r.moduleType === "cabin" || r.moduleType === "luxcabin" ? "utility"
       : "general";
     const wallMat=mat(isDustwell?"#d9b98a":dark?"#465365":"#8fa7bd",isDustwell?.04:dark?.08:.16);wallMat.map=roomTextures[wallKind];wallMat.transparent=true;wallMat.opacity=dark?.68:.84;wallMat.depthWrite=false;
-    [[w,.18,cx,cz-d/2],[w,.18,cx,cz+d/2],[.18,d,cx-w/2,cz],[.18,d,cx+w/2,cz]].forEach(([a,b,x,z])=>{const q=box(a as number,1.85,b as number,wallMat);q.position.set(x as number,.88,z as number);world.add(q);});
+    // Dustwell's plank walls stay waist-high — the fixed top-down camera must
+    // see over an outdoor town's fences, where a station's bulkheads can rise.
+    const wallH=isDustwell?1.05:1.85;
+    [[w,.18,cx,cz-d/2],[w,.18,cx,cz+d/2],[.18,d,cx-w/2,cz],[.18,d,cx+w/2,cz]].forEach(([a,b,x,z])=>{const q=box(a as number,wallH,b as number,wallMat);q.position.set(x as number,wallH/2-.04,z as number);world.add(q);});
     // Tall illuminated corner pylons make room boundaries readable even when
     // the follow camera is looking across several bays.
     for(const [px,pz] of [[cx-w/2,cz-d/2],[cx+w/2,cz-d/2],[cx-w/2,cz+d/2],[cx+w/2,cz+d/2]]){const p=box(.16,2.45,.16,mat(c,.32));p.position.set(px,1.18,pz);world.add(p);}
@@ -480,9 +469,9 @@ export function mount(container: HTMLElement | null, s: WalkScene, actions: {mov
     renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:"high-performance"}); renderer.setPixelRatio(Math.min(devicePixelRatio,2)); renderer.outputColorSpace=THREE.SRGBColorSpace;
     renderer.domElement.className="walk3d-canvas"; container.insertBefore(renderer.domElement,container.firstChild); if(fallbackCanvas) fallbackCanvas.style.display="none";
     const isDesert = s.id === "station:dustwell";
-    root=new THREE.Scene(); root.background=new THREE.Color(s.dark?0x05070b:isDesert?0xc27a48:0x0c1420); root.fog=new THREE.Fog(root.background,18,44); root.add(new THREE.HemisphereLight(s.dark?0x7384a0:isDesert?0xe8b078:0xbcdcff,isDesert?0x3a2818:0x1a2130,s.dark ? .6 : 1.7));root.add(new THREE.AmbientLight(s.dark?0x647087:isDesert?0xc98858:0x91b8df,s.dark?.35:.9));root.add(avatar,actionFx);
+    root=new THREE.Scene(); root.background=new THREE.Color(s.dark?0x05070b:isDesert?0xc27a48:0x0c1420); root.fog=new THREE.Fog(root.background,34,85); root.add(new THREE.HemisphereLight(s.dark?0x7384a0:isDesert?0xe8b078:0xbcdcff,isDesert?0x3a2818:0x1a2130,s.dark ? .6 : 1.7));root.add(new THREE.AmbientLight(s.dark?0x647087:isDesert?0xc98858:0x91b8df,s.dark?.35:.9));root.add(avatar,actionFx);
     if(s.dark){flashlight=new THREE.SpotLight(0xc8dcff,3.2,7,Math.PI/5,.55,1.2);flashlight.target=new THREE.Object3D();root.add(flashlight,flashlight.target);}else flashlight=null;
-    camera=new THREE.PerspectiveCamera(58,1,.1,100);
+    camera=new THREE.PerspectiveCamera(CAM_FOV,1,.1,100);
     // Post-processing chain: bloom makes every emissive (drive core, LEDs,
     // module glows, the cockpit starfield) actually radiate, then the CRT pass
     // adds the tube finish. Guarded separately from the WebGL fallback above —
@@ -498,7 +487,9 @@ export function mount(container: HTMLElement | null, s: WalkScene, actions: {mov
     } catch { composer=null; bloomPass=null; crtPass=null; renderer.toneMapping=THREE.NoToneMapping; }
     signature=""; setScene(s); resizeObserver=new ResizeObserver(resize);resizeObserver.observe(container);resize();
     const floorPoint=(e:PointerEvent)=>{if(!renderer||!camera||!current)return null;const r=renderer.domElement.getBoundingClientRect();pointer.set((e.clientX-r.left)/r.width*2-1,-((e.clientY-r.top)/r.height*2-1));ray.setFromCamera(pointer,camera);const p=new THREE.Vector3();return ray.ray.intersectPlane(ground,p)?{x:p.x/SCALE+current.width/2,y:p.z/SCALE+current.height/2}:null;};
-    clickHandler=(e)=>{const p=floorPoint(e);if(!p)return;if(e.button===0)fireCallback?.();else if(e.button===2)click?.(p.x,p.y);};renderer.domElement.addEventListener("pointerdown",clickHandler);renderer.domElement.addEventListener("pointermove",(e)=>{const p=floorPoint(e);if(p)aimCallback?.(p.x,p.y);});renderer.domElement.addEventListener("contextmenu",e=>e.preventDefault());
+    // Deck mode: left-click walks there. Action mode: left-click fires,
+    // right-click walks (Hades convention). Right-click walks in both.
+    clickHandler=(e)=>{const p=floorPoint(e);if(!p)return;if(e.button===0){if(current?.action)fireCallback?.();else click?.(p.x,p.y);}else if(e.button===2)click?.(p.x,p.y);};renderer.domElement.addEventListener("pointerdown",clickHandler);renderer.domElement.addEventListener("pointermove",(e)=>{if(!current?.action)return;const p=floorPoint(e);if(p)aimCallback?.(p.x,p.y);});renderer.domElement.addEventListener("contextmenu",e=>e.preventDefault());
   } catch { teardown(); if(fallbackCanvas) fallbackCanvas.style.display="block"; }
 }
 function resize(){if(!renderer||!camera||!host)return;const r=host.getBoundingClientRect();const w=Math.max(1,r.width),h=Math.max(1,r.height);renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();composer?.setSize(w,h);const pr=Math.min(devicePixelRatio,2);crtPass?.uniforms.resolution.value.set(w*pr,h*pr);}
@@ -509,11 +500,7 @@ export function render(v:{pos:{x:number;y:number};facing:string;moving:boolean;p
   avatar.rotation.z=v.rolling?-.45:0;avatar.scale.setScalar(v.rolling?.82:1);
   const ang=v.facing==="right"?Math.PI/2:v.facing==="left"?-Math.PI/2:v.facing==="up"?Math.PI:0;avatar.rotation.y=ang;
   const room=current.rooms.find(r=>v.pos.x>=r.x&&v.pos.x<=r.x+r.w&&v.pos.y>=r.y&&v.pos.y<=r.y+r.h);const shake=room?.kind==="engine"?Math.sin(v.time*.045)*.025:0;
-  // Stable chase angle: avatar rotation no longer whips the camera 180° when
-  // the player taps up/down. Screen-up is always deck-forward, unless the
-  // right stick has orbited the camera off its default heading (nudgeCamera).
-  const camAngle=CAM_BASE_ANGLE+camYaw;
-  const target=new THREE.Vector3(x+Math.cos(camAngle)*CAM_BASE_DIST+shake,CAM_BASE_HEIGHT+camPitch,z+Math.sin(camAngle)*CAM_BASE_DIST);camera.position.lerp(target,.09);camera.lookAt(x,.65,z);
+  const target=new THREE.Vector3(x+shake,CAM_HEIGHT,z+CAM_OFFSET_Z);camera.position.lerp(target,.09);camera.lookAt(x,.45,z);
   if(flashlight){flashlight.position.set(x,1.25,z);flashlight.target.position.set(x+Math.sin(ang)*4,.45,z+Math.cos(ang)*4);}
   for(const a of current.actors){const g=actorMeshes.get(a.key);if(!g)continue;g.position.set(wx(a.x+a.w/2),Math.sin(v.time/700+a.x)*.025,wz(a.y+a.h/2));if(a.bubble&&!g.getObjectByName("bubble")){const b=sprite(a.bubble,"#fff",.65);b.name="bubble";b.position.y=2.55;g.add(b);}else if(!a.bubble){const b=g.getObjectByName("bubble");if(b){g.remove(b);disposeObject(b);}}}
   // A room full of nametags/door labels reads as a wall of overlapping text;
@@ -522,10 +509,10 @@ export function render(v:{pos:{x:number;y:number};facing:string;moving:boolean;p
   for(const [d,l] of doorLabels)(l.material as THREE.SpriteMaterial).opacity=d===v.nearDoor?1:LABEL_DIM;
   for(const [a,l] of actorLabels)(l.material as THREE.SpriteMaterial).opacity=a===v.nearActor?1:LABEL_DIM;
   actionFx.clear();
-  const aimLine=new THREE.Mesh(new THREE.BoxGeometry(.035,.025,1.15),mat("#70d7ff",.9));aimLine.position.set(x+v.aim.x*.55,.04,z+v.aim.y*.55);aimLine.rotation.y=Math.atan2(v.aim.x,v.aim.y);actionFx.add(aimLine);
+  if(current.action){const aimLine=new THREE.Mesh(new THREE.BoxGeometry(.035,.025,1.15),mat("#70d7ff",.9));aimLine.position.set(x+v.aim.x*.55,.04,z+v.aim.y*.55);aimLine.rotation.y=Math.atan2(v.aim.x,v.aim.y);actionFx.add(aimLine);}
   for(const p of v.projectiles){const m=new THREE.Mesh(new THREE.SphereGeometry(.075,7,5),mat("#70d7ff",2));m.position.set(wx(p.x),.55,wz(p.y));actionFx.add(m);}
   if(v.dummy){const dm=box(.48,1,.48,mat(v.dummy.hp<=0?"#333842":v.dummy.hit>0?"#ffffff":"#d95b5b",v.dummy.hp>0?.5:0));dm.position.set(wx(v.dummy.x),.5,wz(v.dummy.y));actionFx.add(dm);const dl=sprite(v.dummy.hp>0?`TARGET ${v.dummy.hp}/5`:"TARGET DOWN",v.dummy.hp>0?"#ff9b9b":"#7d8294",.45);dl.position.set(wx(v.dummy.x),1.45,wz(v.dummy.y));actionFx.add(dl);}
   world.traverse((o:any)=>{if(o.userData.spark!==undefined){o.visible=Math.sin(v.time*.025+o.userData.spark)>0;o.position.y=1+(o.userData.spark*.12+v.time*.0004)%1;}if(o.userData.starfield&&S.travel)o.rotation.y=v.time*.00002;});
   if(composer){if(crtPass)crtPass.uniforms.time.value=v.time*.001;composer.render();}else renderer.render(root,camera);
 }
-export function teardown(){resizeObserver?.disconnect();resizeObserver=null;if(renderer&&clickHandler)renderer.domElement.removeEventListener("pointerdown",clickHandler);clickHandler=null;if(root)disposeObject(root);composer?.dispose();bloomPass?.dispose();composer=null;bloomPass=null;crtPass=null;renderer?.dispose();renderer?.domElement.remove();if(fallbackCanvas)fallbackCanvas.style.display="block";renderer=null;root=null;camera=null;flashlight=null;current=null;host=null;fallbackCanvas=null;signature="";world=new THREE.Group();avatar=new THREE.Group();actionFx=new THREE.Group();actorMeshes.clear();doorLabels=new Map();actorLabels=new Map();aimCallback=null;fireCallback=null;camYaw=0;camPitch=0;}
+export function teardown(){resizeObserver?.disconnect();resizeObserver=null;if(renderer&&clickHandler)renderer.domElement.removeEventListener("pointerdown",clickHandler);clickHandler=null;if(root)disposeObject(root);composer?.dispose();bloomPass?.dispose();composer=null;bloomPass=null;crtPass=null;renderer?.dispose();renderer?.domElement.remove();if(fallbackCanvas)fallbackCanvas.style.display="block";renderer=null;root=null;camera=null;flashlight=null;current=null;host=null;fallbackCanvas=null;signature="";world=new THREE.Group();avatar=new THREE.Group();actionFx=new THREE.Group();actorMeshes.clear();doorLabels=new Map();actorLabels=new Map();aimCallback=null;fireCallback=null;}

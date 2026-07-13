@@ -139,6 +139,9 @@ export function buildDesertTownScene(): WalkScene {
     floors, rooms, roomDesc, doors, actors,
     spawn: { x: 550, y: 590 }, // just inside the landing pad
     dark,
+    // Frontier ground is action mode: past the mooring posts you keep a hand
+    // near your sidearm — quicker stride, aim/fire/roll live.
+    action: true,
     onTick: (moving, dt, roomId) => {
       sfx.walkRoom(roomId);
       stationWalkTick(moving, dt, roomId);

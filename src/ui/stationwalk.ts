@@ -239,6 +239,9 @@ export function buildStationScene(): WalkScene {
     floors, rooms, roomDesc, doors, actors,
     spawn: { x: 550, y: 590 }, // just inside the docks room
     dark,
+    // A silenced station is hostile ground — action mode on. A living port
+    // deck is civil space: no combat verbs between you and the cantina.
+    action: dark,
     onTick: (moving, dt, roomId) => {
       sfx.walkRoom(roomId);
       stationWalkTick(moving, dt, roomId);

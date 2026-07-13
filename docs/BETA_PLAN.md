@@ -86,19 +86,34 @@ Post-beta, all of it.
 
 Courage first. Each of these is a deletion, and each pays for itself.
 
-### 3.1 The twin-stick action layer — CUT
-Aiming, firing, rolling, projectiles, the target dummy (`walk.ts ACTION`,
-the combat half of `walk3d.ts`). It serves none of the four pillars, it's
-the least finished system, and it's the most expensive to finish. The walk
-layer's *job* is embodiment: navigate beautiful decks, talk to people, feel
-the ship. Keep that. If boarding actions ever justify foot combat, this code
-is in git history; we are not maintaining a second genre on spec.
+### 3.1 The twin-stick action layer — SCOPED, and the orbit camera dies
+(Revised 2026-07-13 after review.) The action kit — move/aim/fire/roll —
+survives, but it stops being ambient. Two walk modes, one authoritative 2D
+sim under both:
 
-### 3.2 Four dependencies — CUT
-With the shooter gone, the physics/AI stack loses its reason to exist:
+- **Deck mode** (your ship, friendly stations): navigation, interaction,
+  dialogue. No combat verbs, no target dummy, calm movement speed. The walk
+  layer's job here is embodiment: navigate beautiful decks, talk to people,
+  feel the ship.
+- **Action mode** (planet surfaces, hostile stations, and later boardings):
+  the Hades-style kit, with a quicker movement speed. Foot combat fires
+  where the fiction says danger — Dustwell's outskirts, undercity trouble,
+  walk encounters (`wkFight`), silenced worlds — never on your own deck.
 
-- **Rapier** (never authoritative, 2MB WASM): the deterministic 2D
-  `insideFloors` sim already owns movement and is save-friendly. Delete.
+**The orbitable camera is cut everywhere.** Both modes use a fixed
+semi-top-down follow camera (one authored angle, tracks the player). This
+deletes the whole camera-relative-movement bug class (see a56feda), the
+shoulder-button orbit bindings, and the "orbit must never mislead movement"
+constraint — screen-up is world-forward, always. Fixed camera + one sim
+also means action combat is headlessly testable like everything else.
+
+### 3.2 Four dependencies — CUT (unchanged by 3.1's reprieve)
+Scoping the action layer doesn't save the physics/AI stack, because the
+deterministic 2D sim (`insideFloors` + projectile checks) is authoritative
+for *both* modes — that's what keeps combat testable:
+
+- **Rapier** (never authoritative, 2MB WASM): delete. The 2D sim owns
+  movement and hit detection, deck and action alike.
 - **three-pathfinding** (flat rectangles pretending to be a navmesh): the
   grid A* fallback it "falls back" to is the one that always works. Keep A*.
 - **yuka** (a Vehicle constructed per frame for an arrive behavior): replace
@@ -157,7 +172,8 @@ Everything in §3, plus:
   reference resolves).
 - **Save hardening:** UI transients (`screen`, `ptab`, `sel`, `selPlanet`)
   out of the save payload; save slots (3) + export/import as JSON file.
-- Exit: game plays identically, minus the shooter; CI is the new gatekeeper.
+- Exit: game plays identically — action verbs now live only in action-mode
+  scenes, camera is fixed follow everywhere; CI is the new gatekeeper.
 
 ### Phase B — THE LOOP THAT NEVER ENDS (~3 weeks)
 CORE_LOOP.md's build order, finished — this is the beta's gameplay heart:
@@ -189,6 +205,10 @@ Replace the duel core (the fiction and phase structure stay):
   Overcharge, Cold Restart) — one per fight, chosen by who's actually aboard.
 - **Enemy intents, telegraphed** ("they want cargo, not kills") so surrender
   and decoys are real strategies; roster stays the difficulty curve.
+- **Foot combat earns its keep:** action mode (§3.1) gets real hooks —
+  hostile-station walk encounters upgraded from menu-fights to played
+  fights, a Dustwell outskirts encounter, one Silence-stage dark-deck
+  sequence. Small count, high polish; every one headlessly simulatable.
 - Exit gate: the `fighter` scenario is winnable, losable, and *fleeable* by
   pure decision-making in headless CI — and feels better in hand than the
   reticle ever did.
@@ -238,8 +258,9 @@ Voss arc is the proof test, exactly as PLAN.md prescribed). Then:
   a design bug).
 - New systems speak the DSL or they don't merge. When torn between a system
   and 30 events: write the events.
-- The four pillars stay the feature filter. The shooter died by that filter;
-  future ideas face the same judge.
+- The four pillars stay the feature filter. The ambient shooter was scoped
+  down by that filter (danger lives where the fiction puts it, not on your
+  own deck); future ideas face the same judge.
 
 ## 6. Sequence & shape
 
