@@ -99,8 +99,25 @@ function hullOutline(
   ];
 }
 
+// Bow→stern zoning: modules slot into the part of the ship they belong to
+// instead of trailing off the spine in purchase order. Combat sits forward
+// behind the cockpit (guns at the nose, the armory that feeds them next
+// door), habitation midship where it's quiet, the medbay central so it's
+// equidistant from anywhere an injury happens, cargo and fuel aft, and
+// engineering hard against the drive core. Within a zone, install order
+// still breaks ties (the sort is stable), so duplicates cluster.
+const ZONE_RANK: Record<string, number> = {
+  weapons: 0, armory: 1, shields: 2,            // combat, forward
+  luxcabin: 10, cabin: 11, quarters: 12,        // habitation
+  medbay: 20, hydro: 21,                        // life & care, midship
+  cargohold: 30, smuggler: 31, fueltank: 32,    // flow, aft
+  workshop: 40, reactor: 41,                    // engineering, at the core
+};
+
 export function buildShipScene(): WalkScene {
-  const bays = S.modules.map((m, index) => ({ m, index })).filter(({m}) => !MODS[m.t].core);
+  const bays = S.modules.map((m, index) => ({ m, index }))
+    .filter(({m}) => !MODS[m.t].core)
+    .sort((a, b) => (ZONE_RANK[a.m.t] ?? 25) - (ZONE_RANK[b.m.t] ?? 25));
 
   const spineY = 320, spineH = 90, roomW = 210, roomH = 150;
   const cockpit: WalkRect & { id: string } = { id: "cockpit", x: 30, y: spineY - spineH / 2 - (roomH - spineH) / 2, w: roomW, h: roomH };
