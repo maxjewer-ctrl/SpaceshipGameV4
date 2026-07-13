@@ -51,9 +51,9 @@ export function waitDay() {
 export function advanceDay() {
   if (!S.travel || S.over) return;
   dayTick(true);
-  if (S.over || hasModal()) { requestRender(); return; }
   S.travel.left--;
   if (S.travel.left <= 0) { arrive(); requestRender(); return; }
+  if (S.over || hasModal()) { requestRender(); return; }
   // The prologue scripts its own travel days — no random lane events on top.
   if (introTravelBeat()) { S.travel.evd = true; requestRender(); return; }
   // events
