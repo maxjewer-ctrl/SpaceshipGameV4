@@ -76,6 +76,14 @@ let gpPrevB = false;
 const GP_DEADZONE = 0.35;
 let raf: number | null = null;
 let last = 0;
+// Render throttle: the sim ticks every rAF frame (cheap), but the expensive
+// WebGL render (bloom + CRT composer) is rate-limited so it doesn't peg the
+// GPU on a high-refresh display or while nothing is changing. ~60fps while the
+// scene is live, dropping to ~20fps when the player is idle. See maybeDraw().
+const RENDER_GAP_ACTIVE = 1000 / 61;
+const RENDER_GAP_IDLE = 1000 / 20;
+let lastRenderAt = 0;
+let wasModal = false;
 let viewport: HTMLElement | null = null;
 let listenersBound = false;
 let nearDoor: WalkDoor | null = null;
@@ -180,6 +188,7 @@ export function start(s: WalkScene) {
   pos = savedPos[s.id] ? { ...savedPos[s.id] } : { ...s.spawn };
   facing = "down"; walkPhase = 0; moving = false; keys.clear();
   nearDoor = null; nearActor = null;
+  lastRenderAt = 0; wasModal = false; // force an immediate first render on mount
   viewport = document.getElementById("walk-viewport");
   bindListeners();
   mountWalk3d(s);
@@ -356,20 +365,51 @@ function tick(t: number) {
   const dt = Math.min(0.05, (t - last) / 1000);
   last = t;
   simulate(dt);
+  maybeDraw();
   raf = requestAnimationFrame(tick);
+}
+
+// The one WebGL render + HUD refresh. Kept separate from simulate() so the
+// (cheap) game logic can run every frame while the (expensive) render is
+// throttled and skipped when nothing's watching.
+let renderCount = 0;
+export function debugRenderCount() { return renderCount; }
+function drawFrame() {
+  if (!scene) return;
+  renderCount++;
+  walk3d?.render({ pos, facing, moving, phase: walkPhase, nearDoor, nearActor, time: last, aim, rolling: rollTime > 0, rollCooldown, projectiles, dummy, highlightKey });
+  updateHud();
+}
+
+// Decide whether this frame gets a render. Skips entirely while a modal covers
+// the scene (the overlay hides it — no reason to burn the GPU), and otherwise
+// caps to ~60fps when anything's happening / ~20fps when idle. Forces one draw
+// on the frame a modal closes so the scene is fresh underneath it.
+function maybeDraw() {
+  if (!scene) return;
+  const modalOpen = hasModal();
+  const justClosed = wasModal && !modalOpen;
+  wasModal = modalOpen;
+  if (modalOpen) return;
+  const active = moving || rollTime > 0 || projectiles.length > 0 || !!clickTarget
+    || keys.size > 0 || gpDirs.size > 0 || gpAxis.x !== 0 || gpAxis.y !== 0;
+  const gap = active ? RENDER_GAP_ACTIVE : RENDER_GAP_IDLE;
+  if (!justClosed && last - lastRenderAt < gap) return;
+  lastRenderAt = last;
+  drawFrame();
 }
 
 // Debug-only: advance the simulation by one manual step, bypassing
 // requestAnimationFrame. Mirrors the __S debug accessor in main.ts — needed
 // because rAF is suspended entirely in backgrounded/headless preview tabs,
 // which would otherwise make the walk screens untestable end-to-end.
-export function debugStep(dtSeconds: number) { simulate(dtSeconds); }
+export function debugStep(dtSeconds: number) { simulate(dtSeconds); drawFrame(); }
 export function debugPos() { return { ...pos }; }
 export function debugActors() { return scene ? scene.actors.map((a) => ({ key: a.key, x: a.x, y: a.y, bubble: a.bubble || "" })) : []; }
 export function debugRooms() { return scene ? scene.rooms.map((r) => ({ id: r.id, x: r.x, y: r.y, w: r.w, h: r.h, label: r.label })) : []; }
 // Debug-only: teleport (bypasses collision) for exercising room/door/actor
 // detection directly, once movement collision itself is verified separately.
-export function debugGoto(x: number, y: number) { pos = { x, y }; simulate(0); }
+export function debugGoto(x: number, y: number) { pos = { x, y }; simulate(0); drawFrame(); }
 // Debug-only: drive the REAL click-to-move pathfinder (the same A* a mouse
 // click triggers) toward a target, respecting collision — the tool for
 // verifying a scene's room/corridor graph is actually walkable, not just that
@@ -439,8 +479,6 @@ function simulate(dt: number) {
   } else {
     moving = false;
   }
-  walk3d?.render({ pos, facing, moving, phase: walkPhase, nearDoor, nearActor, time: last, aim, rolling:rollTime>0, rollCooldown, projectiles, dummy, highlightKey });
-  updateHud();
 }
 
 function updateHud() {

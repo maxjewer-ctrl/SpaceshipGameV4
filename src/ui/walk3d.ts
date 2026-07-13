@@ -553,7 +553,11 @@ export function mount(container: HTMLElement | null, s: WalkScene, actions: {mov
   teardown(); host=container; current=s; click=actions.move;aimCallback=actions.aim;fireCallback=actions.fire;
   if(!container) return;
   try {
-    renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:"high-performance"}); renderer.setPixelRatio(Math.min(devicePixelRatio,2)); renderer.outputColorSpace=THREE.SRGBColorSpace;
+    // Cap pixel ratio at 1.5 (not full device 2-3x): the bloom mip chain + CRT
+    // pass are fragment-heavy, so a HiDPI 2x buffer roughly quadruples GPU work
+    // for a difference the CRT filter already softens away. 1.5 is the sweet
+    // spot between crisp and cheap.
+    renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:"high-performance"}); renderer.setPixelRatio(Math.min(devicePixelRatio,1.5)); renderer.outputColorSpace=THREE.SRGBColorSpace;
     renderer.domElement.className="walk3d-canvas"; container.insertBefore(renderer.domElement,container.firstChild);
     const isDesert = s.id === "station:dustwell";
     root=new THREE.Scene(); root.background=new THREE.Color(s.dark?0x05070b:isDesert?0xc98a54:0x0c1420); root.fog=new THREE.Fog(root.background,34,85); root.add(new THREE.HemisphereLight(s.dark?0x7384a0:isDesert?0xf0ca96:0xbcdcff,isDesert?0x5a3f28:0x1a2130,s.dark ? .6 : isDesert ? 1.5 : 1.7));root.add(new THREE.AmbientLight(s.dark?0x647087:isDesert?0xd0a878:0x91b8df,s.dark?.35:isDesert?.95:.9));root.add(avatar,actionFx);
@@ -572,7 +576,7 @@ export function mount(container: HTMLElement | null, s: WalkScene, actions: {mov
       // Lower exposure for the desert: its sunlit sand is far brighter than a
       // dim ship interior, so the same 1.95 blows the highlights to white.
       renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=isDesert?1.35:1.95;
-      composer=new EffectComposer(renderer); composer.setPixelRatio(Math.min(devicePixelRatio,2));
+      composer=new EffectComposer(renderer); composer.setPixelRatio(Math.min(devicePixelRatio,1.5));
       composer.addPass(new RenderPass(root,camera));
       // Gentle bloom in daylight — the desert has no emissives to make radiate,
       // so a strong threshold would just haze the whole bright scene.
@@ -599,7 +603,7 @@ export function mount(container: HTMLElement | null, s: WalkScene, actions: {mov
     }
   }
 }
-function resize(){if(!renderer||!camera||!host)return;const r=host.getBoundingClientRect();const w=Math.max(1,r.width),h=Math.max(1,r.height);renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();composer?.setSize(w,h);const pr=Math.min(devicePixelRatio,2);crtPass?.uniforms.resolution.value.set(w*pr,h*pr);}
+function resize(){if(!renderer||!camera||!host)return;const r=host.getBoundingClientRect();const w=Math.max(1,r.width),h=Math.max(1,r.height);renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();composer?.setSize(w,h);const pr=Math.min(devicePixelRatio,1.5);crtPass?.uniforms.resolution.value.set(w*pr,h*pr);}
 export function setScene(s: WalkScene){current=s;const sig=s.id+"|"+s.rooms.map(r=>`${r.id}:${r.moduleType}:${r.moduleIndex}`).join()+"|"+s.doors.map(d=>d.label+d.locked).join()+"|"+s.actors.map(a=>a.key).join()+"|"+(s.ship?`${s.ship.x},${s.ship.y},${s.ship.facing}`:"")+"|"+S.modules.map(m=>`${m.t}${m.on}${m.dmg}${wearTier(m)}`).join();if(sig!==signature){signature=sig;rebuild();}}
 export function render(v:{pos:{x:number;y:number};facing:string;moving:boolean;phase:number;nearDoor:WalkDoor|null;nearActor:WalkActor|null;time:number;aim:{x:number;y:number};rolling:boolean;rollCooldown:number;projectiles:Array<{x:number;y:number}>;dummy:{x:number;y:number;hp:number;hit:number}|null;highlightKey:string|null}){
   if(!renderer||!root||!camera||!current)return; const x=wx(v.pos.x),z=wz(v.pos.y);avatar.position.set(x,v.moving?Math.abs(Math.sin(v.phase))*.06:0,z);

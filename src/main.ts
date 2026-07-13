@@ -43,7 +43,7 @@ import {
   silDescend, silBearing, silAnswer, silStill, silSell,
   silBoardReturned, silScanReturned, silLearnNumbers, silLearnReturned,
 } from "./systems/silence";
-import { pressStart, pressEnd, interact, debugStep, debugPos, debugGoto, debugActors, debugWalkTo, debugRooms, walkInsideFloors } from "./ui/walk";
+import { pressStart, pressEnd, interact, debugStep, debugPos, debugGoto, debugActors, debugWalkTo, debugRooms, debugRenderCount, walkInsideFloors } from "./ui/walk";
 import { crewTalk, crewHighlight, wkInspect, walkDeck, sitChair } from "./ui/shipwalk";
 import { wkPay, wkTalk, wkFight } from "./systems/walkEncounters";
 import { ctVibe, ctAbout, ctShip, ctQuest, ctWorld, ctClose, ctQuestHelp, ctQuestSkip } from "./systems/crewtalk";
@@ -129,6 +129,7 @@ Object.assign(window as any, {
   __walkActors: debugActors,
   __walkRooms: debugRooms,
   __walkInside: walkInsideFloors,
+  __walkRenders: debugRenderCount,
   __walkGoto: debugGoto,
   __walkTo: debugWalkTo,
   __scenario: loadScenario,
