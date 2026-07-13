@@ -35,7 +35,6 @@ let root: THREE.Scene | null = null;
 let camera: THREE.PerspectiveCamera | null = null;
 let current: WalkScene | null = null;
 let host: HTMLElement | null = null;
-let fallbackCanvas: HTMLCanvasElement | null = null;
 let world = new THREE.Group();
 let avatar = new THREE.Group();
 let actorMeshes = new Map<string, THREE.Group>();
@@ -463,11 +462,11 @@ function rebuild() {
 }
 
 export function mount(container: HTMLElement | null, s: WalkScene, actions: {move:(x:number,y:number)=>void;aim:(x:number,y:number)=>void;fire:()=>void}) {
-  teardown(); host=container; current=s; click=actions.move;aimCallback=actions.aim;fireCallback=actions.fire; fallbackCanvas=container?.querySelector("canvas")||null;
+  teardown(); host=container; current=s; click=actions.move;aimCallback=actions.aim;fireCallback=actions.fire;
   if(!container) return;
   try {
     renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:"high-performance"}); renderer.setPixelRatio(Math.min(devicePixelRatio,2)); renderer.outputColorSpace=THREE.SRGBColorSpace;
-    renderer.domElement.className="walk3d-canvas"; container.insertBefore(renderer.domElement,container.firstChild); if(fallbackCanvas) fallbackCanvas.style.display="none";
+    renderer.domElement.className="walk3d-canvas"; container.insertBefore(renderer.domElement,container.firstChild);
     const isDesert = s.id === "station:dustwell";
     root=new THREE.Scene(); root.background=new THREE.Color(s.dark?0x05070b:isDesert?0xc27a48:0x0c1420); root.fog=new THREE.Fog(root.background,34,85); root.add(new THREE.HemisphereLight(s.dark?0x7384a0:isDesert?0xe8b078:0xbcdcff,isDesert?0x3a2818:0x1a2130,s.dark ? .6 : 1.7));root.add(new THREE.AmbientLight(s.dark?0x647087:isDesert?0xc98858:0x91b8df,s.dark?.35:.9));root.add(avatar,actionFx);
     if(s.dark){flashlight=new THREE.SpotLight(0xc8dcff,3.2,7,Math.PI/5,.55,1.2);flashlight.target=new THREE.Object3D();root.add(flashlight,flashlight.target);}else flashlight=null;
@@ -490,11 +489,22 @@ export function mount(container: HTMLElement | null, s: WalkScene, actions: {mov
     // Deck mode: left-click walks there. Action mode: left-click fires,
     // right-click walks (Hades convention). Right-click walks in both.
     clickHandler=(e)=>{const p=floorPoint(e);if(!p)return;if(e.button===0){if(current?.action)fireCallback?.();else click?.(p.x,p.y);}else if(e.button===2)click?.(p.x,p.y);};renderer.domElement.addEventListener("pointerdown",clickHandler);renderer.domElement.addEventListener("pointermove",(e)=>{if(!current?.action)return;const p=floorPoint(e);if(p)aimCallback?.(p.x,p.y);});renderer.domElement.addEventListener("contextmenu",e=>e.preventDefault());
-  } catch { teardown(); if(fallbackCanvas) fallbackCanvas.style.display="block"; }
+  } catch {
+    // WebGL is required (the 2D canvas fallback was removed in the beta
+    // foundations pass). Leave a plain notice instead of a dead viewport.
+    teardown();
+    if (container && !container.querySelector(".walk3d-unavailable")) {
+      const note = document.createElement("div");
+      note.className = "walk3d-unavailable";
+      note.textContent = "3D VIEW UNAVAILABLE — this game needs WebGL.";
+      note.style.cssText = "padding:24px;color:#a25b5b;font:12px Consolas,monospace;text-align:center;";
+      container.appendChild(note);
+    }
+  }
 }
 function resize(){if(!renderer||!camera||!host)return;const r=host.getBoundingClientRect();const w=Math.max(1,r.width),h=Math.max(1,r.height);renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();composer?.setSize(w,h);const pr=Math.min(devicePixelRatio,2);crtPass?.uniforms.resolution.value.set(w*pr,h*pr);}
 export function setScene(s: WalkScene){current=s;const sig=s.id+"|"+s.rooms.map(r=>`${r.id}:${r.moduleType}:${r.moduleIndex}`).join()+"|"+s.doors.map(d=>d.label+d.locked).join()+"|"+s.actors.map(a=>a.key).join()+"|"+S.modules.map(m=>`${m.t}${m.on}${m.dmg}${wearTier(m)}`).join();if(sig!==signature){signature=sig;rebuild();}}
-export function render(v:{pos:{x:number;y:number};facing:string;moving:boolean;phase:number;nearDoor:WalkDoor|null;nearActor:WalkActor|null;time:number;aim:{x:number;y:number};rolling:boolean;rollCooldown:number;projectiles:Array<{x:number;y:number}>;dummy:{x:number;y:number;hp:number;hit:number}|null}){
+export function render(v:{pos:{x:number;y:number};facing:string;moving:boolean;phase:number;nearDoor:WalkDoor|null;nearActor:WalkActor|null;time:number;aim:{x:number;y:number};rolling:boolean;rollCooldown:number;projectiles:Array<{x:number;y:number}>;dummy:{x:number;y:number;hp:number;hit:number}|null;highlightKey:string|null}){
   if(!renderer||!root||!camera||!current)return; const x=wx(v.pos.x),z=wz(v.pos.y);avatar.position.set(x,v.moving?Math.abs(Math.sin(v.phase))*.06:0,z);
   const suit=S.appearance?.suit||"#4779bd",skin=S.appearance?.skin||"#bd8668",trim=S.appearance?.trim||"#e8b04b"; if(!avatar.children.length){const p=addPerson(suit,skin,trim);avatar.add(p);}
   avatar.rotation.z=v.rolling?-.45:0;avatar.scale.setScalar(v.rolling?.82:1);
@@ -507,7 +517,9 @@ export function render(v:{pos:{x:number;y:number};facing:string;moving:boolean;p
   // fade everything but whatever's actually interactable right now so the
   // player's eye has one thing to land on instead of five stacked signs.
   for(const [d,l] of doorLabels)(l.material as THREE.SpriteMaterial).opacity=d===v.nearDoor?1:LABEL_DIM;
-  for(const [a,l] of actorLabels)(l.material as THREE.SpriteMaterial).opacity=a===v.nearActor?1:LABEL_DIM;
+  // Roster-panel highlight (setHighlight): that actor's nametag stays lit and
+  // pulses so the player can find them in a crowd from the crew list.
+  for(const [a,l] of actorLabels){const hl=a.key===v.highlightKey;(l.material as THREE.SpriteMaterial).opacity=a===v.nearActor||hl?1:LABEL_DIM;const g=actorMeshes.get(a.key);if(g)g.scale.setScalar(hl?1+Math.sin(v.time/140)*.06:1);}
   actionFx.clear();
   if(current.action){const aimLine=new THREE.Mesh(new THREE.BoxGeometry(.035,.025,1.15),mat("#70d7ff",.9));aimLine.position.set(x+v.aim.x*.55,.04,z+v.aim.y*.55);aimLine.rotation.y=Math.atan2(v.aim.x,v.aim.y);actionFx.add(aimLine);}
   for(const p of v.projectiles){const m=new THREE.Mesh(new THREE.SphereGeometry(.075,7,5),mat("#70d7ff",2));m.position.set(wx(p.x),.55,wz(p.y));actionFx.add(m);}
@@ -515,4 +527,4 @@ export function render(v:{pos:{x:number;y:number};facing:string;moving:boolean;p
   world.traverse((o:any)=>{if(o.userData.spark!==undefined){o.visible=Math.sin(v.time*.025+o.userData.spark)>0;o.position.y=1+(o.userData.spark*.12+v.time*.0004)%1;}if(o.userData.starfield&&S.travel)o.rotation.y=v.time*.00002;});
   if(composer){if(crtPass)crtPass.uniforms.time.value=v.time*.001;composer.render();}else renderer.render(root,camera);
 }
-export function teardown(){resizeObserver?.disconnect();resizeObserver=null;if(renderer&&clickHandler)renderer.domElement.removeEventListener("pointerdown",clickHandler);clickHandler=null;if(root)disposeObject(root);composer?.dispose();bloomPass?.dispose();composer=null;bloomPass=null;crtPass=null;renderer?.dispose();renderer?.domElement.remove();if(fallbackCanvas)fallbackCanvas.style.display="block";renderer=null;root=null;camera=null;flashlight=null;current=null;host=null;fallbackCanvas=null;signature="";world=new THREE.Group();avatar=new THREE.Group();actionFx=new THREE.Group();actorMeshes.clear();doorLabels=new Map();actorLabels=new Map();aimCallback=null;fireCallback=null;}
+export function teardown(){resizeObserver?.disconnect();resizeObserver=null;if(renderer&&clickHandler)renderer.domElement.removeEventListener("pointerdown",clickHandler);clickHandler=null;if(root)disposeObject(root);composer?.dispose();bloomPass?.dispose();composer=null;bloomPass=null;crtPass=null;renderer?.dispose();renderer?.domElement.remove();renderer=null;root=null;camera=null;flashlight=null;current=null;host=null;signature="";world=new THREE.Group();avatar=new THREE.Group();actionFx=new THREE.Group();actorMeshes.clear();doorLabels=new Map();actorLabels=new Map();aimCallback=null;fireCallback=null;}

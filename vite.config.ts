@@ -39,10 +39,8 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           if (!id.includes("node_modules")) return undefined;
-          if (id.includes("@dimforge/rapier3d-compat")) return "rapier";
           if (id.includes("/three/") || id.includes("\\three\\")) return "three";
           if (id.includes("@supabase/supabase-js")) return "supabase";
-          if (id.includes("three-pathfinding") || id.includes("three.quarks") || id.includes("yuka")) return "sim3d";
           return "vendor";
         },
       },

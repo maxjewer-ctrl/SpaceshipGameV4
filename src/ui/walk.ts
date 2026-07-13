@@ -1,12 +1,10 @@
 // Generic free-roam engine shared by the station deck and the ship interior.
-// Renders to one persistent <canvas> and runs its own requestAnimationFrame
-// loop, independent of the app's string-template render() cycle — so walking
-// around isn't interrupted every time an unrelated state change (credits
-// ticking, a bark firing) calls requestRender() elsewhere in the game.
+// The simulation here (movement, collision, proximity, action verbs) is the
+// deterministic authority; ui/walk3d.ts is a Three.js view over it. The sim
+// runs its own requestAnimationFrame loop, independent of the app's
+// string-template render() cycle — so walking around isn't interrupted every
+// time an unrelated state change calls requestRender() elsewhere in the game.
 import { hasModal } from "../modal";
-import { S } from "../state";
-import { drawAvatar } from "./avatarDraw";
-import { configureWalkRuntime, disposeWalkRuntime, navPath, syncWalkPhysics } from "../systems/walkRuntime";
 
 export interface WalkRect { x: number; y: number; w: number; h: number; }
 export interface WalkDoor extends WalkRect { label: string; locked?: boolean; lockedHint?: string; action: () => void; }
@@ -46,8 +44,7 @@ let gpPrevB = false;
 const GP_DEADZONE = 0.35;
 let raf: number | null = null;
 let last = 0;
-let canvas: HTMLCanvasElement | null = null;
-let ctx: CanvasRenderingContext2D | null = null;
+let viewport: HTMLElement | null = null;
 let listenersBound = false;
 let nearDoor: WalkDoor | null = null;
 let nearActor: WalkActor | null = null;
@@ -74,7 +71,7 @@ function loadWalk3d(): Promise<Walk3D> {
 }
 
 function mountWalk3d(s: WalkScene) {
-  const parent = canvas?.parentElement || null;
+  const parent = viewport;
   const id = s.id;
   void loadWalk3d().then((m) => {
     // Compare by scene id, not object identity: any interleaved render()
@@ -112,19 +109,6 @@ function bindListeners() {
   });
 }
 
-function bindCanvas() {
-  if (!canvas) return;
-  canvas.addEventListener("pointerdown", (e) => {
-    if (!scene || !canvas) return;
-    const rect = canvas.getBoundingClientRect();
-    const sx = scene.width / rect.width;
-    const sy = scene.height / rect.height;
-    const tx = (e.clientX - rect.left) * sx;
-    const ty = (e.clientY - rect.top) * sy;
-    setClickMove(tx, ty);
-  });
-}
-
 export function needsMount(id: string): boolean { return mountedId !== id; }
 
 export function mountHTML(s: WalkScene): string {
@@ -135,8 +119,7 @@ export function mountHTML(s: WalkScene): string {
     <div class="console con-table">
       <div class="walkscope${s.dark ? " walk-dark" : ""}">
         <div class="scope-head"><span>◄ FREE MOVEMENT ▬ WASD / ARROWS ►</span><span class="sh-r" id="wk-room"></span></div>
-        <div class="walk-viewport" style="aspect-ratio:${s.width}/${s.height}">
-          <canvas id="walkcanvas" width="${s.width}" height="${s.height}"></canvas>
+        <div class="walk-viewport" id="walk-viewport" style="aspect-ratio:${s.width}/${s.height}">
           <div class="walk-prompt" id="wk-prompt"></div>
         </div>
         <div class="scope-foot"><span id="wk-status"></span><span>[E] interact${s.action ? " · [SPACE] roll" : ""}</span></div>
@@ -165,12 +148,9 @@ export function start(s: WalkScene) {
   pos = savedPos[s.id] ? { ...savedPos[s.id] } : { ...s.spawn };
   facing = "down"; walkPhase = 0; moving = false; keys.clear();
   nearDoor = null; nearActor = null;
-  canvas = document.getElementById("walkcanvas") as HTMLCanvasElement | null;
-  ctx = canvas ? canvas.getContext("2d") : null;
+  viewport = document.getElementById("walk-viewport");
   bindListeners();
-  bindCanvas();
   mountWalk3d(s);
-  configureWalkRuntime(s, pos);
   projectiles=[]; rollTime=rollCooldown=fireCooldown=0;
   // Practice target: action scenes only (until real foot encounters land) —
   // your own deck and friendly stations have nothing to shoot at.
@@ -197,10 +177,9 @@ export function teardown() {
   if (raf) cancelAnimationFrame(raf);
   raf = null;
   if (scene) savedPos[scene.id] = { ...pos };
-  scene = null; mountedId = null; canvas = null; ctx = null;
+  scene = null; mountedId = null; viewport = null;
   keys.clear(); clearClickMove();
   walk3d?.teardown();
-  disposeWalkRuntime();
 }
 
 export function forgetSpawn(sceneId: string) { delete savedPos[sceneId]; }
@@ -291,7 +270,7 @@ function setClickMove(x: number, y: number) {
   const goal = nearestLegal(x, y);
   if (!goal) { clearClickMove(); return; }
   clickTarget = goal;
-  clickPath = navPath(pos, goal) || findPath(pos, goal);
+  clickPath = findPath(pos, goal);
   if (!clickPath.length) clickPath = [goal];
   clickStuck = 0;
 }
@@ -327,66 +306,6 @@ function findPath(from: {x:number;y:number}, to: {x:number;y:number}): Array<{x:
   out.reverse();
   const compact=out.filter((p,i,a)=>i===0||i===a.length-1||((p.x-a[i-1].x)!==(a[i+1].x-p.x)||(p.y-a[i-1].y)!==(a[i+1].y-p.y)));
   compact.push(to); return compact;
-}
-
-function hashStr(s: string): number {
-  let h = 0;
-  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
-  return (h >>> 0) % 628; // 0..2π*100, cheap phase spread
-}
-
-// Simple canvas set-dressing per room kind — cheap shapes, no assets, just
-// enough silhouette that a cockpit doesn't look like an engine room.
-function drawProps(c: CanvasRenderingContext2D, r: WalkRoom, dark?: boolean) {
-  const lineC = dark ? "#3a3d46" : "#3a4256";
-  const fillC = dark ? "#1a1c22" : "#161a28";
-  c.save();
-  c.strokeStyle = lineC; c.fillStyle = fillC; c.lineWidth = 1.5;
-  if (r.kind === "cockpit") {
-    // console arc along the forward wall
-    c.beginPath();
-    c.moveTo(r.x + 14, r.y + r.h - 14);
-    c.quadraticCurveTo(r.x + r.w / 2, r.y + r.h - 34, r.x + r.w - 14, r.y + r.h - 14);
-    c.lineTo(r.x + r.w - 14, r.y + r.h - 6); c.lineTo(r.x + 14, r.y + r.h - 6); c.closePath();
-    c.fill(); c.stroke();
-    for (let i = 0; i < 4; i++) {
-      const bx = r.x + r.w / 2 - 40 + i * 26;
-      c.fillStyle = i % 2 === 0 ? "#5aa7ff55" : "#e8b04b55";
-      c.fillRect(bx, r.y + r.h - 22, 8, 5);
-    }
-    c.fillStyle = fillC;
-  } else if (r.kind === "engine") {
-    // drive core column
-    const cx = r.x + r.w / 2, cy = r.y + r.h / 2;
-    c.beginPath(); c.arc(cx, cy, 26, 0, Math.PI * 2); c.fill(); c.stroke();
-    c.beginPath(); c.arc(cx, cy, 14, 0, Math.PI * 2); c.strokeStyle = "#e8843b77"; c.stroke();
-  } else if (r.kind === "cargo") {
-    // crate stack
-    for (let i = 0; i < 3; i++) {
-      const bx = r.x + 16 + (i % 2) * 30, by = r.y + r.h - 26 - Math.floor(i / 2) * 26;
-      c.fillRect(bx, by, 24, 22); c.strokeRect(bx, by, 24, 22);
-    }
-  } else if (r.kind === "quarters") {
-    // bunks along the back wall
-    for (let i = 0; i < 2; i++) {
-      const bx = r.x + 16 + i * (r.w - 44);
-      c.fillRect(bx, r.y + r.h - 40, 28, 26); c.strokeRect(bx, r.y + r.h - 40, 28, 26);
-    }
-  } else if (r.kind === "medbay") {
-    // a bed + a cross
-    c.fillRect(r.x + 18, r.y + r.h - 34, 40, 18); c.strokeRect(r.x + 18, r.y + r.h - 34, 40, 18);
-    c.strokeStyle = "#6fbf7377";
-    c.beginPath(); c.moveTo(r.x + r.w - 24, r.y + 18); c.lineTo(r.x + r.w - 24, r.y + 30); c.moveTo(r.x + r.w - 30, r.y + 24); c.lineTo(r.x + r.w - 18, r.y + 24); c.stroke();
-  } else if (r.kind === "hydro") {
-    // planter rows
-    for (let i = 0; i < 3; i++) {
-      const ry = r.y + r.h - 20 - i * 12;
-      c.fillStyle = "#6fbf7333";
-      c.fillRect(r.x + 14, ry, r.w - 28, 8);
-      c.strokeStyle = "#6fbf7355"; c.strokeRect(r.x + 14, ry, r.w - 28, 8);
-    }
-  }
-  c.restore();
 }
 
 // ---- loop ----
@@ -459,7 +378,6 @@ function simulate(dt: number) {
       else if (vy !== 0) facing = vy > 0 ? "down" : "up";
       walkPhase += dt * 9;
     }
-    syncWalkPhysics(pos);
     for(const p of projectiles){p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;if(!insideFloors(p.x,p.y))p.life=0;if(dummy&&dummy.hp>0&&Math.hypot(p.x-dummy.x,p.y-dummy.y)<22){dummy.hp--;dummy.hit=.12;p.life=0;}}
     projectiles=projectiles.filter(p=>p.life>0);
     nearDoor = null;
@@ -472,84 +390,8 @@ function simulate(dt: number) {
   } else {
     moving = false;
   }
-  draw();
-  walk3d?.render({ pos, facing, moving, phase: walkPhase, nearDoor, nearActor, time: last, aim, rolling:rollTime>0, rollCooldown, projectiles, dummy });
+  walk3d?.render({ pos, facing, moving, phase: walkPhase, nearDoor, nearActor, time: last, aim, rolling:rollTime>0, rollCooldown, projectiles, dummy, highlightKey });
   updateHud();
-}
-
-// ---- drawing ----
-function draw() {
-  if (!ctx || !canvas || !scene) return;
-  const { width: W, height: H } = scene;
-  ctx.clearRect(0, 0, W, H);
-  ctx.fillStyle = "#070910";
-  ctx.fillRect(0, 0, W, H);
-  ctx.strokeStyle = scene.dark ? "#4a4f5c14" : "#e8b04b12";
-  ctx.lineWidth = 1;
-  for (let gx = 0; gx <= W; gx += 24) { ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, H); ctx.stroke(); }
-  for (let gy = 0; gy <= H; gy += 24) { ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W, gy); ctx.stroke(); }
-  for (const f of scene.floors) { ctx.fillStyle = scene.dark ? "#12141a" : "#11141d"; ctx.fillRect(f.x, f.y, f.w, f.h); }
-  ctx.font = "12px Consolas, monospace";
-  for (const r of scene.rooms) {
-    ctx.strokeStyle = scene.dark ? "#3a3d46" : (r.color || "#2a3048");
-    ctx.lineWidth = 2;
-    ctx.globalAlpha = r.color ? 0.6 : 1;
-    ctx.strokeRect(r.x, r.y, r.w, r.h);
-    ctx.globalAlpha = 1;
-    ctx.fillStyle = scene.dark ? "#6a6f7c" : "#7d8294";
-    ctx.textAlign = "left";
-    ctx.fillText(`${r.icon || ""} ${r.label}`.trim(), r.x + 10, r.y + 18);
-    if (r.kind) drawProps(ctx, r, scene.dark);
-  }
-  for (const d of scene.doors) {
-    const isNear = d === nearDoor;
-    ctx.strokeStyle = d.locked ? "#5a2f2f" : isNear ? "#e8b04b" : "#5b8dd9";
-    ctx.lineWidth = 2;
-    ctx.setLineDash([6, 4]);
-    ctx.strokeRect(d.x, d.y, d.w, d.h);
-    ctx.setLineDash([]);
-    ctx.fillStyle = d.locked ? "#a25b5b" : isNear ? "#e8b04b" : "#8aa8d9";
-    ctx.textAlign = "center";
-    ctx.font = "10px Consolas, monospace";
-    ctx.fillText(d.label, d.x + d.w / 2, d.y - 6);
-    ctx.font = "12px Consolas, monospace";
-  }
-  for (const a of scene.actors) {
-    // gentle idle bob, out of phase per actor so a crowded room doesn't
-    // breathe in unison — purely cosmetic, doesn't touch a.x/a.y or collision
-    const seed = hashStr(a.key);
-    const bob = Math.sin(last / 700 + seed) * 2;
-    const cx = a.x + a.w / 2, cy = a.y + a.h / 2 + bob;
-    const isNear = a === nearActor;
-    ctx.beginPath(); ctx.arc(cx, cy, 15, 0, Math.PI * 2);
-    ctx.fillStyle = a.color || "#d9a55b";
-    ctx.globalAlpha = isNear ? 1 : 0.85;
-    ctx.fill();
-    ctx.globalAlpha = 1;
-    ctx.strokeStyle = isNear ? "#e8b04b" : "#00000055";
-    ctx.lineWidth = isNear ? 2 : 1;
-    ctx.stroke();
-    ctx.font = "13px sans-serif";
-    ctx.textAlign = "center"; ctx.textBaseline = "middle";
-    ctx.fillStyle = "#0a0c12";
-    ctx.fillText(a.icon || "●", cx, cy + 1);
-    ctx.textBaseline = "alphabetic";
-    ctx.font = "10px Consolas, monospace";
-    ctx.fillStyle = isNear ? "#e8b04b" : "#9aa0b4";
-    ctx.fillText(a.label, cx, a.y + a.h + 13);
-    if (a.key === highlightKey) {
-      ctx.beginPath(); ctx.arc(cx, cy, 20 + Math.sin(last / 140) * 3, 0, Math.PI * 2);
-      ctx.strokeStyle = "#e8b04b"; ctx.lineWidth = 2; ctx.stroke();
-    }
-  }
-  if (clickTarget) {
-    ctx.beginPath(); ctx.arc(clickTarget.x, clickTarget.y, 5, 0, Math.PI * 2);
-    ctx.strokeStyle = scene.dark ? "#8a8fa066" : "#e8b04b66";
-    ctx.lineWidth = 1.5; ctx.setLineDash([3, 3]); ctx.stroke(); ctx.setLineDash([]);
-  }
-  // The captain's chosen avatar (character creator) — same renderer as the
-  // creator preview, so the sprite you walk is the one you built.
-  drawAvatar(ctx, pos.x, pos.y, S.appearance, { dir: facing, moving, phase: walkPhase, dark: scene.dark });
 }
 
 function updateHud() {
