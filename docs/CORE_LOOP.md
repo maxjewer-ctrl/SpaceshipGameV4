@@ -130,7 +130,17 @@ The rule: **campaigns knock; they never enter uninvited.**
    readout. Three location-stamped set-dressing marks wired (Bev's fuel stall,
    Tomas's empty chair / head-down bonded, the Aldrens' roped berth / grateful
    dockhand). DSL verbs `standing` + `portMark` added for cheap future marks.
-2. **Module wear + refit loop** (pillar 1) — fixes the economy ceiling.
+2. ✅ **Module wear + refit loop** (pillar 1) — shipped (wear.ts).
+2b. ✅ **Module quality tiers Mk-I/II/III** (pillar 1) — shipped
+   (systems/modtier.ts). Every module carries a mark; output scales
+   1.0/1.5/2.0, price 1.0/2.2/4.0, power draw held flat (higher mark = better
+   per slot AND per watt). Yards sell up to Mk-II; **Mk-III fits only at
+   Foundry**, giving the late game a destination. The yard offers buy-at-mark
+   AND an in-place **upgrade path** (walk an owned unit up a mark for the
+   price difference) — so a *full, finished* ship still has ten things to
+   want, which is the economy-ceiling fix. Save v11 grandfathers old modules
+   to Mk-I. 13 tests. Still open: parts-with-provenance / used-module market
+   (the "salvaged, runs hot but never lies" flavor layer on top of this).
 3. **Veterancy ranks + scars** (pillar 2) — data model first, barks read it.
 4. **Survey contracts + POI map marks** (pillar 4).
 5. **Loyalty missions** (pillar 2, biggest content lift, best payoff).

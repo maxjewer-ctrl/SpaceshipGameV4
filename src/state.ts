@@ -2,17 +2,19 @@ import type { GameState, ModuleInstance } from "./types";
 import { DEFAULT_APPEARANCE } from "./ui/avatarDraw";
 
 export const SAVE_KEY = "kestrelrun";
-export const SAVE_VERSION = 10;
+export const SAVE_VERSION = 11;
 
 // The single mutable game state. `export let` gives live bindings to importers;
 // replace it only through setState so everyone sees the new object.
 export let S: GameState = null as unknown as GameState;
 export function setState(s: GameState) { S = s; }
 
-export function mk(t: string): ModuleInstance { return { t, on: true, dmg: false }; }
+export function mk(t: string, mark = 1): ModuleInstance { return { t, on: true, dmg: false, mk: mark }; }
 
 export function newState(shipName: string): GameState {
-  const seed = (Date.now() ^ (Math.random() * 0x7fffffff)) | 0;
+  // New-game entropy: crypto, not Math.random — the seeded stream (src/rng.ts)
+  // owns every roll after this moment.
+  const seed = (crypto.getRandomValues(new Int32Array(1))[0] ^ Date.now()) | 0;
   return {
     version: SAVE_VERSION,
     seed,
@@ -54,12 +56,114 @@ export function whisper(msg: string) {
   if (S.logLines.length > 80) S.logLines.pop();
 }
 
-export function save() {
-  try { if (!S.over) localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch { /* storage unavailable */ }
+// ---- save slots + persistence ----
+export const NUM_SLOTS = 3;
+const slotKey = (slot: number) => `${SAVE_KEY}:slot${slot}`;
+const ACTIVE_KEY = `${SAVE_KEY}:active`;
+
+// Pure UI state — which screen you're looking at, which tab/row is selected.
+// These are NOT saved: persisting them can reload you into a half-torn-down
+// travel/planet screen, and they're trivially reconstructed from docked/travel.
+const TRANSIENT_KEYS = ["screen", "ptab", "sel", "selPlanet"] as const;
+
+function stripTransient(s: GameState): Record<string, unknown> {
+  const { screen, ptab, sel, selPlanet, ...rest } = s as any;
+  void screen; void ptab; void sel; void selPlanet;
+  return rest;
 }
 
-export function clearSave() {
-  try { localStorage.removeItem(SAVE_KEY); } catch { /* storage unavailable */ }
+// Reconstruct the transient view state a load deliberately dropped.
+function applyLoadDefaults(s: any): GameState {
+  s.screen = s.travel ? "travel" : "shipwalk";
+  s.ptab = "cantina";
+  s.sel = null;
+  s.selPlanet = null;
+  return s as GameState;
+}
+
+export function activeSlot(): number {
+  try { const v = Number(localStorage.getItem(ACTIVE_KEY)); return Number.isInteger(v) && v >= 0 && v < NUM_SLOTS ? v : 0; }
+  catch { return 0; }
+}
+export function setActiveSlot(slot: number) {
+  try { localStorage.setItem(ACTIVE_KEY, String(slot)); } catch { /* storage unavailable */ }
+}
+
+// One-time lift of the pre-slots single-key save into slot 0, so existing
+// players keep their game when slots ship.
+function migrateLegacySave() {
+  try {
+    const legacy = localStorage.getItem(SAVE_KEY);
+    if (legacy && !localStorage.getItem(slotKey(0))) localStorage.setItem(slotKey(0), legacy);
+    if (legacy) localStorage.removeItem(SAVE_KEY);
+  } catch { /* storage unavailable */ }
+}
+
+export function save(slot = activeSlot()) {
+  try { if (!S.over) localStorage.setItem(slotKey(slot), JSON.stringify(stripTransient(S))); } catch { /* storage unavailable */ }
+}
+
+// Clears the active slot (a scuttled/dead run shouldn't persist).
+export function clearSave(slot = activeSlot()) {
+  try { localStorage.removeItem(slotKey(slot)); } catch { /* storage unavailable */ }
+}
+
+export interface SlotMeta {
+  slot: number; empty: boolean;
+  captainName?: string; shipName?: string; day?: number; credits?: number; prestige?: number; loc?: string;
+}
+
+// Summary of each slot for the load menu (never throws — a corrupt slot reads
+// as empty rather than crashing the menu).
+export function slotList(): SlotMeta[] {
+  migrateLegacySave();
+  const out: SlotMeta[] = [];
+  for (let i = 0; i < NUM_SLOTS; i++) {
+    try {
+      const raw = localStorage.getItem(slotKey(i));
+      if (!raw) { out.push({ slot: i, empty: true }); continue; }
+      const s = JSON.parse(raw);
+      out.push({ slot: i, empty: false, captainName: s.captainName, shipName: s.shipName, day: s.day, credits: s.credits, prestige: s.prestige, loc: s.loc });
+    } catch { out.push({ slot: i, empty: true }); }
+  }
+  return out;
+}
+
+export function deleteSlot(slot: number) {
+  try { localStorage.removeItem(slotKey(slot)); } catch { /* storage unavailable */ }
+}
+
+// Read + migrate a slot into a ready-to-run state (transients reconstructed).
+export function loadSlot(slot: number): GameState | null {
+  try {
+    migrateLegacySave();
+    const raw = localStorage.getItem(slotKey(slot));
+    if (!raw) return null;
+    return applyLoadDefaults(migrate(JSON.parse(raw)));
+  } catch {
+    return null;
+  }
+}
+
+// Serialize the current run for the player to download (transients stripped).
+export function exportSave(): string {
+  return JSON.stringify(stripTransient(S), null, 2);
+}
+
+// Import a downloaded save: parse, sanity-check it looks like a GameState,
+// migrate it forward, and write it to a slot. Returns the loaded state, or
+// null if the blob isn't a plausible save.
+export function importSave(json: string, slot = activeSlot()): GameState | null {
+  try {
+    const parsed = JSON.parse(json);
+    if (!parsed || typeof parsed !== "object" || typeof parsed.day !== "number" || !Array.isArray(parsed.modules)) return null;
+    const migrated = applyLoadDefaults(migrate(parsed));
+    localStorage.setItem(slotKey(slot), JSON.stringify(stripTransient(migrated)));
+    setActiveSlot(slot);
+    return migrated;
+  } catch {
+    return null;
+  }
 }
 
 // Save migration chain: each step upgrades one version. Old saves keep working forever.
@@ -136,15 +240,16 @@ export function migrate(s: any): GameState {
     (s.crew || []).forEach((c: any) => { if (c.name === "Juno Vale" && !c.key) c.key = "juno"; });
     s.version = 10;
   }
+  // v11: module quality marks. Every existing module is Mk-I.
+  if (s.version < 11) {
+    (s.modules || []).forEach((m: any) => { if (m.mk === undefined) m.mk = 1; });
+    s.version = 11;
+  }
   return s as GameState;
 }
 
+// Boot-time load: the active slot (lifting any pre-slots legacy save first).
 export function loadSaved(): GameState | null {
-  try {
-    const raw = localStorage.getItem(SAVE_KEY);
-    if (!raw) return null;
-    return migrate(JSON.parse(raw));
-  } catch {
-    return null;
-  }
+  migrateLegacySave();
+  return loadSlot(activeSlot());
 }

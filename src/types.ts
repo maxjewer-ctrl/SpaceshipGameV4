@@ -13,7 +13,9 @@ export interface ModuleDef {
 // `slot` is the module's bay position on the deck (0..slotsMax-1), set when
 // installed and rearranged from the ship schematic; missing on old saves
 // until ensureSlots() deals one out.
-export interface ModuleInstance { t: string; on: boolean; dmg: boolean; wear?: number; slot?: number; }
+// mk: quality mark 1/2/3 (Mk-I default). Higher marks scale the module's
+// output; see systems/modtier.ts. Absent = Mk-I (pre-tiers saves).
+export interface ModuleInstance { t: string; on: boolean; dmg: boolean; wear?: number; slot?: number; mk?: number; }
 
 // The captain's chosen look — set in the character creator, drawn by the shared
 // avatar renderer (ui/avatarDraw.ts) for both the preview and the walking sprite.

@@ -15,7 +15,7 @@
       "icon": "🕯️",
       "color": "#9fd8e8",
       "sound": "harbor",
-      "link": "concourse",
+      "link": "harbor",
       "desc": "A glass spire over a quiet floor. Sixty thousand names scroll upward at reading pace — eleven years running and it hasn't repeated once. A keeper trims the light. Nobody official ever comes here."
     }
   },
@@ -36,7 +36,7 @@
       "icon": "✊",
       "color": "#d8a04b",
       "sound": "concourse",
-      "link": "concourse",
+      "link": "cantina",
       "desc": "Folding chairs, a low stage, and a banner mended twelve times: AN HONEST DAY. The wall lists stewards going back eighty years — most with dates, a few with only the word 'taken.'"
     }
   },
@@ -117,7 +117,7 @@
       "icon": "📡",
       "color": "#7fb8a8",
       "sound": "harbor",
-      "link": "harbor",
+      "link": "concourse",
       "desc": "Racks of receivers, a star chart furred with bearing pins, headphones hung on hooks like fire equipment. The array hears everything out past the Verge. Lately the operators log more of what they don't hear.",
       "dark": "The receivers are still powered. Every dial in the rack has been turned, carefully, to the same bearing. All the headphones are missing."
     }

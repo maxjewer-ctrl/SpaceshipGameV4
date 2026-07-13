@@ -1,7 +1,12 @@
-import { S, setState, newState, log, clearSave } from "../state";
+import {
+  S, setState, newState, log, clearSave, save,
+  slotList, loadSlot, deleteSlot, setActiveSlot, activeSlot, exportSave, importSave,
+  type SlotMeta,
+} from "../state";
 import { modal, clearModal, closeModal } from "../modal";
 import { requestRender } from "../bus";
 import { refreshMarket } from "../systems/market";
+import { PLANETS } from "../content";
 import { openCreator, getCaptainName, getAppearance } from "./avatar";
 import { $ } from "../util";
 
@@ -82,6 +87,105 @@ export function newGame() {
 
 // The opening screen IS the character creator now (ui/avatar.ts).
 export function intro() { openCreator(); }
+
+// ---- save slots + export/import ----
+function slotRow(m: SlotMeta): string {
+  const active = m.slot === activeSlot();
+  const tag = active ? ` <span class="dim">(active)</span>` : "";
+  if (m.empty) {
+    return `<div class="panel" style="margin:6px 0; display:flex; justify-content:space-between; align-items:center; gap:10px">
+      <div><b>Slot ${m.slot + 1}</b>${tag}<br><span class="dim">— empty —</span></div>
+      <div class="choices" style="margin:0"><button onclick="saveHere(${m.slot})">Save here</button></div>
+    </div>`;
+  }
+  const where = (m.loc && PLANETS[m.loc]?.n) || m.loc || "the black";
+  return `<div class="panel" style="margin:6px 0; display:flex; justify-content:space-between; align-items:center; gap:10px">
+    <div><b>Slot ${m.slot + 1}</b>${tag}<br>
+      <span>${m.captainName || "Captain"} · ${m.shipName || "ship"}</span><br>
+      <span class="dim">Day ${m.day ?? "?"} · ${(m.credits ?? 0).toLocaleString()}cr · ${m.prestige ?? 0}★ · ${where}</span></div>
+    <div class="choices" style="margin:0; flex-wrap:wrap; justify-content:flex-end">
+      <button class="primary" onclick="loadSaveSlot(${m.slot})">Load</button>
+      <button onclick="saveHere(${m.slot})">Save here</button>
+      <button class="danger" onclick="deleteSaveSlot(${m.slot})">Delete</button>
+    </div>
+  </div>`;
+}
+
+export function openSaves() {
+  const slots = slotList().map(slotRow).join("");
+  modal(`<h2>💾 Saves</h2>
+    <p class="dim">The game autosaves to the active slot as you play. Load a slot, keep separate runs, or back up a game to a file.</p>
+    ${slots}
+    <div class="panel" style="margin-top:10px">
+      <h3>Backup</h3>
+      <div class="choices" style="margin-top:8px">
+        <button onclick="exportSaveFile()">⬇ Export current game</button>
+        <button onclick="importSaveFile()">⬆ Import from file</button>
+      </div>
+      <p id="save-msg" class="dim" style="margin-top:8px; min-height:16px"></p>
+    </div>
+    <div class="choices"><button class="primary" onclick="closeModal()">Back to the black</button></div>`);
+}
+
+function saveMsg(text: string) { const el = document.getElementById("save-msg"); if (el) el.textContent = text; }
+
+// Point the autosave at a different slot and immediately write the current run
+// there — the manual "save to this slot" action.
+export function saveHere(slot: number) {
+  setActiveSlot(slot);
+  save(slot);   // write the current run to this slot now
+  openSaves();  // re-render so the row reflects it
+}
+
+export function loadSaveSlot(slot: number) {
+  const s = loadSlot(slot);
+  if (!s) { saveMsg("That slot is empty or unreadable."); return; }
+  setActiveSlot(slot);
+  setState(s);
+  clearModal();
+  requestRender();
+  log("— Save loaded. Welcome back, Captain. —");
+  requestRender();
+}
+
+export function deleteSaveSlot(slot: number) {
+  deleteSlot(slot);
+  openSaves();
+}
+
+export function exportSaveFile() {
+  try {
+    const blob = new Blob([exportSave()], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    const stamp = `d${S.day}-${(S.shipName || "kestrel").replace(/[^a-z0-9]+/gi, "-").toLowerCase()}`;
+    a.href = url; a.download = `kestrel-run-${stamp}.json`;
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+    saveMsg("Exported. Check your downloads.");
+  } catch { saveMsg("Export failed — your browser blocked the download."); }
+}
+
+export function importSaveFile() {
+  const input = document.createElement("input");
+  input.type = "file"; input.accept = "application/json,.json";
+  input.onchange = () => {
+    const file = input.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const s = importSave(String(reader.result), activeSlot());
+      if (!s) { saveMsg("That file isn't a valid Kestrel Run save."); return; }
+      setState(s);
+      clearModal();
+      requestRender();
+      log("— Save imported. Welcome aboard, Captain. —");
+      requestRender();
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
 
 export function startGame() {
   const input = document.getElementById("shipnamein") as HTMLInputElement | null;

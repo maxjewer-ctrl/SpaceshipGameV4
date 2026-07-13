@@ -1,17 +1,38 @@
 // Generic free-roam engine shared by the station deck and the ship interior.
-// Renders to one persistent <canvas> and runs its own requestAnimationFrame
-// loop, independent of the app's string-template render() cycle — so walking
-// around isn't interrupted every time an unrelated state change (credits
-// ticking, a bark firing) calls requestRender() elsewhere in the game.
+// The simulation here (movement, collision, proximity, action verbs) is the
+// deterministic authority; ui/walk3d.ts is a Three.js view over it. The sim
+// runs its own requestAnimationFrame loop, independent of the app's
+// string-template render() cycle — so walking around isn't interrupted every
+// time an unrelated state change calls requestRender() elsewhere in the game.
 import { hasModal } from "../modal";
-import { S } from "../state";
-import { drawAvatar } from "./avatarDraw";
-import { configureWalkRuntime, disposeWalkRuntime, navPath, syncWalkPhysics } from "../systems/walkRuntime";
 
 export interface WalkRect { x: number; y: number; w: number; h: number; }
 export interface WalkDoor extends WalkRect { label: string; locked?: boolean; lockedHint?: string; action: () => void; }
 export interface WalkActor extends WalkRect { key: string; label: string; icon?: string; color?: string; role?: string; modelKey?: string; bubble?: string; verb?: string; onInteract: () => void; }
 export interface WalkRoom extends WalkRect { id: string; label: string; icon?: string; color?: string; kind?: string; moduleIndex?: number; moduleType?: string; }
+// A solid structure you walk AROUND, not on — the inverse of a floor. Buildings
+// on an open-ground plaza are obstacles; the door to enter sits on the plaza in
+// front of them. `tall` renders it as a full building vs. a low prop/planter.
+export interface WalkObstacle extends WalkRect { id?: string; label?: string; icon?: string; color?: string; tall?: boolean; }
+
+// The player's ship, physically present in the scene. THE RULE: every town and
+// station shows the ship somewhere, and you board it through the rear hatch —
+// never an abstract "leave" button. `facing` is the direction the nose points;
+// the hatch is on the opposite (rear) face, and shipHatch() returns the point
+// you stand at to board. walk3d renders it; the sim treats its footprint as a
+// solid you walk around.
+export interface ShipBerth extends WalkRect { facing: "up" | "down" | "left" | "right"; }
+
+// The walkable point just off the rear hatch — where the board door lives.
+export function shipHatch(b: ShipBerth): { x: number; y: number } {
+  const cx = b.x + b.w / 2, cy = b.y + b.h / 2, m = 20;
+  switch (b.facing) {
+    case "up": return { x: cx, y: b.y + b.h + m };   // nose north → hatch south
+    case "down": return { x: cx, y: b.y - m };        // nose south → hatch north
+    case "left": return { x: b.x + b.w + m, y: cy };  // nose west  → hatch east
+    default: return { x: b.x - m, y: cy };            // nose east  → hatch west
+  }
+}
 export interface WalkScene {
   id: string;                 // unique per context — changing it remounts at spawn
   title: string;
@@ -22,11 +43,24 @@ export interface WalkScene {
   roomDesc?: Record<string, string>;
   doors: WalkDoor[];
   actors: WalkActor[];
+  // Solid footprints carved out of the walkable floor (buildings, the ship).
+  // insideFloors() rejects points inside these; walk3d renders them as structures.
+  obstacles?: WalkObstacle[];
+  // The player's ship, on display in this port (see ShipBerth / the RULE).
+  ship?: ShipBerth;
   spawn: { x: number; y: number };
   // Placeholder exterior silhouette (closed polygon, scene coordinates) drawn
   // around the interior so room placement can be judged against the hull shape.
   hull?: Array<{ x: number; y: number }>;
   dark?: boolean;
+  // Action mode: the Hades-style kit (aim/fire/roll, quicker stride) is live.
+  // Only planet surfaces and hostile (silenced) stations set this — your own
+  // ship and friendly decks are navigation/dialogue space, no combat verbs.
+  action?: boolean;
+  // Open-ground layout (a plaza with a perimeter wall and freestanding
+  // buildings) vs. the default warren of rooms + corridors. Drives walk3d's
+  // town-wall / building rendering. Planet towns set this; stations don't.
+  openGround?: boolean;
   onTick?: (moving: boolean, dt: number, roomId: string | null) => void;
 }
 
@@ -45,8 +79,15 @@ let gpPrevB = false;
 const GP_DEADZONE = 0.35;
 let raf: number | null = null;
 let last = 0;
-let canvas: HTMLCanvasElement | null = null;
-let ctx: CanvasRenderingContext2D | null = null;
+// Render throttle: the sim ticks every rAF frame (cheap), but the expensive
+// WebGL render (bloom + CRT composer) is rate-limited so it doesn't peg the
+// GPU on a high-refresh display or while nothing is changing. ~60fps while the
+// scene is live, dropping to ~20fps when the player is idle. See maybeDraw().
+const RENDER_GAP_ACTIVE = 1000 / 61;
+const RENDER_GAP_IDLE = 1000 / 20;
+let lastRenderAt = 0;
+let wasModal = false;
+let viewport: HTMLElement | null = null;
 let listenersBound = false;
 let nearDoor: WalkDoor | null = null;
 let nearActor: WalkActor | null = null;
@@ -54,7 +95,10 @@ let clickTarget: { x: number; y: number } | null = null;
 let clickPath: Array<{ x: number; y: number }> = [];
 let clickStuck = 0;
 let highlightKey: string | null = null;
-const ACTION = { moveSpeed:230, rollSpeed:620, rollDuration:.24, rollCooldown:.7, fireCooldown:.18, projectileSpeed:720 };
+// Two strides: decks are for walking and talking; action scenes move quicker.
+const DECK_SPEED = 230;
+const ACTION = { moveSpeed:320, rollSpeed:620, rollDuration:.24, rollCooldown:.7, fireCooldown:.18, projectileSpeed:720 };
+const inAction = () => !!scene?.action;
 let aim={x:0,y:1}, rollDir={x:0,y:1};
 let rollTime=0, rollCooldown=0, fireCooldown=0;
 let projectiles:Array<{x:number;y:number;vx:number;vy:number;life:number}>=[];
@@ -69,15 +113,16 @@ function loadWalk3d(): Promise<Walk3D> {
   return walk3dLoading;
 }
 
-function cameraRelativeMovement(x: number, y: number) {
-  return walk3d?.cameraRelativeMovement(x, y) ?? { x, y };
-}
-
 function mountWalk3d(s: WalkScene) {
-  const parent = canvas?.parentElement || null;
+  const parent = viewport;
+  const id = s.id;
   void loadWalk3d().then((m) => {
-    if (scene !== s || mountedId !== s.id) return;
-    m.mount(parent, s, { move:setClickMove, aim:setAim, fire });
+    // Compare by scene id, not object identity: any interleaved render()
+    // rebuilds the scene object (ensureRunning), and the first-ever mount
+    // awaits the whole three.js chunk — an identity check silently stranded
+    // that first walk screen on the 2D fallback. Mount the freshest object.
+    if (!scene || mountedId !== id) return;
+    m.mount(parent, scene, { move:setClickMove, aim:setAim, fire });
   });
 }
 
@@ -107,19 +152,6 @@ function bindListeners() {
   });
 }
 
-function bindCanvas() {
-  if (!canvas) return;
-  canvas.addEventListener("pointerdown", (e) => {
-    if (!scene || !canvas) return;
-    const rect = canvas.getBoundingClientRect();
-    const sx = scene.width / rect.width;
-    const sy = scene.height / rect.height;
-    const tx = (e.clientX - rect.left) * sx;
-    const ty = (e.clientY - rect.top) * sy;
-    setClickMove(tx, ty);
-  });
-}
-
 export function needsMount(id: string): boolean { return mountedId !== id; }
 
 export function mountHTML(s: WalkScene): string {
@@ -130,11 +162,10 @@ export function mountHTML(s: WalkScene): string {
     <div class="console con-table">
       <div class="walkscope${s.dark ? " walk-dark" : ""}">
         <div class="scope-head"><span>◄ FREE MOVEMENT ▬ WASD / ARROWS ►</span><span class="sh-r" id="wk-room"></span></div>
-        <div class="walk-viewport" style="aspect-ratio:${s.width}/${s.height}">
-          <canvas id="walkcanvas" width="${s.width}" height="${s.height}"></canvas>
+        <div class="walk-viewport" id="walk-viewport" style="aspect-ratio:${s.width}/${s.height}">
           <div class="walk-prompt" id="wk-prompt"></div>
         </div>
-        <div class="scope-foot"><span id="wk-status"></span><span>[E] interact</span></div>
+        <div class="scope-foot"><span id="wk-status"></span><span>[E] interact${s.action ? " · [SPACE] roll" : ""}</span></div>
       </div>
     </div>
     <p class="dim" id="wk-desc" style="margin-top:8px; min-height:16px"></p>
@@ -160,15 +191,18 @@ export function start(s: WalkScene) {
   pos = savedPos[s.id] ? { ...savedPos[s.id] } : { ...s.spawn };
   facing = "down"; walkPhase = 0; moving = false; keys.clear();
   nearDoor = null; nearActor = null;
-  canvas = document.getElementById("walkcanvas") as HTMLCanvasElement | null;
-  ctx = canvas ? canvas.getContext("2d") : null;
+  lastRenderAt = 0; wasModal = false; // force an immediate first render on mount
+  viewport = document.getElementById("walk-viewport");
   bindListeners();
-  bindCanvas();
   mountWalk3d(s);
-  configureWalkRuntime(s, pos);
   projectiles=[]; rollTime=rollCooldown=fireCooldown=0;
-  const dp=nearestLegal(pos.x+150,pos.y)||nearestLegal(pos.x,pos.y-150);
-  dummy=dp?{...dp,hp:5,hit:0}:null;
+  // Practice target only in HOSTILE action scenes (silenced/dark) — a friendly
+  // frontier town like Dustwell is action-mode for movement feel, but a red
+  // TARGET dummy on its landing pad reads as a bug, not a town.
+  if (s.action && s.dark) {
+    const dp=nearestLegal(pos.x+150,pos.y)||nearestLegal(pos.x,pos.y-150);
+    dummy=dp?{...dp,hp:5,hit:0}:null;
+  } else dummy=null;
   last = performance.now();
   if (raf) cancelAnimationFrame(raf);
   raf = requestAnimationFrame(tick);
@@ -188,10 +222,9 @@ export function teardown() {
   if (raf) cancelAnimationFrame(raf);
   raf = null;
   if (scene) savedPos[scene.id] = { ...pos };
-  scene = null; mountedId = null; canvas = null; ctx = null;
+  scene = null; mountedId = null; viewport = null;
   keys.clear(); clearClickMove();
   walk3d?.teardown();
-  disposeWalkRuntime();
 }
 
 export function forgetSpawn(sceneId: string) { delete savedPos[sceneId]; }
@@ -207,18 +240,20 @@ export function interact() {
 
 function setAim(x:number,y:number){const dx=x-pos.x,dy=y-pos.y,d=Math.hypot(dx,dy);if(d>.001)aim={x:dx/d,y:dy/d};}
 function startRoll(){
-  if(rollCooldown>0||hasModal())return;
+  if(!inAction()||rollCooldown>0||hasModal())return;
+  // Fixed camera: screen axes ARE world axes, so the roll direction is the
+  // held movement direction directly (or the aim direction when standing).
   let x=0,y=0;if(keys.has("up"))y--;if(keys.has("down"))y++;if(keys.has("left"))x--;if(keys.has("right"))x++;
-  if(x||y){const r=cameraRelativeMovement(x,y),d=Math.hypot(r.x,r.y)||1;rollDir={x:r.x/d,y:r.y/d};}else rollDir={...aim};
+  if(x||y){const d=Math.hypot(x,y);rollDir={x:x/d,y:y/d};}else rollDir={...aim};
   rollTime=ACTION.rollDuration;rollCooldown=ACTION.rollCooldown;
 }
-function fire(){if(fireCooldown>0||hasModal())return;projectiles.push({x:pos.x+aim.x*16,y:pos.y+aim.y*16,vx:aim.x*ACTION.projectileSpeed,vy:aim.y*ACTION.projectileSpeed,life:1.1});fireCooldown=ACTION.fireCooldown;}
+function fire(){if(!inAction()||fireCooldown>0||hasModal())return;projectiles.push({x:pos.x+aim.x*16,y:pos.y+aim.y*16,vx:aim.x*ACTION.projectileSpeed,vy:aim.y*ACTION.projectileSpeed,life:1.1});fireCooldown=ACTION.fireCooldown;}
 
 // ---- gamepad (Xbox/standard-mapping USB controllers) ----
 // Polled once per frame in simulate() rather than event-driven — the Gamepad
 // API has no change events, only a snapshot you read each tick.
-const CAM_STICK_DEADZONE = 0.15;
-function pollGamepad(dt: number) {
+const AIM_STICK_DEADZONE = 0.15;
+function pollGamepad(_dt: number) {
   gpDirs.clear();
   const pads = navigator.getGamepads ? navigator.getGamepads() : [];
   const gp = pads && pads[0];
@@ -232,13 +267,14 @@ function pollGamepad(dt: number) {
   const aPressed = !!gp.buttons[0]?.pressed;
   if (aPressed && !gpPrevA) interact();
   gpPrevA = aPressed;
-  const bPressed=!!gp.buttons[1]?.pressed;if(bPressed&&!gpPrevB)startRoll();gpPrevB=bPressed;
-  if(gp.buttons[7]?.pressed)fire();
-  // Right stick aims. Shoulder buttons orbit the elevated camera, keeping
-  // combat aim and camera control available at the same time.
-  const rx = gp.axes[2] || 0, ry = gp.axes[3] || 0;
-  if (Math.abs(rx) > CAM_STICK_DEADZONE || Math.abs(ry) > CAM_STICK_DEADZONE){const a=cameraRelativeMovement(rx,ry),d=Math.hypot(a.x,a.y)||1;aim={x:a.x/d,y:a.y/d};}
-  const orbit=(gp.buttons[5]?.pressed?1:0)-(gp.buttons[4]?.pressed?1:0);if(orbit)walk3d?.nudgeCamera(orbit,0,dt);
+  if (inAction()) {
+    const bPressed=!!gp.buttons[1]?.pressed;if(bPressed&&!gpPrevB)startRoll();gpPrevB=bPressed;
+    if(gp.buttons[7]?.pressed)fire();
+    // Right stick aims. Camera is fixed (screen axes = world axes), so the
+    // stick direction is the aim direction directly — no transform.
+    const rx = gp.axes[2] || 0, ry = gp.axes[3] || 0;
+    if (Math.abs(rx) > AIM_STICK_DEADZONE || Math.abs(ry) > AIM_STICK_DEADZONE){const d=Math.hypot(rx,ry)||1;aim={x:rx/d,y:ry/d};}
+  } else gpPrevB = !!gp.buttons[1]?.pressed;
 }
 
 // ---- geometry ----
@@ -251,7 +287,17 @@ function insideFloors(px: number, py: number): boolean {
   if (!scene) return false;
   const r = 9;
   const pts: [number, number][] = [[px - r, py - r], [px + r, py - r], [px - r, py + r], [px + r, py + r]];
-  return pts.every(([cx, cy]) => scene!.floors.some((f) => cx >= f.x && cx <= f.x + f.w && cy >= f.y && cy <= f.y + f.h));
+  // On a floor rect...
+  if (!pts.every(([cx, cy]) => scene!.floors.some((f) => cx >= f.x && cx <= f.x + f.w && cy >= f.y && cy <= f.y + f.h))) return false;
+  // ...and clear of every solid obstacle. A point is blocked if the player's
+  // bounding box overlaps a building/ship footprint.
+  const obs = scene.obstacles;
+  if (obs) for (const o of obs) {
+    if (px + r > o.x && px - r < o.x + o.w && py + r > o.y && py - r < o.y + o.h) return false;
+  }
+  const sh = scene.ship;
+  if (sh && px + r > sh.x && px - r < sh.x + sh.w && py + r > sh.y && py - r < sh.y + sh.h) return false;
+  return true;
 }
 export function walkInsideFloors(px: number, py: number): boolean { return insideFloors(px, py); }
 // Move from `from` toward `to` along one axis; if the full step is illegal,
@@ -279,7 +325,7 @@ function setClickMove(x: number, y: number) {
   const goal = nearestLegal(x, y);
   if (!goal) { clearClickMove(); return; }
   clickTarget = goal;
-  clickPath = navPath(pos, goal) || findPath(pos, goal);
+  clickPath = findPath(pos, goal);
   if (!clickPath.length) clickPath = [goal];
   clickStuck = 0;
 }
@@ -317,84 +363,61 @@ function findPath(from: {x:number;y:number}, to: {x:number;y:number}): Array<{x:
   compact.push(to); return compact;
 }
 
-function hashStr(s: string): number {
-  let h = 0;
-  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
-  return (h >>> 0) % 628; // 0..2π*100, cheap phase spread
-}
-
-// Simple canvas set-dressing per room kind — cheap shapes, no assets, just
-// enough silhouette that a cockpit doesn't look like an engine room.
-function drawProps(c: CanvasRenderingContext2D, r: WalkRoom, dark?: boolean) {
-  const lineC = dark ? "#3a3d46" : "#3a4256";
-  const fillC = dark ? "#1a1c22" : "#161a28";
-  c.save();
-  c.strokeStyle = lineC; c.fillStyle = fillC; c.lineWidth = 1.5;
-  if (r.kind === "cockpit") {
-    // console arc along the forward wall
-    c.beginPath();
-    c.moveTo(r.x + 14, r.y + r.h - 14);
-    c.quadraticCurveTo(r.x + r.w / 2, r.y + r.h - 34, r.x + r.w - 14, r.y + r.h - 14);
-    c.lineTo(r.x + r.w - 14, r.y + r.h - 6); c.lineTo(r.x + 14, r.y + r.h - 6); c.closePath();
-    c.fill(); c.stroke();
-    for (let i = 0; i < 4; i++) {
-      const bx = r.x + r.w / 2 - 40 + i * 26;
-      c.fillStyle = i % 2 === 0 ? "#5aa7ff55" : "#e8b04b55";
-      c.fillRect(bx, r.y + r.h - 22, 8, 5);
-    }
-    c.fillStyle = fillC;
-  } else if (r.kind === "engine") {
-    // drive core column
-    const cx = r.x + r.w / 2, cy = r.y + r.h / 2;
-    c.beginPath(); c.arc(cx, cy, 26, 0, Math.PI * 2); c.fill(); c.stroke();
-    c.beginPath(); c.arc(cx, cy, 14, 0, Math.PI * 2); c.strokeStyle = "#e8843b77"; c.stroke();
-  } else if (r.kind === "cargo") {
-    // crate stack
-    for (let i = 0; i < 3; i++) {
-      const bx = r.x + 16 + (i % 2) * 30, by = r.y + r.h - 26 - Math.floor(i / 2) * 26;
-      c.fillRect(bx, by, 24, 22); c.strokeRect(bx, by, 24, 22);
-    }
-  } else if (r.kind === "quarters") {
-    // bunks along the back wall
-    for (let i = 0; i < 2; i++) {
-      const bx = r.x + 16 + i * (r.w - 44);
-      c.fillRect(bx, r.y + r.h - 40, 28, 26); c.strokeRect(bx, r.y + r.h - 40, 28, 26);
-    }
-  } else if (r.kind === "medbay") {
-    // a bed + a cross
-    c.fillRect(r.x + 18, r.y + r.h - 34, 40, 18); c.strokeRect(r.x + 18, r.y + r.h - 34, 40, 18);
-    c.strokeStyle = "#6fbf7377";
-    c.beginPath(); c.moveTo(r.x + r.w - 24, r.y + 18); c.lineTo(r.x + r.w - 24, r.y + 30); c.moveTo(r.x + r.w - 30, r.y + 24); c.lineTo(r.x + r.w - 18, r.y + 24); c.stroke();
-  } else if (r.kind === "hydro") {
-    // planter rows
-    for (let i = 0; i < 3; i++) {
-      const ry = r.y + r.h - 20 - i * 12;
-      c.fillStyle = "#6fbf7333";
-      c.fillRect(r.x + 14, ry, r.w - 28, 8);
-      c.strokeStyle = "#6fbf7355"; c.strokeRect(r.x + 14, ry, r.w - 28, 8);
-    }
-  }
-  c.restore();
-}
-
 // ---- loop ----
 function tick(t: number) {
   const dt = Math.min(0.05, (t - last) / 1000);
   last = t;
   simulate(dt);
+  maybeDraw();
   raf = requestAnimationFrame(tick);
+}
+
+// The one WebGL render + HUD refresh. Kept separate from simulate() so the
+// (cheap) game logic can run every frame while the (expensive) render is
+// throttled and skipped when nothing's watching.
+let renderCount = 0;
+export function debugRenderCount() { return renderCount; }
+function drawFrame() {
+  if (!scene) return;
+  renderCount++;
+  walk3d?.render({ pos, facing, moving, phase: walkPhase, nearDoor, nearActor, time: last, aim, rolling: rollTime > 0, rollCooldown, projectiles, dummy, highlightKey });
+  updateHud();
+}
+
+// Decide whether this frame gets a render. Skips entirely while a modal covers
+// the scene (the overlay hides it — no reason to burn the GPU), and otherwise
+// caps to ~60fps when anything's happening / ~20fps when idle. Forces one draw
+// on the frame a modal closes so the scene is fresh underneath it.
+function maybeDraw() {
+  if (!scene) return;
+  const modalOpen = hasModal();
+  const justClosed = wasModal && !modalOpen;
+  wasModal = modalOpen;
+  if (modalOpen) return;
+  const active = moving || rollTime > 0 || projectiles.length > 0 || !!clickTarget
+    || keys.size > 0 || gpDirs.size > 0 || gpAxis.x !== 0 || gpAxis.y !== 0;
+  const gap = active ? RENDER_GAP_ACTIVE : RENDER_GAP_IDLE;
+  if (!justClosed && last - lastRenderAt < gap) return;
+  lastRenderAt = last;
+  drawFrame();
 }
 
 // Debug-only: advance the simulation by one manual step, bypassing
 // requestAnimationFrame. Mirrors the __S debug accessor in main.ts — needed
 // because rAF is suspended entirely in backgrounded/headless preview tabs,
 // which would otherwise make the walk screens untestable end-to-end.
-export function debugStep(dtSeconds: number) { simulate(dtSeconds); }
+export function debugStep(dtSeconds: number) { simulate(dtSeconds); drawFrame(); }
 export function debugPos() { return { ...pos }; }
 export function debugActors() { return scene ? scene.actors.map((a) => ({ key: a.key, x: a.x, y: a.y, bubble: a.bubble || "" })) : []; }
+export function debugRooms() { return scene ? scene.rooms.map((r) => ({ id: r.id, x: r.x, y: r.y, w: r.w, h: r.h, label: r.label })) : []; }
 // Debug-only: teleport (bypasses collision) for exercising room/door/actor
 // detection directly, once movement collision itself is verified separately.
-export function debugGoto(x: number, y: number) { pos = { x, y }; simulate(0); }
+export function debugGoto(x: number, y: number) { pos = { x, y }; simulate(0); drawFrame(); }
+// Debug-only: drive the REAL click-to-move pathfinder (the same A* a mouse
+// click triggers) toward a target, respecting collision — the tool for
+// verifying a scene's room/corridor graph is actually walkable, not just that
+// its rects don't overlap. Callers step the sim afterward until arrival.
+export function debugWalkTo(x: number, y: number) { setClickMove(x, y); }
 
 function simulate(dt: number) {
   if (!scene) return; // torn down mid-frame
@@ -411,13 +434,8 @@ function simulate(dt: number) {
     if (gpDirs.has("down")) vy = Math.max(vy, 1);
     if (gpDirs.has("left")) vx = Math.min(vx, -1);
     if (gpDirs.has("right")) vx = Math.max(vx, 1);
+    // Fixed semi-top-down camera: screen axes are world axes, no transform.
     if (vx || vy) clearClickMove();
-    // Direct controls follow the visible camera, not fixed map axes. Apply
-    // before click-to-move, whose path waypoints are already in world space.
-    if (vx || vy) {
-      const relative = cameraRelativeMovement(vx, vy);
-      vx = relative.x; vy = relative.y;
-    }
     // Point-and-click: move toward click target when no keys held
     if (!vx && !vy && clickTarget) {
       const waypoint = clickPath[0] || clickTarget;
@@ -435,7 +453,7 @@ function simulate(dt: number) {
     if (moving) {
       const len = Math.hypot(vx, vy) || 1;
       if (len > 1) { vx /= len; vy /= len; }
-      const speed = rollTime>0 ? ACTION.rollSpeed : ACTION.moveSpeed;
+      const speed = rollTime>0 ? ACTION.rollSpeed : inAction() ? ACTION.moveSpeed : DECK_SPEED;
       const nx = pos.x + vx * speed * dt;
       const ny = pos.y + vy * speed * dt;
       // Creep to the wall rather than hard-rejecting the whole step: a large
@@ -452,7 +470,6 @@ function simulate(dt: number) {
       else if (vy !== 0) facing = vy > 0 ? "down" : "up";
       walkPhase += dt * 9;
     }
-    syncWalkPhysics(pos);
     for(const p of projectiles){p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;if(!insideFloors(p.x,p.y))p.life=0;if(dummy&&dummy.hp>0&&Math.hypot(p.x-dummy.x,p.y-dummy.y)<22){dummy.hp--;dummy.hit=.12;p.life=0;}}
     projectiles=projectiles.filter(p=>p.life>0);
     nearDoor = null;
@@ -465,96 +482,6 @@ function simulate(dt: number) {
   } else {
     moving = false;
   }
-  draw();
-  walk3d?.render({ pos, facing, moving, phase: walkPhase, nearDoor, nearActor, time: last, aim, rolling:rollTime>0, rollCooldown, projectiles, dummy });
-  updateHud();
-}
-
-// ---- drawing ----
-function draw() {
-  if (!ctx || !canvas || !scene) return;
-  const { width: W, height: H } = scene;
-  ctx.clearRect(0, 0, W, H);
-  ctx.fillStyle = "#070910";
-  ctx.fillRect(0, 0, W, H);
-  ctx.strokeStyle = scene.dark ? "#4a4f5c14" : "#e8b04b12";
-  ctx.lineWidth = 1;
-  for (let gx = 0; gx <= W; gx += 24) { ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, H); ctx.stroke(); }
-  for (let gy = 0; gy <= H; gy += 24) { ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W, gy); ctx.stroke(); }
-  if (scene.hull && scene.hull.length > 2) {
-    ctx.save();
-    ctx.strokeStyle = "#57b6c95a"; ctx.lineWidth = 1.5; ctx.setLineDash([10, 6]);
-    ctx.beginPath();
-    scene.hull.forEach((p, i) => (i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y)));
-    ctx.closePath(); ctx.stroke();
-    ctx.setLineDash([]);
-    const top = scene.hull.reduce((a, p) => (p.y < a.y ? p : a));
-    ctx.fillStyle = "#57b6c977"; ctx.font = "10px Consolas, monospace"; ctx.textAlign = "left";
-    ctx.fillText("EXTERIOR HULL — PLACEHOLDER", top.x, top.y - 8);
-    ctx.restore();
-  }
-  for (const f of scene.floors) { ctx.fillStyle = scene.dark ? "#12141a" : "#11141d"; ctx.fillRect(f.x, f.y, f.w, f.h); }
-  ctx.font = "12px Consolas, monospace";
-  for (const r of scene.rooms) {
-    ctx.strokeStyle = scene.dark ? "#3a3d46" : (r.color || "#2a3048");
-    ctx.lineWidth = 2;
-    ctx.globalAlpha = r.color ? 0.6 : 1;
-    ctx.strokeRect(r.x, r.y, r.w, r.h);
-    ctx.globalAlpha = 1;
-    ctx.fillStyle = scene.dark ? "#6a6f7c" : "#7d8294";
-    ctx.textAlign = "left";
-    ctx.fillText(`${r.icon || ""} ${r.label}`.trim(), r.x + 10, r.y + 18);
-    if (r.kind) drawProps(ctx, r, scene.dark);
-  }
-  for (const d of scene.doors) {
-    const isNear = d === nearDoor;
-    ctx.strokeStyle = d.locked ? "#5a2f2f" : isNear ? "#e8b04b" : "#5b8dd9";
-    ctx.lineWidth = 2;
-    ctx.setLineDash([6, 4]);
-    ctx.strokeRect(d.x, d.y, d.w, d.h);
-    ctx.setLineDash([]);
-    ctx.fillStyle = d.locked ? "#a25b5b" : isNear ? "#e8b04b" : "#8aa8d9";
-    ctx.textAlign = "center";
-    ctx.font = "10px Consolas, monospace";
-    ctx.fillText(d.label, d.x + d.w / 2, d.y - 6);
-    ctx.font = "12px Consolas, monospace";
-  }
-  for (const a of scene.actors) {
-    // gentle idle bob, out of phase per actor so a crowded room doesn't
-    // breathe in unison — purely cosmetic, doesn't touch a.x/a.y or collision
-    const seed = hashStr(a.key);
-    const bob = Math.sin(last / 700 + seed) * 2;
-    const cx = a.x + a.w / 2, cy = a.y + a.h / 2 + bob;
-    const isNear = a === nearActor;
-    ctx.beginPath(); ctx.arc(cx, cy, 15, 0, Math.PI * 2);
-    ctx.fillStyle = a.color || "#d9a55b";
-    ctx.globalAlpha = isNear ? 1 : 0.85;
-    ctx.fill();
-    ctx.globalAlpha = 1;
-    ctx.strokeStyle = isNear ? "#e8b04b" : "#00000055";
-    ctx.lineWidth = isNear ? 2 : 1;
-    ctx.stroke();
-    ctx.font = "13px sans-serif";
-    ctx.textAlign = "center"; ctx.textBaseline = "middle";
-    ctx.fillStyle = "#0a0c12";
-    ctx.fillText(a.icon || "●", cx, cy + 1);
-    ctx.textBaseline = "alphabetic";
-    ctx.font = "10px Consolas, monospace";
-    ctx.fillStyle = isNear ? "#e8b04b" : "#9aa0b4";
-    ctx.fillText(a.label, cx, a.y + a.h + 13);
-    if (a.key === highlightKey) {
-      ctx.beginPath(); ctx.arc(cx, cy, 20 + Math.sin(last / 140) * 3, 0, Math.PI * 2);
-      ctx.strokeStyle = "#e8b04b"; ctx.lineWidth = 2; ctx.stroke();
-    }
-  }
-  if (clickTarget) {
-    ctx.beginPath(); ctx.arc(clickTarget.x, clickTarget.y, 5, 0, Math.PI * 2);
-    ctx.strokeStyle = scene.dark ? "#8a8fa066" : "#e8b04b66";
-    ctx.lineWidth = 1.5; ctx.setLineDash([3, 3]); ctx.stroke(); ctx.setLineDash([]);
-  }
-  // The captain's chosen avatar (character creator) — same renderer as the
-  // creator preview, so the sprite you walk is the one you built.
-  drawAvatar(ctx, pos.x, pos.y, S.appearance, { dir: facing, moving, phase: walkPhase, dark: scene.dark });
 }
 
 function updateHud() {
@@ -563,7 +490,9 @@ function updateHud() {
   const roomEl = document.getElementById("wk-room");
   if (roomEl) roomEl.textContent = "◉ " + (r ? r.label.toUpperCase() : "CORRIDOR");
   const statusEl = document.getElementById("wk-status");
-  if (statusEl) statusEl.textContent = `${scene.status} · ROLL ${rollCooldown<=0?"READY":rollCooldown.toFixed(1)+"s"} · LMB FIRE`;
+  if (statusEl) statusEl.textContent = inAction()
+    ? `${scene.status} · ROLL ${rollCooldown<=0?"READY":rollCooldown.toFixed(1)+"s"} · LMB FIRE`
+    : scene.status;
   const descEl = document.getElementById("wk-desc");
   if (descEl) {
     const d = (r && scene.roomDesc && scene.roomDesc[r.id]) || "";

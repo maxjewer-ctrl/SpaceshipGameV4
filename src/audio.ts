@@ -1,6 +1,7 @@
 // src/audio.ts — procedural ship audio via Web Audio API.
 // No asset files. All sounds are synthesised from oscillators, noise, and filters.
 // The AudioContext boots on first user interaction (browser autoplay policy).
+import { uiRand } from "./rng";
 
 let ctx: AudioContext | null = null;
 let master: GainNode | null = null;
@@ -84,7 +85,7 @@ function nbuf(c: AudioContext): AudioBuffer {
     const len = c.sampleRate * 4;
     _noiseBuf = c.createBuffer(1, len, c.sampleRate);
     const d = _noiseBuf.getChannelData(0);
-    for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+    for (let i = 0; i < len; i++) d[i] = uiRand() * 2 - 1;
   }
   return _noiseBuf;
 }
@@ -268,14 +269,14 @@ function initBuses(c: AudioContext, m: GainNode) {
 
 function softBeep() {
   const freqs = [660, 784, 880, 1047];
-  chime(freqs[Math.floor(Math.random() * freqs.length)], 0.055, 0.5);
+  chime(freqs[Math.floor(uiRand() * freqs.length)], 0.055, 0.5);
 }
 
 function scheduleBeep() {
   cockpitBeepTimer = setTimeout(() => {
     if (currentRoomKind === 'cockpit') { softBeep(); scheduleBeep(); }
     else cockpitBeepTimer = null;
-  }, 5000 + Math.random() * 9000);
+  }, 5000 + uiRand() * 9000);
 }
 
 // ---- room cross-fade ----

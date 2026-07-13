@@ -9,6 +9,7 @@ import { introCard } from "../systems/intro";
 import { standingWord } from "../systems/port";
 import { wearTier } from "../systems/wear";
 import { ensureSlots, bayCount } from "../systems/actions";
+import { markOf, markLabel, markPrice } from "../systems/modtier";
 import { viewportHTML, pedestalHTML, reactorPanelHTML, lifeSupportHTML, commsFullHTML } from "./cockpit";
 
 export function selSlot(i: number) { S.sel = S.sel === i ? null : i; requestRender(); }
@@ -157,7 +158,7 @@ export function shipHTML(): string {
       slotsHtml += `<div class="v2-bay ${cat}${cls}" onclick="selSlot(${idx})" title="${md.n}${m.dmg ? " — DAMAGED" : (md.pw && !m.on ? " — powered down" : "")}">
         <div class="v2-bay-fill" style="height:${fill};background:${fillC}"></div>
         <div class="v2-bay-top"><span class="v2-bay-tag" style="color:${tagC}">${tag}</span><span class="v2-bay-led" style="background:${led};box-shadow:0 0 6px ${led}"></span></div>
-        <div class="v2-bay-bot"><span class="v2-bay-icon">${md.icon}</span><span class="v2-bay-name" style="color:${nameC}">${md.n}</span></div>
+        <div class="v2-bay-bot"><span class="v2-bay-icon">${md.icon}</span><span class="v2-bay-name" style="color:${nameC}">${md.n}${markOf(m) > 1 ? ` <b style="color:var(--accent)">${markLabel(markOf(m))}</b>` : ""}</span></div>
       </div>`;
     } else if (i < S.slotsMax) {
       slotsHtml += carrying != null
@@ -181,7 +182,7 @@ export function shipHTML(): string {
       : wt === "worn"
         ? `<p style="margin-bottom:6px"><b style="color:var(--amber)">🔩 WORN</b> <span class="dim">— running, but trouble picks on worn systems first.</span></p>`
         : "";
-    selHtml = `<div class="panel"><h3>${md.icon} ${md.n}</h3>
+    selHtml = `<div class="panel"><h3>${md.icon} ${md.n} <span style="color:var(--accent)">Mk-${markLabel(markOf(m))}</span></h3>
       <p style="margin-bottom:6px">${status}</p>
       ${wearLine}
       <p class="dim" style="margin-bottom:8px">${md.d}</p>
@@ -190,7 +191,7 @@ export function shipHTML(): string {
         ${md.pw && !m.dmg ? `<button onclick="toggleMod(${S.sel})">${m.on ? "⏻ Power down" : "⏻ Power up (+" + md.pw + "⚡)"}</button>` : ""}
         <button ${m.slot! > 0 ? "" : "disabled"} onclick="moveModTo(${S.sel},${m.slot! - 1})" title="Swap toward the bow">◀ Fore</button>
         <button ${m.slot! < S.slotsMax - 1 ? "" : "disabled"} onclick="moveModTo(${S.sel},${m.slot! + 1})" title="Swap toward the stern">Aft ▶</button>
-        <button ${S.docked ? "" : "disabled"} onclick="sellMod(${S.sel})">Sell for ${Math.round(md.price * (m.dmg ? 0.4 : 0.6))}cr${S.docked ? "" : " (dock first)"}</button>
+        <button ${S.docked ? "" : "disabled"} onclick="sellMod(${S.sel})">Sell for ${Math.round(markPrice(m.t, markOf(m)) * (m.dmg ? 0.4 : 0.6))}cr${S.docked ? "" : " (dock first)"}</button>
       </div>
       <p class="dim" style="margin-top:8px">Bay ${m.slot! + 1} of ${S.slotsMax}. Click an empty bay to move this module there — the deck you walk mirrors this arrangement.</p></div>`;
   } else if (S.sel === -1) {

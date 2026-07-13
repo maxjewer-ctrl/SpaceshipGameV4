@@ -11,7 +11,10 @@ import {
 } from "./ui/cockpit";
 import { selPlanet } from "./ui/map";
 import { ptab } from "./ui/planet";
-import { showHelp, closeHelp, confirmNewGame, newGame, intro, startGame } from "./ui/help";
+import {
+  showHelp, closeHelp, confirmNewGame, newGame, intro, startGame,
+  openSaves, saveHere, loadSaveSlot, deleteSaveSlot, exportSaveFile, importSaveFile,
+} from "./ui/help";
 import { introStart, introAct } from "./systems/intro";
 import {
   openCreator, avName, avRandomName, avFace, avLook, avHead, avGarb, avSkin, avSuit, avTrim, avStart,
@@ -19,7 +22,7 @@ import {
 import { acceptMission, hire } from "./systems/market";
 import {
   toggleMod, repairSystems, fireCrew, buyGood, sellGood, buyFuel, buyFood,
-  repairShip, buyMod, sellMod, upgradeEngine, buySlots, moveModTo,
+  repairShip, buyMod, sellMod, upgradeMod, upgradeEngine, buySlots, moveModTo,
 } from "./systems/actions";
 import { depart, waitDay, advanceDay, abandonJob } from "./systems/travel";
 import { startCombat, cAct, endCombat } from "./systems/combat";
@@ -40,7 +43,7 @@ import {
   silDescend, silBearing, silAnswer, silStill, silSell,
   silBoardReturned, silScanReturned, silLearnNumbers, silLearnReturned,
 } from "./systems/silence";
-import { pressStart, pressEnd, interact, debugStep, debugPos, debugGoto, debugActors } from "./ui/walk";
+import { pressStart, pressEnd, interact, debugStep, debugPos, debugGoto, debugActors, debugWalkTo, debugRooms, debugRenderCount, walkInsideFloors } from "./ui/walk";
 import { crewTalk, crewHighlight, wkInspect, walkDeck, sitChair } from "./ui/shipwalk";
 import { wkPay, wkTalk, wkFight } from "./systems/walkEncounters";
 import { ctVibe, ctAbout, ctShip, ctQuest, ctWorld, ctClose, ctQuestHelp, ctQuestSkip } from "./systems/crewtalk";
@@ -75,13 +78,15 @@ Object.assign(window as any, {
   commsTune, engageBurn,
   // meta
   showHelp, closeHelp, confirmNewGame, newGame, intro, startGame,
+  // save slots + backup
+  openSaves, saveHere, loadSaveSlot, deleteSaveSlot, exportSaveFile, importSaveFile,
   // character creator
   openCreator, avName, avRandomName, avFace, avLook, avHead, avGarb, avSkin, avSuit, avTrim, avStart,
   // prologue campaign (DEAD RECKONING)
   introStart, introAct,
   // planet actions
   acceptMission, hire, fireCrew, buyGood, sellGood, buyFuel, buyFood,
-  repairShip, repairSystems, buyMod, sellMod, toggleMod, upgradeEngine, buySlots, refitShip, moveModTo,
+  repairShip, repairSystems, buyMod, sellMod, upgradeMod, toggleMod, upgradeEngine, buySlots, refitShip, moveModTo,
   // travel
   depart, waitDay, advanceDay, abandonJob,
   // combat
@@ -122,7 +127,11 @@ Object.assign(window as any, {
   __walkStep: debugStep,
   __walkPos: debugPos,
   __walkActors: debugActors,
+  __walkRooms: debugRooms,
+  __walkInside: walkInsideFloors,
+  __walkRenders: debugRenderCount,
   __walkGoto: debugGoto,
+  __walkTo: debugWalkTo,
   __scenario: loadScenario,
   // dev/debug: force a specific travel event (playtesting encounters on demand)
   __event: (k: string) => {
