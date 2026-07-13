@@ -424,25 +424,34 @@ function rebuild() {
   };
   const deck=isDustwell?sandTexture():deckTexture(dark);
   if(current.id==="ship"){const hullMat=mat("#111b29");hullMat.emissiveIntensity=.08;const hull=box(current.width*SCALE,.08,current.height*SCALE,hullMat);hull.position.set(0,-.18,0);world.add(hull);}
-  // Placeholder exterior hull wireframe (scene.hull, built in shipwalk.ts):
-  // three outline rings — keel, waterline, and a tapered top — plus vertical
-  // ribs at every vertex. Enough silhouette to lock room placement against
-  // the ship's outer shape; swapped out once real hull geometry exists.
+  // Placeholder exterior hull frame (scene.hull, built in shipwalk.ts): a keel
+  // rail and a roofline rail joined by corner struts, built from thin emissive
+  // beams rather than THREE.Line — hairline Line materials are capped at 1px
+  // with no glow, so at a low oblique angle they read as indistinguishable
+  // scribble against the room walls and door labels. Beams pick up real
+  // lighting and the bloom pass, and a warm amber keeps the hull visually
+  // distinct from the cool blue room dressing. Enough silhouette to judge
+  // room placement against the ship's outer shape; swapped for real hull
+  // geometry later.
   if (current.hull && current.hull.length > 2) {
-    const hullLine = new THREE.LineBasicMaterial({ color: 0x57b6c9, transparent: true, opacity: .45 });
-    const rings = [
-      { y: -.14, s: 1 },
-      { y: 1.5, s: 1 },
-      { y: 2.9, s: .86 },
-    ].map(({ y, s }) => {
-      const ring = current!.hull!.map((p) => new THREE.Vector3(wx(p.x) * s, y, wz(p.y) * s));
-      world.add(new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(ring), hullLine));
-      return ring;
-    });
-    const ribs: THREE.Vector3[] = [];
-    for (let i = 0; i < current.hull.length; i++)
-      for (let k = 0; k + 1 < rings.length; k++) ribs.push(rings[k][i], rings[k + 1][i]);
-    world.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(ribs), hullLine));
+    const hullMat = mat("#ffb463", .55);
+    const beam = (a: THREE.Vector3, b: THREE.Vector3, thick = .05) => {
+      const mid = a.clone().add(b).multiplyScalar(.5);
+      const len = a.distanceTo(b);
+      if (len < .001) return;
+      const m = new THREE.Mesh(new THREE.CylinderGeometry(thick, thick, len, 6), hullMat);
+      m.position.copy(mid);
+      m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), b.clone().sub(a).normalize());
+      world.add(m);
+    };
+    const keel = current.hull.map((p) => new THREE.Vector3(wx(p.x), -.1, wz(p.y)));
+    const roof = current.hull.map((p) => new THREE.Vector3(wx(p.x) * .94, 2.75, wz(p.y) * .94));
+    for (let i = 0; i < keel.length; i++) {
+      const j = (i + 1) % keel.length;
+      beam(keel[i], keel[j], .022);
+      beam(roof[i], roof[j], .022);
+      beam(keel[i], roof[i], .018);
+    }
   }
   const corridorWallMat=isDustwell?mat("#6b4a30",.05):mat(dark?"#5f6671":"#aeb7c0",dark?.1:.18);
   if(!isDustwell){corridorWallMat.map=roomTextures.corridor;corridorWallMat.transparent=true;corridorWallMat.opacity=dark?.72:.86;corridorWallMat.depthWrite=false;}
