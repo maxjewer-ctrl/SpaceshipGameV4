@@ -1510,9 +1510,15 @@ button.gp-focus{border-color:var(--amber); color:var(--amber); box-shadow:0 0 0 
   display:flex; align-items:center; justify-content:center;
   background:radial-gradient(circle at 35% 30%, #1c2131, #0b0d14);
 }
-/* 3D walk presenter: canvas occupies the existing deterministic walk viewport. */
-.walk-viewport { position: relative; overflow: hidden; min-height: 360px; }
+/* 3D walk presenter: canvas occupies the existing deterministic walk viewport.
+   No min-height here: the inline aspect-ratio (set per-scene in mountHTML)
+   already derives height from whatever width the container actually has. A
+   fixed min-height fights that on narrow viewports — with no width
+   constraint from this block's plain-block ancestors, the browser satisfies
+   min-height FIRST and then widens the box to match the ratio, overflowing
+   the page (found on mobile: a 390px-wide phone rendered a 514px-wide
+   viewport, forcing the whole layout to zoom/stretch to fit). */
+.walk-viewport { position: relative; overflow: hidden; }
 .walk3d-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
-.walk-viewport > #walkcanvas { position: absolute; inset: 0; width: 100%; height: 100%; }
 .walk-viewport .walk-prompt { z-index: 3; }
 .cockpit-walk-return { display:flex; justify-content:center; margin:-2px 0 8px; }
