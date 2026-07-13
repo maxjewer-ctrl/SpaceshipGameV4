@@ -14,6 +14,25 @@ export interface WalkRoom extends WalkRect { id: string; label: string; icon?: s
 // on an open-ground plaza are obstacles; the door to enter sits on the plaza in
 // front of them. `tall` renders it as a full building vs. a low prop/planter.
 export interface WalkObstacle extends WalkRect { id?: string; label?: string; icon?: string; color?: string; tall?: boolean; }
+
+// The player's ship, physically present in the scene. THE RULE: every town and
+// station shows the ship somewhere, and you board it through the rear hatch —
+// never an abstract "leave" button. `facing` is the direction the nose points;
+// the hatch is on the opposite (rear) face, and shipHatch() returns the point
+// you stand at to board. walk3d renders it; the sim treats its footprint as a
+// solid you walk around.
+export interface ShipBerth extends WalkRect { facing: "up" | "down" | "left" | "right"; }
+
+// The walkable point just off the rear hatch — where the board door lives.
+export function shipHatch(b: ShipBerth): { x: number; y: number } {
+  const cx = b.x + b.w / 2, cy = b.y + b.h / 2, m = 20;
+  switch (b.facing) {
+    case "up": return { x: cx, y: b.y + b.h + m };   // nose north → hatch south
+    case "down": return { x: cx, y: b.y - m };        // nose south → hatch north
+    case "left": return { x: b.x + b.w + m, y: cy };  // nose west  → hatch east
+    default: return { x: b.x - m, y: cy };            // nose east  → hatch west
+  }
+}
 export interface WalkScene {
   id: string;                 // unique per context — changing it remounts at spawn
   title: string;
@@ -27,6 +46,8 @@ export interface WalkScene {
   // Solid footprints carved out of the walkable floor (buildings, the ship).
   // insideFloors() rejects points inside these; walk3d renders them as structures.
   obstacles?: WalkObstacle[];
+  // The player's ship, on display in this port (see ShipBerth / the RULE).
+  ship?: ShipBerth;
   spawn: { x: number; y: number };
   dark?: boolean;
   // Action mode: the Hades-style kit (aim/fire/roll, quicker stride) is live.
@@ -262,6 +283,8 @@ function insideFloors(px: number, py: number): boolean {
   if (obs) for (const o of obs) {
     if (px + r > o.x && px - r < o.x + o.w && py + r > o.y && py - r < o.y + o.h) return false;
   }
+  const sh = scene.ship;
+  if (sh && px + r > sh.x && px - r < sh.x + sh.w && py + r > sh.y && py - r < sh.y + sh.h) return false;
   return true;
 }
 export function walkInsideFloors(px: number, py: number): boolean { return insideFloors(px, py); }

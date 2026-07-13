@@ -22,8 +22,8 @@ const PORT_MARKS: Record<string, [string, string]> = {
 };
 import { stationWalkTick } from "../systems/walkEncounters";
 import * as sfx from "../audio";
-import { teardown, forgetSpawn } from "./walk";
-import type { WalkScene, WalkRoom, WalkRect, WalkDoor, WalkActor } from "./walk";
+import { teardown, forgetSpawn, shipHatch } from "./walk";
+import type { WalkScene, WalkRoom, WalkRect, WalkDoor, WalkActor, ShipBerth } from "./walk";
 
 interface RoomDef { id: string; x: number; y: number; w: number; h: number; label: string; icon: string; tab?: string; }
 
@@ -129,6 +129,16 @@ export function buildStationScene(): WalkScene {
     const A = defs.find((r) => r.id === a)!, B = defs.find((r) => r.id === b)!;
     floors.push(...corridor(A, B));
   }
+  // THE RULE: the ship is on display wherever it's berthed. Stations park it in
+  // a berth apron off the bottom of the docks — nose to the wall, rear hatch
+  // opening onto the deck — clear of the corridor cross that hubs through docks.
+  let ship: ShipBerth | undefined;
+  const dk = defs.find((r) => r.id === "docks");
+  if (dk) {
+    floors.push({ x: dk.x + 20, y: dk.y + dk.h - 12, w: dk.w - 40, h: 42 });
+    ship = { x: dk.x + 45, y: dk.y + dk.h - 42, w: dk.w - 90, h: 60, facing: "down" };
+  }
+  const hatch = ship ? shipHatch(ship) : null;
   const serviceColor: Record<string,string> = { harbor:"#74a7d8", concourse:"#9aa6bd", market:"#e8b04b", cantina:"#d77c55", docks:"#5b8dd9", drydock:"#d96b6b", undercity:"#7b6a9f" };
   const rooms: WalkRoom[] = defs.map((r) => ({
     id: r.id, x: r.x, y: r.y, w: r.w, h: r.h, label: r.label, icon: r.icon,
@@ -153,10 +163,10 @@ export function buildStationScene(): WalkScene {
     // One off-duty crew member loiters by the ramp, rotating daily — the ship
     // follows you ashore, and shore is where the real talks happen. Top-right
     // of the docks keeps them clear of the doors' interact radius.
-    if (r.id === "docks" && !dark && S.crew.length) {
+    if (r.id === "docks" && !dark && S.crew.length && hatch) {
       const c = S.crew[S.day % S.crew.length];
       actors.push({
-        x: r.x + r.w - 62, y: r.y + 14, w: 28, h: 28, key: "crew:" + c.id,
+        x: hatch.x - 78, y: hatch.y + 4, w: 28, h: 28, key: "crew:" + c.id,
         label: c.name + " (off duty)", icon: "🧑‍🚀", color: "#5b8dd9",
         onInteract: () => openCrewTalk(c.id),
       });
@@ -168,14 +178,14 @@ export function buildStationScene(): WalkScene {
         action: introDebtScene,
       });
     }
-    if (r.id === "docks") {
+    if (r.id === "docks" && hatch) {
       doors.push({
-        x: r.x + 18, y: r.y + r.h - 30, w: 90, h: 22,
-        label: dark ? "Back aboard. Now." : "Board your ship",
+        x: hatch.x - 45, y: hatch.y - 11, w: 90, h: 22,
+        label: dark ? "Back aboard. Now." : "Board — rear hatch",
         action: boardShip,
       });
       doors.push({
-        x: r.x + r.w - 108, y: r.y + r.h - 30, w: 90, h: 22,
+        x: hatch.x - 45, y: hatch.y - 62, w: 90, h: 22,
         label: "Departure board",
         locked: dark,
         lockedHint: dark ? "The board's dead. Nothing's coming or going here." : undefined,
@@ -236,8 +246,8 @@ export function buildStationScene(): WalkScene {
     title: `${p.n} — Station Deck${dark ? " (dark)" : ""}`,
     status: dark ? "SIGNAL LOST · AUTOMATION ONLY" : `${p.n.toUpperCase()} STATION${swrd && swrd !== "NEUTRAL" ? " · " + swrd : ""}`,
     width: 1000, height: 700,
-    floors, rooms, roomDesc, doors, actors,
-    spawn: { x: 550, y: 590 }, // just inside the docks room
+    floors, rooms, roomDesc, doors, actors, ship,
+    spawn: { x: 550, y: 585 }, // just inside the docks, at the ship's hatch
     dark,
     // A silenced station is hostile ground — action mode on. A living port
     // deck is civil space: no combat verbs between you and the cantina.

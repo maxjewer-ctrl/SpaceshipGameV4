@@ -12,7 +12,8 @@ import { isSilenced } from "../derive";
 import { stationWalkTick } from "../systems/walkEncounters";
 import * as sfx from "../audio";
 import { boardShip, departureBoard, stationEnter } from "./stationwalk";
-import type { WalkScene, WalkRoom, WalkRect, WalkDoor, WalkActor, WalkObstacle } from "./walk";
+import { shipHatch } from "./walk";
+import type { WalkScene, WalkRoom, WalkRect, WalkDoor, WalkActor, WalkObstacle, ShipBerth } from "./walk";
 
 // World 1000×700. The plaza is the walkable ground; everything the player can
 // stand on is inside it, and the perimeter wall is drawn at its edge.
@@ -42,10 +43,11 @@ const BUILDINGS: BldDef[] = [
     door: { x: 289, y: 555 }, zone: { x: 285, y: 500, w: 120, h: 110 } },
 ];
 
-// The ship on its pad — a solid you walk around, with the board/departure
-// controls on the plaza in front of it.
-const SHIP: WalkObstacle = { id: "ship", x: 410, y: 470, w: 180, h: 130, label: "your ship", tall: false };
-const DOCKS_ZONE: WalkRect = { x: 360, y: 410, w: 280, h: 55 };
+// The ship dock is built into the EAST side of town: the ship is parked nose to
+// the wall (facing "right"), on display, so you cross the square and board
+// through the rear hatch that faces the plaza (shipHatch → west of the berth).
+const SHIP: ShipBerth = { x: 735, y: 465, w: 175, h: 160, facing: "right" };
+const DOCKS_ZONE: WalkRect = { x: 560, y: 460, w: 175, h: 170 };
 
 const ROOM_DESC: Record<string, string> = {
   harbor: "A tin-roofed shack with a landing register nobody fills out honestly. The Sheriff watches the square from a folding chair, boots up on the rail.",
@@ -73,12 +75,11 @@ function verb(tab: string): string {
 export function buildDesertTownScene(): WalkScene {
   const dark = isSilenced(S.loc);
 
-  // One walkable plaza. Buildings and the ship are solids carved out of it.
+  // One walkable plaza. Buildings are solids carved out of it; the ship is a
+  // berth (scene.ship — the sim blocks its footprint, walk3d puts it on display).
   const floors: WalkRect[] = [{ ...PLAZA }];
-  const obstacles: WalkObstacle[] = [
-    ...BUILDINGS.map((b) => ({ id: b.id, x: b.x, y: b.y, w: b.w, h: b.h, label: b.label, icon: b.icon, tall: true })),
-    SHIP,
-  ];
+  const obstacles: WalkObstacle[] = BUILDINGS.map((b) => ({ id: b.id, x: b.x, y: b.y, w: b.w, h: b.h, label: b.label, icon: b.icon, tall: true }));
+  const hatch = shipHatch(SHIP);
 
   const serviceColor: Record<string, string> = { harbor: "#c9a15a", concourse: "#b08968", market: "#e8b04b", cantina: "#d77c3a", docks: "#d99a52", drydock: "#a86b4a", undercity: "#8a6a4a" };
   // Zones (rooms) are label/desc/encounter areas over the plaza — the frontage
@@ -116,22 +117,23 @@ export function buildDesertTownScene(): WalkScene {
     }
   }
 
-  // Off-duty crew loitering by the ramp, and the board/departure controls.
+  // Off-duty crew loitering by the ramp; board through the rear hatch; the
+  // departure board is a signpost beside the berth.
   if (!dark && S.crew.length) {
     const c = S.crew[S.day % S.crew.length];
     actors.push({
-      x: SHIP.x + SHIP.w + 24, y: SHIP.y + 20, w: 28, h: 28, key: "crew:" + c.id,
+      x: hatch.x - 36, y: hatch.y + 46, w: 28, h: 28, key: "crew:" + c.id,
       label: c.name + " (off duty)", icon: "🧑‍🚀", color: "#5b8dd9",
       onInteract: () => openCrewTalk(c.id),
     });
   }
   doors.push({
-    x: SHIP.x + 14, y: SHIP.y - 26, w: 90, h: 22,
-    label: dark ? "Back aboard. Now." : "Board your ship",
+    x: hatch.x - 45, y: hatch.y - 11, w: 90, h: 22,
+    label: dark ? "Back aboard. Now." : "Board — rear hatch",
     action: boardShip,
   });
   doors.push({
-    x: SHIP.x + SHIP.w - 104, y: SHIP.y - 26, w: 90, h: 22,
+    x: hatch.x - 45, y: hatch.y - 78, w: 90, h: 22,
     label: "Departure board",
     locked: dark,
     lockedHint: dark ? "The board's dead. Nothing's coming or going here." : undefined,
@@ -147,8 +149,8 @@ export function buildDesertTownScene(): WalkScene {
     title: `${p.n} — Town${dark ? " (dark)" : ""}`,
     status: dark ? "SIGNAL LOST · NOBODY HOME" : `${p.n.toUpperCase()} · FRONTIER TOWN`,
     width: 1000, height: 700,
-    floors, rooms, roomDesc, doors, actors, obstacles,
-    spawn: { x: 500, y: 400 }, // the middle of the square, just north of the ship
+    floors, rooms, roomDesc, doors, actors, obstacles, ship: SHIP,
+    spawn: { x: 470, y: 380 }, // the middle of the square
     dark,
     // Frontier ground is action mode; open-ground raises the town wall + buildings.
     action: true,

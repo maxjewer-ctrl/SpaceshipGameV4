@@ -9,6 +9,14 @@ they land; add new gaps as they're found.
 
 ## The rules
 
+- **The ship is always on display, and you board it through the rear hatch.**
+  Every port — town or station — physically shows the player's ship somewhere
+  and you leave by walking to its hatch, never an abstract "depart" button.
+  Implemented as `WalkScene.ship` (a `ShipBerth`: footprint + `facing`);
+  `shipHatch()` places the board door at the rear, `walk3d.renderShip()` draws
+  it, and the sim blocks its footprint. Towns berth it in a dock on the town's
+  edge (Dustwell: east side, by the Repair Yard); stations park it in a berth
+  apron off the docks. Any new port MUST set `scene.ship`.
 - **One signature room per port** that exists nowhere else. Identity comes
   from one landmark, not seven reskins.
 - **No `"planets": "any"` NPCs.** Everyone lives somewhere. Recurring-role

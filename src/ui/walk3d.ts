@@ -12,7 +12,7 @@ import { fork } from "../rng";
 import { MODS } from "../content";
 import { cargoUsed } from "../derive";
 import { wearTier } from "../systems/wear";
-import type { WalkActor, WalkDoor, WalkScene } from "./walk";
+import type { WalkActor, WalkDoor, WalkScene, ShipBerth } from "./walk";
 import { spawnProp } from "./props3d";
 import bulkheadWallUrl from "../assets/ship/bulkhead-wall.webp";
 import corridorWallUrl from "../assets/ship/corridor-wall.webp";
@@ -226,15 +226,47 @@ function spawnDesertProps(g: THREE.Group, _scene: WalkScene) {
   // frontage clutter by the shops
   place("cargo-crate", 350, 470, 0.6, 0.6);
   place("barrel-stack", 330, 545, 0.75);
-  place("fuel-tank", 700, 490, 1.15);
-  // the landing pad, flanking the ship's approach
-  place("beacon-lamp", 372, 448, 1.15);
-  place("beacon-lamp", 628, 448, 1.15);
-  place("mooring-post", 402, 452, 0.9);
-  place("mooring-post", 598, 452, 0.9);
+  place("cargo-crate", 470, 300, 0.6, -0.4);
+  // the east-side ship dock: beacons + fuel flanking the hatch approach
+  place("beacon-lamp", 672, 478, 1.15);
+  place("beacon-lamp", 672, 612, 1.15);
+  place("fuel-tank", 640, 545, 1.15);
+  place("mooring-post", 700, 455, 0.9);
 }
 
 // Open-ground rendering: the perimeter town wall (with a gate gap), the
+// The player's ship, on display in this port (THE RULE — see ShipBerth). Built
+// nose-up (toward -z) then rotated to the berth facing, so the rear hatch — the
+// warm lit doorway with the boarding ramp — always lands on the side shipHatch()
+// put the board door. A dock pad + gantry posts frame it as a berth.
+function renderShip(g: THREE.Group, b: ShipBerth, dark: boolean) {
+  const along = (b.facing === "up" || b.facing === "down") ? b.h : b.w; // nose-axis length
+  const across = (b.facing === "up" || b.facing === "down") ? b.w : b.h; // beam
+  const L = along * SCALE, W = across * SCALE, rear = L * 0.36;
+  const ship = new THREE.Group();
+  // dock: pad + four gantry posts
+  const pad = box(W + .4, .06, L + .4, mat(dark ? "#4a4234" : "#7a6650", .05)); pad.position.y = -.02; ship.add(pad);
+  for (const [sx, sz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) { const p = box(.13, 1.7, .13, mat("#5a3d26", .05)); p.position.set(sx * (W / 2 + .14), .85, sz * (L / 2 + .14)); ship.add(p); }
+  // hull, dorsal spine (lit so it reads from top-down), tapered nose, canopy
+  const hull = box(W * .72, .55, L * .74, mat(dark ? "#2b3340" : "#47566a", dark ? .04 : .09)); hull.position.y = .3; ship.add(hull);
+  const spine = box(W * .44, .1, L * .62, mat(dark ? "#3a4658" : "#63768e", dark ? .05 : .13)); spine.position.y = .6; ship.add(spine);
+  const nose = box(W * .4, .42, L * .26, mat(dark ? "#333c4a" : "#3e4b5c", .06)); nose.position.set(0, .28, -L * .35); ship.add(nose);
+  const canopy = box(W * .26, .12, L * .13, mat("#0a2b3a", .22)); canopy.position.set(0, .64, -L * .24); ship.add(canopy);
+  // engine nacelles on the flanks (soft glow), aft of the beam
+  for (const sx of [-1, 1]) {
+    const nac = box(.14, .18, L * .3, mat(dark ? "#2a3038" : "#3a4450", .05)); nac.position.set(sx * W * .42, .28, L * .12); ship.add(nac);
+    if (!dark) { const e = new THREE.PointLight(0xff9b4a, .6, 2.4); e.position.set(sx * W * .42, .28, L * .28); ship.add(e); }
+  }
+  // REAR HATCH: the way in. A lit doorway on the back + a ramp onto the ground.
+  const frame = box(W * .32, .52, .1, mat(dark ? "#3a2c1c" : "#8a6236", .06)); frame.position.set(0, .3, rear); ship.add(frame);
+  const glow = box(W * .24, .38, .05, mat("#ffca8a", dark ? .18 : .7)); glow.position.set(0, .26, rear + .03); ship.add(glow);
+  const ramp = box(W * .26, .03, .55, mat(dark ? "#3a2c1c" : "#54402c", .05)); ramp.position.set(0, -.02, rear + .32); ship.add(ramp);
+  if (!dark) { const spill = new THREE.PointLight(0xffca8a, .7, 3); spill.position.set(0, .5, rear + .3); ship.add(spill); }
+  ship.rotation.y = b.facing === "up" ? 0 : b.facing === "down" ? Math.PI : b.facing === "left" ? Math.PI / 2 : -Math.PI / 2;
+  ship.position.set(wx(b.x + b.w / 2), 0, wz(b.y + b.h / 2));
+  g.add(ship);
+}
+
 // freestanding service buildings, and the ship on its pad. Called instead of
 // the per-room wall loop when scene.openGround is set (planet towns).
 function renderOpenGround(g: THREE.Group, scene: WalkScene, dark: boolean) {
@@ -256,24 +288,9 @@ function renderOpenGround(g: THREE.Group, scene: WalkScene, dark: boolean) {
   // Gate posts flanking the opening.
   for (const gp of [gx0, gx1]) { const p = box(.28, 2.4, .28, mat("#5a3d26", .05)); p.position.set(gp, 1.2, top); g.add(p); }
 
-  // Buildings + ship (solids). Buildings get plank walls, a flat roof, a sign
-  // and a warm porch light; the ship pad gets a low hull silhouette.
+  // Buildings (solids): plank walls, a warm lit roof, a sign, and a porch light.
   for (const o of scene.obstacles || []) {
     const bx = wx(o.x + o.w / 2), bz = wz(o.y + o.h / 2), bw = o.w * SCALE, bd = o.h * SCALE;
-    if (o.id === "ship") {
-      // A small freighter on the pad, read from above: a concrete pad, a lit
-      // metal hull with a dorsal spine and canopy, and a warm engine glow aft.
-      const pad = box(bw + .3, .06, bd + .3, mat("#7a6650", .06)); pad.position.set(bx, -.02, bz); g.add(pad);
-      const hull = box(bw * .78, .55, bd * .6, mat(dark ? "#2b3340" : "#47566a", dark ? .04 : .09)); hull.position.set(bx, .3, bz); g.add(hull);
-      const spine = box(bw * .5, .1, bd * .52, mat(dark ? "#3a4658" : "#63768e", dark ? .05 : .13)); spine.position.set(bx, .6, bz); g.add(spine);
-      const nose = box(bw * .42, .42, bd * .32, mat(dark ? "#333c4a" : "#3e4b5c", .06)); nose.position.set(bx, .28, bz - bd * .32); g.add(nose);
-      const canopy = box(bw * .26, .12, bd * .18, mat("#0a2b3a", .22)); canopy.position.set(bx, .64, bz - bd * .2); g.add(canopy);
-      if (!dark) {
-        const engM = box(bw * .5, .16, .16, mat("#ffb16b", .6)); engM.position.set(bx, .34, bz + bd * .42); g.add(engM);
-        const eng = new THREE.PointLight(0xff9b4a, 1.1, 3.2); eng.position.set(bx, .4, bz + bd * .42); g.add(eng);
-      }
-      continue;
-    }
     const bh = o.tall ? 2.2 : 1.0;
     const col = o.color || "#c9a15a";
     const bmat = mat(dark ? "#4a3524" : "#b07f4f", dark ? 0 : .05);
@@ -518,6 +535,8 @@ function rebuild() {
     const light=new THREE.PointLight(c,dark ? .55 : 1.05,7.2);light.position.set(cx,2.6,cz);world.add(light);
   }
   if (isDustwell) spawnDesertProps(world, current);
+  // THE RULE: the player's ship is on display wherever it's berthed.
+  if (current.ship) renderShip(world, current.ship, dark);
   for (const d of current.doors) { const g=box(Math.max(.4,d.w*SCALE),.04,Math.max(.28,d.h*SCALE),mat(d.locked?"#8a3030":"#3d91df",d.locked?.15:.8));g.position.set(wx(d.x+d.w/2),.04,wz(d.y+d.h/2));world.add(g);const l=sprite(d.label,d.locked?"#d77":"#9fd7ff",.55);l.position.set(g.position.x,.75,g.position.z);world.add(l);doorLabels.set(d,l); }
   for (const a of current.actors) {
     // No explicit roster colour → deal one from the wardrobe by key hash, so a
@@ -581,7 +600,7 @@ export function mount(container: HTMLElement | null, s: WalkScene, actions: {mov
   }
 }
 function resize(){if(!renderer||!camera||!host)return;const r=host.getBoundingClientRect();const w=Math.max(1,r.width),h=Math.max(1,r.height);renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();composer?.setSize(w,h);const pr=Math.min(devicePixelRatio,2);crtPass?.uniforms.resolution.value.set(w*pr,h*pr);}
-export function setScene(s: WalkScene){current=s;const sig=s.id+"|"+s.rooms.map(r=>`${r.id}:${r.moduleType}:${r.moduleIndex}`).join()+"|"+s.doors.map(d=>d.label+d.locked).join()+"|"+s.actors.map(a=>a.key).join()+"|"+S.modules.map(m=>`${m.t}${m.on}${m.dmg}${wearTier(m)}`).join();if(sig!==signature){signature=sig;rebuild();}}
+export function setScene(s: WalkScene){current=s;const sig=s.id+"|"+s.rooms.map(r=>`${r.id}:${r.moduleType}:${r.moduleIndex}`).join()+"|"+s.doors.map(d=>d.label+d.locked).join()+"|"+s.actors.map(a=>a.key).join()+"|"+(s.ship?`${s.ship.x},${s.ship.y},${s.ship.facing}`:"")+"|"+S.modules.map(m=>`${m.t}${m.on}${m.dmg}${wearTier(m)}`).join();if(sig!==signature){signature=sig;rebuild();}}
 export function render(v:{pos:{x:number;y:number};facing:string;moving:boolean;phase:number;nearDoor:WalkDoor|null;nearActor:WalkActor|null;time:number;aim:{x:number;y:number};rolling:boolean;rollCooldown:number;projectiles:Array<{x:number;y:number}>;dummy:{x:number;y:number;hp:number;hit:number}|null;highlightKey:string|null}){
   if(!renderer||!root||!camera||!current)return; const x=wx(v.pos.x),z=wz(v.pos.y);avatar.position.set(x,v.moving?Math.abs(Math.sin(v.phase))*.06:0,z);
   const suit=S.appearance?.suit||"#4779bd",skin=S.appearance?.skin||"#bd8668",trim=S.appearance?.trim||"#e8b04b"; if(!avatar.children.length){const p=addPerson(suit,skin,trim);avatar.add(p);}
