@@ -62,7 +62,15 @@ const CRT_SHADER = {
     resolution: { value: new THREE.Vector2(1, 1) },
     time: { value: 0 },
     vignette: { value: 0.55 },
-    grain: { value: 0.028 },
+    // Reported (twice, on real hardware — never reproduced against the
+    // SwiftShader software renderer used for local testing) as a loud,
+    // screen-covering, moving static/noise pattern, even after fixing a
+    // real sin()-precision bug in hash() and adding anisotropic filtering
+    // to the tiled textures it could've been aliasing with. Rather than
+    // keep guessing at a per-GPU rendering quirk we can't see locally,
+    // grain is off by default; the hash/mix code is left in place in case
+    // it's worth re-enabling at a much gentler value with real feedback.
+    grain: { value: 0 },
     aberration: { value: 0.0016 },
     scanline: { value: 0.032 },
   },
