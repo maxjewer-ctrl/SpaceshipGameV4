@@ -21,7 +21,7 @@ import {
   toggleMod, repairSystems, fireCrew, buyGood, sellGood, buyFuel, buyFood,
   repairShip, buyMod, sellMod, upgradeEngine, buySlots,
 } from "./systems/actions";
-import { depart, waitDay, advanceDay } from "./systems/travel";
+import { depart, waitDay, advanceDay, abandonJob } from "./systems/travel";
 import { startCombat, cAct, endCombat } from "./systems/combat";
 import {
   pirateWin, pirateLoseFlee, pirateFlee, pirateBribe, pirateSurrender,
@@ -83,7 +83,7 @@ Object.assign(window as any, {
   acceptMission, hire, fireCrew, buyGood, sellGood, buyFuel, buyFood,
   repairShip, repairSystems, buyMod, sellMod, toggleMod, upgradeEngine, buySlots, refitShip,
   // travel
-  depart, waitDay, advanceDay,
+  depart, waitDay, advanceDay, abandonJob,
   // combat
   startCombat, cAct, endCombat,
   // events

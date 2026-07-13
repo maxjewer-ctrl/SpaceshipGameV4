@@ -1,0 +1,62 @@
+[
+  {
+    "name": "water-tower",
+    "status": "ok",
+    "path": "src/assets/models/water-tower.glb",
+    "taskId": "019f5874-e210-7a1c-95b8-aaad8f65f3c8"
+  },
+  {
+    "name": "cargo-crate",
+    "status": "ok",
+    "path": "src/assets/models/cargo-crate.glb",
+    "taskId": "019f5875-3720-7d2f-b082-abd7f6c6b87a"
+  },
+  {
+    "name": "satellite-dish",
+    "status": "ok",
+    "path": "src/assets/models/satellite-dish.glb",
+    "taskId": "019f5876-b770-7dc2-b9ab-66aba4525d86"
+  },
+  {
+    "name": "fuel-tank",
+    "status": "ok",
+    "path": "src/assets/models/fuel-tank.glb",
+    "taskId": "019f5877-8c8b-741e-912c-5c340ee15bcb"
+  },
+  {
+    "name": "mooring-post",
+    "status": "ok",
+    "path": "src/assets/models/mooring-post.glb",
+    "taskId": "019f5878-8969-7b0b-b346-f561b9c6f6a9"
+  },
+  {
+    "name": "windmill-turbine",
+    "status": "ok",
+    "path": "src/assets/models/windmill-turbine.glb",
+    "taskId": "019f587a-c65d-73d4-8d82-6b71c6847210"
+  },
+  {
+    "name": "cargo-hauler",
+    "status": "ok",
+    "path": "src/assets/models/cargo-hauler.glb",
+    "taskId": "019f587a-5beb-7c22-9403-5670dfa700ad"
+  },
+  {
+    "name": "beacon-lamp",
+    "status": "ok",
+    "path": "src/assets/models/beacon-lamp.glb",
+    "taskId": "019f587c-c429-7d25-b9e4-3a8bd2e519db"
+  },
+  {
+    "name": "barrel-stack",
+    "status": "ok",
+    "path": "src/assets/models/barrel-stack.glb",
+    "taskId": "019f587d-2d14-75f4-853c-e1d388a78714"
+  },
+  {
+    "name": "cargo-shuttle",
+    "status": "ok",
+    "path": "src/assets/models/cargo-shuttle.glb",
+    "taskId": "019f587e-9115-7d82-9fbe-f4a2619808d1"
+  }
+]

@@ -104,7 +104,7 @@ export function applyEffects(effects: RiderEffect[]) {
       S.jobs.push({
         id: S.uid++, kind: m.kind, title: m.title, dest: m.dest, pay: m.pay,
         units: m.units, hidden: m.hidden, prestige: m.prestige, rep: m.rep,
-        needs: m.needs, desc: m.desc, tag: m.tag,
+        needs: m.needs, desc: m.desc, tag: m.tag, tier: m.tier,
         deadline: m.deadlineDays ? S.day + m.deadlineDays : undefined,
         pax: m.pax ? { name: m.pax.name, motive: m.pax.motive, sick: false } : undefined,
       } as Job);

@@ -51,11 +51,23 @@ export function accrueWear(traveling: boolean) {
 export function totalWear(): number {
   return Math.round(S.modules.filter((m) => !MODS[m.t].core).reduce((a, m) => a + wearOf(m), 0));
 }
-export function refitCost(): number { return Math.round(totalWear() * 1.2); }
+// Yard Mistress Ferro's standing rate (once earned) knocks 20% off every refit,
+// sector-wide — she vouches for you down the line to yards that trust her word.
+export function refitCost(): number {
+  const disc = S.flags.yard_favor ? 0.8 : 1;
+  return Math.round(totalWear() * 1.2 * disc);
+}
+// A little wear is invisible to the player (still reads "sound") but still
+// nudges totalWear() above zero — so gate the paid refit on an actual worn
+// module existing, not on that raw sum, or the button offers a real charge
+// for a refit its own label says isn't needed yet.
+export function anyWorn(): boolean {
+  return S.modules.some((m) => !MODS[m.t].core && wearTier(m) !== "sound");
+}
 
 export function refitShip() {
   const cost = refitCost();
-  if (cost <= 0) { log("Nothing aboard is worn enough to refit. She's as tight as she gets."); requestRender(); return; }
+  if (!anyWorn()) { log("Nothing aboard is worn enough to refit. She's as tight as she gets."); requestRender(); return; }
   if (S.credits < cost) { log(`Not enough credits for a full refit (needs ${cost}cr).`); requestRender(); return; }
   S.credits -= cost;
   for (const m of S.modules) m.wear = 0;

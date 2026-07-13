@@ -1,38 +1,40 @@
-import * as THREE from "three";
-import { Pathfinding } from "three-pathfinding";
-import * as YUKA from "yuka";
 import type { WalkRect, WalkScene } from "../ui/walk";
 
 // Optional high-performance helpers for the walk simulation. The public walk
 // API remains pixels-in/pixels-out, so gameplay and save data stay independent
 // of any rendering or physics package.
-let pathfinder: Pathfinding | null = null;
+let pathfinder: any = null;
+let THREE: typeof import("three") | null = null;
 let zone = "";
 let rapier: typeof import("@dimforge/rapier3d-compat") | null = null;
 let physics: import("@dimforge/rapier3d-compat").World | null = null;
 let playerBody: import("@dimforge/rapier3d-compat").RigidBody | null = null;
 
-function floorGeometry(floors: WalkRect[]): THREE.BufferGeometry {
+function floorGeometry(T: typeof import("three"), floors: WalkRect[]): import("three").BufferGeometry {
   const positions: number[] = [];
   for (const f of floors) {
     const x0 = f.x, x1 = f.x + f.w, z0 = f.y, z1 = f.y + f.h;
     positions.push(x0, 0, z0, x1, 0, z1, x1, 0, z0, x0, 0, z0, x0, 0, z1, x1, 0, z1);
   }
-  const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+  const geometry = new T.BufferGeometry();
+  geometry.setAttribute("position", new T.Float32BufferAttribute(positions, 3));
   return geometry;
 }
 
 export function configureWalkRuntime(scene: WalkScene, spawn: { x: number; y: number }) {
   zone = scene.id;
-  try {
-    const geometry = floorGeometry(scene.floors);
-    pathfinder = new Pathfinding();
-    pathfinder.setZoneData(zone, Pathfinding.createZone(geometry));
-    geometry.dispose();
-  } catch {
-    pathfinder = null;
-  }
+  pathfinder = null;
+  void Promise.all([import("three"), import("three-pathfinding")])
+    .then(([T, pathfinding]) => {
+      if (zone !== scene.id) return;
+      THREE = T;
+      const Pathfinding = pathfinding.Pathfinding;
+      const geometry = floorGeometry(T, scene.floors);
+      pathfinder = new Pathfinding();
+      pathfinder.setZoneData(zone, Pathfinding.createZone(geometry));
+      geometry.dispose();
+    })
+    .catch(() => { pathfinder = null; });
 
   // Rapier is WASM and initializes asynchronously. Existing rectangle
   // collision remains the immediate fallback during the first few frames.
@@ -56,7 +58,7 @@ export function syncWalkPhysics(position: { x: number; y: number }) {
 }
 
 export function navPath(from: { x: number; y: number }, to: { x: number; y: number }) {
-  if (!pathfinder || !zone) return null;
+  if (!pathfinder || !zone || !THREE) return null;
   try {
     const start = new THREE.Vector3(from.x, 0, from.y);
     const end = new THREE.Vector3(to.x, 0, to.y);
@@ -67,13 +69,12 @@ export function navPath(from: { x: number; y: number }, to: { x: number; y: numb
 }
 
 export function steerAgent(agent: { x: number; y: number }, target: { x: number; y: number }, speed: number, dt: number) {
-  const vehicle = new YUKA.Vehicle();
-  vehicle.position.set(agent.x, 0, agent.y);
-  vehicle.maxSpeed = speed;
-  const arrive = new YUKA.ArriveBehavior(new YUKA.Vector3(target.x, 0, target.y), 2.5, 8);
-  vehicle.steering.add(arrive);
-  vehicle.update(dt);
-  return { x: vehicle.position.x, y: vehicle.position.z };
+  const dx = target.x - agent.x;
+  const dy = target.y - agent.y;
+  const dist = Math.hypot(dx, dy);
+  if (dist <= 0.001) return { x: agent.x, y: agent.y };
+  const step = Math.min(speed * dt, dist);
+  return { x: agent.x + dx / dist * step, y: agent.y + dy / dist * step };
 }
 
 export function disposeWalkRuntime() {

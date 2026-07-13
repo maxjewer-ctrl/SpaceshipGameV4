@@ -6,12 +6,11 @@
 import { hasModal } from "../modal";
 import { S } from "../state";
 import { drawAvatar } from "./avatarDraw";
-import * as walk3d from "./walk3d";
 import { configureWalkRuntime, disposeWalkRuntime, navPath, syncWalkPhysics } from "../systems/walkRuntime";
 
 export interface WalkRect { x: number; y: number; w: number; h: number; }
 export interface WalkDoor extends WalkRect { label: string; locked?: boolean; lockedHint?: string; action: () => void; }
-export interface WalkActor extends WalkRect { key: string; label: string; icon?: string; color?: string; role?: string; bubble?: string; verb?: string; onInteract: () => void; }
+export interface WalkActor extends WalkRect { key: string; label: string; icon?: string; color?: string; role?: string; modelKey?: string; bubble?: string; verb?: string; onInteract: () => void; }
 export interface WalkRoom extends WalkRect { id: string; label: string; icon?: string; color?: string; kind?: string; moduleIndex?: number; moduleType?: string; }
 export interface WalkScene {
   id: string;                 // unique per context — changing it remounts at spawn
@@ -57,6 +56,27 @@ let aim={x:0,y:1}, rollDir={x:0,y:1};
 let rollTime=0, rollCooldown=0, fireCooldown=0;
 let projectiles:Array<{x:number;y:number;vx:number;vy:number;life:number}>=[];
 let dummy:{x:number;y:number;hp:number;hit:number}|null=null;
+type Walk3D = typeof import("./walk3d");
+let walk3d: Walk3D | null = null;
+let walk3dLoading: Promise<Walk3D> | null = null;
+
+function loadWalk3d(): Promise<Walk3D> {
+  if (walk3d) return Promise.resolve(walk3d);
+  walk3dLoading ||= import("./walk3d").then((m) => (walk3d = m));
+  return walk3dLoading;
+}
+
+function cameraRelativeMovement(x: number, y: number) {
+  return walk3d?.cameraRelativeMovement(x, y) ?? { x, y };
+}
+
+function mountWalk3d(s: WalkScene) {
+  const parent = canvas?.parentElement || null;
+  void loadWalk3d().then((m) => {
+    if (scene !== s || mountedId !== s.id) return;
+    m.mount(parent, s, { move:setClickMove, aim:setAim, fire });
+  });
+}
 
 // Roster panel -> canvas: flash a ring around one actor when its row is clicked.
 export function setHighlight(key: string | null) { highlightKey = key; }
@@ -141,7 +161,7 @@ export function start(s: WalkScene) {
   ctx = canvas ? canvas.getContext("2d") : null;
   bindListeners();
   bindCanvas();
-  walk3d.mount(canvas?.parentElement || null, s, { move:setClickMove, aim:setAim, fire });
+  mountWalk3d(s);
   configureWalkRuntime(s, pos);
   projectiles=[]; rollTime=rollCooldown=fireCooldown=0;
   const dp=nearestLegal(pos.x+150,pos.y)||nearestLegal(pos.x,pos.y-150);
@@ -158,7 +178,7 @@ export function start(s: WalkScene) {
 export function ensureRunning(s: WalkScene) {
   if (mountedId !== s.id) { start(s); return; }
   scene = s;
-  walk3d.setScene(s);
+  walk3d?.setScene(s);
 }
 
 export function teardown() {
@@ -167,7 +187,7 @@ export function teardown() {
   if (scene) savedPos[scene.id] = { ...pos };
   scene = null; mountedId = null; canvas = null; ctx = null;
   keys.clear(); clearClickMove();
-  walk3d.teardown();
+  walk3d?.teardown();
   disposeWalkRuntime();
 }
 
@@ -186,7 +206,7 @@ function setAim(x:number,y:number){const dx=x-pos.x,dy=y-pos.y,d=Math.hypot(dx,d
 function startRoll(){
   if(rollCooldown>0||hasModal())return;
   let x=0,y=0;if(keys.has("up"))y--;if(keys.has("down"))y++;if(keys.has("left"))x--;if(keys.has("right"))x++;
-  if(x||y){const r=walk3d.cameraRelativeMovement(x,y),d=Math.hypot(r.x,r.y)||1;rollDir={x:r.x/d,y:r.y/d};}else rollDir={...aim};
+  if(x||y){const r=cameraRelativeMovement(x,y),d=Math.hypot(r.x,r.y)||1;rollDir={x:r.x/d,y:r.y/d};}else rollDir={...aim};
   rollTime=ACTION.rollDuration;rollCooldown=ACTION.rollCooldown;
 }
 function fire(){if(fireCooldown>0||hasModal())return;projectiles.push({x:pos.x+aim.x*16,y:pos.y+aim.y*16,vx:aim.x*ACTION.projectileSpeed,vy:aim.y*ACTION.projectileSpeed,life:1.1});fireCooldown=ACTION.fireCooldown;}
@@ -214,8 +234,8 @@ function pollGamepad(dt: number) {
   // Right stick aims. Shoulder buttons orbit the elevated camera, keeping
   // combat aim and camera control available at the same time.
   const rx = gp.axes[2] || 0, ry = gp.axes[3] || 0;
-  if (Math.abs(rx) > CAM_STICK_DEADZONE || Math.abs(ry) > CAM_STICK_DEADZONE){const a=walk3d.cameraRelativeMovement(rx,ry),d=Math.hypot(a.x,a.y)||1;aim={x:a.x/d,y:a.y/d};}
-  const orbit=(gp.buttons[5]?.pressed?1:0)-(gp.buttons[4]?.pressed?1:0);if(orbit)walk3d.nudgeCamera(orbit,0,dt);
+  if (Math.abs(rx) > CAM_STICK_DEADZONE || Math.abs(ry) > CAM_STICK_DEADZONE){const a=cameraRelativeMovement(rx,ry),d=Math.hypot(a.x,a.y)||1;aim={x:a.x/d,y:a.y/d};}
+  const orbit=(gp.buttons[5]?.pressed?1:0)-(gp.buttons[4]?.pressed?1:0);if(orbit)walk3d?.nudgeCamera(orbit,0,dt);
 }
 
 // ---- geometry ----
@@ -392,7 +412,7 @@ function simulate(dt: number) {
     // Direct controls follow the visible camera, not fixed map axes. Apply
     // before click-to-move, whose path waypoints are already in world space.
     if (vx || vy) {
-      const relative = walk3d.cameraRelativeMovement(vx, vy);
+      const relative = cameraRelativeMovement(vx, vy);
       vx = relative.x; vy = relative.y;
     }
     // Point-and-click: move toward click target when no keys held
@@ -443,7 +463,7 @@ function simulate(dt: number) {
     moving = false;
   }
   draw();
-  walk3d.render({ pos, facing, moving, phase: walkPhase, nearDoor, nearActor, time: last, aim, rolling:rollTime>0, rollCooldown, projectiles, dummy });
+  walk3d?.render({ pos, facing, moving, phase: walkPhase, nearDoor, nearActor, time: last, aim, rolling:rollTime>0, rollCooldown, projectiles, dummy });
   updateHud();
 }
 

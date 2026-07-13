@@ -10,6 +10,7 @@ import { mapHTML } from "./map";
 import { planetHTML } from "./planet";
 import { travelHTML } from "./travel";
 import { buildStationScene } from "./stationwalk";
+import { buildDesertTownScene } from "./planetwalk";
 import { buildShipScene, crewRosterHTML } from "./shipwalk";
 import * as walk from "./walk";
 import * as sfx from "../audio";
@@ -154,7 +155,7 @@ function renderMain() {
   if (S.screen === "ship") m.innerHTML = shipHTML();
   else if (S.screen === "map") m.innerHTML = mapHTML();
   else if (S.screen === "stationwalk") {
-    const scene = buildStationScene();
+    const scene = S.loc === "dustwell" ? buildDesertTownScene() : buildStationScene();
     if (walk.needsMount(scene.id)) m.innerHTML = walk.mountHTML(scene);
     walk.ensureRunning(scene);
   } else if (S.screen === "shipwalk") {

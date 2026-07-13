@@ -3,7 +3,7 @@
 // the docks, the undercity is down past the berths — this is the ONLY way
 // onto planetside services; there is no shortcut nav button into the cantina.
 import { S } from "../state";
-import { PLANETS, NPCS } from "../content";
+import { PLANETS, NPCS, STATIONS } from "../content";
 import { requestRender } from "../bus";
 import { npcsInRoom, openNPC } from "../systems/scene";
 import { introDebtDoor, introDebtScene } from "../systems/intro";
@@ -28,6 +28,8 @@ import type { WalkScene, WalkRoom, WalkRect, WalkDoor, WalkActor } from "./walk"
 interface RoomDef { id: string; x: number; y: number; w: number; h: number; label: string; icon: string; tab?: string; }
 
 // World 1000x700. A warren, not a wheel — see LINKS for who connects to whom.
+// This is the COMMON room set; each port filters/relabels it and may add one
+// signature room via stations.json (docs/STATION_IDENTITY.md).
 const ROOMS: RoomDef[] = [
   { id: "harbor", x: 650, y: 40, w: 230, h: 150, label: "Harbormaster", icon: "🛃" },
   { id: "concourse", x: 560, y: 290, w: 260, h: 170, label: "Concourse", icon: "🏛️" },
@@ -37,10 +39,32 @@ const ROOMS: RoomDef[] = [
   { id: "drydock", x: 760, y: 540, w: 220, h: 140, label: "Dry Dock", icon: "🔧", tab: "yard" },
   { id: "undercity", x: 90, y: 540, w: 230, h: 150, label: "The Undercity", icon: "🕯️" },
 ];
+// Signature rooms all take the one free slot in the layout (top-center, clear
+// of cantina/market/harbor) — only one exists per port, so they never collide.
+const SIGNATURE_SLOT = { x: 330, y: 40, w: 210, h: 150 };
 const LINKS: [string, string][] = [
   ["harbor", "concourse"], ["concourse", "market"], ["market", "cantina"],
   ["concourse", "docks"], ["docks", "drydock"], ["docks", "undercity"],
 ];
+
+// The rooms and corridors this specific port actually has.
+function portLayout(): { defs: RoomDef[]; links: [string, string][]; sig?: RoomDef } {
+  const cfg = STATIONS[S.loc] || {};
+  const drop = new Set(cfg.drop || []);
+  const defs: RoomDef[] = ROOMS.filter((r) => !drop.has(r.id)).map((r) => ({
+    ...r, label: cfg.labels?.[r.id] || r.label,
+  }));
+  const links = LINKS.filter(([a, b]) =>
+    defs.some((r) => r.id === a) && defs.some((r) => r.id === b));
+  let sig: RoomDef | undefined;
+  if (cfg.signature) {
+    const s = cfg.signature;
+    sig = { id: s.id, ...SIGNATURE_SLOT, label: s.label, icon: s.icon };
+    defs.push(sig);
+    links.push([s.link, s.id]);
+  }
+  return { defs, links, sig };
+}
 
 function corridor(a: RoomDef, b: RoomDef, thick = 46): WalkRect[] {
   const acx = a.x + a.w / 2, acy = a.y + a.h / 2;
@@ -85,12 +109,12 @@ export function stationEnter(tab: string) {
   requestRender();
 }
 
-function boardShip() {
+export function boardShip() {
   teardown();
   S.screen = "shipwalk";
   requestRender();
 }
-function departureBoard() {
+export function departureBoard() {
   teardown();
   S.screen = "map";
   requestRender();
@@ -98,18 +122,25 @@ function departureBoard() {
 
 export function buildStationScene(): WalkScene {
   const dark = isSilenced(S.loc);
-  const floors: WalkRect[] = ROOMS.map((r) => ({ x: r.x, y: r.y, w: r.w, h: r.h }));
-  for (const [a, b] of LINKS) {
-    const A = ROOMS.find((r) => r.id === a)!, B = ROOMS.find((r) => r.id === b)!;
+  const cfg = STATIONS[S.loc] || {};
+  const { defs, links, sig } = portLayout();
+  const floors: WalkRect[] = defs.map((r) => ({ x: r.x, y: r.y, w: r.w, h: r.h }));
+  for (const [a, b] of links) {
+    const A = defs.find((r) => r.id === a)!, B = defs.find((r) => r.id === b)!;
     floors.push(...corridor(A, B));
   }
   const serviceColor: Record<string,string> = { harbor:"#74a7d8", concourse:"#9aa6bd", market:"#e8b04b", cantina:"#d77c55", docks:"#5b8dd9", drydock:"#d96b6b", undercity:"#7b6a9f" };
-  const rooms: WalkRoom[] = ROOMS.map((r) => ({ id: r.id, x: r.x, y: r.y, w: r.w, h: r.h, label: r.label, icon: r.icon, color: serviceColor[r.id], kind: r.id }));
+  const rooms: WalkRoom[] = defs.map((r) => ({
+    id: r.id, x: r.x, y: r.y, w: r.w, h: r.h, label: r.label, icon: r.icon,
+    color: serviceColor[r.id] || cfg.signature?.color,
+    // signature rooms borrow an existing room's soundscape
+    kind: r.id === sig?.id ? cfg.signature!.sound : r.id,
+  }));
 
   const doors: WalkDoor[] = [];
   const actors: WalkActor[] = [];
 
-  for (const r of ROOMS) {
+  for (const r of defs) {
     if (r.tab) {
       doors.push({
         x: r.x + r.w / 2 - 34, y: r.y + r.h - 30, w: 68, h: 22,
@@ -173,7 +204,19 @@ export function buildStationScene(): WalkScene {
   }
 
   const roomDesc: Record<string, string> = {};
-  for (const r of ROOMS) roomDesc[r.id] = (dark ? DARK_DESC[r.id] : ROOM_DESC[r.id]) || "";
+  for (const r of defs) {
+    if (dark) {
+      // Silenced port: generic dark prose; signature rooms get their own dark
+      // line if authored, else a fallback that fits any abandoned room.
+      roomDesc[r.id] = DARK_DESC[r.id]
+        || (r.id === sig?.id && cfg.signature?.dark)
+        || "Nothing moves in here. Whatever this room was for, it ended mid-task.";
+    } else {
+      roomDesc[r.id] = cfg.desc?.[r.id]
+        || (r.id === sig?.id ? cfg.signature!.desc : ROOM_DESC[r.id])
+        || "";
+    }
+  }
   if (!dark) {
     // Consequence set-dressing: mark prose is appended to its room.
     for (const key in PORT_MARKS) {

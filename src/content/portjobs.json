@@ -1,0 +1,79 @@
+{
+  "meridian": [
+    {
+      "kind": "vip", "weight": 3, "title": "White-glove charter",
+      "vip": true, "paxMotive": "vip",
+      "payFlat": 340, "payPerDay": 90, "prestige": 4, "minPrestige": 6,
+      "rep": ["union", 2], "needs": ["vip:1", "prestige:6"],
+      "desc": "A Directorate under-secretary needs quiet, comfortable passage to {dest}. Stateroom mandatory, discretion doubly so — you will not remember this fare."
+    },
+    {
+      "kind": "cargo", "weight": 2, "title": "Bonded Union freight (pre-cleared)",
+      "units": [8, 14], "payFlat": 40, "payPerUnit": 9, "payPerDay": 26,
+      "prestige": 2, "rep": ["union", 2], "needs": ["cargo:{units}"],
+      "desc": "Sealed and stamped by Meridian customs before you touch it. {units} units to {dest}. The paperwork is immaculate; that's the point."
+    }
+  ],
+
+  "foundry": [
+    {
+      "kind": "cargo", "weight": 3, "title": "Heavy tow: mill casting",
+      "units": [14, 22], "payFlat": 60, "payPerUnit": 7, "payPerDay": 30,
+      "prestige": 2, "rep": ["union", 1], "needs": ["cargo:{units}"],
+      "desc": "One oversized casting, {units} units of it, bound for {dest}. Needs an empty hold and a captain who won't whine about trim."
+    },
+    {
+      "kind": "cargo", "weight": 2, "title": "Parts consignment",
+      "units": [6, 10], "payFlat": 70, "payPerUnit": 10, "payPerDay": 28,
+      "prestige": 1, "rep": ["union", 1], "needs": ["cargo:{units}"],
+      "desc": "Yard-fresh drive components for the fitters at {dest}. Handle like they're worth more than your ship, because to somebody they are."
+    }
+  ],
+
+  "solace": [
+    {
+      "kind": "cargo", "weight": 2, "title": "Repossession haul",
+      "units": [5, 9], "payFlat": 90, "payPerUnit": 8, "payPerDay": 30,
+      "prestige": 1, "rep": ["union", 1], "needs": ["cargo:{units}"],
+      "desc": "Recovered collateral — somebody's ship, stripped to {units} units of it — back to the lienholder on {dest}. Don't read the registry plates."
+    }
+  ],
+
+  "kestrel": [
+    {
+      "kind": "cargo", "weight": 3, "title": "Harvest bulk: grain",
+      "units": [16, 24], "payFlat": 30, "payPerUnit": 5, "payPerDay": 34,
+      "prestige": 2, "rep": ["frontier", 2], "needs": ["cargo:{units}"],
+      "deadlineDays": [1, 2],
+      "desc": "The co-op needs {units} units of grain on {dest} before the price window closes on day {deadline}. Cheap by the unit, but the hold fills fast and the frontier remembers who hauled."
+    }
+  ],
+
+  "havens": [
+    {
+      "kind": "smuggle", "weight": 3, "title": "Fence delivery — 'salvage'",
+      "units": [4, 8], "hidden": true, "payFlat": 220, "payPerUnit": 14, "payPerDay": 60,
+      "prestige": 0, "rep": ["syndicate", 3], "needs": ["scargo:{units}", "mod:smuggler"],
+      "desc": "Goods with a provenance the Folly would rather not discuss, bound for a buyer on {dest}. {units} units, hidden hold, and if a patrol opens it you were never here."
+    }
+  ],
+
+  "verge": [
+    {
+      "kind": "cargo", "weight": 3, "title": "Deep-supply run",
+      "units": [8, 12], "payFlat": 120, "payPerUnit": 12, "payPerDay": 55,
+      "prestige": 3, "rep": ["frontier", 2], "needs": ["cargo:{units}"],
+      "desc": "Provisions for an outpost past the good charts, staged through {dest}. {units} units. Out here there are no ports to top up at — load right or don't come back."
+    }
+  ],
+
+  "dustwell": [
+    {
+      "kind": "cargo", "weight": 3, "title": "Water convoy consignment",
+      "units": [10, 16], "payFlat": 70, "payPerUnit": 8, "payPerDay": 40,
+      "prestige": 2, "rep": ["frontier", 2], "needs": ["cargo:{units}"],
+      "deadlineDays": [2, 3],
+      "desc": "Sealed water for the dry holdings out past {dest} — {units} units, wanted by day {deadline} before the cisterns run dry. On Dustwell, water is the only cargo nobody haggles over."
+    }
+  ]
+}

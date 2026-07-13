@@ -440,7 +440,9 @@ function releaseShot() {
     color: C.move === "ion" ? "#5aa7ff" : C.move === "torpedo" ? "#e8843b" : "#ffd66b" });
   target.hull -= dmg;
   const grade = score > 0.88 ? "perfect lock" : score > 0.62 ? "solid hit" : score > 0.32 ? "glancing hit" : "wild shot";
-  C.log.push(`${grade}: ${dmg} damage to ${target.name}.`);
+  // The grade alone reads as arbitrary when a near-perfect shot lands one
+  // tier down — showing the number is what makes the cutoff feel earned.
+  C.log.push(`${grade} (${Math.round(score * 100)}%): ${dmg} damage to ${target.name}.`);
   if (C.move === "ion" && target.hull > 0) {
     target.ion = 2;
     C.log.push(`${target.name}'s firing solution flickers under ion wash.`);

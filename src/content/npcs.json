@@ -3,7 +3,7 @@
     "name": "Harbormaster Sela Vance",
     "room": "harbor",
     "icon": "🛃",
-    "planets": "any",
+    "planets": ["solace"],
     "blurb": "Decides whose papers are in order today. Everything is negotiable — at a price that keeps rising.",
     "nodes": {
       "start": {
@@ -30,7 +30,7 @@
     "name": "The Aldren family",
     "room": "docks",
     "icon": "👨‍👩‍👧",
-    "planets": ["solace", "verge", "kestrel", "havens"],
+    "planets": ["solace"],
     "gate": { "flagNot": "aldren_resolved" },
     "blurb": "Displaced, undocumented, and out of time. A resettlement sweep starts at dawn.",
     "nodes": {
@@ -50,7 +50,7 @@
     "name": "Dock Boss Kord",
     "room": "undercity",
     "icon": "🦾",
-    "planets": "any",
+    "planets": ["foundry"],
     "blurb": "Runs the under-deck crews. Muscle, freight, and debts that don't forgive.",
     "nodes": {
       "start": {
@@ -83,7 +83,7 @@
     "name": "Wren",
     "room": "cantina",
     "icon": "🐦",
-    "planets": "any",
+    "planets": ["havens"],
     "blurb": "Sells what she hears. Everything she sells belongs to somebody.",
     "nodes": {
       "start": {
@@ -108,7 +108,7 @@
     "name": "Tomas",
     "room": "undercity",
     "icon": "⛓️",
-    "planets": "any",
+    "planets": ["foundry"],
     "gate": { "flagNot": "tomas_resolved" },
     "blurb": "Ledger-bonded to the recyclers. Works off a debt engineered never to shrink.",
     "nodes": {
@@ -278,11 +278,133 @@
     }
   },
 
+  "grange_matriarch_harrow": {
+    "name": "Grange Matriarch Willa Harrow",
+    "room": "grange",
+    "icon": "👩‍🌾",
+    "planets": ["kestrel"],
+    "blurb": "Runs the Kestrel co-op and the ten thousand tons of grain that move through it. Frontier to the bone, pragmatic to the marrow.",
+    "nodes": {
+      "start": {
+        "text": "She's running seed through her fingers at the long table, the sector map behind her stitched with red thread where the Union worlds sit. She doesn't rise. \"Captain. You'll be one of two things — someone who hauls for us honest, or someone the core worlds sent to squeeze us politer than usual.\" She lets a handful of grain fall back into the sack. \"Sit. Tell me which.\"",
+        "choices": [
+          { "label": "\"What's the co-op need moved?\"", "goto": "work" },
+          { "label": "\"The Union's bleeding you dry.\"", "goto": "squeeze" },
+          { "label": "\"How does a captain become a regular here?\"", "goto": "regular" },
+          { "label": "Leave her to her seed", "reply": "\"Mind how you go. And mind who you haul for — this valley notices.\" She's already back to the grain.", "end": true }
+        ]
+      },
+      "work": {
+        "text": "\"Grain.\" She says it like it's the only cargo that ever mattered, which here it is. \"The co-op's got more of it than the Union will pay a fair price for, and buyers who will — if it gets there before the assessors chalk the rate down. Haul a real load for us, not a token, and Kestrel's Rest remembers the ship that came through at harvest. We're a long memory and a short patience, Captain. Mostly the first.\"",
+        "choices": [
+          { "label": "Take a co-op harvest consignment", "effects": [ { "rep": ["frontier", 2] }, { "standing": 1 }, { "mission": { "kind": "cargo", "title": "Co-op harvest consignment", "dest": "solace", "pay": 300, "units": 18, "prestige": 2, "rep": ["frontier", 2], "needs": ["cargo:18"], "deadlineDays": 3, "desc": "Eighteen units of co-op grain to market before the Union assessors chalk the rate down (day-limited). Cheap by the unit, heavy in the hold, and the valley remembers who hauled at harvest." } } ], "reply": "\"Good.\" She marks your registry in a ledger bound in actual cloth. \"Eighteen units, and don't dawdle — the price window shuts when the assessor says it does, and he says it early on purpose. Fly.\"", "end": true },
+          { "label": "\"Eighteen units is a lot of hold for the pay.\"", "effects": [ { "dispo": { "axis": "mercy", "n": -1 } } ], "reply": "\"It is. That's farming, Captain — volume and faith and a thin margin the weather can erase. If you want fat cargo and light holds, the core worlds have smugglers for that.\" She shrugs. \"The offer's the offer.\"", "end": true }
+        ]
+      },
+      "squeeze": {
+        "text": "Her hand stops in the grain. \"Bleeding us. Yes.\" She says it evenly, which is worse than heat. \"Tariffs we can't vote on, an assessor who chalks our grain down and his own paperwork up, and a procurement agent who buys at a price that's technically legal and actually theft. There's a woman named Yun who thinks the answer's crates that go bang. Maybe she's right. I think the answer's this: we feed the sector, and a valley that feeds people doesn't stay quiet forever.\" She looks at you. \"Which is where captains come in.\"",
+        "choices": [
+          { "label": "\"I'll carry Frontier grain over Union objections.\"", "effects": [ { "rep": ["frontier", 2] }, { "rep": ["union", -1] }, { "dispo": { "axis": "law", "n": -1 } }, { "flag": "grange_ally", "value": true }, { "standing": 2 }, { "remember": { "who": "npc:harrow", "fact": "captain_sided_with_the_valley", "weight": 3, "note": "The captain said they'd carry our grain over the Union's objections and meant it. Wrote their name in the cloth ledger myself. We don't forget that here." } } ], "reply": "\"Then you're welcome at this table any harvest.\" She almost smiles. \"I'll not send you to Yun — that's a door you walk through yourself or not at all. But the co-op's contracts run warmer for you now. Earn it twice and they run warmer still.\"", "end": true },
+          { "label": "\"Not my fight. I just fly cargo.\"", "effects": [ { "remember": { "who": "npc:harrow", "fact": "captain_stayed_neutral", "weight": 0, "note": "The captain said the squeeze wasn't their fight. Fair enough. Neutral ships haul at neutral rates. Nobody at this table will hate them, and nobody will go out of their way, either." } } ], "reply": "\"Fair,\" she says, and means it, mostly. \"Cargo's cargo, and a captain's got to eat too. The board's open to you, same as anyone. Just don't expect the valley's warmth at neutral rates.\"", "end": true }
+        ]
+      },
+      "regular": {
+        "text": "\"A regular.\" She weighs the word. \"Not bought, Captain — earned, in loads delivered and sides taken. Fly our grain, stand with the valley when it's costing you something, and the standing comes on its own. Discounts at the pumps, first read on the good contracts, a bunk and a hot plate when you're between runs. We look after our own out here because nobody else will. That's the whole of the frontier, if you want it plain.\"",
+        "choices": [
+          { "label": "\"I'd like to be one of yours.\"", "requires": { "rep": ["frontier", 3] }, "effects": [ { "flag": "grange_regular", "value": true }, { "standing": 3 }, { "dispo": { "axis": "mercy", "n": 1 } }, { "remember": { "who": "npc:harrow", "fact": "captain_became_a_regular", "weight": 3, "note": "Enough loads, enough sides taken — the captain's one of ours now. Standing bunk at the Grange, first look at the good grain. Earned, not bought." } } ], "reply": "\"Then you are one.\" She stands, finally, and clasps your forearm like kin. \"There's a bunk at the Grange with your ship's name on it, and the pumps run cheaper for you here from now on. Welcome to the valley, Captain.\"", "end": true },
+          { "label": "\"Noted. I'll earn it.\"", "reply": "\"See that you do. It's the only currency that spends at this table.\" She nods you off, not unkindly.", "end": true }
+        ]
+      }
+    }
+  },
+
+  "yardmistress_ferro": {
+    "name": "Yard Mistress Odalys Ferro",
+    "room": "drydock",
+    "icon": "⚙️",
+    "planets": ["foundry"],
+    "blurb": "The best shipwright in the sector, and the least impressed by you. Treats hulls like patients and Union certification like a rumor.",
+    "nodes": {
+      "start": {
+        "text": "She's on her back under someone else's hull, sparks raining off her shoulders, and she doesn't slide out to greet you. \"If you're here to collect, it's not done. If you're here to sell me something, it's a no. If you're a captain with a ship worth talking about—\" she rolls out, wipes her hands, looks at yours instead of your face \"—then maybe. Ferro. I true ships. What do you want?\"",
+        "choices": [
+          { "label": "\"What's it cost to keep her flying?\"", "goto": "philosophy" },
+          { "label": "\"Got any work going?\"", "goto": "work" },
+          { "label": "\"They say your parts have stories.\"", "goto": "provenance" },
+          { "label": "Let her get back under the hull", "reply": "\"Mm.\" She's already rolling back under. \"Door's open when your ship starts telling you things you don't want to hear. It will.\"", "end": true }
+        ]
+      },
+      "philosophy": {
+        "text": "\"Cost.\" She says it like the word's beneath her. \"Everyone asks the cost. Here's the thing the Union yards won't tell you because they're selling certificates: a ship is never finished, Captain. She's only ever currently holding together. You fly her, she wears — bearings, seals, the little lies the gauges tell before the truth lets go at the worst moment. A refit trues her back. Neglect her and she'll pick her own hour to quit, and it's never yours.\" She watches you to see if any of it landed.",
+        "choices": [
+          { "label": "\"A ship's never finished. Only holding together. Understood.\"", "effects": [ { "flag": "yard_favor", "value": true }, { "standing": 2 }, { "dispo": { "axis": "law", "n": 1 } }, { "remember": { "who": "npc:ferro", "fact": "captain_gets_it", "weight": 3, "note": "The captain repeated it back to me like they meant it — a ship's never finished, only holding together. I gave them my rate. I don't do that twice a year." } } ], "reply": "Something in her shoulders drops half an inch — the closest she comes to warmth. \"Then you're not hopeless. My rate's yours, and I'll vouch for you at any yard that trusts my word — twenty off a refit, sector-wide. Don't make me regret the vouching.\"", "end": true },
+          { "label": "\"Just give me the number.\"", "effects": [ { "remember": { "who": "npc:ferro", "fact": "captain_wanted_the_number", "weight": -1, "note": "Another one who wanted the number and not the lesson. I gave them the number. They'll be back when something lets go." } } ], "reply": "\"The number's on the dry-dock board, same as everyone's. Refit trues every worn system at once — cheaper the sooner you do it, dearer the longer you don't.\" She's already reaching for her torch. \"Come back when you want the rate behind the number.\"", "end": true }
+        ]
+      },
+      "work": {
+        "text": "\"Work.\" She considers you. \"There's a crate of drive components the Union's holding in bond on a technicality — mine, paid for, and they know it. Cheaper for them to sit on it than admit the paperwork's crooked. Run a duplicate order in from a yard that owes me and I'll pay you shipwright's scale, which is more than the freight's worth. Consider it a lesson in how the core worlds do business.\"",
+        "choices": [
+          { "label": "Run Ferro's parts order", "effects": [ { "rep": ["frontier", 1] }, { "dispo": { "axis": "law", "n": -1 } }, { "standing": 1 }, { "mission": { "kind": "cargo", "title": "Ferro's parts order (off the Union's books)", "dest": "kestrel", "pay": 340, "units": 7, "prestige": 2, "rep": ["frontier", 2], "needs": ["cargo:7"], "desc": "Seven units of drive components from a yard that owes Ferro, routed around a crooked Union bond hold. Get them to Kestrel's Rest and she pays shipwright's scale." } } ], "reply": "\"Good.\" She chalks the routing onto your manifest herself, in a hand like an engineer's schematic. \"Ask for Petrov at the far yard. Tell him Ferro says the bond's still crooked. He'll laugh; that's how you'll know it's the right man.\"", "end": true },
+          { "label": "\"Not today.\"", "reply": "\"Suit yourself. The crate's not going anywhere — that's the whole problem with it.\"", "end": true }
+        ]
+      },
+      "provenance": {
+        "text": "\"Stories.\" For the first time she almost smiles. \"Every part on my racks has one, Captain, because I don't buy new if salvaged'll outlast it — and it usually will. That emitter came off the Vesper before they towed her. That coupling ran nine years on a hauler that never once made port on schedule and never once failed, either. New parts are strangers. Salvaged parts, you know exactly how they behave under load, because someone already found out the hard way.\" She taps a battered component on the bench. \"I put stories in ships. Cost you extra someday, when I've got the racks stocked for it.\"",
+        "choices": [
+          { "label": "\"I'll want the ones with stories.\"", "effects": [ { "flag": "ferro_provenance_interest", "value": true }, { "dispo": { "axis": "daring", "n": 1 } }, { "remember": { "who": "npc:ferro", "fact": "captain_wants_parts_with_history", "weight": 2, "note": "The captain wants the salvaged parts, the ones that have already been tested by somebody's bad day. My kind of captain. I'll stock the good racks for them." } } ], "reply": "\"Course you will.\" She goes back to the bench. \"Give me time to stock the good racks. A part with a story doesn't turn up to order — it turns up when the wreck that had it does.\"", "end": true },
+          { "label": "\"I'll take new and boring, thanks.\"", "reply": "\"Safe. Expensive. Your credits.\" She shrugs and picks up the torch. \"New and boring holds together fine — right up until it's a stranger to you at the worst moment.\"", "end": true }
+        ]
+      }
+    }
+  },
+
+  "factor_sur": {
+    "name": "Factor Nadia Sur",
+    "room": "auction",
+    "icon": "🔻",
+    "planets": ["havens"],
+    "blurb": "The Red Sky Syndicate's factor at the Folly. Keeps the peace with a ledger, a long memory, and no appeals process.",
+    "nodes": {
+      "start": {
+        "text": "She works the auction floor from a raised desk, watching the bidding the way a surgeon watches a monitor. No guards visible — the Folly's quiet is hers, and everyone in the room knows it. \"Captain. I'm Sur, and I keep the accounts here — all of them.\" She doesn't offer a hand. \"The Red Sky has no laws. What it has is me. People find that's usually enough.\"",
+        "choices": [
+          { "label": "\"What does the Red Sky actually want?\"", "goto": "creed" },
+          { "label": "Ask what work she has", "goto": "work" },
+          { "label": "\"You hold Callum Vex's paper.\"", "requires": { "crewKey": "vex" }, "goto": "vex" },
+          { "label": "Leave her to the floor", "reply": "\"Come back when you need something the law can't sell you,\" she says, eyes already back on the bidding. \"You will.\"", "end": true }
+        ]
+      },
+      "creed": {
+        "text": "\"Want.\" She almost smiles. \"The Union wants obedience and calls it order. The Frontier wants freedom and calls it dying poor. The Red Sky wants only one thing, Captain: that a deal, once made, is kept.\" She gestures at the floor — the bidding, the sealed lots, the men settling debts without a raised voice. \"No courts. No paperwork. Just the certainty that if you cross the Red Sky, the Red Sky collects. It's not cruelty. It's the only honest government left out here — the kind that does exactly what it says it will.\"",
+        "choices": [
+          { "label": "\"That's just extortion with better manners.\"", "effects": [ { "dispo": { "axis": "law", "n": 1 } } ], "reply": "\"Every government is, Captain. Mine simply doesn't lie to you about it.\" She seems to like you a little better for the honesty. \"Come talk to me when you want work that pays what it's worth.\"", "end": true },
+          { "label": "\"Order without law. I can work with that.\"", "effects": [ { "dispo": { "axis": "law", "n": -1 } }, { "rep": ["syndicate", 1] }, { "standing": 1 } ], "reply": "\"Good. Then we understand each other, which is the whole of it.\" A small nod — from Sur, you'll learn, that's warmth. \"My floor is open to you.\"", "end": true }
+        ]
+      },
+      "work": {
+        "text": "\"Two kinds, always.\" She counts them without drama. \"Freight the core worlds would confiscate and I would rather deliver. And enforcement — someone takes what's the Red Sky's, and the Red Sky would like it back. The first pays well. The second pays better, and tells me what kind of captain you are.\"",
+        "choices": [
+          { "label": "Run her no-questions consignment", "effects": [ { "dispo": { "axis": "law", "n": -1 } }, { "rep": ["syndicate", 2] }, { "standing": 1 }, { "mission": { "kind": "smuggle", "title": "Red Sky consignment (sealed)", "dest": "verge", "pay": 460, "units": 6, "hidden": true, "rep": ["syndicate", 3], "needs": ["scargo:6", "mod:smuggler"], "desc": "Sur's freight. Six units, sealed under her personal seal — which means a patrol scan is a problem, and losing it is a much larger one. Deliver clean to the Verge." } } ], "reply": "\"Her seal travels with it,\" Sur says, meaning her own. \"Which means no one touches it and lives easy. Deliver it whole, and my floor stays open.\"", "end": true },
+          { "label": "Take an enforcement contract", "requires": { "flagNot": "sur_enforcement_active" }, "effects": [ { "flag": "sur_enforcement_active", "value": true }, { "rep": ["syndicate", 1] }, { "mission": { "kind": "bounty", "title": "Red Sky enforcement: the Vesper's Knife", "dest": "kestrel", "pay": 520, "tier": 1, "prestige": 3, "rep": ["syndicate", 3], "needs": ["mod:weapons", "mod:armory"], "desc": "A crew calling itself the Vesper's Knife boosted a Red Sky hauler and ran for the Kestrel lane. Sur wants the ship back, or she wants it gone. Either satisfies the ledger. Expect a real fight." } } ], "reply": "\"They knew the seal and took it anyway,\" she says, flat as a closed book. \"That's not theft, that's a message. Return one of my own. Their captain answers to the guns; the ledger closes itself.\"", "end": true },
+          { "label": "\"Neither today.\"", "reply": "\"The floor keeps its own hours,\" Sur says, unbothered. \"So do I.\"", "end": true }
+        ]
+      },
+      "vex": {
+        "text": "For the first time her attention fully lands on you. \"Callum.\" A pause with a whole history in it. \"He signed his life to the Red Sky one desperate night and has been paying it down a credit at a time ever since. And now he flies your ship.\" She folds her hands. \"Which makes his debt your passenger, Captain, whether you knew it or not. I can settle it three ways. Choose carefully — I only offer once.\"",
+        "choices": [
+          { "label": "Buy out Vex's debt in full (600cr)", "requires": { "credits": 600 }, "effects": [ { "credits": -600 }, { "flag": "vex_debt_cleared", "value": true }, { "rep": ["syndicate", 2] }, { "standing": 2 }, { "npc": { "key": "vex", "name": "Callum Vex", "disposition": 4 } }, { "remember": { "who": "crew:vex", "fact": "captain_cleared_my_red_sky_debt", "weight": 5, "note": "The captain paid Nadia Sur six hundred credits and tore the Red Sky's claim off my name. First time in years nobody owns a piece of me." } }, { "remember": { "who": "npc:sur", "fact": "captain_paid_vexs_paper", "weight": 2, "note": "The captain cleared Vex's paper in full, in cash, without haggling. Sur respects a clean settlement." } } ], "reply": "\"Paid in full.\" She marks it in a ledger you can't see and won't ever see. \"Tell Callum his account with the Red Sky is closed. He won't believe you. Bring him by; I'll tell him myself. A cleared debt is the one kindness this organization permits.\"", "end": true },
+          { "label": "Work it off — take her paper on his behalf", "requires": { "flagNot": "sur_vex_indenture" }, "effects": [ { "flag": "sur_vex_indenture", "value": true }, { "dispo": { "axis": "law", "n": -1 } }, { "rep": ["syndicate", 1] }, { "plantRider": { "min": 10, "max": 20, "key": "smuggle_the_bill" } }, { "remember": { "who": "crew:vex", "fact": "captain_took_on_my_debt", "weight": 2, "note": "The captain took my Red Sky paper onto the ship's account instead of paying it off. Kinder than Sur. Still owed, though. Always still owed." } } ], "reply": "\"Sensible. His paper moves to your account, and your ship runs a job or two of mine to service it. Cheaper than cash, dearer than you think.\" She almost looks approving. \"The Red Sky prefers captains who owe it. You've just volunteered.\"", "end": true },
+          { "label": "\"His debt is his. Leave my crew out of your ledger.\"", "effects": [ { "dispo": { "axis": "law", "n": 1 } }, { "rep": ["syndicate", -1] }, { "npc": { "key": "vex", "name": "Callum Vex", "disposition": -1 } }, { "remember": { "who": "npc:sur", "fact": "captain_refused_vexs_ledger", "weight": -2, "note": "The captain declined to involve themselves in Vex's paper. Their right. Noted, in the ledger, where everything is noted." } } ], "reply": "\"His, then.\" She accepts it with a bookkeeper's calm that's somehow worse than anger. \"But debts don't respect the walls we build around them, Captain. His is aboard your ship now. One day it will ask you for something, and I won't have to say a word.\"", "end": true }
+        ]
+      }
+    }
+  },
+
   "organizer_yun": {
     "name": "Organizer Yun",
     "room": "concourse",
     "icon": "✊",
-    "planets": "any",
+    "planets": ["foundry", "kestrel", "havens"],
     "gate": { "flagNot": "informed_on_yun" },
     "blurb": "The Frontier's quiet recruiter, working a Union station one conversation at a time.",
     "nodes": {

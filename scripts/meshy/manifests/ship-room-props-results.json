@@ -1,0 +1,50 @@
+[
+  {
+    "name": "ship-engine-core",
+    "status": "ok",
+    "path": "src/assets/models/ship-engine-core.glb",
+    "taskId": "019f58d0-1a41-75ad-b45e-bf251f89a741"
+  },
+  {
+    "name": "ship-shield-generator",
+    "status": "ok",
+    "path": "src/assets/models/ship-shield-generator.glb",
+    "taskId": "019f58d0-4477-75b8-8185-f236cb7dec3d"
+  },
+  {
+    "name": "ship-med-bed",
+    "status": "ok",
+    "path": "src/assets/models/ship-med-bed.glb",
+    "taskId": "019f58d4-50a2-7132-98dd-71d1153cddf9"
+  },
+  {
+    "name": "ship-hydro-planter",
+    "status": "ok",
+    "path": "src/assets/models/ship-hydro-planter.glb",
+    "taskId": "019f58d5-8d7c-7a1d-9d87-803d62a82846"
+  },
+  {
+    "name": "ship-weapons-rack",
+    "status": "ok",
+    "path": "src/assets/models/ship-weapons-rack.glb",
+    "taskId": "019f58d8-a248-7aa5-9b6d-0d4d6d62a0f1"
+  },
+  {
+    "name": "ship-workbench",
+    "status": "ok",
+    "path": "src/assets/models/ship-workbench.glb",
+    "taskId": "019f58da-cfeb-7259-b9e7-ee17fc928d50"
+  },
+  {
+    "name": "ship-smuggler-hatch",
+    "status": "ok",
+    "path": "src/assets/models/ship-smuggler-hatch.glb",
+    "taskId": "019f58dc-0470-78eb-8dfa-6e744daa5b2a"
+  },
+  {
+    "name": "ship-lux-berth",
+    "status": "ok",
+    "path": "src/assets/models/ship-lux-berth.glb",
+    "taskId": "019f58de-365c-731e-ad1f-23035ce9d63c"
+  }
+]

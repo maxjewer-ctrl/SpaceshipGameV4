@@ -169,6 +169,20 @@ export function failJob(j: Job, msg: string) {
   log(msg);
 }
 
+// A contract you took on and can't or won't finish — cheaper than blowing the
+// deadline (failJob), since backing out on purpose is a choice, not a screwup.
+// Frees the cargo/berth/hidden-hold space it was holding immediately.
+export function abandonJob(id: number) {
+  const j = S.jobs.find((x) => x.id === id);
+  if (!j) return;
+  if (j.arcCrate || j.arcVoss) { log(`"${j.title}" isn't a contract you can just walk away from.`); requestRender(); return; }
+  S.jobs = S.jobs.filter((x) => x.id !== id);
+  S.prestige = Math.max(0, S.prestige - 1);
+  if (j.rep) S.rep[j.rep[0]] = clamp(S.rep[j.rep[0]] - 1, -20, 20);
+  log(`Abandoned contract: "${j.title}". Word gets around when a captain backs out (−1 prestige).`);
+  requestRender();
+}
+
 export function arrive() {
   const dest = S.travel!.dest;
   S.loc = dest; S.docked = true; S.travel = null; S.screen = "shipwalk";

@@ -1,0 +1,42 @@
+[
+  {
+    "name": "water-tower",
+    "prompt": "weathered wooden-legged water tower with a riveted steel sci-fi tank on top, western frontier industrial style, rust and dust, low poly game asset"
+  },
+  {
+    "name": "cargo-crate",
+    "prompt": "weathered wooden shipping crate reinforced with rusted metal bands and rivets, stenciled markings, western frontier sci-fi cargo container, low poly game asset"
+  },
+  {
+    "name": "satellite-dish",
+    "prompt": "jury-rigged scrap-metal satellite comms dish antenna on a tripod mast, western frontier improvised sci-fi technology, rusted, low poly game asset"
+  },
+  {
+    "name": "fuel-tank",
+    "prompt": "large cylindrical riveted steel fuel storage tank, rusted industrial sci-fi, pressure gauges and pipes, low poly game asset"
+  },
+  {
+    "name": "mooring-post",
+    "prompt": "wooden hitching-post style spaceship mooring post with a heavy chain and an iron lantern hook, western frontier sci-fi, low poly game asset"
+  },
+  {
+    "name": "cargo-hauler",
+    "prompt": "rugged six-wheeled desert cargo hauler truck, welded scrap armor plating, western frontier sci-fi vehicle, weathered paint, low poly game asset"
+  },
+  {
+    "name": "windmill-turbine",
+    "prompt": "rustic wind turbine with wooden blades and a riveted metal frame tower, western frontier sci-fi power generator, weathered, low poly game asset"
+  },
+  {
+    "name": "barrel-stack",
+    "prompt": "stack of three weathered rusted oil drums and barrels, industrial sci-fi frontier clutter, low poly game asset"
+  },
+  {
+    "name": "beacon-lamp",
+    "prompt": "tall iron lamppost with a glowing amber landing beacon lantern on top, western frontier spaceport sci-fi, weathered metal, low poly game asset"
+  },
+  {
+    "name": "cargo-shuttle",
+    "prompt": "small weathered cargo shuttle spacecraft parked on landing struts, western frontier sci-fi design, patched hull plating, low poly game asset"
+  }
+]

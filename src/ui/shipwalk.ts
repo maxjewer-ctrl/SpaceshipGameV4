@@ -163,7 +163,7 @@ export function buildShipScene(): WalkScene {
     actors.push({
       x: ag.x, y: ag.y, w: 28, h: 28, key: "crew:" + c.id,
       label: c.name, icon: "🧑‍🚀", color: "#5b8dd9",
-      role: c.role, bubble: ag.bubble || undefined,
+      role: c.role, modelKey: c.key, bubble: ag.bubble || undefined,
       onInteract: () => crewTalk(c.id),
     });
   });

@@ -1,5 +1,6 @@
 import { S, log } from "../state";
-import { PLANETS, MODS, GOODS, NAMES, MOTIVES, FLAVOR, ROLES, CREWGEN, CHARACTERS } from "../content";
+import { PLANETS, MODS, GOODS, NAMES, MOTIVES, FLAVOR, ROLES, CREWGEN, CHARACTERS, PORTJOBS } from "../content";
+import type { PortJobTemplate } from "../content";
 import { stats, daysTo, cargoUsed, scargoUsed, paxJobs, vipJobs, planetVisible, isSilenced } from "../derive";
 import { rand, ri, pick } from "../rng";
 import { requestRender } from "../bus";
@@ -30,10 +31,19 @@ export function refreshMarket() {
   // wrong first lesson.
   const missions: Job[] = [];
   const n = ri(3, 5);
+  // Seed one signature local job so the board wears the port's face — the work
+  // on offer at Meridian (white-glove charters) shouldn't read like the work at
+  // Foundry (heavy tows). The rest of the board stays generalist.
+  const seed = genLocalMission();
+  if (seed) missions.push(seed);
   let guard = 16;
   while (missions.length < n && guard-- > 0) {
-    const m = genMission();
+    // Occasionally a second local job, otherwise the generic pool.
+    const m = (rand() < 0.25 ? genLocalMission() : null) || genMission();
     if (!m) continue;
+    // Don't stack two of the same signature job (single-template ports would
+    // otherwise show "Harvest bulk: grain" twice) — one local face is enough.
+    if (missions.some((x) => x.title === m.title)) continue;
     const gated = !canAccept(m)[0];
     const gatedAlready = missions.filter((x) => !canAccept(x)[0]).length;
     if (gated && gatedAlready >= Math.max(1, Math.floor(n / 3))) continue;
@@ -115,6 +125,50 @@ export function genMission(): Job | null {
       needs: ["vip:1", "prestige:" + minP], pax: { name, motive: "vip", sick: false }, vip: true,
       desc: `${name} requires discreet, comfortable passage to ${PLANETS[dest].n}. Stateroom mandatory. Reputation required.` };
   }
+}
+
+// Roll one of the current port's signature jobs, expanded into a real Job.
+// Returns null if this port has no local templates (or the one rolled can't
+// legally appear right now, e.g. a Syndicate fence job while blacklisted).
+export function genLocalMission(): Job | null {
+  const templates = PORTJOBS[S.loc];
+  if (!templates || !templates.length) return null;
+  // weighted pick
+  let total = 0;
+  for (const t of templates) total += t.weight || 1;
+  let roll = rand() * total;
+  let tpl: PortJobTemplate = templates[0];
+  for (const t of templates) { roll -= t.weight || 1; if (roll <= 0) { tpl = t; break; } }
+
+  if ((tpl.hidden || tpl.kind === "smuggle") && S.flags.syndicate_blacklist) return null;
+
+  const dest = otherPlanet();
+  if (!dest) return null;
+  const dd = daysTo(S.loc, dest);
+  const units = tpl.units ? ri(tpl.units[0], tpl.units[1]) : 0;
+  let pay = tpl.payFlat + (tpl.payPerUnit || 0) * units + (tpl.payPerDay || 0) * dd;
+  pay = Math.round(pay);
+  const needs = (tpl.needs || []).map((s) => s.replace("{units}", String(units)));
+  const deadline = tpl.deadlineDays ? S.day + dd + ri(tpl.deadlineDays[0], tpl.deadlineDays[1]) : undefined;
+  const desc = tpl.desc
+    .replace(/{dest}/g, PLANETS[dest].n)
+    .replace(/{units}/g, String(units))
+    .replace(/{deadline}/g, String(deadline ?? ""));
+
+  const job: Job = {
+    id: S.uid++, kind: tpl.kind, title: tpl.title, dest, pay,
+    prestige: tpl.prestige || 0, rep: tpl.rep, needs, desc,
+  };
+  if (units) job.units = units;
+  if (tpl.hidden) job.hidden = true;
+  if (tpl.vip) job.vip = true;
+  if (tpl.minPrestige) job.minPrestige = tpl.minPrestige;
+  if (deadline) job.deadline = deadline;
+  if (tpl.vip || tpl.paxMotive) {
+    const name = tpl.vip ? pick(NAMES.vips) : pick(NAMES.first) + " " + pick(NAMES.last);
+    job.pax = { name, motive: tpl.paxMotive || "vip", sick: false };
+  }
+  return job;
 }
 
 // Roll a hidden Tapestry bundle: origin, want, wound, secret, tell, and two

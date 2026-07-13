@@ -1,0 +1,86 @@
+[
+  {
+    "name": "crew-dez",
+    "status": "ok",
+    "path": "src/assets/models/crew-dez.glb",
+    "taskId": "019f58a0-04a3-7fb3-8bd2-d9d5f9d75b11"
+  },
+  {
+    "name": "crew-vex",
+    "status": "ok",
+    "path": "src/assets/models/crew-vex.glb",
+    "taskId": "019f58a0-42ef-7fb7-92a0-941f3bddaa9b"
+  },
+  {
+    "name": "crew-brix",
+    "status": "ok",
+    "path": "src/assets/models/crew-brix.glb",
+    "taskId": "019f58a2-2a9e-7056-b292-70843694c071"
+  },
+  {
+    "name": "crew-tomas",
+    "status": "ok",
+    "path": "src/assets/models/crew-tomas.glb",
+    "taskId": "019f58a2-bea5-706d-a4d1-88394e314e41"
+  },
+  {
+    "name": "crew-ada",
+    "status": "ok",
+    "path": "src/assets/models/crew-ada.glb",
+    "taskId": "019f58a4-9c64-70ca-8e8b-6115c6b55375"
+  },
+  {
+    "name": "crew-rook",
+    "status": "ok",
+    "path": "src/assets/models/crew-rook.glb",
+    "taskId": "019f58a5-5633-7663-976d-db59377ae06e"
+  },
+  {
+    "name": "crew-imogen",
+    "status": "ok",
+    "path": "src/assets/models/crew-imogen.glb",
+    "taskId": "019f58a6-f67d-716c-b51d-ac3a7823ee01"
+  },
+  {
+    "name": "crew-corbin",
+    "status": "ok",
+    "path": "src/assets/models/crew-corbin.glb",
+    "taskId": "019f58a8-2aba-71b0-81ac-82ed08a34070"
+  },
+  {
+    "name": "crew-bapu",
+    "status": "ok",
+    "path": "src/assets/models/crew-bapu.glb",
+    "taskId": "019f58a9-261e-71f1-8447-4d874dac8ea8"
+  },
+  {
+    "name": "crew-nyla",
+    "status": "ok",
+    "path": "src/assets/models/crew-nyla.glb",
+    "taskId": "019f58aa-983a-721a-a0ea-7ca79aa65f8d"
+  },
+  {
+    "name": "crew-elias",
+    "status": "ok",
+    "path": "src/assets/models/crew-elias.glb",
+    "taskId": "019f58ab-59be-781e-bf72-c6eb63cfbb86"
+  },
+  {
+    "name": "crew-miri",
+    "status": "ok",
+    "path": "src/assets/models/crew-miri.glb",
+    "taskId": "019f58ad-18e5-7dd7-9af6-523b8f83a86d"
+  },
+  {
+    "name": "crew-pip7",
+    "status": "ok",
+    "path": "src/assets/models/crew-pip7.glb",
+    "taskId": "019f58ad-d798-78c6-baf8-299ca20e7511"
+  },
+  {
+    "name": "crew-juno",
+    "status": "ok",
+    "path": "src/assets/models/crew-juno.glb",
+    "taskId": "019f58af-ad30-72e5-ab48-7b295601a638"
+  }
+]

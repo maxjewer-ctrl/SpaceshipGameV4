@@ -193,7 +193,8 @@ export function shipHTML(): string {
     : `<div class="dim">No passengers aboard.</div>`;
   const jobsHtml = S.jobs.length ? S.jobs.map((j) =>
     `<div class="card"><div class="title">${j.title}</div>
-     <div class="dim">→ ${PLANETS[j.dest].n} · <span class="pay">${fmt(j.pay)}cr</span>${j.deadline ? ` · <span class="${S.day + daysTo(S.loc, j.dest) > j.deadline ? "low" : ""}">by day ${j.deadline}</span>` : ""}${j.units ? ` · ${j.units}u${j.hidden ? " hidden" : ""}` : ""}</div></div>`).join("")
+     <div class="dim">→ ${PLANETS[j.dest].n} · <span class="pay">${fmt(j.pay)}cr</span>${j.deadline ? ` · <span class="${S.day + daysTo(S.loc, j.dest) > j.deadline ? "low" : ""}">by day ${j.deadline}</span>` : ""}${j.units ? ` · ${j.units}u${j.hidden ? " hidden" : ""}` : ""}</div>
+     ${j.arcCrate || j.arcVoss ? "" : `<div style="margin-top:6px"><button onclick="abandonJob(${j.id})" title="Drop this contract now — frees the cargo/berth it holds, costs 1 prestige and standing with the client">Abandon</button></div>`}</div>`).join("")
     : `<div class="dim">No active contracts. The bank account won't fill itself — hit a cantina.</div>`;
   const repHtml = Object.keys(FACS).filter((f) => f !== "none").map((f) => {
     const v = S.rep[f];

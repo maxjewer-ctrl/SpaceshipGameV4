@@ -1,0 +1,42 @@
+[
+  {
+    "name": "ship-engine-core",
+    "pbr": true,
+    "prompt": "Stylized low-poly 3D game prop, compact spaceship drive core reactor for a small ship engine room, vertical cylindrical containment chamber, ring braces, pipes, cyan energy glow, frontier worn metal, readable from isometric camera, no base, no text, no logo, bright hand-painted PBR texture, optimized for Three.js."
+  },
+  {
+    "name": "ship-shield-generator",
+    "pbr": true,
+    "prompt": "Stylized low-poly 3D game prop, compact spaceship shield generator, circular emitter ring with insulated coil blocks and small cyan field projector nodes, sturdy floor machine, violet-blue and gray metal, readable from isometric camera, no base, no text, no logo, bright hand-painted PBR texture, optimized for Three.js."
+  },
+  {
+    "name": "ship-hydro-planter",
+    "pbr": true,
+    "prompt": "Stylized low-poly 3D game prop, spaceship hydroponics planter rack, rectangular waist-high grow tray with leafy green plants, irrigation tubes, cyan grow light bar, cream and muted green panels, readable from isometric camera, no base, no text, no logo, bright hand-painted PBR texture, optimized for Three.js."
+  },
+  {
+    "name": "ship-med-bed",
+    "pbr": true,
+    "prompt": "Stylized low-poly 3D game prop, compact spaceship medbay diagnostic bed, padded narrow treatment couch, side monitor arm, cyan medical lights, pale blue-gray metal, clean worn frontier ship style, readable from isometric camera, no patient, no blood, no text, no logo, bright hand-painted PBR texture, optimized for Three.js."
+  },
+  {
+    "name": "ship-weapons-rack",
+    "pbr": true,
+    "prompt": "Stylized low-poly 3D game prop, spaceship weapons bay rack and capacitor console, reinforced vertical rack silhouettes, central targeting console, red safety trim, gray hard-surface metal, readable from isometric camera, no loose guns in hand, no text, no logo, bright hand-painted PBR texture, optimized for Three.js."
+  },
+  {
+    "name": "ship-workbench",
+    "pbr": true,
+    "prompt": "Stylized low-poly 3D game prop, spaceship workshop repair bench, sturdy rectangular workbench with tool drawers, vise, small diagnostic screen, cable reel, muted olive and gray metal, readable from isometric camera, no text, no logo, bright hand-painted PBR texture, optimized for Three.js."
+  },
+  {
+    "name": "ship-smuggler-hatch",
+    "pbr": true,
+    "prompt": "Stylized low-poly 3D game prop, hidden smuggler hold false-floor hatch, low rectangular deck compartment with concealed seams, side latches, cargo straps, muted gray and olive metal, subtle secret-panel design, readable from isometric camera, no text, no logo, bright hand-painted PBR texture, optimized for Three.js."
+  },
+  {
+    "name": "ship-lux-berth",
+    "pbr": true,
+    "prompt": "Stylized low-poly 3D game prop, compact luxury spaceship stateroom berth, elegant narrow sleeping pod with padded panels, tiny side table shape, warm amber light strips, cream and teal metal, readable from isometric camera, no person, no text, no logo, bright hand-painted PBR texture, optimized for Three.js."
+  }
+]

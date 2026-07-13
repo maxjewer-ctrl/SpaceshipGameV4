@@ -1,0 +1,125 @@
+{
+  "meridian": {
+    "drop": ["undercity"],
+    "desc": {
+      "harbor": "The fee schedule is posted in six languages and enforced in one. Cameras over the queue count blinks. Your paperwork is, of course, already on file.",
+      "cantina": "Licensed drinks, licensed music, laughter that sounds licensed too. Union officers hold the corner booths and everyone else holds their opinions.",
+      "market": "A commodities floor clean enough to eat off. Nobody haggles on Meridian — the price is the price, plus tax, plus the tax on the tax.",
+      "concourse": "Glass towers over polished stone, daylight metered out by architecture. Eleven years ago you'd have heard the shift-change crowds from here. Nobody mentions that.",
+      "docks": "Your berth was inspected before you docked and will be inspected after you leave. The dockhands are polite, efficient, and photographed hourly.",
+      "drydock": "Union-certified fitters in matching coveralls. The work is immaculate and priced like the certification cost them their souls, which it did."
+    },
+    "signature": {
+      "id": "lighthouse",
+      "label": "Memorial Lighthouse",
+      "icon": "🕯️",
+      "color": "#9fd8e8",
+      "sound": "harbor",
+      "link": "concourse",
+      "desc": "A glass spire over a quiet floor. Sixty thousand names scroll upward at reading pace — eleven years running and it hasn't repeated once. A keeper trims the light. Nobody official ever comes here."
+    }
+  },
+
+  "foundry": {
+    "desc": {
+      "harbor": "The harbormaster's office shares a wall with a stamping line. Every clearance lands in time with the drop-hammer.",
+      "cantina": "Shift workers drink fast, in rows, against the horn. The bar keeps three clocks: last shift, this shift, and overtime.",
+      "market": "Ore in, parts out. The floor smells of coolant and hot metal, and every posted price has a grudge behind it.",
+      "concourse": "Gantries instead of sky. Welding sparks drift down through the work-lights like slow orange snow.",
+      "docks": "Loader crews move like they're paid by the ton, because they are. Mind the crane shadows.",
+      "drydock": "The cheapest yard in the sector and the loudest. Somewhere in the sparks a supervisor is shouting a measurement, and somewhere a fitter is ignoring it correctly.",
+      "undercity": "The under-decks: recycler heat, bonded lines, and the part of Foundry's output the brochures call 'efficiency.' The ledgers down here compound faster than any wage."
+    },
+    "signature": {
+      "id": "unionhall",
+      "label": "The Union Hall",
+      "icon": "✊",
+      "color": "#d8a04b",
+      "sound": "concourse",
+      "link": "concourse",
+      "desc": "Folding chairs, a low stage, and a banner mended twelve times: AN HONEST DAY. The wall lists stewards going back eighty years — most with dates, a few with only the word 'taken.'"
+    }
+  },
+
+  "solace": {
+    "desc": {
+      "harbor": "Frosted glass and a queue that never moves, though the fees do. Vance's window is the true center of Port Solace, and she knows it.",
+      "cantina": "Warmth, noise, cheap protein and cheaper liquor. Every table owes the bar and the bar owes the harbormaster. Deals start friendly here and end notarized.",
+      "concourse": "The crossroads under a false-sky ceiling. Everyone passes through Solace eventually — most of them owing money, all of them in a hurry."
+    },
+    "signature": {
+      "id": "debtorsrow",
+      "label": "Debtor's Row",
+      "icon": "🏷️",
+      "color": "#b08bc9",
+      "sound": "market",
+      "link": "market",
+      "desc": "A corridor of stalls selling what captains left behind: modules with old registry burns, sea-chests, a framed master's license, a child's drawing of a ship that isn't docked here anymore. Everything on the Row was somebody's plan A."
+    }
+  },
+
+  "kestrel": {
+    "drop": ["undercity"],
+    "labels": { "harbor": "Landing Office" },
+    "desc": {
+      "harbor": "A tin shed with a wind sock and a clipboard. The landing fee is a suggestion; the handshake isn't.",
+      "cantina": "Farmhands, harvest dust, and a fiddle nobody tunes. The Union tariff notice by the door has been repurposed as a dartboard.",
+      "market": "Grain futures chalked by hand on a board older than the colony charter. Food here costs less than the sacks it ships in.",
+      "concourse": "An open square between silos, with actual weather in it. Ship crews stand around just breathing.",
+      "docks": "Grain elevators tower over the landing pads. Everything smells of wheat, engine oil, and rain that's coming.",
+      "drydock": "One bay, one hoist, and a mechanic who fixes harvesters six days a week and starships on the seventh. She's better at the starships and won't say so."
+    },
+    "signature": {
+      "id": "grange",
+      "label": "The Grange",
+      "icon": "🌾",
+      "color": "#c9b44b",
+      "sound": "concourse",
+      "link": "market",
+      "desc": "The co-op hall: long tables, a seed vault behind bank-grade doors, and a sector map with Union worlds marked in red thread. Decisions that move ten thousand tons of grain get made here over bad coffee."
+    }
+  },
+
+  "havens": {
+    "desc": {
+      "harbor": "There is no customs desk. There's a woman with a ledger and a pleasant smile, and the shared understanding that the Syndicate's cut was included in your berth fee.",
+      "cantina": "Three bars deep, lit like a permanent sunset, loud like payday. Every third deal in here is legal, and nobody is sure which third.",
+      "market": "Anything, from anywhere, sold as-is. The stalls change nightly. The rule doesn't: caveat emptor, Captain.",
+      "concourse": "Neon over rust. The pickpockets work with professional courtesy — visitors only; locals are bad for business.",
+      "docks": "Ships with fresh paint over old names. Nobody photographs the registry plates, and the one tourist who tried is remembered fondly.",
+      "drydock": "They'll weld anything to anything and lose the paperwork for a modest fee. The work is better than it has any right to be.",
+      "undercity": "Below the neon, where the Folly keeps everything it doesn't want appraised. Quieter than Solace's under-deck, and somehow that's worse."
+    },
+    "signature": {
+      "id": "auction",
+      "label": "The Auction Floor",
+      "icon": "🔨",
+      "color": "#e07a5f",
+      "sound": "market",
+      "link": "market",
+      "desc": "Unclaimed cargo, salvage lots, dead men's holds sold sealed. The auctioneer's gavel is a torque wrench, and the house takes ten percent and no responsibility whatsoever."
+    }
+  },
+
+  "verge": {
+    "drop": ["undercity"],
+    "desc": {
+      "harbor": "Half the berths are cold. The stationmaster logs every arrival by hand, in ink, like each one might need remembering.",
+      "cantina": "Quiet drinkers under a radio tuned to the static between stations. Nobody sits with their back to the viewport.",
+      "market": "Prices that would be robbery anywhere else and are just arithmetic here. Everything on these shelves came a very long way.",
+      "concourse": "You can hear the structure flex against the cold. The big viewport at the end faces the deep black, and someone is always standing at it.",
+      "docks": "The last real deck before the black. Departure times are written in chalk — easier to erase.",
+      "drydock": "Out here spare parts trade above gold, and the yard hoards both. Bring your own or bring patience."
+    },
+    "signature": {
+      "id": "listening",
+      "label": "The Listening Room",
+      "icon": "📡",
+      "color": "#7fb8a8",
+      "sound": "harbor",
+      "link": "harbor",
+      "desc": "Racks of receivers, a star chart furred with bearing pins, headphones hung on hooks like fire equipment. The array hears everything out past the Verge. Lately the operators log more of what they don't hear.",
+      "dark": "The receivers are still powered. Every dial in the rack has been turned, carefully, to the same bearing. All the headphones are missing."
+    }
+  }
+}

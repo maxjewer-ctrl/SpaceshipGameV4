@@ -6,7 +6,7 @@ import { requestRender } from "../bus";
 import { refreshMarket, canAccept, needBadges, yardPrice } from "../systems/market";
 import { arcCantinaCard } from "../systems/arc";
 import { reputation } from "../systems/disposition";
-import { refitCost, wearTier } from "../systems/wear";
+import { refitCost, wearTier, anyWorn } from "../systems/wear";
 import { crewPortrait, portraitFigure, storeOwnerPortrait } from "./portraits";
 
 // Names of modules currently worn or failing — the refit card's honest pitch.
@@ -151,7 +151,7 @@ function yardHTML(): string {
           <div style="margin-top:6px"><button ${dmgd.length ? "" : "disabled"} onclick="repairSystems()">Restore all systems (${dmgd.length * 80}cr)</button></div></div>
         <div class="card"><div class="title">🔩 Full refit ${wornList().length ? `<span class="low">(${wornList().join(", ")})</span>` : '<span class="dim">(nothing worn)</span>'}</div>
           <div class="dim">Flying wears the ship: worn systems break first, failing ones quit on their own. A refit strips and trues everything back to spec.</div>
-          <div style="margin-top:6px"><button ${refitCost() > 0 && S.credits >= refitCost() ? "" : "disabled"} onclick="refitShip()">Refit all worn systems (${refitCost()}cr)</button></div></div>
+          <div style="margin-top:6px"><button ${anyWorn() && S.credits >= refitCost() ? "" : "disabled"} onclick="refitShip()">Refit all worn systems (${refitCost()}cr)</button></div></div>
         <div class="card"><div class="title">🔥 Drive Core — Mk-${["", "I", "II", "III"][S.engineLvl]}</div>
           <div class="dim">Faster travel: fewer days means less fuel, less food, fewer chances for trouble. Helps you flee, and each mark adds +2 reactor power.</div>
           <div style="margin-top:6px"><button ${S.engineLvl < 3 && S.credits >= engCost ? "" : "disabled"} onclick="upgradeEngine()">${S.engineLvl < 3 ? `Upgrade to Mk-${["", "", "II", "III"][S.engineLvl + 1]} (${engCost}cr)` : "Maxed out"}</button></div></div>

@@ -31,6 +31,7 @@ export function checkReq(req?: Record<string, any>): [boolean, string] {
   if (req.flag && !S.flags[req.flag]) return [false, "locked"];
   if (req.flagNot && S.flags[req.flagNot]) return [false, "already done"];
   if (req.crew && S.crew.length < req.crew) return [false, "need crew aboard"];
+  if (req.crewKey && !S.crew.some((c) => c.key === req.crewKey)) return [false, "not aboard"];
   return [true, ""];
 }
 

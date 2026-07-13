@@ -12,6 +12,8 @@ import ridersJson from "./riders.json";
 import reputationJson from "./reputation.json";
 import npcsJson from "./npcs.json";
 import charactersJson from "./characters.json";
+import stationsJson from "./stations.json";
+import portjobsJson from "./portjobs.json";
 
 export const MODS = modulesJson as Record<string, ModuleDef>;
 export const PLANETS = planetsJson as Record<string, PlanetDef>;
@@ -40,7 +42,7 @@ export interface BarkDef {
 export interface MissionGrant {
   kind: string; title: string; dest: string; pay: number;
   units?: number; hidden?: boolean; prestige?: number; rep?: [string, number];
-  needs?: string[]; desc?: string; deadlineDays?: number;
+  needs?: string[]; desc?: string; deadlineDays?: number; tier?: number;
   pax?: { name: string; motive: string };
   tag?: string;  // completion sets flags["job_<tag>"]
 }
@@ -120,6 +122,39 @@ export const CREWGEN = crewgenJson as CrewGen;
 export const REPUTATION = reputationJson as ReputationContent;
 export let NPCS = npcsJson as Record<string, NpcDef>;
 export const CHARACTERS = charactersJson as Record<string, CharacterDef>;
+
+// ---- Per-port station identity (docs/STATION_IDENTITY.md) ----
+// Shared walk engine, unique content: each port filters the common room set,
+// relabels services, overrides room prose, and may add one signature room.
+export interface StationSignature {
+  id: string; label: string; icon: string; color: string;
+  sound: string;            // existing audio room kind to borrow ambience from
+  link: string;             // which common room its corridor connects to
+  desc: string;
+  dark?: string;            // prose when the port is silenced
+}
+export interface StationDef {
+  drop?: string[];                    // common rooms this port doesn't have
+  labels?: Record<string, string>;    // per-room label overrides
+  desc?: Record<string, string>;      // per-room prose overrides
+  signature?: StationSignature;
+}
+export const STATIONS = stationsJson as Record<string, StationDef>;
+
+// ---- Per-port signature job templates (docs/STATION_IDENTITY.md) ----
+// A port's economy has a face too: local work that fits its vibe, mixed into
+// the otherwise-generic board. genLocalMission() (market.ts) expands these.
+export interface PortJobTemplate {
+  kind: string; title: string; weight?: number;
+  units?: [number, number];           // roll range; absent = no cargo units
+  payFlat: number; payPerUnit?: number; payPerDay?: number;
+  prestige?: number; minPrestige?: number; rep?: [string, number];
+  needs?: string[];                    // "{units}" expands to the rolled count
+  hidden?: boolean; vip?: boolean; paxMotive?: string;
+  deadlineDays?: [number, number];
+  desc: string;                        // {dest} {units} {deadline} placeholders
+}
+export const PORTJOBS = portjobsJson as unknown as Record<string, PortJobTemplate[]>;
 
 // Merge hot-loaded content over the bundled baseline. Called by the content
 // loader. MERGE, never replace: bundled JSON is the baseline (per the loader's

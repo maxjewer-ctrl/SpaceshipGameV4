@@ -6,7 +6,7 @@ import { advanceDay, waitDay } from "../systems/travel";
 import { cautions } from "./render";
 import { radarBlips } from "./ship";
 import * as sfx from "../audio";
-import engineCoreUrl from "../assets/ship/engine-core.png";
+import engineCoreUrl from "../assets/ship/engine-core.webp";
 
 // Physical control positions — switch/lever state, session-only. Losing your
 // throttle setting on reload is realistic enough; none of this is save data.

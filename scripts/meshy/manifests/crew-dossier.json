@@ -1,0 +1,72 @@
+[
+  {
+    "name": "crew-dez",
+    "pbr": true,
+    "prompt": "Stylized low-poly 3D game miniature of Dessa Dez Okonkwo, frontier spaceship pilot, practical cropped flight jacket, farm-dust scarf, compact flight boots, confident relaxed stance, warm brown skin, short textured hair, readable silhouette from isometric camera, no base, no text, no weapons, bright hand-painted PBR texture, optimized for small Three.js game character."
+  },
+  {
+    "name": "crew-vex",
+    "pbr": true,
+    "prompt": "Stylized low-poly 3D game miniature of Callum Vex, flashy outlaw spaceship pilot, slim racing jacket with asymmetrical red trim, worn flight gloves, restless cocky stance, sharp features, dark undercut hair, readable silhouette from isometric camera, no base, no text, no weapons, bright hand-painted PBR texture, optimized for small Three.js game character."
+  },
+  {
+    "name": "crew-brix",
+    "pbr": true,
+    "prompt": "Stylized low-poly 3D game miniature of Brix Halloway, ship mechanic from industrial yards, oil-stained utility coveralls, heavy tool belt, calibration kit clipped to hip, sturdy boots, practical short hair, thoughtful mechanic stance, readable silhouette from isometric camera, no base, no text, no weapons, bright hand-painted PBR texture, optimized for small Three.js game character."
+  },
+  {
+    "name": "crew-tomas",
+    "pbr": true,
+    "prompt": "Stylized low-poly 3D game miniature of Tomas, weary bonded ship mechanic, patched gray work shirt, simple harness, old recycler gloves, thin posture but capable hands, quiet guarded stance, readable silhouette from isometric camera, no base, no text, no weapons, bright hand-painted PBR texture, optimized for small Three.js game character."
+  },
+  {
+    "name": "crew-ada",
+    "pbr": true,
+    "prompt": "Stylized low-poly 3D game miniature of Sgt Adaeze Ada Nnamdi, former Union marine gunner, disciplined military posture, armored navy-and-gray gunnery vest, cropped hair, veteran utility boots, stern haunted expression, readable silhouette from isometric camera, no base, no text, no rifle, bright hand-painted PBR texture, optimized for small Three.js game character."
+  },
+  {
+    "name": "crew-rook",
+    "pbr": true,
+    "prompt": "Stylized low-poly 3D game miniature of Rook Vandermeer, ex-pirate ship gunner, long weathered coat over utility armor, old spacer boots, relaxed dangerous stance, graying hair or stubble, black-flag veteran look without insignia, readable silhouette from isometric camera, no base, no text, no weapons, bright hand-painted PBR texture, optimized for small Three.js game character."
+  },
+  {
+    "name": "crew-imogen",
+    "pbr": true,
+    "prompt": "Stylized low-poly 3D game miniature of Dr Imogen Hale, frontier ship medic, pale blue-gray medical coat over practical jumpsuit, small med pouch, tired gentle posture, tidy dark hair, restrained cyan medical accents, readable silhouette from isometric camera, no base, no text, no syringe, bright hand-painted PBR texture, optimized for small Three.js game character."
+  },
+  {
+    "name": "crew-corbin",
+    "pbr": true,
+    "prompt": "Stylized low-poly 3D game miniature of Saint Corbin, under-deck street doctor, layered patched clinic apron, rolled sleeves, soft smile with suspicious charm, medical satchel, practical boots, readable silhouette from isometric camera, no base, no text, no blood, no weapons, bright hand-painted PBR texture, optimized for small Three.js game character."
+  },
+  {
+    "name": "crew-bapu",
+    "pbr": true,
+    "prompt": "Stylized low-poly 3D game miniature of Bapu Okafor, elderly generation-ship cook, warm layered galley clothes, apron, soft rounded posture, kind grandfatherly face, short white beard, small spice pouch, readable silhouette from isometric camera, no base, no text, no utensils in hand, bright hand-painted PBR texture, optimized for small Three.js game character."
+  },
+  {
+    "name": "crew-nyla",
+    "pbr": true,
+    "prompt": "Stylized low-poly 3D game miniature of Nyla Sorrensen, sharp-eyed ship cook and former mining quartermaster, rugged galley jacket, ledger pouch, practical boots, guarded stance, braided or tied-back hair, subtle salvage crew details, readable silhouette from isometric camera, no base, no text, no weapons, bright hand-painted PBR texture, optimized for small Three.js game character."
+  },
+  {
+    "name": "crew-elias",
+    "pbr": true,
+    "prompt": "Stylized low-poly 3D game miniature of Elias Wren-Kohl, meticulous Union customs auditor turned ship quartermaster, neat gray-blue uniform coat, small ledger tablet, tidy posture, precise cautious expression, refined boots, readable silhouette from isometric camera, no base, no text, no visible logos, bright hand-painted PBR texture, optimized for small Three.js game character."
+  },
+  {
+    "name": "crew-miri",
+    "pbr": true,
+    "prompt": "Stylized low-poly 3D game miniature of Mirelle Miri Datta, smiling Red Sky bookkeeper quartermaster, elegant practical spacer coat, hidden-data-slate pouch, confident sideways stance, dark bob haircut, subtle red accents without logos, readable silhouette from isometric camera, no base, no text, no weapons, bright hand-painted PBR texture, optimized for small Three.js game character."
+  },
+  {
+    "name": "crew-pip7",
+    "pbr": true,
+    "prompt": "Stylized low-poly 3D game miniature of PIP-7, waist-high rolling logistics AI crew member, one broad central wheel, two small stabilizer casters, folding manipulator arms, mismatched amber optics, cream and navy repaired metal panels, old practical dock robot personality, readable silhouette from isometric camera, no base, no text, no logo, bright hand-painted PBR texture, optimized for small Three.js game prop character."
+  },
+  {
+    "name": "crew-juno",
+    "pbr": true,
+    "prompt": "Stylized low-poly 3D game miniature of Juno Vale, young ship engineer from the prologue, orange-brown mechanic jacket, utility belt, worn gloves, anxious brave stance, short practical hair, frontier spacer boots, readable silhouette from isometric camera, no base, no text, no weapons, bright hand-painted PBR texture, optimized for small Three.js game character."
+  }
+]
