@@ -67,11 +67,24 @@ const CRT_SHADER = {
     scanline: { value: 0.032 },
   },
   vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`,
+  // hash() and the scanline phase both used to feed sin()/dot() a raw
+  // resolution*uv(+time) value — thousands, growing unboundedly with session
+  // time. Many real GPUs (this never showed up against SwiftShader in
+  // headless testing) lose range-reduction precision on sin() well before
+  // that point, so the intended subtle dither/scanline degenerated into
+  // incoherent full-contrast static that got worse — and visibly drifted, as
+  // `time` kept climbing — the longer a session ran. hash() is now a
+  // trig-free multiply/fract hash (bounded regardless of input magnitude),
+  // and the scanline phase is range-reduced into [0, 2π) before sin().
   fragmentShader: `
     uniform sampler2D tDiffuse; uniform vec2 resolution; uniform float time;
     uniform float vignette; uniform float grain; uniform float aberration; uniform float scanline;
     varying vec2 vUv;
-    float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1,311.7))) * 43758.5453); }
+    float hash(vec2 p){
+      vec3 p3 = fract(vec3(p.xyx) * 0.1031);
+      p3 += dot(p3, p3.yzx + 33.33);
+      return fract((p3.x + p3.y) * p3.z);
+    }
     void main(){
       vec2 center = vUv - 0.5;
       float dist = length(center);
@@ -80,7 +93,8 @@ const CRT_SHADER = {
       float g = texture2D(tDiffuse, vUv).g;
       float b = texture2D(tDiffuse, vUv - shift).b;
       vec3 col = vec3(r, g, b);
-      float sl = sin(vUv.y * resolution.y * 1.4) * 0.5 + 0.5;
+      float slTurns = vUv.y * resolution.y * 1.4 / 6.2831853;
+      float sl = sin(fract(slTurns) * 6.2831853) * 0.5 + 0.5;
       col *= 1.0 - scanline * (1.0 - sl);
       float vig = smoothstep(0.85, 0.15, dist);
       col *= mix(1.0, vig, vignette);
@@ -571,6 +585,9 @@ export function render(v:{pos:{x:number;y:number};facing:string;moving:boolean;p
   for(const p of v.projectiles){const m=new THREE.Mesh(new THREE.SphereGeometry(.075,7,5),mat("#70d7ff",2));m.position.set(wx(p.x),.55,wz(p.y));actionFx.add(m);}
   if(v.dummy){const dm=box(.48,1,.48,mat(v.dummy.hp<=0?"#333842":v.dummy.hit>0?"#ffffff":"#d95b5b",v.dummy.hp>0?.5:0));dm.position.set(wx(v.dummy.x),.5,wz(v.dummy.y));actionFx.add(dm);const dl=sprite(v.dummy.hp>0?`TARGET ${v.dummy.hp}/5`:"TARGET DOWN",v.dummy.hp>0?"#ff9b9b":"#7d8294",.45);dl.position.set(wx(v.dummy.x),1.45,wz(v.dummy.y));actionFx.add(dl);}
   world.traverse((o:any)=>{if(o.userData.spark!==undefined){o.visible=Math.sin(v.time*.025+o.userData.spark)>0;o.position.y=1+(o.userData.spark*.12+v.time*.0004)%1;}if(o.userData.starfield&&S.travel)o.rotation.y=v.time*.00002;});
-  if(composer){if(crtPass)crtPass.uniforms.time.value=v.time*.001;composer.render();}else renderer.render(root,camera);
+  // Wrapped, not raw elapsed ms: grain only needs a value that changes every
+  // frame, and letting it climb for a whole session fed the hash below
+  // ever-larger numbers for no visual benefit.
+  if(composer){if(crtPass)crtPass.uniforms.time.value=(v.time*.001)%1000;composer.render();}else renderer.render(root,camera);
 }
 export function teardown(){resizeObserver?.disconnect();resizeObserver=null;if(renderer&&clickHandler)renderer.domElement.removeEventListener("pointerdown",clickHandler);clickHandler=null;if(root)disposeObject(root);composer?.dispose();bloomPass?.dispose();composer=null;bloomPass=null;crtPass=null;renderer?.dispose();renderer?.domElement.remove();if(fallbackCanvas)fallbackCanvas.style.display="block";renderer=null;root=null;camera=null;flashlight=null;current=null;host=null;fallbackCanvas=null;signature="";world=new THREE.Group();avatar=new THREE.Group();actionFx=new THREE.Group();actorMeshes.clear();doorLabels=new Map();actorLabels=new Map();aimCallback=null;fireCallback=null;camYaw=0;camPitch=0;}
