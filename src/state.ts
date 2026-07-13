@@ -2,14 +2,14 @@ import type { GameState, ModuleInstance } from "./types";
 import { DEFAULT_APPEARANCE } from "./ui/avatarDraw";
 
 export const SAVE_KEY = "kestrelrun";
-export const SAVE_VERSION = 10;
+export const SAVE_VERSION = 11;
 
 // The single mutable game state. `export let` gives live bindings to importers;
 // replace it only through setState so everyone sees the new object.
 export let S: GameState = null as unknown as GameState;
 export function setState(s: GameState) { S = s; }
 
-export function mk(t: string): ModuleInstance { return { t, on: true, dmg: false }; }
+export function mk(t: string, mark = 1): ModuleInstance { return { t, on: true, dmg: false, mk: mark }; }
 
 export function newState(shipName: string): GameState {
   // New-game entropy: crypto, not Math.random — the seeded stream (src/rng.ts)
@@ -239,6 +239,11 @@ export function migrate(s: any): GameState {
   if (s.version < 10) {
     (s.crew || []).forEach((c: any) => { if (c.name === "Juno Vale" && !c.key) c.key = "juno"; });
     s.version = 10;
+  }
+  // v11: module quality marks. Every existing module is Mk-I.
+  if (s.version < 11) {
+    (s.modules || []).forEach((m: any) => { if (m.mk === undefined) m.mk = 1; });
+    s.version = 11;
   }
   return s as GameState;
 }

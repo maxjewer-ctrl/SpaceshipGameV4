@@ -8,6 +8,7 @@ import { storyCards } from "../systems/silence";
 import { introCard } from "../systems/intro";
 import { standingWord } from "../systems/port";
 import { wearTier } from "../systems/wear";
+import { markOf, markLabel, markPrice } from "../systems/modtier";
 import { viewportHTML, pedestalHTML, reactorPanelHTML, lifeSupportHTML, commsFullHTML } from "./cockpit";
 
 export function selSlot(i: number) { S.sel = S.sel === i ? null : i; requestRender(); }
@@ -147,7 +148,7 @@ export function shipHTML(): string {
       slotsHtml += `<div class="v2-bay ${cat}${cls}" onclick="selSlot(${i})" title="${md.n}${m.dmg ? " — DAMAGED" : (md.pw && !m.on ? " — powered down" : "")}">
         <div class="v2-bay-fill" style="height:${fill};background:${fillC}"></div>
         <div class="v2-bay-top"><span class="v2-bay-tag" style="color:${tagC}">${tag}</span><span class="v2-bay-led" style="background:${led};box-shadow:0 0 6px ${led}"></span></div>
-        <div class="v2-bay-bot"><span class="v2-bay-icon">${md.icon}</span><span class="v2-bay-name" style="color:${nameC}">${md.n}</span></div>
+        <div class="v2-bay-bot"><span class="v2-bay-icon">${md.icon}</span><span class="v2-bay-name" style="color:${nameC}">${md.n}${markOf(m) > 1 ? ` <b style="color:var(--accent)">${markLabel(markOf(m))}</b>` : ""}</span></div>
       </div>`;
     } else if (i < S.slotsMax) {
       slotsHtml += `<div class="v2-bay empty" onclick="selSlot(-1)"><div class="v2-bay-bot"><span class="v2-bay-icon">＋</span><span class="v2-bay-name dim">empty bay</span></div></div>`;
@@ -169,14 +170,14 @@ export function shipHTML(): string {
       : wt === "worn"
         ? `<p style="margin-bottom:6px"><b style="color:var(--amber)">🔩 WORN</b> <span class="dim">— running, but trouble picks on worn systems first.</span></p>`
         : "";
-    selHtml = `<div class="panel"><h3>${md.icon} ${md.n}</h3>
+    selHtml = `<div class="panel"><h3>${md.icon} ${md.n} <span style="color:var(--accent)">Mk-${markLabel(markOf(m))}</span></h3>
       <p style="margin-bottom:6px">${status}</p>
       ${wearLine}
       <p class="dim" style="margin-bottom:8px">${md.d}</p>
       ${m.dmg ? '<p class="dim" style="margin-bottom:8px">Repair at any shipyard dry dock (80cr), or a mechanic may jury-rig it in flight.</p>' : ""}
       <div style="display:flex; gap:6px; flex-wrap:wrap">
         ${md.pw && !m.dmg ? `<button onclick="toggleMod(${S.sel})">${m.on ? "⏻ Power down" : "⏻ Power up (+" + md.pw + "⚡)"}</button>` : ""}
-        <button ${S.docked ? "" : "disabled"} onclick="sellMod(${S.sel})">Sell for ${Math.round(md.price * (m.dmg ? 0.4 : 0.6))}cr${S.docked ? "" : " (dock first)"}</button>
+        <button ${S.docked ? "" : "disabled"} onclick="sellMod(${S.sel})">Sell for ${Math.round(markPrice(m.t, markOf(m)) * (m.dmg ? 0.4 : 0.6))}cr${S.docked ? "" : " (dock first)"}</button>
       </div></div>`;
   } else if (S.sel === -1) {
     selHtml = `<div class="panel"><h3>Empty Slot</h3><p class="dim">Buy modules at any planet's Shipyard. Foundry runs 15% off.</p></div>`;

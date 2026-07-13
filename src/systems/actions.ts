@@ -5,6 +5,7 @@ import { stats, modInst, cargoUsed, scargoUsed, paxJobs, vipJobs } from "../deri
 import { pick } from "../rng";
 import { requestRender } from "../bus";
 import { yardPrice } from "./market";
+import { markOf, markLabel, markPrice, markScaled, yardMaxMark } from "./modtier";
 import { portPriceMult, hasPortMark } from "./port";
 import { strongestMemory, sentiment, crewKey } from "./ledger";
 
@@ -156,20 +157,41 @@ export function repairShip() {
   log(`Yard crew patched ${pts} hull for ${pts * 4}cr.`); requestRender();
 }
 
-export function buyMod(t: string) {
+export function buyMod(t: string, mark = 1) {
   if (modInst().length >= S.slotsMax) { log("No free slot — buy a hull expansion."); requestRender(); return; }
-  const price = yardPrice(t);
+  if (mark > yardMaxMark(S.loc)) { log(`This yard doesn't fit Mk-${markLabel(mark)} gear. Try Foundry.`); requestRender(); return; }
+  const price = yardPrice(t, mark);
   if (S.credits < price) { log("Not enough credits."); requestRender(); return; }
   S.credits -= price;
-  const m = mk(t);
+  const m = mk(t, mark);
   S.modules.push(m);
   const st = stats();
+  const label = `${MODS[t].n} Mk-${markLabel(mark)}`;
   if (MODS[t].pw && st.powerUse > st.powerOut) {
     m.on = false;
-    log(`Installed ${MODS[t].n} (−${price}cr) — but the reactor can't feed it. It's OFFLINE until you free up power.`);
+    log(`Installed ${label} (−${price}cr) — but the reactor can't feed it. It's OFFLINE until you free up power.`);
   } else {
-    log(`Installed ${MODS[t].n} (−${price}cr). The yard crew welds it in before lunch.`);
+    log(`Installed ${label} (−${price}cr). The yard crew welds it in before lunch.`);
   }
+  requestRender();
+}
+
+// Walk a module you already own up one quality mark for the price difference —
+// the credit sink for a "finished" ship. Upgrades the lowest-mark, sound
+// instance of the type (a damaged/failing unit must be fixed first).
+export function upgradeMod(t: string) {
+  const max = yardMaxMark(S.loc);
+  const cands = S.modules.filter((m) => m.t === t && !m.dmg && markOf(m) < max);
+  if (!cands.length) { log(`No ${MODS[t].n} here to upgrade — either you own none below this yard's Mk-${markLabel(max)}, or the one you have needs repair first.`); requestRender(); return; }
+  const m = cands.sort((a, b) => markOf(a) - markOf(b))[0];
+  const from = markOf(m), to = from + 1;
+  const cost = yardPrice(t, to) - yardPrice(t, from);
+  if (S.credits < cost) { log(`Not enough credits to upgrade the ${MODS[t].n} to Mk-${markLabel(to)} (needs ${cost}cr).`); requestRender(); return; }
+  S.credits -= cost;
+  m.mk = to;
+  m.wear = 0; // a re-fit to a higher spec comes back trued
+  powerRebalance();
+  log(`Yard crew strip the ${MODS[t].n} to the frame and rebuild it to Mk-${markLabel(to)} spec (−${cost}cr).`);
   requestRender();
 }
 
@@ -178,20 +200,22 @@ export function sellMod(idx: number) {
   if (!m || !S.docked) return;
   const t = m.t;
   const st = stats();
-  const lose = m.dmg ? 0 : 1; // capacity this instance currently provides
-  if (t === "cargohold" && cargoUsed() > st.cargoCap - lose * 20) { log("Cargo hold isn't empty enough to remove."); requestRender(); return; }
-  if (t === "smuggler" && scargoUsed() > st.scargoCap - lose * 10) { log("Hidden hold isn't empty."); requestRender(); return; }
-  if (t === "cabin" && paxJobs().length > st.paxCap - lose * 2) { log("Passengers are using that cabin."); requestRender(); return; }
-  if (t === "luxcabin" && vipJobs().length > st.vipCap - lose) { log("Your VIP is in that stateroom."); requestRender(); return; }
-  if (t === "quarters" && S.crew.length > st.crewCap - lose * 2) { log("Crew are bunked there — dismiss someone first."); requestRender(); return; }
-  if (t === "fueltank" && st.fuelCap - lose * MODS.fueltank.fuel! <= 0) { log("Can't scrap your last fuel tank — the ship would have nowhere to hold fuel."); requestRender(); return; }
-  const gain = Math.round(MODS[t].price * (m.dmg ? 0.4 : 0.6));
+  // Capacity this specific instance provides (mark-scaled) — a Mk-III hold is
+  // worth 40, so removing it frees/needs 40, not a flat 20.
+  const capOf = (field: string) => m.dmg ? 0 : markScaled(m, field as any);
+  if (t === "cargohold" && cargoUsed() > st.cargoCap - capOf("cargo")) { log("Cargo hold isn't empty enough to remove."); requestRender(); return; }
+  if (t === "smuggler" && scargoUsed() > st.scargoCap - capOf("scargo")) { log("Hidden hold isn't empty."); requestRender(); return; }
+  if (t === "cabin" && paxJobs().length > st.paxCap - capOf("pax")) { log("Passengers are using that cabin."); requestRender(); return; }
+  if (t === "luxcabin" && vipJobs().length > st.vipCap - capOf("vip")) { log("Your VIP is in that stateroom."); requestRender(); return; }
+  if (t === "quarters" && S.crew.length > st.crewCap - capOf("crew")) { log("Crew are bunked there — dismiss someone first."); requestRender(); return; }
+  if (t === "fueltank" && st.fuelCap - capOf("fuel") <= 0) { log("Can't scrap your last fuel tank — the ship would have nowhere to hold fuel."); requestRender(); return; }
+  const gain = Math.round(markPrice(t, markOf(m)) * (m.dmg ? 0.4 : 0.6));
   S.modules.splice(S.modules.indexOf(m), 1);
   if (t === "fueltank") S.fuel = Math.min(S.fuel, stats().fuelCap);
   S.credits += gain;
   S.sel = null;
   powerRebalance();
-  log(`Sold ${m.dmg ? "the wreckage of the " : ""}${MODS[t].n} for ${gain}cr.`);
+  log(`Sold ${m.dmg ? "the wreckage of the " : ""}${MODS[t].n} Mk-${markLabel(markOf(m))} for ${gain}cr.`);
   requestRender();
 }
 

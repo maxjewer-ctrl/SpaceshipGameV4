@@ -10,7 +10,9 @@ export interface ModuleDef {
 // wear 0-100: accrues in flight, drives RELIABILITY (worn modules break first,
 // failing ones quit on their own schedule). Reset by a dry-dock refit — the
 // ship is never finished, only currently holding together.
-export interface ModuleInstance { t: string; on: boolean; dmg: boolean; wear?: number; }
+// mk: quality mark 1/2/3 (Mk-I default). Higher marks scale the module's
+// output; see systems/modtier.ts. Absent = Mk-I (pre-tiers saves).
+export interface ModuleInstance { t: string; on: boolean; dmg: boolean; wear?: number; mk?: number; }
 
 // The captain's chosen look — set in the character creator, drawn by the shared
 // avatar renderer (ui/avatarDraw.ts) for both the preview and the walking sprite.

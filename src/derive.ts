@@ -2,6 +2,7 @@
 import { S } from "./state";
 import { MODS, PLANETS, ROLES } from "./content";
 import { portPriceMult } from "./systems/port";
+import { markScaled } from "./systems/modtier";
 import type { ModuleInstance, ShipStats, Job } from "./types";
 
 export function modInst(): ModuleInstance[] {
@@ -33,22 +34,28 @@ export function stats(): ShipStats {
   const intact = (t: string) => S.modules.filter((m) => m.t === t && !m.dmg).length;
   const active = (t: string) =>
     S.modules.filter((m) => m.t === t && !m.dmg && (MODS[m.t].pw ? m.on : true)).length;
+  // Capacity is the SUM of each instance's mark-scaled output, not a flat
+  // count × base — a Mk-III cargo hold holds 40, a Mk-I holds 20 (systems/modtier).
+  const sumIntact = (t: string, field: string) =>
+    S.modules.filter((m) => m.t === t && !m.dmg).reduce((a, m) => a + markScaled(m, field as any), 0);
+  const sumActive = (t: string, field: string) =>
+    S.modules.filter((m) => m.t === t && !m.dmg && (MODS[m.t].pw ? m.on : true)).reduce((a, m) => a + markScaled(m, field as any), 0);
   const has = (r: string) => crewCovers(r) || captainCovers(r);
-  const powerOut = 4 + 2 * S.engineLvl + intact("reactor") * 3;
+  const powerOut = 4 + 2 * S.engineLvl + sumIntact("reactor", "gen");
   const powerUse = S.modules.reduce(
     (a, m) => a + (MODS[m.t].pw && m.on && !m.dmg ? MODS[m.t].pw! : 0), 0);
-  const wDmg = active("weapons") * 8;
+  const wDmg = sumActive("weapons", "dmg");
   return {
     inst, intact, active, has, powerOut, powerUse,
-    fuelCap: intact("fueltank") * 40,
-    cargoCap: intact("cargohold") * 20,
-    scargoCap: intact("smuggler") * 10,
-    paxCap: intact("cabin") * 2,
-    vipCap: intact("luxcabin"),
-    crewCap: intact("quarters") * 2,
+    fuelCap: sumIntact("fueltank", "fuel"),
+    cargoCap: sumIntact("cargohold", "cargo"),
+    scargoCap: sumIntact("smuggler", "scargo"),
+    paxCap: sumIntact("cabin", "pax"),
+    vipCap: sumIntact("luxcabin", "vip"),
+    crewCap: sumIntact("quarters", "crew"),
     dmg: Math.round((wDmg > 0 ? wDmg : 2) * (has("gunner") ? (perkActive("gunner") ? 1.65 : 1.5) : 1)),
-    shield: active("shields") * 4,
-    foodGen: active("hydro") * 2,
+    shield: sumActive("shields", "shield"),
+    foodGen: sumActive("hydro", "food"),
     speed: [0, 70, 85, 100][S.engineLvl],
     fuelDay: +(4 * (has("pilot") ? (perkActive("pilot") ? 0.78 : 0.85) : 1)).toFixed(1),
   };

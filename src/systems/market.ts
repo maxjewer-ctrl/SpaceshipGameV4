@@ -7,11 +7,12 @@ import { requestRender } from "../bus";
 import { bark } from "./barks";
 import { shift } from "./disposition";
 import { introOnAccept } from "./intro";
+import { markPrice } from "./modtier";
 import type { Job, CrewMember, CrewBundle } from "../types";
 
-export function yardPrice(t: string): number {
+export function yardPrice(t: string, mk = 1): number {
   const disc = PLANETS[S.loc].yard || 1;
-  return Math.round(MODS[t].price * disc);
+  return Math.round(markPrice(t, mk) * disc);
 }
 
 export function refreshMarket() {

@@ -22,7 +22,7 @@ import {
 import { acceptMission, hire } from "./systems/market";
 import {
   toggleMod, repairSystems, fireCrew, buyGood, sellGood, buyFuel, buyFood,
-  repairShip, buyMod, sellMod, upgradeEngine, buySlots,
+  repairShip, buyMod, sellMod, upgradeMod, upgradeEngine, buySlots,
 } from "./systems/actions";
 import { depart, waitDay, advanceDay, abandonJob } from "./systems/travel";
 import { startCombat, cAct, endCombat } from "./systems/combat";
@@ -86,7 +86,7 @@ Object.assign(window as any, {
   introStart, introAct,
   // planet actions
   acceptMission, hire, fireCrew, buyGood, sellGood, buyFuel, buyFood,
-  repairShip, repairSystems, buyMod, sellMod, toggleMod, upgradeEngine, buySlots, refitShip,
+  repairShip, repairSystems, buyMod, sellMod, upgradeMod, toggleMod, upgradeEngine, buySlots, refitShip,
   // travel
   depart, waitDay, advanceDay, abandonJob,
   // combat

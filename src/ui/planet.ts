@@ -4,6 +4,7 @@ import { stats, modInst, cargoUsed, daysTo, foodPerDay, fuelShortfallCost } from
 import { fmt } from "../util";
 import { requestRender } from "../bus";
 import { refreshMarket, canAccept, needBadges, yardPrice } from "../systems/market";
+import { marksAt, yardMaxMark, markLabel, markOf } from "../systems/modtier";
 import { arcCantinaCard } from "../systems/arc";
 import { reputation } from "../systems/disposition";
 import { refitCost, wearTier, anyWorn } from "../systems/wear";
@@ -123,24 +124,43 @@ function yardHTML(): string {
   const p = PLANETS[S.loc];
   const nonCore = modInst().length;
   const dmgd = S.modules.filter((m) => m.dmg);
+  const marks = marksAt(S.loc);
+  const maxMark = yardMaxMark(S.loc);
+  const full = nonCore >= S.slotsMax;
   const modsHtml = Object.keys(MODS).filter((t) => !MODS[t].core).map((t) => {
     const m = MODS[t];
-    const price = yardPrice(t);
-    const owned = st.inst(t);
     const pwr = m.pw ? ` <span class="badge">⚡ draws ${m.pw}</span>` : m.gen ? ` <span class="badge ok">⚡ +${m.gen}</span>` : ` <span class="badge">passive</span>`;
-    return `<div class="card"><div class="title">${m.icon} ${m.n} ${owned ? `<span class="dim">(own ${owned})</span>` : ""}</div>
+    // Owned-marks summary, e.g. "own I×2 · II×1"
+    const owns = S.modules.filter((mm) => mm.t === t);
+    const byMark = [1, 2, 3].map((mk) => ({ mk, n: owns.filter((mm) => markOf(mm) === mk).length })).filter((x) => x.n);
+    const ownedBadge = byMark.length ? `<span class="dim">(own ${byMark.map((x) => `Mk-${markLabel(x.mk)}×${x.n}`).join(" · ")})</span>` : "";
+    // One buy button per mark this yard stocks.
+    const buys = marks.map((mk) => {
+      const price = yardPrice(t, mk);
+      const ok = S.credits >= price && !full;
+      return `<button class="mk-buy" ${ok ? "" : "disabled"} onclick="buyMod('${t}',${mk})">Mk-${markLabel(mk)} · ${price}cr</button>`;
+    }).join("");
+    // Upgrade path: if you own a sound instance below this yard's max mark.
+    const upCand = owns.filter((mm) => !mm.dmg && markOf(mm) < maxMark).sort((a, b) => markOf(a) - markOf(b))[0];
+    let upBtn = "";
+    if (upCand) {
+      const to = markOf(upCand) + 1;
+      const cost = yardPrice(t, to) - yardPrice(t, markOf(upCand));
+      upBtn = `<button class="mk-up" ${S.credits >= cost ? "" : "disabled"} onclick="upgradeMod('${t}')">⤴ Upgrade a unit → Mk-${markLabel(to)} (${cost}cr)</button>`;
+    }
+    return `<div class="card"><div class="title">${m.icon} ${m.n} ${ownedBadge}</div>
       <div class="dim">${m.d}</div>
       <div>${pwr}</div>
-      <div style="margin-top:6px; display:flex; justify-content:space-between; align-items:center">
-        <span class="pay">${price}cr</span>
-        <button ${S.credits >= price && nonCore < S.slotsMax ? "" : "disabled"} onclick="buyMod('${t}')">Install</button>
+      <div class="mk-buys" style="margin-top:6px; display:flex; gap:6px; flex-wrap:wrap; align-items:center">
+        ${buys}${upBtn}
       </div></div>`;
   }).join("");
   const engCost = S.engineLvl === 1 ? 500 : 1100;
   const slotCost = S.slotsMax === 6 ? 600 : 1200;
   return `<div class="row">
-    <div class="col"><div class="panel"><h3>Module Shop ${p.yard ? '<span class="badge ok">15% off</span>' : ""} <span class="dim">(slots ${nonCore}/${S.slotsMax})</span></h3>
-      ${nonCore >= S.slotsMax ? '<p class="low" style="margin-bottom:8px">Ship is full — sell a module (Ship screen) or buy a hull expansion.</p>' : ""}
+    <div class="col"><div class="panel"><h3>Module Shop ${p.yard ? '<span class="badge ok">15% off</span>' : ""} <span class="badge${maxMark >= 3 ? " ok" : ""}">up to Mk-${markLabel(maxMark)}</span> <span class="dim">(slots ${nonCore}/${S.slotsMax})</span></h3>
+      ${maxMark < 3 ? '<p class="dim" style="margin-bottom:8px">This yard fits up to Mk-II. The best gear — Mk-III — is only fitted at Foundry\'s shipyard.</p>' : ""}
+      ${full ? '<p class="low" style="margin-bottom:8px">Ship is full — sell a module (Ship screen) or buy a hull expansion.</p>' : ""}
       ${modsHtml}</div></div>
     <div class="col">
       <div class="panel"><h3>Dry Dock</h3>
