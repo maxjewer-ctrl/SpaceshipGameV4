@@ -1,0 +1,195 @@
+{
+  "nodes": {
+    "hub": {
+      "sub": "your mechanic — wiping her hands on a rag that stopped being clean a long time ago",
+      "text": "Juno looks up from the drive housing. “Captain. Pull up a crate.” The core ticks as it cools beside her.",
+      "choices": [
+        { "label": "How's she holding, really?", "goto": "banter" },
+        { "label": "Tell me about Osei.", "requires": { "trust": "shipmate" }, "goto": "osei_1", "hidden": true },
+        { "label": "You said Foundry — what was that like?", "requires": { "trust": "shipmate" }, "goto": "foundry_1", "hidden": true },
+        { "label": "Any regrets, signing on with me?", "requires": { "trust": "trusted" }, "goto": "regrets", "hidden": true },
+        { "label": "You go quiet whenever a patrol hails. Why?", "requires": { "trust": "trusted", "flagNot": "juno_secret_confessed" }, "goto": "tell_1", "hidden": true },
+        { "label": "What do you make of the Silence now?", "requires": { "sil": 2 }, "goto": "silence_take", "hidden": true },
+        { "label": "You ever run with Red Sky?", "requires": { "rep": ["syndicate", 4] }, "goto": "syndicate_take", "once": true, "hidden": true },
+        { "label": "What did the Union do to you, Juno?", "requires": { "trust": "bonded", "flag": "juno_tell_asked", "flagNot": "juno_secret_confessed" }, "goto": "confession", "hidden": true, "tone": "primary" },
+        { "label": "Is there somewhere you still need to be?", "requires": { "trust": "bonded", "flag": "juno_secret_confessed", "flagNot": "juno_want_resolved" }, "goto": "want_ask", "hidden": true, "tone": "primary" },
+        { "label": "Nod and move on.", "tone": "primary", "end": true }
+      ]
+    },
+
+    "banter": {
+      "text": "“Holding.” She raps a knuckle on the housing. “That’s the honest answer and the only one worth having. She’ll fly wrong before she quits on you, and I know all her wrong noises by name. Ask me the day she goes quiet — that’s the day to worry.”",
+      "choices": [
+        { "label": "Good enough for me.", "effects": [{ "remember": { "who": "@juno", "fact": "asked_after_the_ship", "weight": 1, "note": "The captain asked after the ship like it mattered to them too." } }], "goto": "hub" }
+      ]
+    },
+
+    "osei_1": {
+      "expr": "worried",
+      "sub": "she doesn't put the wrench down",
+      "text": "The name lands and her hands go still on the housing for a second. “Osei.” She says it careful, like a chipped tooth. “Best captain I ever crewed for, and I’ve crewed for some. He flew that last run because the manifest was three families short on fuel and nobody else would take it at the price. That was the whole of him, right there.”",
+      "choices": [
+        { "label": "You did everything you could for him.", "reply": "“I know.” A long breath. “Doesn’t always help, knowing. But it’s the truth and I’ll take it.” She almost smiles. “You’re alright, Captain.”", "effects": [{ "remember": { "who": "@juno", "fact": "grieved_osei_together", "weight": 3, "note": "The captain sat in Osei's memory with her instead of stepping around it." } }], "goto": "osei_2" },
+        { "label": "He shouldn't have taken that run.", "reply": "Her jaw tightens. “Maybe. Say that to the three families, though.” She turns back to the core. “He knew the math. So do you, now. That’s the job.”", "effects": [{ "remember": { "who": "@juno", "fact": "judged_osei", "weight": -1, "note": "The captain second-guessed the run that killed Osei. Juno didn't argue, but she didn't forget it either." } }], "goto": "osei_2" }
+      ]
+    },
+    "osei_2": {
+      "text": "“I patched this core with him bleeding out two meters away,” she says, quieter. “Told myself if I kept her flying, some of him kept flying too. Stupid. But I’m still here and so’s the drive, so.” She shrugs. “You inherited more than a ship, Captain. Try to be worth it.”",
+      "choices": [
+        { "label": "I'll try to be.", "effects": [{ "flag": "juno_grief_done" }, { "remember": { "who": "@juno", "fact": "carries_osei", "weight": 2, "note": "The captain understood that the ship is Osei's memory to her, and said they'd try to be worth it." } }], "goto": "hub" }
+      ]
+    },
+
+    "foundry_1": {
+      "text": "“Foundry.” She wipes her hands, unnecessary, a Foundry habit. “Smelter decks. You’re born owing the company for the air you breathed on the way out, and it compounds. Whole world runs downwind of its own furnaces and calls the smell ‘industry.’” A dry look. “It made me good with my hands and allergic to being owned. Both stuck.”",
+      "choices": [
+        { "label": "Owing them for air — that's real?", "requires": { "trust": "trusted" }, "goto": "foundry_2", "hidden": true },
+        { "label": "How'd you get out?", "goto": "foundry_2b" }
+      ]
+    },
+    "foundry_2": {
+      "text": "“Real as the deck under you. Birth-debt, they call it. Life support isn’t free and neither’s the medic who slaps your first breath into you.” She says it flat, no heat left in it. “You work it off or you don’t leave. Most don’t. I got out owing, which means officially I’m still a runaway asset somewhere in a Union ledger. That’s Foundry for you — even leaving, you’re inventory.”",
+      "choices": [
+        { "label": "That's obscene.", "reply": "“It’s legal, which is worse.” She almost smiles. “Careful, Captain — talk like that and I’ll start thinking you mean it.”", "effects": [{ "flag": "juno_origin_told" }, { "remember": { "who": "@juno", "fact": "heard_foundry_truth", "weight": 2, "note": "The captain heard how Foundry works and was disgusted on her behalf, not just curious." } }], "goto": "hub" }
+      ]
+    },
+    "foundry_2b": {
+      "text": "“Stowed on an ore hauler at fifteen, bribed a purser with a fuel-cell I lifted, and never looked back at the glow on the horizon.” She shrugs. “Learned engines because a ship that flies is a ship that leaves. Simple as that. Everything I am, I taught myself between hulls.”",
+      "choices": [
+        { "label": "Self-taught and better than most.", "effects": [{ "flag": "juno_origin_told" }, { "remember": { "who": "@juno", "fact": "shared_foundry_escape", "weight": 1, "note": "The captain heard how she got off Foundry and respected the grit of it." } }], "goto": "hub" }
+      ]
+    },
+
+    "regrets": {
+      "text": "She snorts. “Regrets. Ask a Foundry kid about regrets.” She thinks about it anyway, because you asked. “No. Not the signing on. I’ve crewed for saints who couldn’t hold a course and thieves who could. You’re neither, mostly.” A sidelong look. “Depends on the week which I’d prefer.”",
+      "choices": [
+        { "label": "Which week is this?", "requires": { "dispo": ["law", 6] }, "reply": "“The clean-hands week. You run legal, you pay square, patrols wave us through.” A beat. “Safe. I like safe. I also know safe’s never lasted for anyone I’ve loved, so I keep a bag packed. Habit.”", "goto": "hub", "hidden": true },
+        { "label": "Which week is this?", "requires": { "dispo": ["daring", 6] }, "reply": "“The kind where I re-check the drive twice a day because I know you.” She doesn’t sound like she minds. “You fly close to the edge, Captain. I signed on with a captain who took the run everyone else refused. Turns out that’s a type. Turns out I keep picking it.”", "goto": "hub", "hidden": true },
+        { "label": "Which week is this?", "reply": "“The ordinary kind. Which, out here, is the good kind.” She turns back to the core. “Don’t make me revise that.”", "goto": "hub" }
+      ]
+    },
+
+    "tell_1": {
+      "expr": "worried",
+      "sub": "her voice drops half a register",
+      "text": "The wrench pauses. She doesn’t look at you. “Patrols.” A long moment where the core is the only sound. “Old reflex. Union uniforms and I get very interested in whatever I’m holding.” She finally meets your eye, weighing something. “It’s a story I don’t hand out, Captain. Not because I don’t trust you. Because handing it out is how it stops being just mine.”",
+      "choices": [
+        { "label": "I'm not going to push.", "reply": "“…Thanks.” The set of her shoulders eases a notch. “That right there is why I might, someday.”", "effects": [{ "flag": "juno_tell_asked" }, { "remember": { "who": "@juno", "fact": "respected_her_silence", "weight": 2, "note": "The captain noticed her fear of patrols and chose not to pry — and she noticed the noticing." } }], "goto": "hub" },
+        { "label": "Whatever it is, it doesn't leave this deck.", "reply": "She studies you for a three-count. “I’ll hold you to that. Might sooner than you think.” She goes back to the core, but something’s decided behind her eyes.", "effects": [{ "flag": "juno_tell_asked" }, { "flag": "juno_trust_offer" }, { "remember": { "who": "@juno", "fact": "captain_offered_cover", "weight": 3, "note": "The captain promised her secret would never leave the ship, before they even knew what it was." } }], "goto": "hub" }
+      ]
+    },
+
+    "confession": {
+      "expr": "worried",
+      "sub": "she's already closed the hatch behind you",
+      "text": "She waits until you’re alone, drive noise covering the two of you. “You asked why I flinch at uniforms. Here it is, once.” Her hands are steady; her voice costs her. “I’m a Union deserter, Captain. Foundry conscripts labor into the fleet — ‘work off your debt in service.’ I worked off exactly none of it. Walked off a fleet tender at Meridian eleven years ago and I’ve been a name on a manifest ever since. They don’t forget inventory. If a patrol ever scans me right, this ship is harboring a runaway asset. That’s not a fine. That’s your commission and everyone’s berth.”",
+      "choices": [
+        { "label": "Your secret's safe. The Union's got no claim on this deck.", "tone": "primary", "reply": "Something she’s held clenched for eleven years lets go a fraction. “…Alright,” she says. “Alright.” She wipes her eyes with the back of a filthy hand and pretends it’s grease. “Then I’ll fly her till the stars go out, Captain. You’ve got that from me.”", "effects": [{ "flag": "juno_secret_confessed" }, { "flag": "juno_secret_kept" }, { "remember": { "who": "@juno", "fact": "captain_shielded_deserter", "weight": 5, "note": "Juno confessed she's a Union deserter, and the captain put the ship between her and the fleet without a second's hesitation." } }], "goto": "confession_after" },
+        { "label": "Half the frontier's got a Union ghost. You're among your own out here.", "requires": { "rep": ["frontier", 5] }, "hidden": true, "reply": "That reaches something the reassurance couldn’t. “Yeah. Yeah, I know it.” Her voice roughens. “Doesn’t stop it being lonely, carrying it. Less lonely now.” She grips your forearm once, hard, engineer’s grip. “I picked the right deck.”", "effects": [{ "flag": "juno_secret_confessed" }, { "flag": "juno_secret_kept" }, { "flag": "juno_frontier_bond" }, { "remember": { "who": "@juno", "fact": "found_her_people", "weight": 6, "note": "The captain met her confession as frontier kin, not as a risk — the day Juno stopped being alone with it." } }], "goto": "confession_after" },
+        { "label": "I won't turn you in. But I won't lie to a patrol either.", "requires": { "dispo": ["law", 6] }, "hidden": true, "reply": "A tight nod — it’s not the answer she hoped for, but it’s honest. “That’s more than most captains would give me, and less than I’d have liked. I’ll take it. Just… keep us out of scanner range, and we never have to test where that line is.”", "effects": [{ "flag": "juno_secret_confessed" }, { "flag": "juno_secret_uneasy" }, { "remember": { "who": "@juno", "fact": "captain_honest_about_limits", "weight": 1, "note": "The captain wouldn't turn her in but wouldn't lie to a patrol either. She respected the honesty and worried about the gap." } }], "goto": "confession_after" },
+        { "label": "We run a lot of Union freight, Juno. This complicates things.", "requires": { "rep": ["union", 6] }, "hidden": true, "reply": "The light goes out of her face. “Right.” Flat. “Course it does. Forget I said anything, Captain — I’ll keep my head down and the drive lit.” She turns back to the core, and the hatch between you feels a lot thicker than steel.", "effects": [{ "flag": "juno_secret_confessed" }, { "flag": "juno_secret_tension" }, { "remember": { "who": "@juno", "fact": "captain_weighed_union_first", "weight": -3, "note": "Juno trusted the captain with the worst thing about her, and the first thing they thought of was the Union freight contracts." } }], "goto": "confession_after" }
+      ]
+    },
+    "confession_after": {
+      "text": "She picks the wrench back up. The story’s out; the ship’s still flying; the world didn’t end. “Anyway.” Her word for a door closing gently. “Drive’s at ninety-four percent and I’d like it at ninety-six before we burn. Captain.”",
+      "choices": [
+        { "label": "Back to work, then.", "goto": "hub" }
+      ]
+    },
+
+    "want_ask": {
+      "sub": "she names it plain, the way she does hard things",
+      "text": "You ask if there’s somewhere she still needs to be. She’s quiet a while. “One place. There’s a Foundry records annex — the debt office. My birth-debt’s still open in it, accruing, eleven years on. Long as that ledger line’s live, I’m a runaway asset and this ship’s a target that walks around it.” She meets your eye. “I can’t buy it out. But a captain with standing can file a manumission on a crewer’s behalf. Make me a person instead of an entry. I never had the standing. Or the captain.”",
+      "choices": [
+        { "label": "We'll file it. On the ship's coin.", "requires": { "credits": 90 }, "tone": "primary", "reply": "“You— ” She stops. Starts over. “That’s ninety credits I’d have called mine an hour ago.” She laughs, wet and startled. “Okay. Okay, Captain. Let’s go make me legal.” When it clears — a clerk, a stamp, eleven years closing with a chime — she doesn’t say anything. She just stands very straight for a second, a free woman, then goes and re-checks the drive because that’s where she keeps her feelings. She flies it flawless from that day. (Juno's perk secured.)", "effects": [{ "credits": -90 }, { "flag": "juno_want_resolved" }, { "perk": true }, { "rep": ["frontier", 1] }, { "remember": { "who": "@juno", "fact": "captain_made_her_free", "weight": 6, "note": "The captain spent the ship's own coin to close her birth-debt and file her free. She'll fly this deck till the stars go out." } }], "goto": "want_done" },
+        { "label": "When there's slack in the schedule, we'll go.", "reply": "“Sure.” She nods, and doesn’t let you see whether she believes it. “No rush. Only been eleven years.”", "effects": [{ "flag": "juno_want_deferred" }, { "remember": { "who": "@juno", "fact": "captain_deferred_manumission", "weight": 1, "note": "The captain said they'd close her debt eventually. She's heard eventually before." } }], "goto": "hub" },
+        { "label": "That's not something this ship can carry right now.", "tone": "danger", "reply": "“…Right.” She turns back to the core, and her voice is very even. “Forget I asked. She still flies the same either way, Captain.” She’s wrong about that, and you both know it.", "effects": [{ "remember": { "who": "@juno", "fact": "captain_refused_freedom", "weight": -4, "note": "Juno asked the captain to help make her a free woman. They said the ship couldn't carry it. Something closed over in her." } }], "goto": "hub" }
+      ]
+    },
+    "want_done": {
+      "text": "“Manumission on file,” she says, testing the shape of it. “Juno Vale, unencumbered.” She shakes her head. “Weird. Good weird.” She thumps the drive housing. “She and me both, Captain. Free and flying. Don’t make me sappy about it — I’ve got a regulator to tune.”",
+      "choices": [
+        { "label": "Wouldn't dream of it.", "goto": "hub" }
+      ]
+    },
+
+    "silence_take": {
+      "expr": "worried",
+      "text": "“The Silence.” She sets the wrench down, which she doesn’t do lightly. “My whole life the black was empty, Captain, and empty was the good news. Now stations go quiet mid-sentence and everybody dockside talks about it in the same small voice.” She looks at the core like it might reassure her. “I can fix an engine. I can’t fix a sky with something in it. First time in a long time I’d rather be wrong about a noise.”",
+      "choices": [
+        { "label": "We'll face it with a full tank and eyes open.", "requires": { "silMax": 2 }, "hidden": true, "reply": "“Full tank. Yeah.” She picks the wrench back up. “That I can do something about.”", "effects": [{ "remember": { "who": "@juno", "fact": "faced_the_dimming_together", "weight": 2, "note": "The captain and Juno talked through the Dimming like crew, not like staff." } }], "goto": "hub" },
+        { "label": "We already pulled its bearing. We know where it lives now.", "requires": { "sil": 3 }, "hidden": true, "reply": "“That’s the part I can’t put down.” She wipes her hands. “Knowing where. You can’t un-know a bearing, Captain. Well. Nothing for it but to point the nose somewhere and mean it.”", "effects": [{ "remember": { "who": "@juno", "fact": "carried_the_bearing", "weight": 2, "note": "The captain and Juno both understood that knowing where the Silence lives is the part you can't undo." } }], "goto": "hub" },
+        { "label": "It's over. We were there when the sky changed.", "requires": { "flag": "silence_answered" }, "hidden": true, "reply": "“We were there.” She says it like she still doesn’t believe her own presence in it. “Every world woke up at once and it was THIS deck that made the call. I’d have hated hearing that secondhand, Captain. Glad it was us. Glad it was you.”", "effects": [{ "remember": { "who": "@juno", "fact": "witnessed_the_answer", "weight": 3, "note": "Juno was aboard when the Silence was answered and the sky changed, and she's fiercely glad it was this ship." } }], "goto": "hub" }
+      ]
+    },
+
+    "beat_grief": {
+      "expr": "worried",
+      "sub": "she catches you on the ramp, off shift",
+      "text": "Juno stops you as the docking clamps bite. “Captain. Got a second.” She’s holding a dented flask she doesn’t drink from. “It’d be Osei’s birthday about now. Foundry reckoning, so nobody keeps it but me.” She turns the flask in her hands. “I don’t need anything. Just — didn’t want to be the only one who knew, this port.”",
+      "choices": [
+        { "label": "Sit with her a minute. Osei can have that.", "tone": "primary", "reply": "You sit. She talks a little, about a captain who flew the runs nobody else would price fair. When the port lights come up she caps the flask, unsipped. “Thanks for that. He’d have liked you. Grudgingly. That was his whole affection, grudging.”", "effects": [{ "flag": "juno_grief_done" }, { "remember": { "who": "@juno", "fact": "kept_oseis_day", "weight": 3, "note": "The captain stopped everything to keep Osei's memory with her at a strange port, when she'd expected to carry it alone." } }], "end": true },
+        { "label": "There's cargo to move. Later, maybe.", "reply": "“Yeah. Course.” She caps the flask. “Later.” She’s already turning away, and later doesn’t come up again.", "effects": [{ "flag": "juno_grief_done" }, { "remember": { "who": "@juno", "fact": "no_time_for_osei", "weight": -2, "note": "Juno asked the captain to sit with Osei's memory for one minute. There was cargo to move." } }], "end": true }
+      ]
+    },
+    "beat_foundry": {
+      "sub": "watching the port through the viewport",
+      "text": "She finds you after the burn-down, nodding at the smelter-glow of some industrial port on the horizon. “Reminds me of home, that. Not fondly.” A thin smile. “Funny thing about Foundry — I hated every rivet of it and I still know it better than anywhere. Built me. You can hate the thing that built you and still reach for its tools first. Anyway.” She pushes off the bulkhead. “Just wanted to say it out loud to someone who wouldn’t make it a whole thing.”",
+      "choices": [
+        { "label": "Said, and not made a whole thing.", "effects": [{ "remember": { "who": "@juno", "fact": "let_her_say_foundry", "weight": 1, "note": "The captain let her say a hard, small thing about home without turning it into a whole thing." } }], "end": true }
+      ]
+    },
+    "beat_dimming": {
+      "expr": "worried",
+      "sub": "she's got a hand flat on the hull",
+      "text": "Juno’s standing with her palm pressed to the inner hull when you dock, the way some people touch a wall in a storm. “Another station went dark two lanes over,” she says without turning. “Mid-transmission. I keep the drive perfect, Captain — perfect — and it doesn’t matter a damn against whatever’s doing that.” She takes her hand back. “Tell me we’ve got a full tank and somewhere to run if it comes to it. Lie if you have to. Actually — don’t. You’re bad at it and I’d know.”",
+      "choices": [
+        { "label": "Full tank. And I don't run from things that matter.", "requires": { "dispo": ["daring", 4] }, "hidden": true, "reply": "A short breath, almost a laugh. “No. You don’t. That’s the problem and the reason I’m still aboard.” She squares up. “Alright. Point the nose. I’ll keep her lit.”", "effects": [{ "remember": { "who": "@juno", "fact": "steadied_in_the_dimming", "weight": 2, "note": "In the worst of the Dimming, the captain didn't flinch, and Juno drew steel from it." } }], "end": true },
+        { "label": "Full tank, full larder, and a bearing out if we need one.", "reply": "She exhales. “Good. That’s the answer. Practical. I can stand on practical.” She thumps the hull, gently, an apology to it. “Back to work.”", "effects": [{ "remember": { "who": "@juno", "fact": "reassured_in_the_dimming", "weight": 2, "note": "The captain met her fear of the Silence with a full tank and a way out — practical, the only thing that reaches her." } }], "end": true }
+      ]
+    },
+    "beat_patrol": {
+      "expr": "angry",
+      "sub": "a Union cutter is hailing, and she is very still",
+      "text": "You dock right as a Union patrol cutter throws a hail across the apron. Juno goes to stone beside you — not afraid, worse, that flat readiness of someone who’s rehearsed this. “That’s a fleet transponder,” she says low. “If they board and scan the crew, I’m the thing they find. Your call, Captain. Fast.”",
+      "choices": [
+        { "label": "Stay cool. Stand next to me and let me do the talking.", "tone": "primary", "reply": "You meet the boarding officer with the manifest and a bored captain’s patience. Juno stands at your shoulder, a mechanic like any other, hands filthy, papers unasked-for. The cutter waves you on. Only after it burns away does her breathing change. “You didn’t even blink,” she says. “I’ve had captains hide me in a fuel cell. You just… stood there and made me ordinary. I won’t forget how that felt.”", "effects": [{ "remember": { "who": "@juno", "fact": "captain_faced_the_patrol_for_her", "weight": 4, "note": "A Union cutter hailed and the captain stood beside her in plain sight, made her ordinary, and stared it down without a flicker." } }], "end": true },
+        { "label": "Get below. Now. I'll handle it.", "reply": "She’s gone before you finish, folded into the drive access like she was never on deck. You handle the officer alone; the cutter moves on. When she climbs out she nods once, tight. “Old way. Worked.” A beat. “Hate that it still has to.”", "effects": [{ "flag": "juno_patrol_hidden" }, { "remember": { "who": "@juno", "fact": "captain_hid_her_from_patrol", "weight": 2, "note": "The captain hid her from a Union boarding party. It worked. She hated that it still had to." } }], "end": true }
+      ]
+    },
+    "syndicate_take": {
+      "text": "“Red Sky.” She weighs it. “I’ve taken their parts when the Union annex wouldn’t sell to a ship like ours, and I didn’t ask where the parts walked off from. That’s as close as I get to running with anybody.” A shrug. “Say what you like about the Syndicate — they never once asked to see my papers. There’s a kind of honesty in a smuggler that a fleet clerk’ll never manage.”",
+      "choices": [
+        { "label": "Honesty among thieves.", "effects": [{ "remember": { "who": "@juno", "fact": "talked_syndicate", "weight": 1, "note": "The captain and Juno traded honest talk about the Syndicate — the only faction that never asked to see her papers." } }], "goto": "hub" }
+      ]
+    }
+  },
+
+  "beats": [
+    {
+      "id": "grief",
+      "node": "beat_grief",
+      "requires": { "trust": "shipmate", "flagNot": "juno_grief_done" }
+    },
+    {
+      "id": "foundry",
+      "node": "beat_foundry",
+      "requires": { "trust": "trusted" }
+    },
+    {
+      "id": "dimming",
+      "node": "beat_dimming",
+      "requires": { "sil": 2 }
+    },
+    {
+      "id": "patrol",
+      "node": "beat_patrol",
+      "requires": { "trust": "trusted", "flag": "juno_tell_asked", "flagNot": "juno_secret_confessed" }
+    },
+    {
+      "id": "confession",
+      "node": "confession",
+      "requires": { "trust": "bonded", "flag": "juno_tell_asked", "flagNot": "juno_secret_confessed" }
+    }
+  ]
+}

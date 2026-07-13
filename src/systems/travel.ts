@@ -21,6 +21,7 @@ import { introTravelBeat, introArrive } from "./intro";
 import { checkCrewQuests, checkCrewDeparture } from "./crewtalk";
 import { checkAgendaBeats } from "./agendabeats";
 import { checkImogenQuest } from "./imogenquest";
+import { checkJunoArc } from "./junodialogue";
 import { bumpStanding } from "./port";
 import { accrueWear } from "./wear";
 import type { Job } from "../types";
@@ -236,6 +237,7 @@ export function arrive() {
   checkCrewDeparture();
   checkAgendaBeats();
   checkImogenQuest();
+  checkJunoArc();
 }
 
 export function completePay(j: Job) {
