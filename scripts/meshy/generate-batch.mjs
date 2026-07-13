@@ -20,6 +20,7 @@ async function generateOne(item) {
       body: JSON.stringify({
         mode: "preview",
         prompt: item.prompt,
+        ...(item.negative_prompt ? { negative_prompt: item.negative_prompt } : {}),
         ai_model: "latest",
         should_remesh: true,
         target_formats: ["glb"],

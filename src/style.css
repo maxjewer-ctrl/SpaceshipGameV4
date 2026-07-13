@@ -125,7 +125,7 @@ th{color:var(--dim); font-weight:500; text-transform:uppercase; font-size:11px; 
   border:1px solid #2f3948; border-radius:8px;
   background:
     linear-gradient(180deg,rgba(5,7,10,.08),rgba(5,7,10,.72)),
-    url("./assets/cantina-backdrop.webp") center 45%/cover no-repeat;
+    url("./assets/cantina-backdrop.png") center 45%/cover no-repeat;
   box-shadow:inset 0 0 54px #000c,0 10px 26px #0009;
 }
 .cantina-hero::after{

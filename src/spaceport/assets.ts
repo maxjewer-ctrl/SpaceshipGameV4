@@ -33,6 +33,7 @@ export const SPACEPORT_PROPS: PropPlacement[] = [
   { name: "beacon-lamp",      x: -9,  z: 9,   rotY: 0,    scale: 1.0, placeholderRadius: 0.35,placeholderHeight: 3.4, placeholderColor: 0x2c2620 },
   { name: "beacon-lamp",      x: 0,   z: 15,  rotY: 0,    scale: 1.0, placeholderRadius: 0.35,placeholderHeight: 3.4, placeholderColor: 0x2c2620 },
   { name: "cargo-shuttle",    x: 0,   z: -2,  rotY: 3.14, scale: 1.0, placeholderRadius: 3.2, placeholderHeight: 2.6, placeholderColor: 0x6a5a48 },
+  { name: "cantina-job-board", x: 19, z: 14, rotY: 3.6,  scale: 1.0, placeholderRadius: 0.5, placeholderHeight: 2.0, placeholderColor: 0x6b4a1e },
 ];
 
 const loader = new GLTFLoader();
@@ -48,6 +49,7 @@ const propModelUrls = import.meta.glob<string>(
     "../assets/models/satellite-dish.glb",
     "../assets/models/water-tower.glb",
     "../assets/models/windmill-turbine.glb",
+    "../assets/models/cantina-job-board.glb",
     "../assets/models/ship-*.glb",
   ],
   { query: "?url", import: "default" },
