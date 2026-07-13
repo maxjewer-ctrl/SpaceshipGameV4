@@ -1,5 +1,12 @@
 import { S } from "./state";
 
+// Presentation/pre-game randomness ONLY — audio jitter, a random-name button
+// before a game exists. Never for a gameplay roll: anything that touches
+// GameState must use rand()/ri()/pick() (seeded) or fork() (stable streams).
+// This is the single sanctioned Math.random in the codebase; `npm run
+// lint:rng` fails the build on any other call site.
+export const uiRand = () => Math.random();
+
 // Seeded, save-persisted RNG (mulberry32). Every gameplay roll advances
 // S.rngState, so a save file fully determines the future — reproducible bugs
 // now, verifiable runs (leaderboards) later.

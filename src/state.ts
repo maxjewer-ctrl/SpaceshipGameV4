@@ -12,7 +12,9 @@ export function setState(s: GameState) { S = s; }
 export function mk(t: string): ModuleInstance { return { t, on: true, dmg: false }; }
 
 export function newState(shipName: string): GameState {
-  const seed = (Date.now() ^ (Math.random() * 0x7fffffff)) | 0;
+  // New-game entropy: crypto, not Math.random — the seeded stream (src/rng.ts)
+  // owns every roll after this moment.
+  const seed = (crypto.getRandomValues(new Int32Array(1))[0] ^ Date.now()) | 0;
   return {
     version: SAVE_VERSION,
     seed,

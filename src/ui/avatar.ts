@@ -4,6 +4,7 @@
 // DOM — so the name inputs never lose focus or value. A small rAF loop keeps the
 // preview breathing while the modal is open.
 import type { Appearance } from "../types";
+import { uiRand } from "../rng";
 import { modal } from "../modal";
 import { HEADS, GARBS, AVATAR_LOOKS, SKINS, SUITS, TRIMS, DEFAULT_APPEARANCE, drawAvatar } from "./avatarDraw";
 import { ROLES } from "../content";
@@ -95,7 +96,7 @@ function startPreview() {
 // ---- handlers (registered as globals in main.ts) ----
 export function avName(v: string) { draft.captainName = v; }
 export function avRandomName() {
-  draft.captainName = NAME_POOL[Math.floor(Math.random() * NAME_POOL.length)];
+  draft.captainName = NAME_POOL[Math.floor(uiRand() * NAME_POOL.length)];
   const el = document.getElementById("captainnamein") as HTMLInputElement | null;
   if (el) el.value = draft.captainName;
 }

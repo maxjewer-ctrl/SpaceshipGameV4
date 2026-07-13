@@ -8,11 +8,12 @@ import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass.js";
 import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { S } from "../state";
+import { fork } from "../rng";
 import { MODS } from "../content";
 import { cargoUsed } from "../derive";
 import { wearTier } from "../systems/wear";
 import type { WalkActor, WalkDoor, WalkScene } from "./walk";
-import { spawnProp } from "../spaceport/assets";
+import { spawnProp } from "./props3d";
 import bulkheadWallUrl from "../assets/ship/bulkhead-wall.webp";
 import corridorWallUrl from "../assets/ship/corridor-wall.webp";
 import corridorFloorUrl from "../assets/ship/corridor-floor.webp";
@@ -197,13 +198,15 @@ function desertPlankTexture(): THREE.CanvasTexture {
   x.fillStyle = "#8a6448"; x.fillRect(0, 0, 256, 256);
   x.strokeStyle = "rgba(30,16,8,.35)"; x.lineWidth = 3;
   for (let i = 0; i <= 256; i += 26) { x.beginPath(); x.moveTo(i, 0); x.lineTo(i, 256); x.stroke(); }
-  for (let i = 0; i < 500; i++) { x.fillStyle = `rgba(20,10,5,${Math.random() * .12})`; x.fillRect(Math.random() * 256, Math.random() * 256, 2, 2); }
+  const r = fork("tex:plank");
+  for (let i = 0; i < 500; i++) { x.fillStyle = `rgba(20,10,5,${r() * .12})`; x.fillRect(r() * 256, r() * 256, 2, 2); }
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(2.2, 1.5); return t;
 }
 function sandTexture(): THREE.CanvasTexture {
   const c = document.createElement("canvas"); c.width = 256; c.height = 256; const x = c.getContext("2d")!;
   x.fillStyle = "#8a5a34"; x.fillRect(0, 0, 256, 256);
-  for (let i = 0; i < 3000; i++) { x.fillStyle = Math.random() < .5 ? "rgba(40,22,10,.10)" : "rgba(210,160,100,.10)"; x.fillRect(Math.random() * 256, Math.random() * 256, 2, 2); }
+  const r = fork("tex:sand");
+  for (let i = 0; i < 3000; i++) { x.fillStyle = r() < .5 ? "rgba(40,22,10,.10)" : "rgba(210,160,100,.10)"; x.fillRect(r() * 256, r() * 256, 2, 2); }
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(6, 4); return t;
 }
 // The 10 Meshy-generated spaceport props (see scripts/meshy/, src/spaceport/),

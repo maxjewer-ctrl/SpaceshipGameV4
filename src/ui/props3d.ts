@@ -1,7 +1,8 @@
-// Placement + loading for the Meshy-generated props. Each entry maps to a GLB
-// dropped at src/assets/models/<name>.glb by scripts/meshy/generate-batch.mjs.
-// Until that file exists (still generating, or generation failed), a procedural
-// placeholder stands in so the level is always inspectable.
+// Loading + placement for the Meshy-generated 3D props (walk decks, Dustwell).
+// Each name maps to a GLB dropped at src/assets/models/<name>.glb by
+// scripts/meshy/generate-batch.mjs. Until that file exists (still generating,
+// or generation failed), a procedural placeholder stands in so the scene is
+// always inspectable. (Moved from the deleted src/spaceport/ demo.)
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
@@ -16,24 +17,6 @@ export interface PropPlacement {
   placeholderHeight: number;
   placeholderColor: number;
 }
-
-export const SPACEPORT_PROPS: PropPlacement[] = [
-  { name: "water-tower",      x: -18, z: -10, rotY: 0.3,  scale: 1.0, placeholderRadius: 1.6, placeholderHeight: 6.5, placeholderColor: 0x8a6a4a },
-  { name: "cargo-crate",      x: 10,  z: 6,   rotY: 0.2,  scale: 1.0, placeholderRadius: 0.9, placeholderHeight: 1.2, placeholderColor: 0x9c7a45 },
-  { name: "cargo-crate",      x: 11.6,z: 7.4, rotY: -0.6, scale: 0.9, placeholderRadius: 0.9, placeholderHeight: 1.2, placeholderColor: 0x9c7a45 },
-  { name: "satellite-dish",   x: -8,  z: -16, rotY: -0.4, scale: 1.0, placeholderRadius: 1.2, placeholderHeight: 3.2, placeholderColor: 0x6d7580 },
-  { name: "fuel-tank",        x: -20, z: 4,   rotY: 0,    scale: 1.0, placeholderRadius: 1.4, placeholderHeight: 3.6, placeholderColor: 0x7a5230 },
-  { name: "fuel-tank",        x: -22.6,z: 6.2,rotY: 0.5,  scale: 0.85,placeholderRadius: 1.4, placeholderHeight: 3.6, placeholderColor: 0x7a5230 },
-  { name: "mooring-post",     x: 6,   z: -8,  rotY: 0,    scale: 1.0, placeholderRadius: 0.4, placeholderHeight: 2.4, placeholderColor: 0x4a3524 },
-  { name: "mooring-post",     x: -6,  z: -8,  rotY: 0,    scale: 1.0, placeholderRadius: 0.4, placeholderHeight: 2.4, placeholderColor: 0x4a3524 },
-  { name: "cargo-hauler",     x: 16,  z: -6,  rotY: 2.4,  scale: 1.0, placeholderRadius: 2.2, placeholderHeight: 1.8, placeholderColor: 0x5c4632 },
-  { name: "windmill-turbine", x: -26, z: -18, rotY: 0.8,  scale: 1.0, placeholderRadius: 1.0, placeholderHeight: 8.5, placeholderColor: 0x8a7a5a },
-  { name: "barrel-stack",     x: 14,  z: 10,  rotY: 0.4,  scale: 1.0, placeholderRadius: 0.8, placeholderHeight: 1.4, placeholderColor: 0x54402c },
-  { name: "beacon-lamp",      x: 9,   z: 9,   rotY: 0,    scale: 1.0, placeholderRadius: 0.35,placeholderHeight: 3.4, placeholderColor: 0x2c2620 },
-  { name: "beacon-lamp",      x: -9,  z: 9,   rotY: 0,    scale: 1.0, placeholderRadius: 0.35,placeholderHeight: 3.4, placeholderColor: 0x2c2620 },
-  { name: "beacon-lamp",      x: 0,   z: 15,  rotY: 0,    scale: 1.0, placeholderRadius: 0.35,placeholderHeight: 3.4, placeholderColor: 0x2c2620 },
-  { name: "cargo-shuttle",    x: 0,   z: -2,  rotY: 3.14, scale: 1.0, placeholderRadius: 3.2, placeholderHeight: 2.6, placeholderColor: 0x6a5a48 },
-];
 
 const loader = new GLTFLoader();
 const propModelUrls = import.meta.glob<string>(

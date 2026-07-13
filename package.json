@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && vite build",
+    "lint:rng": "node scripts/check-rng.mjs",
+    "build": "npm run lint:rng && tsc --noEmit && vite build",
     "preview": "vite preview",
     "seed": "node supabase/seed.mjs",
     "meshy:list": "node --env-file=.env scripts/meshy/list.mjs",
