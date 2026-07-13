@@ -25,8 +25,12 @@ async function canvasShot(canvas: HTMLCanvasElement): Promise<string> {
 
 async function domShot(full: boolean): Promise<string> {
   const root = document.documentElement;
-  const w = root.clientWidth;
-  const h = full ? Math.max(root.scrollHeight, root.clientHeight) : root.clientHeight;
+  // clientWidth/Height are 0 in a zero-size (never-rendered) tab — fall back to
+  // a standard desktop viewport. The SVG foreignObject uses these as its own
+  // viewport dimensions, so CSS vw/vh units compute correctly from this value.
+  const w = root.clientWidth || 1280;
+  const rawH = root.clientHeight || 800;
+  const h = full ? Math.max(root.scrollHeight || rawH, rawH) : rawH;
   const clone = root.cloneNode(true) as HTMLElement;
   clone.setAttribute("xmlns", "http://www.w3.org/1999/xhtml");
   clone.querySelectorAll("script").forEach((s) => s.remove());
