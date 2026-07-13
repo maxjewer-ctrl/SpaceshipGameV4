@@ -10,6 +10,10 @@ export interface WalkRect { x: number; y: number; w: number; h: number; }
 export interface WalkDoor extends WalkRect { label: string; locked?: boolean; lockedHint?: string; action: () => void; }
 export interface WalkActor extends WalkRect { key: string; label: string; icon?: string; color?: string; role?: string; modelKey?: string; bubble?: string; verb?: string; onInteract: () => void; }
 export interface WalkRoom extends WalkRect { id: string; label: string; icon?: string; color?: string; kind?: string; moduleIndex?: number; moduleType?: string; }
+// A solid structure you walk AROUND, not on — the inverse of a floor. Buildings
+// on an open-ground plaza are obstacles; the door to enter sits on the plaza in
+// front of them. `tall` renders it as a full building vs. a low prop/planter.
+export interface WalkObstacle extends WalkRect { id?: string; label?: string; icon?: string; color?: string; tall?: boolean; }
 export interface WalkScene {
   id: string;                 // unique per context — changing it remounts at spawn
   title: string;
@@ -20,12 +24,19 @@ export interface WalkScene {
   roomDesc?: Record<string, string>;
   doors: WalkDoor[];
   actors: WalkActor[];
+  // Solid footprints carved out of the walkable floor (buildings, the ship).
+  // insideFloors() rejects points inside these; walk3d renders them as structures.
+  obstacles?: WalkObstacle[];
   spawn: { x: number; y: number };
   dark?: boolean;
   // Action mode: the Hades-style kit (aim/fire/roll, quicker stride) is live.
   // Only planet surfaces and hostile (silenced) stations set this — your own
   // ship and friendly decks are navigation/dialogue space, no combat verbs.
   action?: boolean;
+  // Open-ground layout (a plaza with a perimeter wall and freestanding
+  // buildings) vs. the default warren of rooms + corridors. Drives walk3d's
+  // town-wall / building rendering. Planet towns set this; stations don't.
+  openGround?: boolean;
   onTick?: (moving: boolean, dt: number, roomId: string | null) => void;
 }
 
@@ -243,7 +254,15 @@ function insideFloors(px: number, py: number): boolean {
   if (!scene) return false;
   const r = 9;
   const pts: [number, number][] = [[px - r, py - r], [px + r, py - r], [px - r, py + r], [px + r, py + r]];
-  return pts.every(([cx, cy]) => scene!.floors.some((f) => cx >= f.x && cx <= f.x + f.w && cy >= f.y && cy <= f.y + f.h));
+  // On a floor rect...
+  if (!pts.every(([cx, cy]) => scene!.floors.some((f) => cx >= f.x && cx <= f.x + f.w && cy >= f.y && cy <= f.y + f.h))) return false;
+  // ...and clear of every solid obstacle. A point is blocked if the player's
+  // bounding box overlaps a building/ship footprint.
+  const obs = scene.obstacles;
+  if (obs) for (const o of obs) {
+    if (px + r > o.x && px - r < o.x + o.w && py + r > o.y && py - r < o.y + o.h) return false;
+  }
+  return true;
 }
 export function walkInsideFloors(px: number, py: number): boolean { return insideFloors(px, py); }
 // Move from `from` toward `to` along one axis; if the full step is illegal,

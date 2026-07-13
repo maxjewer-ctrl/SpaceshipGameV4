@@ -212,34 +212,86 @@ function sandTexture(): THREE.CanvasTexture {
   for (let i = 0; i < 3000; i++) { x.fillStyle = r() < .5 ? "rgba(60,34,16,.09)" : "rgba(240,200,150,.12)"; x.fillRect(r() * 256, r() * 256, 2, 2); }
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(6, 4); return t;
 }
-// The 10 Meshy-generated spaceport props (see scripts/meshy/, src/spaceport/),
-// scattered one per Dustwell room so the town actually looks like the desert
-// spaceport it's named after instead of a re-tinted station deck.
-function spawnDesertProps(g: THREE.Group, scene: WalkScene) {
-  const at = (roomId: string) => {
-    const r = scene.rooms.find((rm) => rm.id === roomId);
-    return r ? { x: wx(r.x + r.w / 2), z: wz(r.y + r.h / 2) } : { x: 0, z: 0 };
-  };
-  const docks = at("docks"), drydock = at("drydock"), concourse = at("concourse"), market = at("market"), harbor = at("harbor");
-  const place = (name: string, x: number, z: number, h: number, rotY = 0, color = 0x8a6a4a) =>
-    spawnProp(g, { name, x, z, rotY, placeholderRadius: h * .3, placeholderHeight: h, placeholderColor: color });
+// The Meshy-generated desert props, scattered across the open plaza (game-space
+// coords) clear of the buildings and the central ship pad, so the square reads
+// as a lived-in frontier town. Heights kept ≤2.6m for the top-down camera.
+function spawnDesertProps(g: THREE.Group, _scene: WalkScene) {
+  const place = (name: string, gx: number, gy: number, h: number, rotY = 0, color = 0x8a6a4a) =>
+    spawnProp(g, { name, x: wx(gx), z: wz(gy), rotY, placeholderRadius: h * .3, placeholderHeight: h, placeholderColor: color });
 
-  // Heights trimmed and tall props pulled toward room centres for the fixed
-  // top-down camera: at this angle anything over ~2.5m mostly shows its lid and
-  // its silhouette clips through the waist-high fences, so the windmill and
-  // water tower are shorter and sit clear of the walls rather than on the edge.
-  place("cargo-shuttle", docks.x + .3, docks.z - 1.0, 0.85, 1.6);
-  place("beacon-lamp", docks.x - 1.7, docks.z + 1.0, 1.15);
-  place("beacon-lamp", docks.x + 1.7, docks.z + 1.0, 1.15);
-  place("mooring-post", docks.x - 1.6, docks.z - .3, 0.9);
-  place("mooring-post", docks.x + 1.6, docks.z - .3, 0.9);
-  place("cargo-hauler", drydock.x - .5, drydock.z + .6, 0.95, 1.1);
-  place("fuel-tank", drydock.x + 1.0, drydock.z - .5, 1.15);
-  place("water-tower", concourse.x - 1.1, concourse.z - .9, 2.5, 0.3);
-  place("windmill-turbine", concourse.x + 1.0, concourse.z + .7, 2.6, -0.5);
-  place("cargo-crate", market.x + 1.0, market.z + .8, 0.6, 0.6);
-  place("barrel-stack", market.x - 1.0, market.z - .7, 0.75);
-  place("satellite-dish", harbor.x + 1.1, harbor.z - .8, 1.1, -0.3);
+  // landmarks anchoring the upper square, off-centre so they don't block the gate
+  place("water-tower", 420, 255, 2.5, 0.3);
+  place("windmill-turbine", 600, 245, 2.6, -0.5);
+  place("satellite-dish", 660, 250, 1.1, -0.3);
+  // frontage clutter by the shops
+  place("cargo-crate", 350, 470, 0.6, 0.6);
+  place("barrel-stack", 330, 545, 0.75);
+  place("fuel-tank", 700, 490, 1.15);
+  // the landing pad, flanking the ship's approach
+  place("beacon-lamp", 372, 448, 1.15);
+  place("beacon-lamp", 628, 448, 1.15);
+  place("mooring-post", 402, 452, 0.9);
+  place("mooring-post", 598, 452, 0.9);
+}
+
+// Open-ground rendering: the perimeter town wall (with a gate gap), the
+// freestanding service buildings, and the ship on its pad. Called instead of
+// the per-room wall loop when scene.openGround is set (planet towns).
+function renderOpenGround(g: THREE.Group, scene: WalkScene, dark: boolean) {
+  // Plaza bounds = bounding box of the walkable floor.
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  for (const f of scene.floors) { minX = Math.min(minX, f.x); minY = Math.min(minY, f.y); maxX = Math.max(maxX, f.x + f.w); maxY = Math.max(maxY, f.y + f.h); }
+  const left = wx(minX), right = wx(maxX), top = wz(minY), bot = wz(maxY);
+  const Ww = right - left, Dw = bot - top, cxw = (left + right) / 2, czw = (top + bot) / 2;
+  const wallH = 1.85, t = 0.24;
+  const wallMat = mat(dark ? "#4a3a2c" : "#9c7048", dark ? 0 : .05);
+  const seg = (cx: number, cz: number, w: number, d: number, h = wallH) => { const q = box(w, h, d, wallMat); q.position.set(cx, h / 2 - .04, cz); g.add(q); };
+  // Gate gap in the top (north) wall — the road out of town.
+  const gx0 = wx(430), gx1 = wx(570);
+  seg((left + gx0) / 2, top, gx0 - left, t);
+  seg((gx1 + right) / 2, top, right - gx1, t);
+  seg(cxw, bot, Ww, t);          // south wall
+  seg(left, czw, t, Dw);         // west wall
+  seg(right, czw, t, Dw);        // east wall
+  // Gate posts flanking the opening.
+  for (const gp of [gx0, gx1]) { const p = box(.28, 2.4, .28, mat("#5a3d26", .05)); p.position.set(gp, 1.2, top); g.add(p); }
+
+  // Buildings + ship (solids). Buildings get plank walls, a flat roof, a sign
+  // and a warm porch light; the ship pad gets a low hull silhouette.
+  for (const o of scene.obstacles || []) {
+    const bx = wx(o.x + o.w / 2), bz = wz(o.y + o.h / 2), bw = o.w * SCALE, bd = o.h * SCALE;
+    if (o.id === "ship") {
+      // A small freighter on the pad, read from above: a concrete pad, a lit
+      // metal hull with a dorsal spine and canopy, and a warm engine glow aft.
+      const pad = box(bw + .3, .06, bd + .3, mat("#7a6650", .06)); pad.position.set(bx, -.02, bz); g.add(pad);
+      const hull = box(bw * .78, .55, bd * .6, mat(dark ? "#2b3340" : "#47566a", dark ? .04 : .09)); hull.position.set(bx, .3, bz); g.add(hull);
+      const spine = box(bw * .5, .1, bd * .52, mat(dark ? "#3a4658" : "#63768e", dark ? .05 : .13)); spine.position.set(bx, .6, bz); g.add(spine);
+      const nose = box(bw * .42, .42, bd * .32, mat(dark ? "#333c4a" : "#3e4b5c", .06)); nose.position.set(bx, .28, bz - bd * .32); g.add(nose);
+      const canopy = box(bw * .26, .12, bd * .18, mat("#0a2b3a", .22)); canopy.position.set(bx, .64, bz - bd * .2); g.add(canopy);
+      if (!dark) {
+        const engM = box(bw * .5, .16, .16, mat("#ffb16b", .6)); engM.position.set(bx, .34, bz + bd * .42); g.add(engM);
+        const eng = new THREE.PointLight(0xff9b4a, 1.1, 3.2); eng.position.set(bx, .4, bz + bd * .42); g.add(eng);
+      }
+      continue;
+    }
+    const bh = o.tall ? 2.2 : 1.0;
+    const col = o.color || "#c9a15a";
+    const bmat = mat(dark ? "#4a3524" : "#b07f4f", dark ? 0 : .05);
+    [[bw, t, bx, bz - bd / 2], [bw, t, bx, bz + bd / 2], [t, bd, bx - bw / 2, bz], [t, bd, bx + bw / 2, bz]].forEach(([w, d, x, z]) => { const q = box(w as number, bh, d as number, bmat); q.position.set(x as number, bh / 2 - .04, z as number); g.add(q); });
+    // The top-down camera mostly sees roofs, so they're lit and warm (weathered
+    // corrugated tin) rather than a dark lid — otherwise buildings read as holes.
+    const roof = box(bw + .12, .16, bd + .12, mat(dark ? "#3a2c1c" : "#b98a52", dark ? 0 : .08)); roof.position.set(bx, bh, bz); g.add(roof);
+    const ridge = box(bw + .14, .05, .12, mat(dark ? "#2a2014" : "#8a6236", .04)); ridge.position.set(bx, bh + .1, bz); g.add(ridge);
+    const lab = sprite(`${o.icon || ""} ${o.label || ""}`.trim(), col, .6); lab.position.set(bx, bh + .6, bz); g.add(lab);
+    if (!dark) { const porch = new THREE.PointLight(0xffca92, 1.0, 7); porch.position.set(bx, bh + .3, bz + bd / 2 + .3); g.add(porch); }
+  }
+  // Fill lights so the open square reads under the top-down camera — the plaza
+  // lost its per-room lights, so a couple of broad warm lamps stand in for the
+  // sun bouncing off the sand.
+  for (const [fx, fz] of [[cxw, czw], [(left + cxw) / 2, (top + czw) / 2], [(right + cxw) / 2, (bot + czw) / 2]]) {
+    const fill = new THREE.PointLight(dark ? 0x4a5a72 : 0xffdca6, dark ? .3 : 1.0, Math.max(Ww, Dw) * .9);
+    fill.position.set(fx, 5.5, fz); g.add(fill);
+  }
 }
 function box(w: number, h: number, d: number, material: THREE.Material) {
   return new THREE.Mesh(new THREE.BoxGeometry(w, h, d), material);
@@ -422,13 +474,18 @@ function rebuild() {
   const corridorWallMat=isDustwell?mat("#6b4a30",.05):mat(dark?"#5f6671":"#aeb7c0",dark?.1:.18);
   if(!isDustwell){corridorWallMat.map=roomTextures.corridor;corridorWallMat.transparent=true;corridorWallMat.opacity=dark?.72:.86;corridorWallMat.depthWrite=false;}
   for (const f of current.floors) {
-    const w=f.w*SCALE,d=f.h*SCALE,isRoom=current.rooms.some((r)=>matchesRect(f,r));
+    const w=f.w*SCALE,d=f.h*SCALE;
+    // Open ground (a town plaza): the whole floor is packed sand — no room
+    // tint, no corridor path-borders. Buildings and the wall come after.
+    if(current.openGround){const fm=mat("#b5895a",.06);fm.map=sandTexture();const m=box(w,.12,d,fm);m.position.set(wx(f.x+f.w/2),-.08,wz(f.y+f.h/2));world.add(m);continue;}
+    const isRoom=current.rooms.some((r)=>matchesRect(f,r));
     const fm=isRoom?mat(isDustwell?"#a9764a":dark?"#252e3e":"#466080",isDustwell?.08:dark?.05:.16):(isDustwell?mat("#b5895a",.06):corridorFloorMat(w,d,dark));
     if(isRoom)fm.map=deck; else if(isDustwell)fm.map=sandTexture();
     const m=box(w,.12,d,fm); m.position.set(wx(f.x+f.w/2),-.08,wz(f.y+f.h/2)); world.add(m);
     if(!isRoom) addPathBorder(world,m.position.x,m.position.z,w,d,corridorWallMat);
   }
-  for (const r of current.rooms) {
+  if(current.openGround) renderOpenGround(world, current, dark);
+  else for (const r of current.rooms) {
     const c=r.color|| (dark?"#465064":"#5a83b7"), cx=wx(r.x+r.w/2), cz=wz(r.y+r.h/2), w=r.w*SCALE,d=r.h*SCALE;
     const wallKind = r.kind === "cockpit" ? "cockpit"
       : r.kind === "engine" || r.moduleType === "reactor" ? "engine"
@@ -480,11 +537,12 @@ export function mount(container: HTMLElement | null, s: WalkScene, actions: {mov
     renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:"high-performance"}); renderer.setPixelRatio(Math.min(devicePixelRatio,2)); renderer.outputColorSpace=THREE.SRGBColorSpace;
     renderer.domElement.className="walk3d-canvas"; container.insertBefore(renderer.domElement,container.firstChild);
     const isDesert = s.id === "station:dustwell";
-    root=new THREE.Scene(); root.background=new THREE.Color(s.dark?0x05070b:isDesert?0xc98a54:0x0c1420); root.fog=new THREE.Fog(root.background,34,85); root.add(new THREE.HemisphereLight(s.dark?0x7384a0:isDesert?0xf0ca96:0xbcdcff,isDesert?0x5a3f28:0x1a2130,s.dark ? .6 : isDesert ? 1.15 : 1.7));root.add(new THREE.AmbientLight(s.dark?0x647087:isDesert?0xc99a68:0x91b8df,s.dark?.35:isDesert?.6:.9));root.add(avatar,actionFx);
-    // Desert sun: a warm high directional gives the flat top-down town some
-    // form and lifts the shadowed room interiors — kept modest so it shapes
-    // rather than blows out (bloom amplifies the bright sand).
-    if(isDesert){const sun=new THREE.DirectionalLight(0xffe0b0,.6);sun.position.set(-6,12,4);root.add(sun);}
+    root=new THREE.Scene(); root.background=new THREE.Color(s.dark?0x05070b:isDesert?0xc98a54:0x0c1420); root.fog=new THREE.Fog(root.background,34,85); root.add(new THREE.HemisphereLight(s.dark?0x7384a0:isDesert?0xf0ca96:0xbcdcff,isDesert?0x5a3f28:0x1a2130,s.dark ? .6 : isDesert ? 1.5 : 1.7));root.add(new THREE.AmbientLight(s.dark?0x647087:isDesert?0xd0a878:0x91b8df,s.dark?.35:isDesert?.95:.9));root.add(avatar,actionFx);
+    // Desert sun: a warm high directional gives the open town form and lifts
+    // the buildings — the plaza has no per-room lights, so this and the fill
+    // light in renderOpenGround do the lifting. Kept modest so bloom doesn't
+    // blow out the bright sand.
+    if(isDesert){const sun=new THREE.DirectionalLight(0xffe6bc,.85);sun.position.set(-6,12,4);root.add(sun);}
     if(s.dark){flashlight=new THREE.SpotLight(0xc8dcff,3.2,7,Math.PI/5,.55,1.2);flashlight.target=new THREE.Object3D();root.add(flashlight,flashlight.target);}else flashlight=null;
     camera=new THREE.PerspectiveCamera(CAM_FOV,1,.1,100);
     // Post-processing chain: bloom makes every emissive (drive core, LEDs,
