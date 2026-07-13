@@ -366,9 +366,15 @@ function tick(t: number) {
 export function debugStep(dtSeconds: number) { simulate(dtSeconds); }
 export function debugPos() { return { ...pos }; }
 export function debugActors() { return scene ? scene.actors.map((a) => ({ key: a.key, x: a.x, y: a.y, bubble: a.bubble || "" })) : []; }
+export function debugRooms() { return scene ? scene.rooms.map((r) => ({ id: r.id, x: r.x, y: r.y, w: r.w, h: r.h, label: r.label })) : []; }
 // Debug-only: teleport (bypasses collision) for exercising room/door/actor
 // detection directly, once movement collision itself is verified separately.
 export function debugGoto(x: number, y: number) { pos = { x, y }; simulate(0); }
+// Debug-only: drive the REAL click-to-move pathfinder (the same A* a mouse
+// click triggers) toward a target, respecting collision — the tool for
+// verifying a scene's room/corridor graph is actually walkable, not just that
+// its rects don't overlap. Callers step the sim afterward until arrival.
+export function debugWalkTo(x: number, y: number) { setClickMove(x, y); }
 
 function simulate(dt: number) {
   if (!scene) return; // torn down mid-frame

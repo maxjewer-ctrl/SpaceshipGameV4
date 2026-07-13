@@ -46,11 +46,152 @@ const LINKS: [string, string][] = [
   ["harbor", "concourse"], ["concourse", "market"], ["market", "cantina"],
   ["concourse", "docks"], ["docks", "drydock"], ["docks", "undercity"],
 ];
+// Base label/icon/tab per room id, keyed off the shared ROOMS array so custom
+// per-port layouts (below) don't have to repeat this — they only redefine
+// geometry (position + who connects to whom), never room semantics.
+const ROOM_META: Record<string, { label: string; icon: string; tab?: string }> =
+  Object.fromEntries(ROOMS.map((r) => [r.id, { label: r.label, icon: r.icon, tab: r.tab }]));
+
+// ---- Per-station custom layouts ----
+// Every port beyond this point renders the SAME room ids through the SAME
+// mechanics (doors, NPCs, ship berth, descriptions) — only the geometry and
+// link graph differ, so each station has its own shape to walk and its own
+// traversal logic, instead of being seven reskins of one warren. Port Solace
+// (the tutorial port) and any station without an entry here keep the
+// original shared warren (ROOMS/LINKS/SIGNATURE_SLOT) untouched.
+interface LayoutDef {
+  rects: Record<string, WalkRect>;   // base room ids -> geometry (signature room excluded)
+  links: [string, string][];         // base room links (signature edges excluded)
+  sigSlot: WalkRect;                 // where this port's signature room sits
+  sigLinks?: [string, string][];     // override edge(s) into the signature room;
+                                      // default is the single [stations.json signature.link, sig.id] edge
+  // Links joining two rooms that share neither x nor y (a true diagonal L):
+  // in the gap between the rooms the corridor is the ONLY floor, and the
+  // default 46px thickness leaves just a 28px safe band once the player's
+  // collision margin is subtracted — thin enough that a path drifting off
+  // the centreline can clip the edge and wedge. List those pairs here (either
+  // order) to widen just that corridor instead of every one in the layout.
+  wideLinks?: [string, string][];
+}
+function isWideLink(wide: [string, string][] | undefined, a: string, b: string): boolean {
+  return !!wide?.some(([x, y]) => (x === a && y === b) || (x === b && y === a));
+}
+const LAYOUTS: Record<string, LayoutDef> = {
+  // MERIDIAN PRIME — the wheel. Union order: a true 4-way hub (concourse) so
+  // every service is at most one hop from the centre — nothing hidden, nothing
+  // out of the way, exactly the surveilled efficiency the vibe calls for.
+  // The one exception is the Lighthouse, tucked in a quiet spur off the
+  // harbormaster's office — official, but nobody official ever visits.
+  meridian: {
+    rects: {
+      harbor:    { x: 390, y: 40,  w: 220, h: 140 },
+      concourse: { x: 390, y: 270, w: 220, h: 160 },
+      market:    { x: 680, y: 270, w: 220, h: 160 },
+      cantina:   { x: 90,  y: 270, w: 220, h: 160 },
+      docks:     { x: 390, y: 500, w: 220, h: 140 },
+      drydock:   { x: 680, y: 500, w: 220, h: 140 },
+    },
+    links: [["harbor", "concourse"], ["concourse", "market"], ["concourse", "cantina"], ["concourse", "docks"], ["docks", "drydock"]],
+    sigSlot: { x: 680, y: 40, w: 200, h: 140 },
+  },
+  // FOUNDRY — the spine. A straight industrial column (harbor-concourse-docks-
+  // drydock) with an east wing off the gantry: cantina, and the Union Hall
+  // stacked above it (organize after your shift, not before). Undercity hangs
+  // off the yard, not the docks — "one deck below" Ferro, exactly as billed.
+  foundry: {
+    rects: {
+      harbor:    { x: 390, y: 30,  w: 220, h: 130 },
+      concourse: { x: 390, y: 190, w: 220, h: 140 },
+      market:    { x: 130, y: 190, w: 210, h: 140 },
+      cantina:   { x: 680, y: 190, w: 220, h: 140 },
+      docks:     { x: 390, y: 370, w: 220, h: 140 },
+      drydock:   { x: 390, y: 540, w: 220, h: 130 },
+      undercity: { x: 680, y: 540, w: 210, h: 130 },
+    },
+    links: [["harbor", "concourse"], ["concourse", "market"], ["concourse", "cantina"], ["concourse", "docks"], ["docks", "drydock"], ["drydock", "undercity"]],
+    sigSlot: { x: 680, y: 30, w: 220, h: 130 },
+  },
+  // KESTREL'S REST — the square. Concourse IS the town square (deliberately
+  // bigger than any other port's), four services facing onto it like a real
+  // agri-town green. The Grange sits off the Exchange, same as the co-op's
+  // grain business always has.
+  kestrel: {
+    rects: {
+      harbor:    { x: 380, y: 60,  w: 220, h: 130 },
+      concourse: { x: 380, y: 270, w: 240, h: 170 },
+      cantina:   { x: 100, y: 270, w: 220, h: 160 },
+      market:    { x: 700, y: 270, w: 210, h: 160 },
+      docks:     { x: 380, y: 500, w: 220, h: 140 },
+      drydock:   { x: 100, y: 500, w: 210, h: 130 },
+    },
+    links: [["harbor", "concourse"], ["cantina", "concourse"], ["market", "concourse"], ["docks", "concourse"], ["docks", "drydock"]],
+    sigSlot: { x: 700, y: 60, w: 210, h: 140 },
+  },
+  // HAVEN'S FOLLY — the ring. No hub, no centre — every room connects to its
+  // two neighbours around a loop, so there are always two ways to anywhere and
+  // getting turned around is part of the free port's charm. The Auction Floor
+  // sits between the Exchange and the Undercity, exactly where you'd expect
+  // "unclaimed cargo" to change hands.
+  havens: {
+    rects: {
+      harbor:    { x: 400, y: 30,  w: 220, h: 120 },
+      market:    { x: 700, y: 120, w: 220, h: 140 },
+      undercity: { x: 700, y: 500, w: 210, h: 130 },
+      // Bottom edge kept at 650 (unchanged) but height matched to the other
+      // stations' docks rooms: a short room leaves too little clearance
+      // between its centre and the ship berth's fixed vertical offset, and a
+      // corridor's approach can clip the ship's obstacle footprint.
+      docks:     { x: 400, y: 500, w: 220, h: 150 },
+      drydock:   { x: 100, y: 500, w: 210, h: 130 },
+      cantina:   { x: 40,  y: 320, w: 220, h: 140 },
+      concourse: { x: 100, y: 120, w: 220, h: 140 },
+    },
+    links: [["harbor", "market"], ["undercity", "docks"], ["docks", "drydock"], ["drydock", "cantina"], ["cantina", "concourse"], ["concourse", "harbor"]],
+    sigSlot: { x: 760, y: 320, w: 210, h: 140 },
+    sigLinks: [["market", "auction"], ["undercity", "auction"]],
+    // harbor-market: the two rooms share neither x nor y, and the gap between
+    // them (620-700) has no room-rect backup — found unreachable at the
+    // default thickness (see corridor()'s comment).
+    wideLinks: [["harbor", "market"]],
+  },
+  // VERGE STATION — the empty reach. Everything anyone still uses huddles
+  // close around the concourse; the Listening Room sits at the end of a long,
+  // deliberately bare corridor — the walk itself is the loneliness.
+  verge: {
+    rects: {
+      concourse: { x: 350, y: 260, w: 220, h: 160 },
+      harbor:    { x: 350, y: 50,  w: 220, h: 140 },
+      docks:     { x: 350, y: 470, w: 220, h: 140 },
+      cantina:   { x: 100, y: 260, w: 220, h: 160 },
+      market:    { x: 100, y: 470, w: 220, h: 140 },
+      drydock:   { x: 100, y: 50,  w: 220, h: 140 },
+    },
+    links: [["harbor", "concourse"], ["cantina", "concourse"], ["docks", "concourse"], ["cantina", "market"], ["cantina", "drydock"]],
+    sigSlot: { x: 780, y: 260, w: 210, h: 160 },
+  },
+};
 
 // The rooms and corridors this specific port actually has.
-function portLayout(): { defs: RoomDef[]; links: [string, string][]; sig?: RoomDef } {
+function portLayout(): { defs: RoomDef[]; links: [string, string][]; sig?: RoomDef; wideLinks?: [string, string][] } {
   const cfg = STATIONS[S.loc] || {};
   const drop = new Set(cfg.drop || []);
+  const custom = LAYOUTS[S.loc];
+  if (custom) {
+    const ids = Object.keys(custom.rects).filter((id) => !drop.has(id));
+    const defs: RoomDef[] = ids.map((id) => {
+      const meta = ROOM_META[id];
+      return { id, ...custom.rects[id], label: cfg.labels?.[id] || meta.label, icon: meta.icon, tab: meta.tab };
+    });
+    let links = custom.links.filter(([a, b]) => defs.some((r) => r.id === a) && defs.some((r) => r.id === b));
+    let sig: RoomDef | undefined;
+    if (cfg.signature) {
+      const s = cfg.signature;
+      sig = { id: s.id, ...custom.sigSlot, label: s.label, icon: s.icon };
+      defs.push(sig);
+      links = links.concat(custom.sigLinks || [[s.link, s.id]]);
+    }
+    return { defs, links, sig, wideLinks: custom.wideLinks };
+  }
   const defs: RoomDef[] = ROOMS.filter((r) => !drop.has(r.id)).map((r) => ({
     ...r, label: cfg.labels?.[r.id] || r.label,
   }));
@@ -66,6 +207,13 @@ function portLayout(): { defs: RoomDef[]; links: [string, string][]; sig?: RoomD
   return { defs, links, sig };
 }
 
+// A diagonal link (rooms sharing neither x nor y) only has room-rect backup
+// at its two ends — in the gap BETWEEN the rooms, the corridor is the sole
+// source of floor, and the player's ~9px collision margin eats into both
+// edges, shrinking the safe band to thick-18px. At the default 46 that band
+// (28px) is thin enough that a path drifting off the dead centre can clip the
+// edge and wedge (found via the Havens ring's harbor-market link) — so
+// diagonal links in custom layouts pass a wider thick (see DIAGONAL_THICK).
 function corridor(a: RoomDef, b: RoomDef, thick = 46): WalkRect[] {
   const acx = a.x + a.w / 2, acy = a.y + a.h / 2;
   const bcx = b.x + b.w / 2, bcy = b.y + b.h / 2;
@@ -123,11 +271,11 @@ export function departureBoard() {
 export function buildStationScene(): WalkScene {
   const dark = isSilenced(S.loc);
   const cfg = STATIONS[S.loc] || {};
-  const { defs, links, sig } = portLayout();
+  const { defs, links, sig, wideLinks } = portLayout();
   const floors: WalkRect[] = defs.map((r) => ({ x: r.x, y: r.y, w: r.w, h: r.h }));
   for (const [a, b] of links) {
     const A = defs.find((r) => r.id === a)!, B = defs.find((r) => r.id === b)!;
-    floors.push(...corridor(A, B));
+    floors.push(...corridor(A, B, isWideLink(wideLinks, a, b) ? 64 : undefined));
   }
   // THE RULE: the ship is on display wherever it's berthed. Stations park it in
   // a berth apron off the bottom of the docks — nose to the wall, rear hatch
