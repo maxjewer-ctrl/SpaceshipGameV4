@@ -70,6 +70,35 @@ export const ROLE_POSTS: Record<string, string[]> = {
   quartermaster: ["cargohold"],
 };
 
+// Placeholder exterior wireframe: a hull silhouette wrapped around whatever
+// rooms are installed — pointed nose forward of the cockpit, engine nozzle
+// aft, shoulders flaring over the module bays. Purely a design aid so room
+// placement can be locked down against the ship's outer shape before real
+// hull art exists; it grows with the bay count like the deck itself does.
+function hullOutline(
+  cockpit: WalkRect, engine: WalkRect, rooms: WalkRoom[], width: number, spineY: number,
+): Array<{ x: number; y: number }> {
+  const top = Math.min(...rooms.map((r) => r.y)) - 26;
+  const bottom = Math.max(...rooms.map((r) => r.y + r.h)) + 26;
+  const shoulderFwd = cockpit.x + cockpit.w + 50;
+  const shoulderAft = engine.x - 50;
+  return [
+    { x: 6, y: spineY },                                          // nose tip
+    { x: cockpit.x - 6, y: cockpit.y - 14 },                      // canopy, top
+    { x: shoulderFwd, y: top },                                   // forward shoulder
+    { x: shoulderAft, y: top },                                   // aft shoulder
+    { x: engine.x + 10, y: engine.y - 14 },                       // engine cowl
+    { x: width - 44, y: engine.y - 14 },
+    { x: width - 8, y: spineY - 34 },                             // nozzle, top lip
+    { x: width - 8, y: spineY + 34 },                             // nozzle, bottom lip
+    { x: width - 44, y: engine.y + engine.h + 14 },
+    { x: engine.x + 10, y: engine.y + engine.h + 14 },            // mirrored belly run
+    { x: shoulderAft, y: bottom },
+    { x: shoulderFwd, y: bottom },
+    { x: cockpit.x - 6, y: cockpit.y + cockpit.h + 14 },          // canopy, bottom
+  ];
+}
+
 export function buildShipScene(): WalkScene {
   const bays = S.modules.map((m, index) => ({ m, index })).filter(({m}) => !MODS[m.t].core);
 
@@ -180,6 +209,7 @@ export function buildShipScene(): WalkScene {
     status: S.travel ? "◇ IN TRANSIT" : S.docked ? "● DOCKED" : "◇ ADRIFT",
     width, height,
     floors, rooms, roomDesc, doors, actors,
+    hull: hullOutline(cockpit, engine, rooms, width, spineY),
     spawn,
     onTick: (moving, dt, roomId) => {
       const room = rooms.find((r) => r.id === roomId);

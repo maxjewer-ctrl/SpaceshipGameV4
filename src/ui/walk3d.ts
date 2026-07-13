@@ -424,6 +424,26 @@ function rebuild() {
   };
   const deck=isDustwell?sandTexture():deckTexture(dark);
   if(current.id==="ship"){const hullMat=mat("#111b29");hullMat.emissiveIntensity=.08;const hull=box(current.width*SCALE,.08,current.height*SCALE,hullMat);hull.position.set(0,-.18,0);world.add(hull);}
+  // Placeholder exterior hull wireframe (scene.hull, built in shipwalk.ts):
+  // three outline rings — keel, waterline, and a tapered top — plus vertical
+  // ribs at every vertex. Enough silhouette to lock room placement against
+  // the ship's outer shape; swapped out once real hull geometry exists.
+  if (current.hull && current.hull.length > 2) {
+    const hullLine = new THREE.LineBasicMaterial({ color: 0x57b6c9, transparent: true, opacity: .45 });
+    const rings = [
+      { y: -.14, s: 1 },
+      { y: 1.5, s: 1 },
+      { y: 2.9, s: .86 },
+    ].map(({ y, s }) => {
+      const ring = current!.hull!.map((p) => new THREE.Vector3(wx(p.x) * s, y, wz(p.y) * s));
+      world.add(new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(ring), hullLine));
+      return ring;
+    });
+    const ribs: THREE.Vector3[] = [];
+    for (let i = 0; i < current.hull.length; i++)
+      for (let k = 0; k + 1 < rings.length; k++) ribs.push(rings[k][i], rings[k + 1][i]);
+    world.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(ribs), hullLine));
+  }
   const corridorWallMat=isDustwell?mat("#6b4a30",.05):mat(dark?"#5f6671":"#aeb7c0",dark?.1:.18);
   if(!isDustwell){corridorWallMat.map=roomTextures.corridor;corridorWallMat.transparent=true;corridorWallMat.opacity=dark?.72:.86;corridorWallMat.depthWrite=false;}
   for (const f of current.floors) {

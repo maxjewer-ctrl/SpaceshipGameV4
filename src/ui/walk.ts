@@ -23,6 +23,9 @@ export interface WalkScene {
   doors: WalkDoor[];
   actors: WalkActor[];
   spawn: { x: number; y: number };
+  // Placeholder exterior silhouette (closed polygon, scene coordinates) drawn
+  // around the interior so room placement can be judged against the hull shape.
+  hull?: Array<{ x: number; y: number }>;
   dark?: boolean;
   onTick?: (moving: boolean, dt: number, roomId: string | null) => void;
 }
@@ -478,6 +481,18 @@ function draw() {
   ctx.lineWidth = 1;
   for (let gx = 0; gx <= W; gx += 24) { ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, H); ctx.stroke(); }
   for (let gy = 0; gy <= H; gy += 24) { ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W, gy); ctx.stroke(); }
+  if (scene.hull && scene.hull.length > 2) {
+    ctx.save();
+    ctx.strokeStyle = "#57b6c95a"; ctx.lineWidth = 1.5; ctx.setLineDash([10, 6]);
+    ctx.beginPath();
+    scene.hull.forEach((p, i) => (i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y)));
+    ctx.closePath(); ctx.stroke();
+    ctx.setLineDash([]);
+    const top = scene.hull.reduce((a, p) => (p.y < a.y ? p : a));
+    ctx.fillStyle = "#57b6c977"; ctx.font = "10px Consolas, monospace"; ctx.textAlign = "left";
+    ctx.fillText("EXTERIOR HULL — PLACEHOLDER", top.x, top.y - 8);
+    ctx.restore();
+  }
   for (const f of scene.floors) { ctx.fillStyle = scene.dark ? "#12141a" : "#11141d"; ctx.fillRect(f.x, f.y, f.w, f.h); }
   ctx.font = "12px Consolas, monospace";
   for (const r of scene.rooms) {
