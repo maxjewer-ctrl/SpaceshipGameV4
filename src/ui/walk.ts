@@ -70,11 +70,13 @@ function cameraRelativeMovement(x: number, y: number) {
   return walk3d?.cameraRelativeMovement(x, y) ?? { x, y };
 }
 
-function mountWalk3d(s: WalkScene) {
-  const parent = canvas?.parentElement || null;
+function mountWalk3d(_s: WalkScene) {
   void loadWalk3d().then((m) => {
-    if (scene !== s || mountedId !== s.id) return;
-    m.mount(parent, s, { move:setClickMove, aim:setAim, fire });
+    // Mount whatever scene is current when the import lands. A re-render can
+    // swap the scene OBJECT (same id) between request and resolve — comparing
+    // against the captured one meant the 3D view silently never mounted.
+    if (!scene) return;
+    m.mount(canvas?.parentElement || null, scene, { move:setClickMove, aim:setAim, fire });
   });
 }
 
