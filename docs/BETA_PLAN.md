@@ -188,10 +188,20 @@ ModalQueue (§3.4) and save-transient hardening + slots.
   at a room it actually keeps (not one it drops) — the class of bug the
   per-station layout work could have shipped. Proven to catch a dropped-room
   link and restored.
-- **Save hardening:** UI transients (`screen`, `ptab`, `sel`, `selPlanet`)
-  out of the save payload; save slots (3) + export/import as JSON file.
+- **Save hardening:** ✅ Shipped. UI transients (`screen`, `ptab`, `sel`,
+  `selPlanet`) are stripped from the persisted blob and reconstructed on load
+  (screen defaults to travel-vs-shipwalk from game state), so a reload can't
+  land you in a half-torn-down screen. **3 save slots** (`kestrelrun:slotN`,
+  active-slot tracked, pre-slots single-key saves auto-lifted into slot 0) +
+  **export/import** as a downloadable JSON file (import parses → sanity-checks
+  → migrates → writes to a slot). A 💾 Saves modal in the nav drives it all;
+  corrupt slots read as empty rather than crashing the menu. 11 new vitest
+  cases cover transient stripping, slot isolation, legacy migration,
+  delete, dead-run non-persistence, and export/import round-trips (incl.
+  migrating an imported old-version save). Harness now 28 tests.
 - Exit: game plays identically — action verbs now live only in action-mode
   scenes, camera is fixed follow everywhere; CI is the new gatekeeper.
+  **Phase A now has one item left: the typed dispatcher + ModalQueue (§3.4).**
 
 ### Phase B — THE LOOP THAT NEVER ENDS (~3 weeks)
 CORE_LOOP.md's build order, finished — this is the beta's gameplay heart:
