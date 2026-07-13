@@ -7,6 +7,7 @@ import type { Appearance } from "../types";
 import { uiRand } from "../rng";
 import { modal } from "../modal";
 import { HEADS, GARBS, AVATAR_LOOKS, SKINS, SUITS, TRIMS, DEFAULT_APPEARANCE, drawAvatar } from "./avatarDraw";
+import { mountCreatorPreview, type CreatorPreview } from "./creatorPreview3d";
 import { ROLES } from "../content";
 import { startGame } from "./help";
 import { introStart } from "../systems/intro";
@@ -22,6 +23,7 @@ let draft: Draft = { captainName: "Cass Ardent", app: { ...DEFAULT_APPEARANCE } 
 let previewDir = "down";
 let lookIndex = 2;
 let previewRAF: number | null = null;
+let preview3d: CreatorPreview | null = null;
 
 // Read by help.startGame() and systems/intro.introStart() at start time.
 export function getCaptainName(): string { return draft.captainName.trim() || "Cass Ardent"; }
@@ -78,6 +80,17 @@ function swatches(list: string[], sel: string, handler: string): string {
 }
 
 function startPreview() {
+  // 3D first: the same rig that walks the decks, live in the creator. The 2D
+  // canvas stays in the DOM as the no-WebGL fallback.
+  preview3d?.teardown(); preview3d = null;
+  const stage = document.querySelector<HTMLElement>(".cc-stage");
+  const cv = document.getElementById("avatarpreview") as HTMLCanvasElement | null;
+  if (stage) preview3d = mountCreatorPreview(stage, () => draft.app);
+  if (preview3d) {
+    preview3d.setFacing(previewDir);
+    if (cv) cv.style.display = "none";
+    return;
+  }
   if (previewRAF) cancelAnimationFrame(previewRAF);
   const loop = (t: number) => {
     const cv = document.getElementById("avatarpreview") as HTMLCanvasElement | null;
@@ -100,32 +113,36 @@ export function avRandomName() {
   const el = document.getElementById("captainnamein") as HTMLInputElement | null;
   if (el) el.value = draft.captainName;
 }
-export function avFace(dir: string) { previewDir = dir; }
+export function avFace(dir: string) { previewDir = dir; preview3d?.setFacing(dir); }
 export function avLook(d: number) {
   lookIndex = (lookIndex + d + AVATAR_LOOKS.length) % AVATAR_LOOKS.length;
   const [label, head, garb, frame] = AVATAR_LOOKS[lookIndex];
   draft.app.head = head; draft.app.garb = garb; draft.app.frame = frame;
   setText("cc-look", label); setText("cc-head", HEADS[idx(HEADS, head)].name); setText("cc-garb", GARBS[idx(GARBS, garb)].name);
+  preview3d?.refresh();
 }
 
 export function avHead(d: number) {
   const i = (idx(HEADS, draft.app.head) + d + HEADS.length) % HEADS.length;
   draft.app.head = HEADS[i].id;
   setText("cc-head", HEADS[i].name);
+  preview3d?.refresh();
 }
 export function avGarb(d: number) {
   const i = (idx(GARBS, draft.app.garb) + d + GARBS.length) % GARBS.length;
   draft.app.garb = GARBS[i].id;
   setText("cc-garb", GARBS[i].name);
+  preview3d?.refresh();
 }
-export function avSkin(hex: string) { draft.app.skin = hex; markSwatch("cc-skin", hex); }
-export function avSuit(hex: string) { draft.app.suit = hex; markSwatch("cc-suit", hex); }
-export function avTrim(hex: string) { draft.app.trim = hex; markSwatch("cc-trim", hex); }
+export function avSkin(hex: string) { draft.app.skin = hex; markSwatch("cc-skin", hex); preview3d?.refresh(); }
+export function avSuit(hex: string) { draft.app.suit = hex; markSwatch("cc-suit", hex); preview3d?.refresh(); }
+export function avTrim(hex: string) { draft.app.trim = hex; markSwatch("cc-trim", hex); preview3d?.refresh(); }
 
 export function avStart(mode: string) {
   const nameEl = document.getElementById("captainnamein") as HTMLInputElement | null;
   if (nameEl) draft.captainName = nameEl.value;
   if (previewRAF) { cancelAnimationFrame(previewRAF); previewRAF = null; }
+  preview3d?.teardown(); preview3d = null;
   if (mode === "prologue") introStart(); else startGame();
 }
 

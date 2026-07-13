@@ -14,6 +14,7 @@ import { cargoUsed } from "../derive";
 import { wearTier } from "../systems/wear";
 import type { WalkActor, WalkDoor, WalkScene, ShipBerth } from "./walk";
 import { spawnProp } from "./props3d";
+import { buildCharacter, poseCharacter, type CharacterRig } from "./character3d";
 import bulkheadWallUrl from "../assets/ship/bulkhead-wall.webp";
 import corridorWallUrl from "../assets/ship/corridor-wall.webp";
 import corridorFloorUrl from "../assets/ship/corridor-floor.webp";
@@ -39,6 +40,8 @@ let host: HTMLElement | null = null;
 let world = new THREE.Group();
 let avatar = new THREE.Group();
 let actorMeshes = new Map<string, THREE.Group>();
+let actorRigs = new Map<string, CharacterRig>();
+let captainRig: CharacterRig | null = null;
 let flashlight: THREE.SpotLight | null = null;
 let composer: EffectComposer | null = null;
 let bloomPass: UnrealBloomPass | null = null;
@@ -377,41 +380,13 @@ function sprite(text: string, color = "#d7e6ff", scale = 1): THREE.Sprite {
 function disposeObject(o: THREE.Object3D) {
   o.traverse((n: any) => { n.geometry?.dispose?.(); const ms = Array.isArray(n.material) ? n.material : [n.material]; ms.forEach((m: any) => { m?.map?.dispose?.(); m?.dispose?.(); }); });
 }
-const HAIR3D = ["#241d19", "#4a3527", "#6b4a30", "#17181c", "#8a6a45", "#3d2b1f"];
-// Low-poly spacer: legs, torso, arms, head with a visor band, and an emissive
-// chest stripe in the trim colour. Shared by the captain (appearance colours)
-// and every actor (their roster colour), so crowds read as people, not pills.
-// `seed` (>=0 for NPCs, -1 for the captain) drives a small deterministic height
-// variance and a coin-flip hairstyle — otherwise a station crowd is one mold
-// repeated in different paint jobs, which reads as clones even with varied
-// wardrobe colour.
-function addPerson(color: string, skin = "#bd8668", trim = "#9fb6d4", seed = -1): THREE.Group {
-  const g = new THREE.Group();
-  // slight self-glow so dark suits don't vanish into dark deck plating
-  const suitM = mat(color, .14), skinM = mat(skin, .08);
-  const legG = new THREE.CapsuleGeometry(.09, .3, 3, 6);
-  const l1 = new THREE.Mesh(legG, suitM); l1.position.set(-.12, .34, 0); g.add(l1);
-  const l2 = new THREE.Mesh(legG, suitM); l2.position.set(.12, .34, 0); g.add(l2);
-  const torso = new THREE.Mesh(new THREE.CapsuleGeometry(.23, .42, 4, 10), suitM);
-  torso.position.y = .92; torso.scale.set(1, .95, .72); g.add(torso);
-  const armG = new THREE.CapsuleGeometry(.065, .34, 3, 6);
-  const a1 = new THREE.Mesh(armG, suitM); a1.position.set(-.3, .92, 0); a1.rotation.z = .14; g.add(a1);
-  const a2 = new THREE.Mesh(armG, suitM); a2.position.set(.3, .92, 0); a2.rotation.z = -.14; g.add(a2);
-  const stripe = new THREE.Mesh(new THREE.BoxGeometry(.26, .045, .03), mat(trim, .85));
-  stripe.position.set(0, 1.06, .155); g.add(stripe);
-  const belt = new THREE.Mesh(new THREE.BoxGeometry(.34, .05, .2), mat("#141821", .05));
-  belt.position.y = .64; g.add(belt);
-  const head = new THREE.Mesh(new THREE.SphereGeometry(.16, 12, 10), skinM); head.position.y = 1.4; g.add(head);
-  const band = new THREE.Mesh(new THREE.BoxGeometry(.2, .055, .05), mat("#0c1018", .25));
-  band.position.set(0, 1.43, .12); g.add(band);
-  if (seed >= 0) {
-    if (seed % 2 === 0) {
-      const hair = new THREE.Mesh(new THREE.SphereGeometry(.135, 10, 8, 0, Math.PI * 2, 0, Math.PI * 0.55), mat(HAIR3D[(seed >> 3) % HAIR3D.length], .04));
-      hair.position.set(0, 1.5, -.015); g.add(hair);
-    }
-    g.scale.y = 0.94 + ((seed % 13) / 12) * 0.12;
-  }
-  return g;
+// One shared articulated figure (ui/character3d.ts) for the captain and every
+// actor: the captain gets their picked Appearance verbatim, NPCs get a derived
+// appearance from their roster/wardrobe colour plus seed-driven frame, height,
+// and hair variance so a crowd doesn't read as one repeated mold.
+function addPerson(color: string, skin = "#bd8668", trim = "#9fb6d4", seed = -1): CharacterRig {
+  const frame = seed < 0 ? "neutral" : (["neutral", "masculine", "feminine"] as const)[seed % 3];
+  return buildCharacter({ head: "human", garb: "jumpsuit", frame, skin, suit: color, trim }, seed);
 }
 function addMachinery(g: THREE.Group, type: string, color: string, online: boolean, damaged: boolean, worn: boolean) {
   const base = mat(worn ? "#735f52" : damaged ? "#8c2727" : color, online ? .18 : 0);
@@ -469,7 +444,7 @@ function addMachinery(g: THREE.Group, type: string, color: string, online: boole
 
 function rebuild() {
   if (!root || !current) return;
-  root.remove(world); disposeObject(world); world = new THREE.Group(); root.add(world); actorMeshes.clear();
+  root.remove(world); disposeObject(world); world = new THREE.Group(); root.add(world); actorMeshes.clear(); actorRigs.clear();
   doorLabels = new Map(); actorLabels = new Map();
   const dark = !!current.dark;
   const isDustwell = current.id === "station:dustwell";
@@ -544,7 +519,8 @@ function rebuild() {
     let hv=0; for(let i=0;i<a.key.length;i++) hv=(hv*31+a.key.charCodeAt(i))|0; hv>>>=0;
     const suitC=a.color||WARDROBE[hv%WARDROBE.length], skinC=SKIN3D[(hv>>4)%SKIN3D.length];
     const g=new THREE.Group();
-    const body=addPerson(suitC,skinC,a.color?"#e8d9b0":"#8fa8c9",hv);g.add(body);attachCrewModel(g,a.modelKey,body);
+    const rig=addPerson(suitC,skinC,a.color?"#e8d9b0":"#8fa8c9",hv);g.add(rig.group);attachCrewModel(g,a.modelKey,rig.group);
+    actorRigs.set(a.key,rig);
     const l=sprite(a.label,a.color||"#c9d2e4",.55);l.position.y=1.9;g.add(l);world.add(g);actorMeshes.set(a.key,g);actorLabels.set(a,l);
   }
 }
@@ -606,14 +582,18 @@ export function mount(container: HTMLElement | null, s: WalkScene, actions: {mov
 function resize(){if(!renderer||!camera||!host)return;const r=host.getBoundingClientRect();const w=Math.max(1,r.width),h=Math.max(1,r.height);renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();composer?.setSize(w,h);const pr=Math.min(devicePixelRatio,1.5);crtPass?.uniforms.resolution.value.set(w*pr,h*pr);}
 export function setScene(s: WalkScene){current=s;const sig=s.id+"|"+s.rooms.map(r=>`${r.id}:${r.moduleType}:${r.moduleIndex}`).join()+"|"+s.doors.map(d=>d.label+d.locked).join()+"|"+s.actors.map(a=>a.key).join()+"|"+(s.ship?`${s.ship.x},${s.ship.y},${s.ship.facing}`:"")+"|"+S.modules.map(m=>`${m.t}${m.on}${m.dmg}${wearTier(m)}`).join();if(sig!==signature){signature=sig;rebuild();}}
 export function render(v:{pos:{x:number;y:number};facing:string;moving:boolean;phase:number;nearDoor:WalkDoor|null;nearActor:WalkActor|null;time:number;aim:{x:number;y:number};rolling:boolean;rollCooldown:number;projectiles:Array<{x:number;y:number}>;dummy:{x:number;y:number;hp:number;hit:number}|null;highlightKey:string|null}){
-  if(!renderer||!root||!camera||!current)return; const x=wx(v.pos.x),z=wz(v.pos.y);avatar.position.set(x,v.moving?Math.abs(Math.sin(v.phase))*.06:0,z);
-  const suit=S.appearance?.suit||"#4779bd",skin=S.appearance?.skin||"#bd8668",trim=S.appearance?.trim||"#e8b04b"; if(!avatar.children.length){const p=addPerson(suit,skin,trim);avatar.add(p);}
+  if(!renderer||!root||!camera||!current)return; const x=wx(v.pos.x),z=wz(v.pos.y);avatar.position.set(x,0,z);
+  if(!avatar.children.length){captainRig=buildCharacter(S.appearance||undefined);avatar.add(captainRig.group);}
+  // procedural walk cycle: limbs swing from their joint pivots, driven by the
+  // 2D sim's phase so animation speed always matches actual ground speed
+  if(captainRig)poseCharacter(captainRig,{moving:v.moving,phase:v.phase*1.6,t:v.time});
+  for(const a of current.actors){const r=actorRigs.get(a.key);if(r)poseCharacter(r,{t:v.time+(a.x*131)%997});}
   avatar.rotation.z=v.rolling?-.45:0;avatar.scale.setScalar(v.rolling?.82:1);
   const ang=v.facing==="right"?Math.PI/2:v.facing==="left"?-Math.PI/2:v.facing==="up"?Math.PI:0;avatar.rotation.y=ang;
   const room=current.rooms.find(r=>v.pos.x>=r.x&&v.pos.x<=r.x+r.w&&v.pos.y>=r.y&&v.pos.y<=r.y+r.h);const shake=room?.kind==="engine"?Math.sin(v.time*.045)*.025:0;
   const target=new THREE.Vector3(x+shake,CAM_HEIGHT,z+CAM_OFFSET_Z);camera.position.lerp(target,.09);camera.lookAt(x,.45,z);
   if(flashlight){flashlight.position.set(x,1.25,z);flashlight.target.position.set(x+Math.sin(ang)*4,.45,z+Math.cos(ang)*4);}
-  for(const a of current.actors){const g=actorMeshes.get(a.key);if(!g)continue;g.position.set(wx(a.x+a.w/2),Math.sin(v.time/700+a.x)*.025,wz(a.y+a.h/2));if(a.bubble&&!g.getObjectByName("bubble")){const b=sprite(a.bubble,"#fff",.65);b.name="bubble";b.position.y=2.55;g.add(b);}else if(!a.bubble){const b=g.getObjectByName("bubble");if(b){g.remove(b);disposeObject(b);}}}
+  for(const a of current.actors){const g=actorMeshes.get(a.key);if(!g)continue;g.position.set(wx(a.x+a.w/2),0,wz(a.y+a.h/2));if(a.bubble&&!g.getObjectByName("bubble")){const b=sprite(a.bubble,"#fff",.65);b.name="bubble";b.position.y=2.55;g.add(b);}else if(!a.bubble){const b=g.getObjectByName("bubble");if(b){g.remove(b);disposeObject(b);}}}
   // A room full of nametags/door labels reads as a wall of overlapping text;
   // fade everything but whatever's actually interactable right now so the
   // player's eye has one thing to land on instead of five stacked signs.
@@ -628,4 +608,4 @@ export function render(v:{pos:{x:number;y:number};facing:string;moving:boolean;p
   world.traverse((o:any)=>{if(o.userData.spark!==undefined){o.visible=Math.sin(v.time*.025+o.userData.spark)>0;o.position.y=1+(o.userData.spark*.12+v.time*.0004)%1;}if(o.userData.starfield&&S.travel)o.rotation.y=v.time*.00002;});
   if(composer){if(crtPass)crtPass.uniforms.time.value=v.time*.001;composer.render();}else renderer.render(root,camera);
 }
-export function teardown(){resizeObserver?.disconnect();resizeObserver=null;if(renderer&&clickHandler)renderer.domElement.removeEventListener("pointerdown",clickHandler);clickHandler=null;if(root)disposeObject(root);composer?.dispose();bloomPass?.dispose();composer=null;bloomPass=null;crtPass=null;renderer?.dispose();renderer?.domElement.remove();renderer=null;root=null;camera=null;flashlight=null;current=null;host=null;signature="";world=new THREE.Group();avatar=new THREE.Group();actionFx=new THREE.Group();actorMeshes.clear();doorLabels=new Map();actorLabels=new Map();aimCallback=null;fireCallback=null;}
+export function teardown(){resizeObserver?.disconnect();resizeObserver=null;if(renderer&&clickHandler)renderer.domElement.removeEventListener("pointerdown",clickHandler);clickHandler=null;if(root)disposeObject(root);composer?.dispose();bloomPass?.dispose();composer=null;bloomPass=null;crtPass=null;renderer?.dispose();renderer?.domElement.remove();renderer=null;root=null;camera=null;flashlight=null;current=null;host=null;signature="";world=new THREE.Group();avatar=new THREE.Group();actionFx=new THREE.Group();actorMeshes.clear();actorRigs.clear();captainRig=null;doorLabels=new Map();actorLabels=new Map();aimCallback=null;fireCallback=null;}
