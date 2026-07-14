@@ -124,6 +124,82 @@ bump) all resolved correctly.
   rendered scene in this session (cosmetic/console-noise as far as I could
   tell), so treating as low-priority unless a real visual glitch surfaces.
 
+## Session 3 — playing further: damage control, THE RUN, and the actual ending
+
+Picked up from the previous verification pass and pushed all the way to the
+game's real victory ending, still driving everything with real DOM clicks.
+
+### Damage-control minigames (bug #2's fix, spot-checked directly)
+
+Forced clean, single-shot repros with the dev helper `window.__event(...)`
+(`'breakdown'`, `'meteor'`) on a crewless `fresh` scenario ship:
+
+- **Coolant Rupture (no mechanic)** — real click on an untried valve
+  resolved correctly on the first guess, hull dropped by the documented
+  `ri(3,6)` amount, modal closed cleanly. ✅
+- **Meteor Swarm / Manual Helm (no pilot)** — real click on a vector option
+  resolved correctly, hull dropped by the documented penalty, modal closed
+  cleanly. ✅
+- Did **not** get a clean repro of the third variant, **sick passenger care
+  (no med bay)** — it needs an actual sick passenger job aboard, which
+  takes more setup than the other two's dev-forced trigger. Structurally it
+  uses the same `actionAttr()`/`dcCare()` pattern already confirmed fixed
+  elsewhere in this file, so it's very likely fine, but wasn't directly
+  clicked through this session.
+
+**⚠ Testing-artifact finding, not a confirmed player-facing bug:** while
+hunting for a clean repro, I first called `__event('breakdown')` five times
+in a rapid loop without ever resolving the resulting modal. This produced
+visibly corrupted state — clicking "Valve A" then "Valve B" then "Valve C"
+in sequence never resolved the puzzle, and the button HTML showed none of
+them marked `disabled`/"tried" despite repeated wrong-seeming guesses. Root
+cause: `dcBreakdown()`'s puzzle answer (`dcCorrect`) and attempt tracking
+(`dcTried`) in `src/systems/damagecontrol.ts` are **module-level mutable
+variables**, not part of the persisted `S` game state. Each `dcBreakdown()`
+call unconditionally resets both, even if a previous instance's modal is
+still showing (queued behind it via `modal()`, same mechanism as the
+now-fixed bugs #1/#3/#6) — so if two breakdown events were ever triggered
+before the first is resolved, the second call's reset silently invalidates
+the puzzle the player is looking at. **I could not find a normal-gameplay
+path that fires this twice back-to-back** (it requires the dev-only
+`__event()` forcer, or some other real-code path stacking two
+`evBreakdown()`/`evMeteor()` calls in the same tick, which I didn't find on
+inspection) — flagging as a latent fragility worth a defensive fix (move
+the puzzle state into a scoped object rather than shared module state, or
+guard `dcBreakdown()`/`dcMeteor()` against re-entry while one is pending)
+rather than a bug a real player is likely to hit.
+
+### THE RUN — played start to finish, reached the actual ending
+
+Jumped to `__scenario('run')` (arc stage 5, day 44, 14-day deadline) and
+played the whole endgame dash through to completion with real clicks:
+
+- **Multi-target combat** — the Union Hunter-Killer encounter spawns two
+  targets, "Lead" and "Escort" (`buildTargets()` adding an escort for any
+  enemy matching `/hunter/` in its name). My own first pass missed this
+  (assumed the fight was over when only "Lead" hit 0% hp) — worth noting
+  only because it's an easy thing for a *player* to misread too: the "Fire"
+  weapon-select screen doesn't make it obvious a second hostile is still
+  live until you look at the target list. Not a bug, just a legibility
+  note. Properly finishing the fight (both targets to 0%) surfaced a real
+  "Continue" button and resolved cleanly with the correct victory log line
+  and +2 prestige.
+- **Evasion** — on a second Hunter-Killer intercept, picked "Evade" instead
+  of fighting; resolved instantly and correctly ("You kill the transponder
+  and drift cold behind a comet's tail...").
+- **Arrival at Haven's Folly and Elysium Gate** — both arrivals rendered
+  fresh immediately (bug #4 stayed fixed under a fully-kitted, multi-crew
+  ship, not just the empty starter ship from earlier verification).
+- **Reached the actual game-completion screen**: "◆ ELYSIUM GATE" — a
+  genuinely well-written payoff (the hidden refugee colony, Voss
+  broadcasting the Meridian cover-up) — "YOU KEPT FLYING. YOU WON." at day
+  52, 608cr, 26★ prestige, crew of 3. Real-clicked "Keep flying (freeplay)"
+  and it resolved cleanly: `arc.stage` → 6, `arc.done` → true, back on the
+  normal ship-walk screen, no console errors.
+- **Zero `[pageerror]` entries logged across this entire session** — from
+  a fresh character creator through the full prologue, the main loop, and
+  all the way to the story's actual ending.
+
 ## TL;DR
 
 The writing, the world-state/consequence systems, and the base ship/station/
