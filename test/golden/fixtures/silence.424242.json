@@ -3,36 +3,36 @@
   "seed": 424242,
   "days": 30,
   "ticks": [
-    "3d46b71e",
-    "628974b8",
-    "41298321",
-    "1d9f461b",
-    "0f0c3d2e",
-    "ec935f30",
-    "a4c38df5",
-    "820f20d0",
-    "a7fdf6cc",
-    "9cb24d61",
-    "a7fbf8d2",
-    "4a3fb1eb",
-    "9d89f402",
-    "f76b73c6",
-    "1da75bdc",
-    "3d8b52f9",
-    "c985288a",
-    "41cf9373",
-    "e3835b3c",
-    "f3e5e6f0",
-    "912c1952",
-    "581017be",
-    "7e11110a",
-    "11e8162c",
-    "58a9e96e",
-    "1208bcd9",
-    "c36cab38",
-    "fa2f3d14",
-    "029c0580",
-    "22d580c8"
+    "cd72863f",
+    "e4425248",
+    "546c90da",
+    "0a9060a0",
+    "8626c41a",
+    "b9820dac",
+    "ab3414cf",
+    "db487df7",
+    "478bf7c0",
+    "4046d21b",
+    "23a40f51",
+    "4a1a8847",
+    "d8dc92af",
+    "db0ae00d",
+    "d0ded766",
+    "923af3ef",
+    "f1b5a98f",
+    "9cf45675",
+    "dda05aa8",
+    "04d0e910",
+    "0da7a747",
+    "ee186449",
+    "011a2a09",
+    "32e59d51",
+    "5579e7c3",
+    "856332a6",
+    "816e3a87",
+    "9b2a27c0",
+    "84b3afbe",
+    "b18ed5d3"
   ],
   "landmarks": [
     {
@@ -56,9 +56,9 @@
       "hull": 100,
       "loc": "solace",
       "log": [
+        "Dane Okoro runs a hand along the console. \"She's got a pull to port on cold starts. I've stopped fighting it.\"",
         "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "◇ THE BROADCAST — every radio in the sector played the same four seconds. The band has holes in it now."
+        "You wait a day in port. The dockworkers play cards. The meter runs."
       ]
     },
     {
@@ -70,7 +70,7 @@
       "loc": "solace",
       "log": [
         "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "Dane Okoro runs a hand along the console. \"She's got a pull to port on cold starts. I've stopped fighting it.\"",
         "You wait a day in port. The dockworkers play cards. The meter runs."
       ]
     },
@@ -82,9 +82,9 @@
       "hull": 100,
       "loc": "solace",
       "log": [
-        "Sef Adeyemi names the ship on the far scope without looking twice. \"Bad crowd,\" they add, in the tone of someone who used to be invited.\"",
         "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "You wait a day in port. The dockworkers play cards. The meter runs."
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "Dane Okoro runs a hand along the console. \"She's got a pull to port on cold starts. I've stopped fighting it.\""
       ]
     },
     {
@@ -95,8 +95,8 @@
       "hull": 100,
       "loc": "solace",
       "log": [
+        "Dane Okoro plays solitaire against the drive hum and loses, somehow.",
         "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "Sef Adeyemi names the ship on the far scope without looking twice. \"Bad crowd,\" they add, in the tone of someone who used to be invited.\"",
         "You wait a day in port. The dockworkers play cards. The meter runs."
       ]
     },
@@ -108,8 +108,8 @@
       "hull": 100,
       "loc": "solace",
       "log": [
-        "Sef Adeyemi: \"Peace and quiet. That's how you know something's about to go wrong.\"",
         "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "Dane Okoro plays solitaire against the drive hum and loses, somehow.",
         "You wait a day in port. The dockworkers play cards. The meter runs."
       ]
     },
@@ -121,8 +121,8 @@
       "hull": 100,
       "loc": "solace",
       "log": [
+        "Dane Okoro: \"My gran said the black hums if you listen long enough. I always thought she was being poetic.\"",
         "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "Sef Adeyemi: \"Peace and quiet. That's how you know something's about to go wrong.\"",
         "You wait a day in port. The dockworkers play cards. The meter runs."
       ]
     },
@@ -134,9 +134,9 @@
       "hull": 100,
       "loc": "solace",
       "log": [
-        "Dane Okoro names the ship on the far scope without looking twice. \"Bad crowd,\" they add, in the tone of someone who used to be invited.\"",
+        "Dane Okoro: \"My gran said the black hums if you listen long enough. I always thought she was being poetic.\"",
         "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "You wait a day in port. The dockworkers play cards. The meter runs."
+        "Dane Okoro: \"My gran said the black hums if you listen long enough. I always thought she was being poetic.\""
       ]
     },
     {
@@ -147,9 +147,9 @@
       "hull": 100,
       "loc": "solace",
       "log": [
+        "Sef Adeyemi plays solitaire against the drive hum and loses, somehow.",
         "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "Dane Okoro names the ship on the far scope without looking twice. \"Bad crowd,\" they add, in the tone of someone who used to be invited.\"",
-        "You wait a day in port. The dockworkers play cards. The meter runs."
+        "Dane Okoro: \"My gran said the black hums if you listen long enough. I always thought she was being poetic.\""
       ]
     },
     {
@@ -160,8 +160,8 @@
       "hull": 100,
       "loc": "solace",
       "log": [
-        "Sef Adeyemi is doing something ambitious with the ration paste. It smells almost like food.",
         "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "Sef Adeyemi plays solitaire against the drive hum and loses, somehow.",
         "You wait a day in port. The dockworkers play cards. The meter runs."
       ]
     },
@@ -174,8 +174,8 @@
       "loc": "solace",
       "log": [
         "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "Sef Adeyemi is doing something ambitious with the ration paste. It smells almost like food.",
-        "You wait a day in port. The dockworkers play cards. The meter runs."
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "Sef Adeyemi plays solitaire against the drive hum and loses, somehow."
       ]
     },
     {
@@ -188,7 +188,7 @@
       "log": [
         "You wait a day in port. The dockworkers play cards. The meter runs.",
         "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "Sef Adeyemi is doing something ambitious with the ration paste. It smells almost like food."
+        "You wait a day in port. The dockworkers play cards. The meter runs."
       ]
     },
     {
@@ -212,7 +212,7 @@
       "hull": 100,
       "loc": "solace",
       "log": [
-        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "Sef Adeyemi plays solitaire against the drive hum and loses, somehow.",
         "You wait a day in port. The dockworkers play cards. The meter runs.",
         "You wait a day in port. The dockworkers play cards. The meter runs."
       ]
@@ -225,8 +225,8 @@
       "hull": 100,
       "loc": "solace",
       "log": [
-        "Dane Okoro plays solitaire against the drive hum and loses, somehow.",
         "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "Sef Adeyemi plays solitaire against the drive hum and loses, somehow.",
         "You wait a day in port. The dockworkers play cards. The meter runs."
       ]
     },
@@ -238,9 +238,9 @@
       "hull": 100,
       "loc": "solace",
       "log": [
-        "Sef Adeyemi counts their pay twice on payday and sends most of it somewhere they don't name.",
+        "Sef Adeyemi plays solitaire against the drive hum and loses, somehow.",
         "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "Dane Okoro plays solitaire against the drive hum and loses, somehow."
+        "You wait a day in port. The dockworkers play cards. The meter runs."
       ]
     },
     {
@@ -251,9 +251,9 @@
       "hull": 100,
       "loc": "solace",
       "log": [
-        "Sef Adeyemi plays solitaire against the drive hum and loses, somehow.",
         "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "Sef Adeyemi counts their pay twice on payday and sends most of it somewhere they don't name."
+        "Sef Adeyemi plays solitaire against the drive hum and loses, somehow.",
+        "You wait a day in port. The dockworkers play cards. The meter runs."
       ]
     },
     {
@@ -265,8 +265,8 @@
       "loc": "solace",
       "log": [
         "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "Sef Adeyemi plays solitaire against the drive hum and loses, somehow.",
-        "You wait a day in port. The dockworkers play cards. The meter runs."
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "Sef Adeyemi plays solitaire against the drive hum and loses, somehow."
       ]
     },
     {
@@ -277,7 +277,7 @@
       "hull": 100,
       "loc": "solace",
       "log": [
-        "Sef Adeyemi is doing something ambitious with the ration paste. It smells almost like food.",
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
         "You wait a day in port. The dockworkers play cards. The meter runs.",
         "You wait a day in port. The dockworkers play cards. The meter runs."
       ]
@@ -290,9 +290,9 @@
       "hull": 100,
       "loc": "solace",
       "log": [
-        "Dane Okoro plays solitaire against the drive hum and loses, somehow.",
         "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "Sef Adeyemi is doing something ambitious with the ration paste. It smells almost like food."
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "You wait a day in port. The dockworkers play cards. The meter runs."
       ]
     },
     {
@@ -303,9 +303,9 @@
       "hull": 100,
       "loc": "solace",
       "log": [
-        "Dane Okoro runs a hand along the console. \"She's got a pull to port on cold starts. I've stopped fighting it.\"",
         "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "Dane Okoro plays solitaire against the drive hum and loses, somehow."
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "You wait a day in port. The dockworkers play cards. The meter runs."
       ]
     },
     {
@@ -316,8 +316,8 @@
       "hull": 100,
       "loc": "solace",
       "log": [
+        "Dane Okoro plays solitaire against the drive hum and loses, somehow.",
         "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "Dane Okoro runs a hand along the console. \"She's got a pull to port on cold starts. I've stopped fighting it.\"",
         "You wait a day in port. The dockworkers play cards. The meter runs."
       ]
     },
@@ -329,9 +329,9 @@
       "hull": 100,
       "loc": "solace",
       "log": [
-        "Sef Adeyemi has taken to leaving the radio on at night. \"So I'd notice,\" they say, \"if it went quiet.\"",
         "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "Sef Adeyemi can stretch a thin larder further than the math says is possible."
+        "Sef Adeyemi can stretch a thin larder further than the math says is possible.",
+        "Dane Okoro plays solitaire against the drive hum and loses, somehow."
       ]
     },
     {
@@ -342,9 +342,9 @@
       "hull": 100,
       "loc": "solace",
       "log": [
-        "Dane Okoro has taken to leaving the radio on at night. \"So I'd notice,\" they say, \"if it went quiet.\"",
         "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "Sef Adeyemi has taken to leaving the radio on at night. \"So I'd notice,\" they say, \"if it went quiet.\""
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "Sef Adeyemi can stretch a thin larder further than the math says is possible."
       ]
     },
     {
@@ -355,9 +355,9 @@
       "hull": 100,
       "loc": "solace",
       "log": [
-        "Dane Okoro pauses mid-task at a sound in the hull only they heard. \"...She's fine,\" they say, to themselves, and keep working.",
+        "Dane Okoro plays solitaire against the drive hum and loses, somehow.",
         "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "Dane Okoro has taken to leaving the radio on at night. \"So I'd notice,\" they say, \"if it went quiet.\""
+        "You wait a day in port. The dockworkers play cards. The meter runs."
       ]
     },
     {
@@ -368,9 +368,9 @@
       "hull": 100,
       "loc": "solace",
       "log": [
-        "Sef Adeyemi plays solitaire against the drive hum and loses, somehow.",
+        "Sef Adeyemi counts their pay twice on payday and sends most of it somewhere they don't name.",
         "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "Dane Okoro pauses mid-task at a sound in the hull only they heard. \"...She's fine,\" they say, to themselves, and keep working."
+        "Dane Okoro plays solitaire against the drive hum and loses, somehow."
       ]
     },
     {
@@ -381,9 +381,9 @@
       "hull": 100,
       "loc": "solace",
       "log": [
-        "Sef Adeyemi plays solitaire against the drive hum and loses, somehow.",
         "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "Sef Adeyemi plays solitaire against the drive hum and loses, somehow."
+        "Sef Adeyemi counts their pay twice on payday and sends most of it somewhere they don't name.",
+        "You wait a day in port. The dockworkers play cards. The meter runs."
       ]
     },
     {
@@ -395,8 +395,8 @@
       "loc": "solace",
       "log": [
         "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "Sef Adeyemi plays solitaire against the drive hum and loses, somehow.",
-        "You wait a day in port. The dockworkers play cards. The meter runs."
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "Sef Adeyemi counts their pay twice on payday and sends most of it somewhere they don't name."
       ]
     },
     {
@@ -407,9 +407,9 @@
       "hull": 100,
       "loc": "solace",
       "log": [
+        "Dane Okoro runs a hand along the console. \"She's got a pull to port on cold starts. I've stopped fighting it.\"",
         "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "Sef Adeyemi plays solitaire against the drive hum and loses, somehow."
+        "You wait a day in port. The dockworkers play cards. The meter runs."
       ]
     },
     {
@@ -421,11 +421,11 @@
       "loc": "solace",
       "log": [
         "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "Dane Okoro runs a hand along the console. \"She's got a pull to port on cold starts. I've stopped fighting it.\"",
         "You wait a day in port. The dockworkers play cards. The meter runs."
       ]
     }
   ],
-  "finalState": "{\"appearance\":{\"frame\":\"neutral\",\"garb\":\"jumpsuit\",\"head\":\"human\",\"skin\":\"#d89b6c\",\"suit\":\"#1c2131\",\"trim\":\"#e8b04b\"},\"arc\":{\"ambushed\":false,\"betrayed\":false,\"deadline\":null,\"done\":false,\"stage\":0},\"campaign\":{\"silence\":{\"billDay\":null,\"nextDay\":null,\"nextWorld\":null,\"silenced\":[],\"stage\":1}},\"captainName\":\"Cass Ardent\",\"captainRole\":null,\"cargo\":{\"lux\":0,\"med\":0,\"ore\":0},\"credits\":920,\"crew\":[{\"bundle\":{\"origin\":\"a generation ship that never made port\",\"secret\":\"used to fly under a black flag and knows those crews by name\",\"secretTag\":\"ex_pirate\",\"tell\":\"touches the hatch frame on the way out, every single time\",\"tellSituation\":\"depart\",\"traits\":[\"superstitious\",\"chatty\"],\"want\":\"to find a brother who shipped out and never wrote\",\"wound\":\"watched a ship they loved come apart in the black\",\"woundTag\":\"lost_a_ship\"},\"daysAboard\":42,\"fee\":0,\"id\":1,\"name\":\"Dane Okoro\",\"questStage\":0,\"revealed\":{},\"role\":\"pilot\",\"salary\":8},{\"bundle\":{\"origin\":\"the Foundry smelter decks\",\"secret\":\"used to fly under a black flag and knows those crews by name\",\"secretTag\":\"ex_pirate\",\"tell\":\"scans every new dock for a face they never find\",\"tellSituation\":\"arrive\",\"traits\":[\"cynical\",\"weary\"],\"want\":\"to stop running long enough to sleep through a night\",\"wound\":\"owes money to people who collect in blood\",\"woundTag\":\"debt\"},\"daysAboard\":42,\"eventsInRole\":3,\"fee\":0,\"id\":2,\"name\":\"Sef Adeyemi\",\"questStage\":0,\"revealed\":{},\"role\":\"cook\",\"salary\":8}],\"day\":47,\"dead\":false,\"disposition\":{\"daring\":0,\"law\":0,\"mercy\":0},\"docked\":true,\"engineLvl\":1,\"flags\":{\"intro\":6,\"intro_done\":true,\"riderRumors\":[\"\\\"Every receiver on the station played it. Four seconds. My cousin on Meridian heard the same four seconds at the same tick. Explain that.\\\"\"],\"sil_stage1\":true},\"food\":0,\"fuel\":40,\"hull\":100,\"hullMax\":100,\"jobs\":[],\"ledger\":[],\"loc\":\"solace\",\"logLines\":[{\"d\":47,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":46,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":45,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":44,\"m\":\"Sef Adeyemi plays solitaire against the drive hum and loses, somehow.\"},{\"d\":44,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":43,\"m\":\"Sef Adeyemi plays solitaire against the drive hum and loses, somehow.\"},{\"d\":43,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":42,\"m\":\"Dane Okoro pauses mid-task at a sound in the hull only they heard. \\\"...She's fine,\\\" they say, to themselves, and keep working.\"},{\"d\":42,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":41,\"m\":\"Dane Okoro has taken to leaving the radio on at night. \\\"So I'd notice,\\\" they say, \\\"if it went quiet.\\\"\"},{\"d\":41,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":40,\"m\":\"Sef Adeyemi has taken to leaving the radio on at night. \\\"So I'd notice,\\\" they say, \\\"if it went quiet.\\\"\"},{\"d\":40,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":40,\"m\":\"Sef Adeyemi can stretch a thin larder further than the math says is possible.\"},{\"d\":39,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":38,\"m\":\"Dane Okoro runs a hand along the console. \\\"She's got a pull to port on cold starts. I've stopped fighting it.\\\"\"},{\"d\":38,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":37,\"m\":\"Dane Okoro plays solitaire against the drive hum and loses, somehow.\"},{\"d\":37,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":36,\"m\":\"Sef Adeyemi is doing something ambitious with the ration paste. It smells almost like food.\"},{\"d\":36,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":35,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":34,\"m\":\"Sef Adeyemi plays solitaire against the drive hum and loses, somehow.\"},{\"d\":34,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":33,\"m\":\"Sef Adeyemi counts their pay twice on payday and sends most of it somewhere they don't name.\"},{\"d\":33,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":32,\"m\":\"Dane Okoro plays solitaire against the drive hum and loses, somehow.\"},{\"d\":32,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":31,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":30,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":29,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":28,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":27,\"m\":\"Sef Adeyemi is doing something ambitious with the ration paste. It smells almost like food.\"},{\"d\":27,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":26,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":25,\"m\":\"Dane Okoro names the ship on the far scope without looking twice. \\\"Bad crowd,\\\" they add, in the tone of someone who used to be invited.\\\"\"},{\"d\":25,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":24,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":23,\"m\":\"Sef Adeyemi: \\\"Peace and quiet. That's how you know something's about to go wrong.\\\"\"},{\"d\":23,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":22,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":21,\"m\":\"Sef Adeyemi names the ship on the far scope without looking twice. \\\"Bad crowd,\\\" they add, in the tone of someone who used to be invited.\\\"\"},{\"d\":21,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":20,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":19,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":18,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":18,\"m\":\"◇ THE BROADCAST — every radio in the sector played the same four seconds. The band has holes in it now.\"},{\"d\":17,\"m\":\"— [dev] Scenario loaded: silence. Day 17 — the Broadcast fires on the next day tick; trader loadout —\"}],\"market\":{\"day\":17,\"loc\":\"solace\",\"missions\":[{\"desc\":\"Recovered collateral — somebody's ship, stripped to 6 units of it — back to the lienholder on Haven's Folly. Don't read the registry plates.\",\"dest\":\"havens\",\"id\":3,\"kind\":\"cargo\",\"needs\":[\"cargo:6\"],\"pay\":288,\"prestige\":1,\"rep\":[\"union\",1],\"title\":\"Repossession haul\",\"units\":6},{\"desc\":\"Haul 14 units to Kestrel's Rest. 3 day run.\",\"dest\":\"kestrel\",\"id\":5,\"kind\":\"cargo\",\"needs\":[\"cargo:14\"],\"pay\":230,\"prestige\":1,\"rep\":[\"union\",1],\"title\":\"Freight: water recyclers\",\"units\":14},{\"desc\":\"Haul 12 units to Verge Station. 6 day run.\",\"dest\":\"verge\",\"id\":9,\"kind\":\"cargo\",\"needs\":[\"cargo:12\"],\"pay\":264,\"prestige\":1,\"rep\":[\"union\",1],\"title\":\"Freight: textiles\",\"units\":12},{\"desc\":\"Directrix Sun requires discreet, comfortable passage to Dustwell. Stateroom mandatory. Reputation required.\",\"dest\":\"dustwell\",\"id\":10,\"kind\":\"vip\",\"minPrestige\":8,\"needs\":[\"vip:1\",\"prestige:8\"],\"pax\":{\"motive\":\"vip\",\"name\":\"Directrix Sun\",\"sick\":false},\"pay\":540,\"prestige\":4,\"rep\":[\"union\",2],\"title\":\"VIP Charter: Directrix Sun\",\"vip\":true},{\"desc\":\"Haul 12 units to Haven's Folly. 5 day run.\",\"dest\":\"havens\",\"id\":11,\"kind\":\"cargo\",\"needs\":[\"cargo:12\"],\"pay\":256,\"prestige\":1,\"rep\":[\"union\",1],\"title\":\"Freight: sealed containers\",\"units\":12}],\"prices\":{\"lux\":63,\"med\":36,\"ore\":17},\"recruits\":[{\"bundle\":{\"origin\":\"a generation ship that never made port\",\"secret\":\"was somebody important once, before the fall\",\"secretTag\":\"rich_once\",\"tell\":\"hums a tune from somewhere you can't place when it's quiet\",\"tellSituation\":\"quiet\",\"traits\":[\"devout\",\"gentle\"],\"want\":\"passage, eventually, to Elysium — if it's real\",\"wound\":\"the deep black past the charts frightens them, badly\",\"woundTag\":\"afraid_of_the_deep\"},\"daysAboard\":0,\"fee\":80,\"id\":15,\"key\":\"bapu\",\"name\":\"Bapu Okafor\",\"questStage\":0,\"role\":\"cook\",\"salary\":6},{\"bundle\":{\"origin\":\"a Verge Station salvage crew\",\"secret\":\"is a Union deserter — a patrol scan is a death sentence\",\"secretTag\":\"union_deserter\",\"tell\":\"scans every new dock for a face they never find\",\"tellSituation\":\"arrive\",\"traits\":[\"cautious\",\"devout\"],\"want\":\"to see the edge of the charts with her own eyes\",\"wound\":\"was left in a cell once and hasn't forgotten it\",\"woundTag\":\"left_behind\"},\"daysAboard\":0,\"fee\":122,\"id\":12,\"name\":\"Kesh Stone\",\"questStage\":0,\"role\":\"gunner\",\"salary\":11},{\"bundle\":{\"origin\":\"the back alleys of Haven's Folly\",\"secret\":\"is a Union deserter — a patrol scan is a death sentence\",\"secretTag\":\"union_deserter\",\"tell\":\"checks the same weld on the bulkhead twice before every fight\",\"tellSituation\":\"combat_start\",\"traits\":[\"hotheaded\",\"greedy\"],\"want\":\"to matter to somebody who isn't paying her\",\"wound\":\"knew real hunger young and counts the food stores twice\",\"woundTag\":\"hungry_years\"},\"daysAboard\":0,\"fee\":76,\"id\":13,\"name\":\"June Iqbal\",\"questStage\":0,\"role\":\"medic\",\"salary\":14},{\"bundle\":{\"origin\":\"a Verge Station salvage crew\",\"secret\":\"is sicker than they let on and hasn't told a soul\",\"secretTag\":\"dying\",\"tell\":\"hums a tune from somewhere you can't place when it's quiet\",\"tellSituation\":\"quiet\",\"traits\":[\"hotheaded\",\"stoic\"],\"want\":\"enough credits to buy back the family farm\",\"wound\":\"watched a ship they loved come apart in the black\",\"woundTag\":\"lost_a_ship\"},\"daysAboard\":0,\"fee\":112,\"id\":14,\"name\":\"Lupe Moreau\",\"questStage\":0,\"role\":\"pilot\",\"salary\":9}],\"rumors\":[\"\\\"Medicine bought cheap on Meridian sells triple out past the frontier.\\\"\",\"\\\"Pirates work the long empty runs. Weapons bay ain't optional forever, captain.\\\"\"]},\"modules\":[{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"cockpit\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"engine\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"fueltank\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"cargohold\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"medbay\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"cabin\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"quarters\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"hydro\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"weapons\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"shields\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"armory\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"workshop\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"smuggler\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"luxcabin\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"cargohold\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"quarters\"}],\"npcs\":[],\"over\":false,\"poi\":[],\"portMood\":{},\"portStanding\":{},\"prestige\":5,\"rep\":{\"frontier\":0,\"syndicate\":0,\"union\":0},\"rngState\":-1526588186,\"scheduled\":[],\"seed\":424242,\"shipName\":\"Long Ear\",\"slotsMax\":14,\"starve\":0,\"travel\":null,\"uid\":16,\"unpaid\":0,\"usedMarket\":null,\"version\":14,\"won\":false}",
-  "finalHash": "22d580c8"
+  "finalState": "{\"appearance\":{\"frame\":\"neutral\",\"garb\":\"jumpsuit\",\"head\":\"human\",\"skin\":\"#d89b6c\",\"suit\":\"#1c2131\",\"trim\":\"#e8b04b\"},\"arc\":{\"ambushed\":false,\"betrayed\":false,\"deadline\":null,\"done\":false,\"stage\":0},\"barkTick\":42,\"campaign\":{\"silence\":{\"billDay\":null,\"nextDay\":null,\"nextWorld\":null,\"silenced\":[],\"stage\":1}},\"captainName\":\"Cass Ardent\",\"captainRole\":null,\"cargo\":{\"lux\":0,\"med\":0,\"ore\":0},\"credits\":920,\"crew\":[{\"bundle\":{\"origin\":\"a generation ship that never made port\",\"secret\":\"used to fly under a black flag and knows those crews by name\",\"secretTag\":\"ex_pirate\",\"tell\":\"touches the hatch frame on the way out, every single time\",\"tellSituation\":\"depart\",\"traits\":[\"superstitious\",\"chatty\"],\"want\":\"to find a brother who shipped out and never wrote\",\"wound\":\"watched a ship they loved come apart in the black\",\"woundTag\":\"lost_a_ship\"},\"daysAboard\":42,\"fee\":0,\"id\":1,\"name\":\"Dane Okoro\",\"questStage\":0,\"revealed\":{},\"role\":\"pilot\",\"salary\":8},{\"bundle\":{\"origin\":\"the Foundry smelter decks\",\"secret\":\"used to fly under a black flag and knows those crews by name\",\"secretTag\":\"ex_pirate\",\"tell\":\"scans every new dock for a face they never find\",\"tellSituation\":\"arrive\",\"traits\":[\"cynical\",\"weary\"],\"want\":\"to stop running long enough to sleep through a night\",\"wound\":\"owes money to people who collect in blood\",\"woundTag\":\"debt\"},\"daysAboard\":42,\"eventsInRole\":3,\"fee\":0,\"id\":2,\"name\":\"Sef Adeyemi\",\"questStage\":0,\"revealed\":{},\"role\":\"cook\",\"salary\":8}],\"day\":47,\"dead\":false,\"disposition\":{\"daring\":0,\"law\":0,\"mercy\":0},\"docked\":true,\"engineLvl\":1,\"flags\":{\"intro\":6,\"intro_done\":true,\"riderRumors\":[\"\\\"Every receiver on the station played it. Four seconds. My cousin on Meridian heard the same four seconds at the same tick. Explain that.\\\"\"],\"sil_stage1\":true},\"food\":0,\"fuel\":40,\"hull\":100,\"hullMax\":100,\"jobs\":[],\"ledger\":[],\"loc\":\"solace\",\"logLines\":[{\"d\":47,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":46,\"m\":\"Dane Okoro runs a hand along the console. \\\"She's got a pull to port on cold starts. I've stopped fighting it.\\\"\"},{\"d\":46,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":45,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":44,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":43,\"m\":\"Sef Adeyemi counts their pay twice on payday and sends most of it somewhere they don't name.\"},{\"d\":43,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":42,\"m\":\"Dane Okoro plays solitaire against the drive hum and loses, somehow.\"},{\"d\":42,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":41,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":40,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":40,\"m\":\"Sef Adeyemi can stretch a thin larder further than the math says is possible.\"},{\"bark\":true,\"d\":39,\"m\":\"Dane Okoro plays solitaire against the drive hum and loses, somehow.\"},{\"d\":39,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":38,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":37,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":36,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":35,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":34,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":33,\"m\":\"Sef Adeyemi plays solitaire against the drive hum and loses, somehow.\"},{\"d\":33,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":32,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":31,\"m\":\"Sef Adeyemi plays solitaire against the drive hum and loses, somehow.\"},{\"d\":31,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":30,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":29,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":28,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":27,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":26,\"m\":\"Sef Adeyemi plays solitaire against the drive hum and loses, somehow.\"},{\"d\":26,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":25,\"m\":\"Dane Okoro: \\\"My gran said the black hums if you listen long enough. I always thought she was being poetic.\\\"\"},{\"d\":25,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":24,\"m\":\"Dane Okoro: \\\"My gran said the black hums if you listen long enough. I always thought she was being poetic.\\\"\"},{\"d\":24,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":23,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":22,\"m\":\"Dane Okoro plays solitaire against the drive hum and loses, somehow.\"},{\"d\":22,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":21,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":20,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":19,\"m\":\"Dane Okoro runs a hand along the console. \\\"She's got a pull to port on cold starts. I've stopped fighting it.\\\"\"},{\"d\":19,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":18,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":18,\"m\":\"◇ THE BROADCAST — every radio in the sector played the same four seconds. The band has holes in it now.\"},{\"d\":17,\"m\":\"— [dev] Scenario loaded: silence. Day 17 — the Broadcast fires on the next day tick; trader loadout —\"}],\"market\":{\"day\":17,\"loc\":\"solace\",\"missions\":[{\"desc\":\"Recovered collateral — somebody's ship, stripped to 6 units of it — back to the lienholder on Haven's Folly. Don't read the registry plates.\",\"dest\":\"havens\",\"id\":3,\"kind\":\"cargo\",\"needs\":[\"cargo:6\"],\"pay\":288,\"prestige\":1,\"rep\":[\"union\",1],\"title\":\"Repossession haul\",\"units\":6},{\"desc\":\"Haul 14 units to Kestrel's Rest. 3 day run.\",\"dest\":\"kestrel\",\"id\":5,\"kind\":\"cargo\",\"needs\":[\"cargo:14\"],\"pay\":230,\"prestige\":1,\"rep\":[\"union\",1],\"title\":\"Freight: water recyclers\",\"units\":14},{\"desc\":\"Haul 12 units to Verge Station. 6 day run.\",\"dest\":\"verge\",\"id\":9,\"kind\":\"cargo\",\"needs\":[\"cargo:12\"],\"pay\":264,\"prestige\":1,\"rep\":[\"union\",1],\"title\":\"Freight: textiles\",\"units\":12},{\"desc\":\"Directrix Sun requires discreet, comfortable passage to Dustwell. Stateroom mandatory. Reputation required.\",\"dest\":\"dustwell\",\"id\":10,\"kind\":\"vip\",\"minPrestige\":8,\"needs\":[\"vip:1\",\"prestige:8\"],\"pax\":{\"motive\":\"vip\",\"name\":\"Directrix Sun\",\"sick\":false},\"pay\":540,\"prestige\":4,\"rep\":[\"union\",2],\"title\":\"VIP Charter: Directrix Sun\",\"vip\":true},{\"desc\":\"Haul 12 units to Haven's Folly. 5 day run.\",\"dest\":\"havens\",\"id\":11,\"kind\":\"cargo\",\"needs\":[\"cargo:12\"],\"pay\":256,\"prestige\":1,\"rep\":[\"union\",1],\"title\":\"Freight: sealed containers\",\"units\":12}],\"prices\":{\"lux\":63,\"med\":36,\"ore\":17},\"recruits\":[{\"bundle\":{\"origin\":\"a generation ship that never made port\",\"secret\":\"was somebody important once, before the fall\",\"secretTag\":\"rich_once\",\"tell\":\"hums a tune from somewhere you can't place when it's quiet\",\"tellSituation\":\"quiet\",\"traits\":[\"devout\",\"gentle\"],\"want\":\"passage, eventually, to Elysium — if it's real\",\"wound\":\"the deep black past the charts frightens them, badly\",\"woundTag\":\"afraid_of_the_deep\"},\"daysAboard\":0,\"fee\":80,\"id\":15,\"key\":\"bapu\",\"name\":\"Bapu Okafor\",\"questStage\":0,\"role\":\"cook\",\"salary\":6},{\"bundle\":{\"origin\":\"a Verge Station salvage crew\",\"secret\":\"is a Union deserter — a patrol scan is a death sentence\",\"secretTag\":\"union_deserter\",\"tell\":\"scans every new dock for a face they never find\",\"tellSituation\":\"arrive\",\"traits\":[\"cautious\",\"devout\"],\"want\":\"to see the edge of the charts with her own eyes\",\"wound\":\"was left in a cell once and hasn't forgotten it\",\"woundTag\":\"left_behind\"},\"daysAboard\":0,\"fee\":122,\"id\":12,\"name\":\"Kesh Stone\",\"questStage\":0,\"role\":\"gunner\",\"salary\":11},{\"bundle\":{\"origin\":\"the back alleys of Haven's Folly\",\"secret\":\"is a Union deserter — a patrol scan is a death sentence\",\"secretTag\":\"union_deserter\",\"tell\":\"checks the same weld on the bulkhead twice before every fight\",\"tellSituation\":\"combat_start\",\"traits\":[\"hotheaded\",\"greedy\"],\"want\":\"to matter to somebody who isn't paying her\",\"wound\":\"knew real hunger young and counts the food stores twice\",\"woundTag\":\"hungry_years\"},\"daysAboard\":0,\"fee\":76,\"id\":13,\"name\":\"June Iqbal\",\"questStage\":0,\"role\":\"medic\",\"salary\":14},{\"bundle\":{\"origin\":\"a Verge Station salvage crew\",\"secret\":\"is sicker than they let on and hasn't told a soul\",\"secretTag\":\"dying\",\"tell\":\"hums a tune from somewhere you can't place when it's quiet\",\"tellSituation\":\"quiet\",\"traits\":[\"hotheaded\",\"stoic\"],\"want\":\"enough credits to buy back the family farm\",\"wound\":\"watched a ship they loved come apart in the black\",\"woundTag\":\"lost_a_ship\"},\"daysAboard\":0,\"fee\":112,\"id\":14,\"name\":\"Lupe Moreau\",\"questStage\":0,\"role\":\"pilot\",\"salary\":9}],\"rumors\":[\"\\\"Medicine bought cheap on Meridian sells triple out past the frontier.\\\"\",\"\\\"Pirates work the long empty runs. Weapons bay ain't optional forever, captain.\\\"\"]},\"modules\":[{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"cockpit\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"engine\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"fueltank\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"cargohold\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"medbay\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"cabin\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"quarters\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"hydro\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"weapons\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"shields\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"armory\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"workshop\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"smuggler\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"luxcabin\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"cargohold\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"quarters\"}],\"npcs\":[],\"over\":false,\"poi\":[],\"portMood\":{},\"portStanding\":{},\"prestige\":5,\"rep\":{\"frontier\":0,\"syndicate\":0,\"union\":0},\"rngState\":-1526588186,\"scheduled\":[],\"seed\":424242,\"shipName\":\"Long Ear\",\"slotsMax\":14,\"starve\":0,\"travel\":null,\"uid\":16,\"unpaid\":0,\"usedMarket\":null,\"version\":15,\"won\":false}",
+  "finalHash": "b18ed5d3"
 }

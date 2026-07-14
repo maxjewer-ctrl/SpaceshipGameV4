@@ -3,36 +3,36 @@
   "seed": 20260714,
   "days": 30,
   "ticks": [
-    "3c943aa8",
-    "872f39f3",
-    "5f8750f2",
-    "a6380e8d",
-    "7f6383f0",
-    "eb341111",
-    "0ab696a2",
-    "2a60d3bf",
-    "3eb960dc",
-    "c2bfc807",
-    "97a272a9",
-    "f4e9e337",
-    "dc5ded26",
-    "e05f0511",
-    "309a2d29",
-    "89615f27",
-    "1e0def3d",
-    "2fcc0b01",
-    "c8dd1295",
-    "1fdc4045",
-    "448bacc1",
-    "e645ef48",
-    "7507273e",
-    "5cb5517b",
-    "a611fe4e",
-    "d27dddfc",
-    "98cc6f5c",
-    "490d5b4d",
-    "767c2c6b",
-    "81f822fd"
+    "87d8ec0e",
+    "42cc8ea1",
+    "51faa347",
+    "611afa99",
+    "58a0939f",
+    "f31cda77",
+    "bba32477",
+    "fdc1f1b6",
+    "0ae78c2d",
+    "e2d38295",
+    "7632d623",
+    "87187b93",
+    "8b8aa3bc",
+    "66c06ee1",
+    "88c96bb6",
+    "81a0e4a5",
+    "61560e91",
+    "b3a8264c",
+    "967bdda1",
+    "2d58e2de",
+    "9b73b113",
+    "57fbe1ce",
+    "2220c424",
+    "92633fe6",
+    "b974ba57",
+    "6821321a",
+    "97ac56d3",
+    "014a14df",
+    "4ecf8282",
+    "95ab1418"
   ],
   "landmarks": [
     {
@@ -43,7 +43,7 @@
       "hull": 100,
       "loc": "solace",
       "log": [
-        "Odile Vance plays solitaire against the drive hum and loses, somehow.",
+        "Kesh Barlow says nothing for a long while, which from Kesh Barlow counts as a whole conversation.",
         "You wait a day in port. The dockworkers play cards. The meter runs.",
         "— [dev] Scenario loaded: trader. Day 14 trade-loop ship: 2 cargo holds, pilot+mechanic, 1,800cr —"
       ]
@@ -56,9 +56,9 @@
       "hull": 100,
       "loc": "solace",
       "log": [
+        "Kesh Barlow takes their coffee out to the viewport alone tonight, and stands there a long time, like someone doing arithmetic with a number they won't say.",
         "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "Odile Vance plays solitaire against the drive hum and loses, somehow.",
-        "You wait a day in port. The dockworkers play cards. The meter runs."
+        "Kesh Barlow says nothing for a long while, which from Kesh Barlow counts as a whole conversation."
       ]
     },
     {
@@ -69,9 +69,9 @@
       "hull": 100,
       "loc": "solace",
       "log": [
+        "Kesh Barlow plays solitaire against the drive hum and loses, somehow.",
         "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "Odile Vance plays solitaire against the drive hum and loses, somehow."
+        "Kesh Barlow takes their coffee out to the viewport alone tonight, and stands there a long time, like someone doing arithmetic with a number they won't say."
       ]
     },
     {
@@ -82,9 +82,9 @@
       "hull": 100,
       "loc": "solace",
       "log": [
+        "Kesh Barlow has taken to leaving the radio on at night. \"So I'd notice,\" they say, \"if it went quiet.\"",
         "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "◇ THE BROADCAST — every radio in the sector played the same four seconds. The band has holes in it now.",
-        "You wait a day in port. The dockworkers play cards. The meter runs."
+        "◇ THE BROADCAST — every radio in the sector played the same four seconds. The band has holes in it now."
       ]
     },
     {
@@ -95,9 +95,9 @@
       "hull": 100,
       "loc": "solace",
       "log": [
+        "Kesh Barlow has taken to leaving the radio on at night. \"So I'd notice,\" they say, \"if it went quiet.\"",
         "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "◇ THE BROADCAST — every radio in the sector played the same four seconds. The band has holes in it now."
+        "Kesh Barlow has taken to leaving the radio on at night. \"So I'd notice,\" they say, \"if it went quiet.\""
       ]
     },
     {
@@ -109,7 +109,7 @@
       "loc": "solace",
       "log": [
         "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "Kesh Barlow has taken to leaving the radio on at night. \"So I'd notice,\" they say, \"if it went quiet.\"",
         "You wait a day in port. The dockworkers play cards. The meter runs."
       ]
     },
@@ -123,7 +123,7 @@
       "log": [
         "You wait a day in port. The dockworkers play cards. The meter runs.",
         "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "You wait a day in port. The dockworkers play cards. The meter runs."
+        "Kesh Barlow has taken to leaving the radio on at night. \"So I'd notice,\" they say, \"if it went quiet.\""
       ]
     },
     {
@@ -134,7 +134,7 @@
       "hull": 100,
       "loc": "solace",
       "log": [
-        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "Kesh Barlow has a panel off again, elbow-deep in the guts of her, whispering to the wiring.",
         "You wait a day in port. The dockworkers play cards. The meter runs.",
         "You wait a day in port. The dockworkers play cards. The meter runs."
       ]
@@ -147,9 +147,9 @@
       "hull": 100,
       "loc": "solace",
       "log": [
-        "Kesh Barlow takes their coffee out to the viewport alone tonight, and stands there a long time, like someone doing arithmetic with a number they won't say.",
+        "Odile Vance folds the Union news feed away half-read, jaw tight, and finds something to polish.",
         "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "You wait a day in port. The dockworkers play cards. The meter runs."
+        "Kesh Barlow has a panel off again, elbow-deep in the guts of her, whispering to the wiring."
       ]
     },
     {
@@ -161,7 +161,7 @@
       "loc": "solace",
       "log": [
         "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "Kesh Barlow takes their coffee out to the viewport alone tonight, and stands there a long time, like someone doing arithmetic with a number they won't say.",
+        "Odile Vance folds the Union news feed away half-read, jaw tight, and finds something to polish.",
         "You wait a day in port. The dockworkers play cards. The meter runs."
       ]
     },
@@ -173,9 +173,9 @@
       "hull": 100,
       "loc": "solace",
       "log": [
-        "Odile Vance has taken to leaving the radio on at night. \"So I'd notice,\" they say, \"if it went quiet.\"",
         "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "You wait a day in port. The dockworkers play cards. The meter runs."
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "Odile Vance folds the Union news feed away half-read, jaw tight, and finds something to polish."
       ]
     },
     {
@@ -186,8 +186,8 @@
       "hull": 100,
       "loc": "solace",
       "log": [
+        "Odile Vance folds the Union news feed away half-read, jaw tight, and finds something to polish.",
         "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "Odile Vance has taken to leaving the radio on at night. \"So I'd notice,\" they say, \"if it went quiet.\"",
         "You wait a day in port. The dockworkers play cards. The meter runs."
       ]
     },
@@ -199,9 +199,9 @@
       "hull": 100,
       "loc": "solace",
       "log": [
+        "Odile Vance: \"My gran said the black hums if you listen long enough. I always thought she was being poetic.\"",
         "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "Odile Vance has taken to leaving the radio on at night. \"So I'd notice,\" they say, \"if it went quiet.\""
+        "Odile Vance folds the Union news feed away half-read, jaw tight, and finds something to polish."
       ]
     },
     {
@@ -212,8 +212,8 @@
       "hull": 100,
       "loc": "solace",
       "log": [
-        "Kesh Barlow says nothing for a long while, which from Kesh Barlow counts as a whole conversation.",
         "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "Odile Vance: \"My gran said the black hums if you listen long enough. I always thought she was being poetic.\"",
         "You wait a day in port. The dockworkers play cards. The meter runs."
       ]
     },
@@ -225,8 +225,8 @@
       "hull": 100,
       "loc": "solace",
       "log": [
+        "Odile Vance has taken to leaving the radio on at night. \"So I'd notice,\" they say, \"if it went quiet.\"",
         "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "Kesh Barlow says nothing for a long while, which from Kesh Barlow counts as a whole conversation.",
         "You wait a day in port. The dockworkers play cards. The meter runs."
       ]
     },
@@ -239,8 +239,8 @@
       "loc": "solace",
       "log": [
         "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "Kesh Barlow says nothing for a long while, which from Kesh Barlow counts as a whole conversation."
+        "Odile Vance has taken to leaving the radio on at night. \"So I'd notice,\" they say, \"if it went quiet.\"",
+        "You wait a day in port. The dockworkers play cards. The meter runs."
       ]
     },
     {
@@ -251,9 +251,9 @@
       "hull": 100,
       "loc": "solace",
       "log": [
-        "Odile Vance runs a hand along the console. \"She's got a pull to port on cold starts. I've stopped fighting it.\"",
         "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "You wait a day in port. The dockworkers play cards. The meter runs."
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "Odile Vance has taken to leaving the radio on at night. \"So I'd notice,\" they say, \"if it went quiet.\""
       ]
     },
     {
@@ -264,9 +264,9 @@
       "hull": 100,
       "loc": "solace",
       "log": [
-        "Odile Vance plays solitaire against the drive hum and loses, somehow.",
         "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "Odile Vance runs a hand along the console. \"She's got a pull to port on cold starts. I've stopped fighting it.\""
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "You wait a day in port. The dockworkers play cards. The meter runs."
       ]
     },
     {
@@ -277,9 +277,9 @@
       "hull": 100,
       "loc": "solace",
       "log": [
-        "Kesh Barlow says nothing for a long while, which from Kesh Barlow counts as a whole conversation.",
+        "Kesh Barlow plays solitaire against the drive hum and loses, somehow.",
         "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "Odile Vance plays solitaire against the drive hum and loses, somehow."
+        "You wait a day in port. The dockworkers play cards. The meter runs."
       ]
     },
     {
@@ -290,9 +290,9 @@
       "hull": 100,
       "loc": "solace",
       "log": [
+        "Odile Vance names the ship on the far scope without looking twice. \"Bad crowd,\" they add, in the tone of someone who used to be invited.\"",
         "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "Kesh Barlow says nothing for a long while, which from Kesh Barlow counts as a whole conversation.",
-        "You wait a day in port. The dockworkers play cards. The meter runs."
+        "Kesh Barlow plays solitaire against the drive hum and loses, somehow."
       ]
     },
     {
@@ -303,9 +303,9 @@
       "hull": 100,
       "loc": "solace",
       "log": [
+        "Kesh Barlow plays solitaire against the drive hum and loses, somehow.",
         "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "Kesh Barlow says nothing for a long while, which from Kesh Barlow counts as a whole conversation."
+        "Odile Vance names the ship on the far scope without looking twice. \"Bad crowd,\" they add, in the tone of someone who used to be invited.\""
       ]
     },
     {
@@ -316,9 +316,9 @@
       "hull": 100,
       "loc": "solace",
       "log": [
-        "Kesh Barlow folds the Union news feed away half-read, jaw tight, and finds something to polish.",
+        "Odile Vance: \"My gran said the black hums if you listen long enough. I always thought she was being poetic.\"",
         "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "You wait a day in port. The dockworkers play cards. The meter runs."
+        "Kesh Barlow plays solitaire against the drive hum and loses, somehow."
       ]
     },
     {
@@ -329,9 +329,9 @@
       "hull": 100,
       "loc": "solace",
       "log": [
-        "Odile Vance: \"My gran said the black hums if you listen long enough. I always thought she was being poetic.\"",
         "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "Kesh Barlow folds the Union news feed away half-read, jaw tight, and finds something to polish."
+        "Odile Vance: \"My gran said the black hums if you listen long enough. I always thought she was being poetic.\"",
+        "You wait a day in port. The dockworkers play cards. The meter runs."
       ]
     },
     {
@@ -342,8 +342,8 @@
       "hull": 100,
       "loc": "solace",
       "log": [
+        "Odile Vance has taken to leaving the radio on at night. \"So I'd notice,\" they say, \"if it went quiet.\"",
         "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "Odile Vance: \"My gran said the black hums if you listen long enough. I always thought she was being poetic.\"",
         "You wait a day in port. The dockworkers play cards. The meter runs."
       ]
     },
@@ -355,8 +355,8 @@
       "hull": 100,
       "loc": "solace",
       "log": [
-        "Kesh Barlow has a panel off again, elbow-deep in the guts of her, whispering to the wiring.",
         "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "Odile Vance has taken to leaving the radio on at night. \"So I'd notice,\" they say, \"if it went quiet.\"",
         "You wait a day in port. The dockworkers play cards. The meter runs."
       ]
     },
@@ -369,8 +369,8 @@
       "loc": "solace",
       "log": [
         "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "Kesh Barlow has a panel off again, elbow-deep in the guts of her, whispering to the wiring.",
-        "You wait a day in port. The dockworkers play cards. The meter runs."
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "Odile Vance has taken to leaving the radio on at night. \"So I'd notice,\" they say, \"if it went quiet.\""
       ]
     },
     {
@@ -383,7 +383,7 @@
       "log": [
         "You wait a day in port. The dockworkers play cards. The meter runs.",
         "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "Kesh Barlow has a panel off again, elbow-deep in the guts of her, whispering to the wiring."
+        "You wait a day in port. The dockworkers play cards. The meter runs."
       ]
     },
     {
@@ -396,7 +396,7 @@
       "log": [
         "You wait a day in port. The dockworkers play cards. The meter runs.",
         "⚠ STARVING — buy food, fast.",
-        "Kesh Barlow's belt is on a tighter notch than last week. Nobody mentions it."
+        "Odile Vance's belt is on a tighter notch than last week. Nobody mentions it."
       ]
     },
     {
@@ -407,9 +407,9 @@
       "hull": 100,
       "loc": "solace",
       "log": [
+        "Kesh Barlow has a panel off again, elbow-deep in the guts of her, whispering to the wiring.",
         "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "⚠ STARVING — buy food, fast.",
-        "You wait a day in port. The dockworkers play cards. The meter runs."
+        "⚠ STARVING — buy food, fast."
       ]
     },
     {
@@ -420,12 +420,12 @@
       "hull": 100,
       "loc": "solace",
       "log": [
+        "Odile Vance names the ship on the far scope without looking twice. \"Bad crowd,\" they add, in the tone of someone who used to be invited.\"",
         "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "⚠ STARVING — buy food, fast.",
-        "Kesh Barlow is too weak to work and jumps ship at the first chance. Starvation is bad for retention."
+        "⚠ STARVING — buy food, fast."
       ]
     }
   ],
-  "finalState": "{\"appearance\":{\"frame\":\"neutral\",\"garb\":\"jumpsuit\",\"head\":\"human\",\"skin\":\"#d89b6c\",\"suit\":\"#1c2131\",\"trim\":\"#e8b04b\"},\"arc\":{\"ambushed\":false,\"betrayed\":false,\"deadline\":null,\"done\":false,\"stage\":0},\"campaign\":{\"silence\":{\"billDay\":null,\"nextDay\":null,\"nextWorld\":null,\"silenced\":[],\"stage\":1}},\"captainName\":\"Cass Ardent\",\"captainRole\":null,\"cargo\":{\"lux\":0,\"med\":0,\"ore\":0},\"credits\":1328,\"crew\":[{\"bundle\":{\"origin\":\"the pilgrim flotillas\",\"secret\":\"used to fly under a black flag and knows those crews by name\",\"secretTag\":\"ex_pirate\",\"tell\":\"scans every new dock for a face they never find\",\"tellSituation\":\"arrive\",\"traits\":[\"superstitious\",\"cautious\"],\"want\":\"enough credits to buy back the family farm\",\"wound\":\"the Union took someone from them and never explained\",\"woundTag\":\"union_took_someone\"},\"daysAboard\":42,\"fee\":0,\"id\":1,\"name\":\"Odile Vance\",\"questStage\":0,\"revealed\":{},\"role\":\"pilot\",\"salary\":8}],\"day\":44,\"dead\":false,\"disposition\":{\"daring\":0,\"law\":0,\"mercy\":0},\"docked\":true,\"engineLvl\":1,\"flags\":{\"intro\":6,\"intro_done\":true,\"riderRumors\":[\"\\\"Every receiver on the station played it. Four seconds. My cousin on Meridian heard the same four seconds at the same tick. Explain that.\\\"\"],\"sil_stage1\":true},\"food\":0,\"fuel\":36,\"hull\":100,\"hullMax\":100,\"jobs\":[],\"ledger\":[{\"day\":44,\"fact\":\"captain_starved_us\",\"note\":\"You let Kesh Barlow go hungry until they jumped ship.\",\"weight\":-4,\"who\":\"crew:2\"}],\"loc\":\"solace\",\"logLines\":[{\"d\":44,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":44,\"m\":\"⚠ STARVING — buy food, fast.\"},{\"d\":44,\"m\":\"Kesh Barlow is too weak to work and jumps ship at the first chance. Starvation is bad for retention.\"},{\"d\":43,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":43,\"m\":\"⚠ STARVING — buy food, fast.\"},{\"d\":42,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":42,\"m\":\"⚠ STARVING — buy food, fast.\"},{\"bark\":true,\"d\":42,\"m\":\"Kesh Barlow's belt is on a tighter notch than last week. Nobody mentions it.\"},{\"d\":42,\"m\":\"The pantry is empty. Everyone's rationing air-paste and resentment.\"},{\"d\":41,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":40,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":39,\"m\":\"Kesh Barlow has a panel off again, elbow-deep in the guts of her, whispering to the wiring.\"},{\"d\":39,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":38,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":37,\"m\":\"Odile Vance: \\\"My gran said the black hums if you listen long enough. I always thought she was being poetic.\\\"\"},{\"d\":37,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":36,\"m\":\"Kesh Barlow folds the Union news feed away half-read, jaw tight, and finds something to polish.\"},{\"d\":36,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":35,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":34,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":33,\"m\":\"Kesh Barlow says nothing for a long while, which from Kesh Barlow counts as a whole conversation.\"},{\"d\":33,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":32,\"m\":\"Odile Vance plays solitaire against the drive hum and loses, somehow.\"},{\"d\":32,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":31,\"m\":\"Odile Vance runs a hand along the console. \\\"She's got a pull to port on cold starts. I've stopped fighting it.\\\"\"},{\"d\":31,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":30,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":29,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":28,\"m\":\"Kesh Barlow says nothing for a long while, which from Kesh Barlow counts as a whole conversation.\"},{\"d\":28,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":27,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":26,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":25,\"m\":\"Odile Vance has taken to leaving the radio on at night. \\\"So I'd notice,\\\" they say, \\\"if it went quiet.\\\"\"},{\"d\":25,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":24,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":23,\"m\":\"Kesh Barlow takes their coffee out to the viewport alone tonight, and stands there a long time, like someone doing arithmetic with a number they won't say.\"},{\"d\":23,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":22,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":21,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":20,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":19,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":18,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":18,\"m\":\"◇ THE BROADCAST — every radio in the sector played the same four seconds. The band has holes in it now.\"},{\"d\":17,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":16,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":15,\"m\":\"Odile Vance plays solitaire against the drive hum and loses, somehow.\"},{\"d\":15,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":14,\"m\":\"— [dev] Scenario loaded: trader. Day 14 trade-loop ship: 2 cargo holds, pilot+mechanic, 1,800cr —\"}],\"market\":{\"day\":14,\"loc\":\"solace\",\"missions\":[{\"desc\":\"Recovered collateral — somebody's ship, stripped to 8 units of it — back to the lienholder on Verge Station. Don't read the registry plates.\",\"dest\":\"verge\",\"id\":3,\"kind\":\"cargo\",\"needs\":[\"cargo:8\"],\"pay\":334,\"prestige\":1,\"rep\":[\"union\",1],\"title\":\"Repossession haul\",\"units\":8},{\"desc\":\"Haul 11 units to Foundry. 3 day run.\",\"dest\":\"foundry\",\"id\":4,\"kind\":\"cargo\",\"needs\":[\"cargo:11\"],\"pay\":200,\"prestige\":1,\"rep\":[\"union\",1],\"title\":\"Freight: textiles\",\"units\":11},{\"desc\":\"Haul 8 units to Haven's Folly. 5 day run.\",\"dest\":\"havens\",\"id\":5,\"kind\":\"cargo\",\"needs\":[\"cargo:8\"],\"pay\":230,\"prestige\":1,\"rep\":[\"union\",1],\"title\":\"Freight: vaccine crates\",\"units\":8},{\"desc\":\"Lupe Barlow needs passage to Meridian Prime. They keeps glancing at the door.\",\"dest\":\"meridian\",\"id\":8,\"kind\":\"passenger\",\"needs\":[\"pax:1\"],\"pax\":{\"motive\":\"fugitive\",\"name\":\"Lupe Barlow\",\"sick\":false},\"pay\":315,\"prestige\":1,\"rep\":[\"union\",1],\"title\":\"Passenger: Lupe Barlow\"}],\"prices\":{\"lux\":65,\"med\":45,\"ore\":20},\"recruits\":[{\"bundle\":{\"origin\":\"a Union naval academy she washed out of\",\"secret\":\"was somebody important once, before the fall\",\"secretTag\":\"rich_once\",\"tell\":\"goes very quiet when patrols hail\",\"tellSituation\":\"patrol\",\"traits\":[\"proud\",\"cautious\"],\"want\":\"to prove the academy wrong about washing him out\",\"wound\":\"the Union took someone from them and never explained\",\"woundTag\":\"union_took_someone\"},\"daysAboard\":0,\"fee\":130,\"id\":11,\"key\":\"elias\",\"name\":\"Elias Wren-Kohl\",\"questStage\":0,\"role\":\"quartermaster\",\"salary\":10},{\"bundle\":{\"origin\":\"the pilgrim flotillas\",\"secret\":\"is a Union deserter — a patrol scan is a death sentence\",\"secretTag\":\"union_deserter\",\"tell\":\"touches the hatch frame on the way out, every single time\",\"tellSituation\":\"depart\",\"traits\":[\"chatty\",\"superstitious\"],\"want\":\"to matter to somebody who isn't paying her\",\"wound\":\"watched a ship they loved come apart in the black\",\"woundTag\":\"lost_a_ship\"},\"daysAboard\":0,\"fee\":96,\"id\":9,\"name\":\"Yuki Hale\",\"questStage\":0,\"role\":\"cook\",\"salary\":12},{\"bundle\":{\"origin\":\"a generation ship that never made port\",\"secret\":\"was somebody important once, before the fall\",\"secretTag\":\"rich_once\",\"tell\":\"scans every new dock for a face they never find\",\"tellSituation\":\"arrive\",\"traits\":[\"proud\",\"superstitious\"],\"want\":\"passage, eventually, to Elysium — if it's real\",\"wound\":\"the deep black past the charts frightens them, badly\",\"woundTag\":\"afraid_of_the_deep\"},\"daysAboard\":0,\"fee\":118,\"id\":10,\"name\":\"Otto Reyes\",\"questStage\":0,\"role\":\"quartermaster\",\"salary\":12}],\"rumors\":[\"\\\"Eleven years this month since Meridian. They still call it a reactor accident at the memorial. Nobody who was there calls it anything.\\\"\",\"\\\"Some captains hear things out past the Verge lanes that don't sound like anything. Four seconds, they say. Then it's gone.\\\"\"]},\"modules\":[{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"cockpit\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"engine\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"fueltank\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"cargohold\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"medbay\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"cabin\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"quarters\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"hydro\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"weapons\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"shields\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"armory\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"workshop\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"smuggler\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"luxcabin\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"cargohold\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"quarters\"}],\"npcs\":[],\"over\":false,\"poi\":[],\"portMood\":{},\"portStanding\":{},\"prestige\":0,\"rep\":{\"frontier\":1,\"syndicate\":0,\"union\":2},\"rngState\":1780309030,\"scheduled\":[],\"seed\":20260714,\"shipName\":\"Marrow's Luck\",\"slotsMax\":14,\"starve\":4,\"travel\":null,\"uid\":12,\"unpaid\":0,\"usedMarket\":null,\"version\":14,\"won\":false}",
-  "finalHash": "81f822fd"
+  "finalState": "{\"appearance\":{\"frame\":\"neutral\",\"garb\":\"jumpsuit\",\"head\":\"human\",\"skin\":\"#d89b6c\",\"suit\":\"#1c2131\",\"trim\":\"#e8b04b\"},\"arc\":{\"ambushed\":false,\"betrayed\":false,\"deadline\":null,\"done\":false,\"stage\":0},\"barkTick\":49,\"campaign\":{\"silence\":{\"billDay\":null,\"nextDay\":null,\"nextWorld\":null,\"silenced\":[],\"stage\":1}},\"captainName\":\"Cass Ardent\",\"captainRole\":null,\"cargo\":{\"lux\":0,\"med\":0,\"ore\":0},\"credits\":1328,\"crew\":[{\"bundle\":{\"origin\":\"the pilgrim flotillas\",\"secret\":\"used to fly under a black flag and knows those crews by name\",\"secretTag\":\"ex_pirate\",\"tell\":\"scans every new dock for a face they never find\",\"tellSituation\":\"arrive\",\"traits\":[\"superstitious\",\"cautious\"],\"want\":\"enough credits to buy back the family farm\",\"wound\":\"the Union took someone from them and never explained\",\"woundTag\":\"union_took_someone\"},\"daysAboard\":42,\"fee\":0,\"id\":1,\"name\":\"Odile Vance\",\"questStage\":0,\"revealed\":{},\"role\":\"pilot\",\"salary\":8}],\"day\":44,\"dead\":false,\"disposition\":{\"daring\":0,\"law\":0,\"mercy\":0},\"docked\":true,\"engineLvl\":1,\"flags\":{\"intro\":6,\"intro_done\":true,\"riderRumors\":[\"\\\"Every receiver on the station played it. Four seconds. My cousin on Meridian heard the same four seconds at the same tick. Explain that.\\\"\"],\"sil_stage1\":true},\"food\":0,\"fuel\":36,\"hull\":100,\"hullMax\":100,\"jobs\":[],\"ledger\":[{\"day\":44,\"fact\":\"captain_starved_us\",\"note\":\"You let Kesh Barlow go hungry until they jumped ship.\",\"weight\":-4,\"who\":\"crew:2\"}],\"loc\":\"solace\",\"logLines\":[{\"bark\":true,\"d\":44,\"m\":\"Odile Vance names the ship on the far scope without looking twice. \\\"Bad crowd,\\\" they add, in the tone of someone who used to be invited.\\\"\"},{\"d\":44,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":44,\"m\":\"⚠ STARVING — buy food, fast.\"},{\"d\":44,\"m\":\"Kesh Barlow is too weak to work and jumps ship at the first chance. Starvation is bad for retention.\"},{\"bark\":true,\"d\":43,\"m\":\"Kesh Barlow has a panel off again, elbow-deep in the guts of her, whispering to the wiring.\"},{\"d\":43,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":43,\"m\":\"⚠ STARVING — buy food, fast.\"},{\"d\":42,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":42,\"m\":\"⚠ STARVING — buy food, fast.\"},{\"bark\":true,\"d\":42,\"m\":\"Odile Vance's belt is on a tighter notch than last week. Nobody mentions it.\"},{\"d\":42,\"m\":\"The pantry is empty. Everyone's rationing air-paste and resentment.\"},{\"d\":41,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":40,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":39,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":38,\"m\":\"Odile Vance has taken to leaving the radio on at night. \\\"So I'd notice,\\\" they say, \\\"if it went quiet.\\\"\"},{\"d\":38,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":37,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":36,\"m\":\"Odile Vance: \\\"My gran said the black hums if you listen long enough. I always thought she was being poetic.\\\"\"},{\"d\":36,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":35,\"m\":\"Kesh Barlow plays solitaire against the drive hum and loses, somehow.\"},{\"d\":35,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":34,\"m\":\"Odile Vance names the ship on the far scope without looking twice. \\\"Bad crowd,\\\" they add, in the tone of someone who used to be invited.\\\"\"},{\"d\":34,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":33,\"m\":\"Kesh Barlow plays solitaire against the drive hum and loses, somehow.\"},{\"d\":33,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":32,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":31,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":30,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":29,\"m\":\"Odile Vance has taken to leaving the radio on at night. \\\"So I'd notice,\\\" they say, \\\"if it went quiet.\\\"\"},{\"d\":29,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":28,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":27,\"m\":\"Odile Vance: \\\"My gran said the black hums if you listen long enough. I always thought she was being poetic.\\\"\"},{\"d\":27,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":26,\"m\":\"Odile Vance folds the Union news feed away half-read, jaw tight, and finds something to polish.\"},{\"d\":26,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":25,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":24,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":23,\"m\":\"Odile Vance folds the Union news feed away half-read, jaw tight, and finds something to polish.\"},{\"d\":23,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":22,\"m\":\"Kesh Barlow has a panel off again, elbow-deep in the guts of her, whispering to the wiring.\"},{\"d\":22,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":21,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":20,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":19,\"m\":\"Kesh Barlow has taken to leaving the radio on at night. \\\"So I'd notice,\\\" they say, \\\"if it went quiet.\\\"\"},{\"d\":19,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":18,\"m\":\"Kesh Barlow has taken to leaving the radio on at night. \\\"So I'd notice,\\\" they say, \\\"if it went quiet.\\\"\"},{\"d\":18,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":18,\"m\":\"◇ THE BROADCAST — every radio in the sector played the same four seconds. The band has holes in it now.\"},{\"bark\":true,\"d\":17,\"m\":\"Kesh Barlow plays solitaire against the drive hum and loses, somehow.\"},{\"d\":17,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":16,\"m\":\"Kesh Barlow takes their coffee out to the viewport alone tonight, and stands there a long time, like someone doing arithmetic with a number they won't say.\"},{\"d\":16,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":15,\"m\":\"Kesh Barlow says nothing for a long while, which from Kesh Barlow counts as a whole conversation.\"},{\"d\":15,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":14,\"m\":\"— [dev] Scenario loaded: trader. Day 14 trade-loop ship: 2 cargo holds, pilot+mechanic, 1,800cr —\"}],\"market\":{\"day\":14,\"loc\":\"solace\",\"missions\":[{\"desc\":\"Recovered collateral — somebody's ship, stripped to 8 units of it — back to the lienholder on Verge Station. Don't read the registry plates.\",\"dest\":\"verge\",\"id\":3,\"kind\":\"cargo\",\"needs\":[\"cargo:8\"],\"pay\":334,\"prestige\":1,\"rep\":[\"union\",1],\"title\":\"Repossession haul\",\"units\":8},{\"desc\":\"Haul 11 units to Foundry. 3 day run.\",\"dest\":\"foundry\",\"id\":4,\"kind\":\"cargo\",\"needs\":[\"cargo:11\"],\"pay\":200,\"prestige\":1,\"rep\":[\"union\",1],\"title\":\"Freight: textiles\",\"units\":11},{\"desc\":\"Haul 8 units to Haven's Folly. 5 day run.\",\"dest\":\"havens\",\"id\":5,\"kind\":\"cargo\",\"needs\":[\"cargo:8\"],\"pay\":230,\"prestige\":1,\"rep\":[\"union\",1],\"title\":\"Freight: vaccine crates\",\"units\":8},{\"desc\":\"Lupe Barlow needs passage to Meridian Prime. They keeps glancing at the door.\",\"dest\":\"meridian\",\"id\":8,\"kind\":\"passenger\",\"needs\":[\"pax:1\"],\"pax\":{\"motive\":\"fugitive\",\"name\":\"Lupe Barlow\",\"sick\":false},\"pay\":315,\"prestige\":1,\"rep\":[\"union\",1],\"title\":\"Passenger: Lupe Barlow\"}],\"prices\":{\"lux\":65,\"med\":45,\"ore\":20},\"recruits\":[{\"bundle\":{\"origin\":\"a Union naval academy she washed out of\",\"secret\":\"was somebody important once, before the fall\",\"secretTag\":\"rich_once\",\"tell\":\"goes very quiet when patrols hail\",\"tellSituation\":\"patrol\",\"traits\":[\"proud\",\"cautious\"],\"want\":\"to prove the academy wrong about washing him out\",\"wound\":\"the Union took someone from them and never explained\",\"woundTag\":\"union_took_someone\"},\"daysAboard\":0,\"fee\":130,\"id\":11,\"key\":\"elias\",\"name\":\"Elias Wren-Kohl\",\"questStage\":0,\"role\":\"quartermaster\",\"salary\":10},{\"bundle\":{\"origin\":\"the pilgrim flotillas\",\"secret\":\"is a Union deserter — a patrol scan is a death sentence\",\"secretTag\":\"union_deserter\",\"tell\":\"touches the hatch frame on the way out, every single time\",\"tellSituation\":\"depart\",\"traits\":[\"chatty\",\"superstitious\"],\"want\":\"to matter to somebody who isn't paying her\",\"wound\":\"watched a ship they loved come apart in the black\",\"woundTag\":\"lost_a_ship\"},\"daysAboard\":0,\"fee\":96,\"id\":9,\"name\":\"Yuki Hale\",\"questStage\":0,\"role\":\"cook\",\"salary\":12},{\"bundle\":{\"origin\":\"a generation ship that never made port\",\"secret\":\"was somebody important once, before the fall\",\"secretTag\":\"rich_once\",\"tell\":\"scans every new dock for a face they never find\",\"tellSituation\":\"arrive\",\"traits\":[\"proud\",\"superstitious\"],\"want\":\"passage, eventually, to Elysium — if it's real\",\"wound\":\"the deep black past the charts frightens them, badly\",\"woundTag\":\"afraid_of_the_deep\"},\"daysAboard\":0,\"fee\":118,\"id\":10,\"name\":\"Otto Reyes\",\"questStage\":0,\"role\":\"quartermaster\",\"salary\":12}],\"rumors\":[\"\\\"Eleven years this month since Meridian. They still call it a reactor accident at the memorial. Nobody who was there calls it anything.\\\"\",\"\\\"Some captains hear things out past the Verge lanes that don't sound like anything. Four seconds, they say. Then it's gone.\\\"\"]},\"modules\":[{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"cockpit\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"engine\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"fueltank\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"cargohold\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"medbay\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"cabin\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"quarters\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"hydro\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"weapons\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"shields\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"armory\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"workshop\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"smuggler\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"luxcabin\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"cargohold\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"quarters\"}],\"npcs\":[],\"over\":false,\"poi\":[],\"portMood\":{},\"portStanding\":{},\"prestige\":0,\"rep\":{\"frontier\":1,\"syndicate\":0,\"union\":2},\"rngState\":1780309030,\"scheduled\":[],\"seed\":20260714,\"shipName\":\"Marrow's Luck\",\"slotsMax\":14,\"starve\":4,\"travel\":null,\"uid\":12,\"unpaid\":0,\"usedMarket\":null,\"version\":15,\"won\":false}",
+  "finalHash": "95ab1418"
 }

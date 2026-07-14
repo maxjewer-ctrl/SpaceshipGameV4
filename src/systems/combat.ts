@@ -1,15 +1,15 @@
 import { S } from "../state";
+import { platform } from "../platform";
 import { stats, bribeCost } from "../derive";
 import { actionAttr } from "../dispatch";
 import { rand, ri, pick } from "../rng";
 import { modal, replaceModal, clearModal, modalHTML } from "../modal";
-import { requestRender } from "../bus";
+import { requestRender, sfx } from "../bus";
 import { gameOver } from "./gameover";
 import { damageModule } from "./actions";
 import { bark, tellBark } from "./barks";
 import { shift } from "./disposition";
 import type { Enemy } from "../types";
-import * as sfx from "../audio";
 import { markVeteranEvent } from "./veterancy";
 import { mountCombatAvatar, teardownCombatAvatar, updateCombatAvatar } from "../ui/combatAvatar3d";
 
@@ -315,7 +315,19 @@ function phaseHTML(selectedMove: typeof MOVES[number] | undefined, selectedTarge
   </div>`;
 }
 
-export function cAct(action: string) {
+// `now` is the wall clock, and in this system it is a GAMEPLAY INPUT, not a
+// convenience: the aim minigame scores a shot by how long the reticle has been
+// sweeping when you release (see aimScore). So it is PUSHED IN by the caller
+// rather than read from the clock in here.
+//
+// That distinction is the whole ballgame for portability. While combat reached
+// out to Date.now() itself, the same seed and the same button presses produced
+// a different fight every run — which meant combat could not be golden-mastered
+// (test/golden/) and could not be verified against a C# port. Now a replay, a
+// test, or an engine host supplies the clock and gets the same fight every time.
+//
+// The default keeps every existing call site (the DOM dispatcher) unchanged.
+export function cAct(action: string, now: number = platform.now()) {
   if (!C) return;
   if (action === "back") {
     C.phase = "command"; C.move = null; C.targetId = null; drawCombat(); return;
@@ -343,11 +355,11 @@ export function cAct(action: string) {
     t.aimX = Math.min(84, Math.max(16, 50 + Math.sin(el * speed * 3.1) * 38 + ri(-4, 4)));
     t.aimY = Math.min(72, Math.max(28, 50 + Math.sin(el * speed * 2.2 + 1.7) * 25 + ri(-4, 4)));
     C.phase = "aim";
-    C.aimStart = Date.now();
+    C.aimStart = now;
     drawCombat();
     return;
   }
-  if (action === "release") releaseShot();
+  if (action === "release") releaseShot(now);
 }
 
 function chooseMove(move: MoveId) {
@@ -442,11 +454,11 @@ function chooseMove(move: MoveId) {
   drawCombat();
 }
 
-function releaseShot() {
+function releaseShot(now: number) {
   if (!C || !C.move || C.targetId === null) return;
   const target = C.targets.find((t) => t.id === C!.targetId && t.hull > 0);
   if (!target) return;
-  const score = aimScore(target);
+  const score = aimScore(target, now);
   const st = stats();
   let base = st.dmg;
   if (C.move === "torpedo") base *= 1.75;
@@ -475,10 +487,12 @@ function releaseShot() {
   finishRound();
 }
 
-function aimScore(target: CombatTarget) {
+// Where the reticle is at the moment you pulled the trigger, versus where the
+// target box is. `now` comes from the caller — see cAct.
+function aimScore(target: CombatTarget, now: number) {
   if (!C) return 0;
   const move = C.move || "laser";
-  const elapsed = (Date.now() - C.aimStart) / 1000;
+  const elapsed = (now - C.aimStart) / 1000;
   const speed = (move === "torpedo" ? 1.45 : move === "ion" ? 0.92 : 1.12) * C.scenario.aim;
   const x = 50 + Math.sin(elapsed * speed * 3.1) * 38;
   const y = 50 + Math.sin(elapsed * speed * 2.2 + 1.7) * 25;
@@ -529,6 +543,36 @@ function finishRound() {
 function fleeOdds() {
   const st = stats();
   return 0.35 + (st.has("pilot") ? 0.25 : 0) + S.engineLvl * 0.08 + (C?.evadeBoost || 0);
+}
+
+// Read-only window into the running fight, for the headless harness and the
+// dev console — the same role walk.debugCombat() plays for foot combat. Never
+// used by the game itself; nothing here mutates.
+export interface CombatView {
+  active: boolean;
+  phase: CombatPhase | null;
+  result: string | null;
+  move: MoveId | null;
+  targetId: number | null;
+  aimStart: number;
+  targets: Array<{ id: number; name: string; role: string; hull: number; maxhull: number }>;
+  log: string[];
+}
+
+export function debugCombat(): CombatView {
+  if (!C) {
+    return { active: false, phase: null, result: null, move: null, targetId: null, aimStart: 0, targets: [], log: [] };
+  }
+  return {
+    active: true,
+    phase: C.phase,
+    result: C.result ?? null,
+    move: C.move,
+    targetId: C.targetId,
+    aimStart: C.aimStart,
+    targets: C.targets.map((t) => ({ id: t.id, name: t.name, role: t.role, hull: t.hull, maxhull: t.maxhull })),
+    log: [...C.log],
+  };
 }
 
 export function endCombat() {

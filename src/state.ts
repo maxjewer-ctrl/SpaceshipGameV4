@@ -1,8 +1,9 @@
 import type { GameState, ModuleInstance } from "./types";
 import { DEFAULT_APPEARANCE } from "./ui/avatarDraw";
+import { platform } from "./platform";
 
 export const SAVE_KEY = "kestrelrun";
-export const SAVE_VERSION = 14;
+export const SAVE_VERSION = 15;
 
 // The single mutable game state. `export let` gives live bindings to importers;
 // replace it only through setState so everyone sees the new object.
@@ -11,10 +12,10 @@ export function setState(s: GameState) { S = s; }
 
 export function mk(t: string, mark = 1): ModuleInstance { return { t, on: true, dmg: false, mk: mark }; }
 
-// New-game entropy: crypto, not Math.random — the seeded stream (src/rng.ts)
-// owns every roll after this moment.
+// New-game entropy: real entropy from the host, not Math.random — the seeded
+// stream (src/rng.ts) owns every roll after this moment.
 export function freshSeed(): number {
-  return (crypto.getRandomValues(new Int32Array(1))[0] ^ Date.now()) | 0;
+  return platform.entropy() | 0;
 }
 
 // `seed` is injectable so a run can be reproduced exactly. This matters more
@@ -28,6 +29,7 @@ export function newState(shipName: string, seed: number = freshSeed()): GameStat
     version: SAVE_VERSION,
     seed,
     rngState: seed,
+    barkTick: 0,
     shipName: shipName || "Kestrel",
     day: 1, credits: 500, fuel: 30, food: 20, hull: 100, hullMax: 100, prestige: 0,
     engineLvl: 1, slotsMax: 14, loc: "solace", docked: true,
@@ -92,31 +94,36 @@ function applyLoadDefaults(s: any): GameState {
   return s as GameState;
 }
 
+// Storage goes through the platform seam (src/platform.ts), never through
+// localStorage directly: the browser is one host, a console is another. The
+// adapter is also guaranteed not to throw — it degrades to in-memory when
+// storage is blocked or full — so nothing here needs a try/catch any more.
+const store = () => platform.storage;
+
 export function activeSlot(): number {
-  try { const v = Number(localStorage.getItem(ACTIVE_KEY)); return Number.isInteger(v) && v >= 0 && v < NUM_SLOTS ? v : 0; }
-  catch { return 0; }
+  const v = Number(store().getItem(ACTIVE_KEY));
+  return Number.isInteger(v) && v >= 0 && v < NUM_SLOTS ? v : 0;
 }
 export function setActiveSlot(slot: number) {
-  try { localStorage.setItem(ACTIVE_KEY, String(slot)); } catch { /* storage unavailable */ }
+  store().setItem(ACTIVE_KEY, String(slot));
 }
 
 // One-time lift of the pre-slots single-key save into slot 0, so existing
 // players keep their game when slots ship.
 function migrateLegacySave() {
-  try {
-    const legacy = localStorage.getItem(SAVE_KEY);
-    if (legacy && !localStorage.getItem(slotKey(0))) localStorage.setItem(slotKey(0), legacy);
-    if (legacy) localStorage.removeItem(SAVE_KEY);
-  } catch { /* storage unavailable */ }
+  const legacy = store().getItem(SAVE_KEY);
+  if (!legacy) return;
+  if (!store().getItem(slotKey(0))) store().setItem(slotKey(0), legacy);
+  store().removeItem(SAVE_KEY);
 }
 
 export function save(slot = activeSlot()) {
-  try { if (!S.over) localStorage.setItem(slotKey(slot), JSON.stringify(stripTransient(S))); } catch { /* storage unavailable */ }
+  if (!S.over) store().setItem(slotKey(slot), JSON.stringify(stripTransient(S)));
 }
 
 // Clears the active slot (a scuttled/dead run shouldn't persist).
 export function clearSave(slot = activeSlot()) {
-  try { localStorage.removeItem(slotKey(slot)); } catch { /* storage unavailable */ }
+  store().removeItem(slotKey(slot));
 }
 
 export interface SlotMeta {
@@ -130,9 +137,11 @@ export function slotList(): SlotMeta[] {
   migrateLegacySave();
   const out: SlotMeta[] = [];
   for (let i = 0; i < NUM_SLOTS; i++) {
+    const raw = store().getItem(slotKey(i));
+    if (!raw) { out.push({ slot: i, empty: true }); continue; }
+    // The try/catch that remains guards a CORRUPT slot, not storage: a save we
+    // can't parse must read as empty rather than crash the load menu.
     try {
-      const raw = localStorage.getItem(slotKey(i));
-      if (!raw) { out.push({ slot: i, empty: true }); continue; }
       const s = JSON.parse(raw);
       out.push({ slot: i, empty: false, captainName: s.captainName, shipName: s.shipName, day: s.day, credits: s.credits, prestige: s.prestige, loc: s.loc });
     } catch { out.push({ slot: i, empty: true }); }
@@ -141,15 +150,16 @@ export function slotList(): SlotMeta[] {
 }
 
 export function deleteSlot(slot: number) {
-  try { localStorage.removeItem(slotKey(slot)); } catch { /* storage unavailable */ }
+  store().removeItem(slotKey(slot));
 }
 
 // Read + migrate a slot into a ready-to-run state (transients reconstructed).
+// A corrupt or unmigratable save reads as "no save" rather than throwing.
 export function loadSlot(slot: number): GameState | null {
+  migrateLegacySave();
+  const raw = store().getItem(slotKey(slot));
+  if (!raw) return null;
   try {
-    migrateLegacySave();
-    const raw = localStorage.getItem(slotKey(slot));
-    if (!raw) return null;
     return applyLoadDefaults(migrate(JSON.parse(raw)));
   } catch {
     return null;
@@ -169,7 +179,7 @@ export function importSave(json: string, slot = activeSlot()): GameState | null 
     const parsed = JSON.parse(json);
     if (!parsed || typeof parsed !== "object" || typeof parsed.day !== "number" || !Array.isArray(parsed.modules)) return null;
     const migrated = applyLoadDefaults(migrate(parsed));
-    localStorage.setItem(slotKey(slot), JSON.stringify(stripTransient(migrated)));
+    store().setItem(slotKey(slot), JSON.stringify(stripTransient(migrated)));
     setActiveSlot(slot);
     return migrated;
   } catch {
@@ -188,7 +198,7 @@ export function migrate(s: any): GameState {
       if (m.on === undefined) m.on = true;
       if (m.dmg === undefined) m.dmg = false;
     });
-    if (s.seed === undefined) s.seed = (Date.now() ^ 0x2c1b3c6d) | 0;
+    if (s.seed === undefined) s.seed = (platform.entropy() ^ 0x2c1b3c6d) | 0;
     if (s.rngState === undefined) s.rngState = s.seed;
     s.version = 2;
   }
@@ -274,6 +284,16 @@ export function migrate(s: any): GameState {
   if (s.version < 14) {
     if (s.usedMarket === undefined) s.usedMarket = null;
     s.version = 14;
+  }
+  // v15: the cosmetic (bark) RNG counter moves into the save. It was a
+  // module-global in barks.ts, so the crew chatter a save produced depended on
+  // how many barks had fired earlier in the process rather than on the save
+  // itself — the one thing it was documented NOT to do. Old saves resume the
+  // stream from 0; they'll hear a slightly different next line than they would
+  // have, which is the correct trade for chatter that's reproducible forever after.
+  if (s.version < 15) {
+    if (typeof s.barkTick !== "number") s.barkTick = 0;
+    s.version = 15;
   }
   return s as GameState;
 }

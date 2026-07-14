@@ -182,6 +182,12 @@ export interface GameState {
   version: number;
   seed: number;
   rngState: number;
+  // Counter for the cosmetic (bark) RNG side-stream. Lives in the save on
+  // purpose: it used to be a module-global in barks.ts, which meant the crew
+  // chatter you got depended on how many barks had fired earlier in the
+  // PROCESS, not on your save. Loading the same save twice gave different
+  // chatter, and no run truly reproduced. See systems/barks.ts.
+  barkTick: number;
   shipName: string;
   day: number; credits: number; fuel: number; food: number;
   hull: number; hullMax: number; prestige: number;

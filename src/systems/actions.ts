@@ -1,9 +1,8 @@
 import { S, log, mk } from "../state";
-import * as sfx from "../audio";
 import { MODS, PLANETS, GOODS, FLAVOR } from "../content";
 import { stats, modInst, cargoUsed, scargoUsed, paxJobs, vipJobs } from "../derive";
 import { pick } from "../rng";
-import { requestRender } from "../bus";
+import { requestRender, sfx } from "../bus";
 import { yardPrice } from "./market";
 import { markOf, markLabel, markPrice, markScaled, yardMaxMark } from "./modtier";
 import { portPriceMult, hasPortMark } from "./port";

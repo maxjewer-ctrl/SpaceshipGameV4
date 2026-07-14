@@ -3,34 +3,34 @@
   "seed": 8919,
   "days": 30,
   "ticks": [
-    "d387bd8d",
-    "153b50b3",
-    "d7bd3fda",
-    "3837dd58",
-    "e36f07ce",
-    "300d805e",
-    "4ef45754",
-    "c2cc81fc",
-    "b7e40a87",
-    "8a5a4e17",
-    "df578381",
-    "1309ba6c",
-    "2b61c57b",
-    "1f58098a",
-    "7f461c9e",
-    "bb291227",
-    "6c8dfe76",
-    "2293f1a7",
-    "ff11e5be",
-    "d409448b",
-    "b533a2a5",
-    "f1bfd7e1",
-    "fa5c0a84",
-    "4fb3c1ca",
-    "1463f34f",
-    "f862fcce",
-    "bbf94c41",
-    "f58ad6b8"
+    "b289b0da",
+    "1b122929",
+    "ae36e0f3",
+    "6a858c52",
+    "21729ce3",
+    "914df6bf",
+    "8577d75e",
+    "139d8a6b",
+    "676962ad",
+    "62976703",
+    "7f309677",
+    "861734a9",
+    "b7824625",
+    "f80029b7",
+    "dc9ed25f",
+    "21e13d34",
+    "dbd5ca7d",
+    "272cd159",
+    "8c6b58fd",
+    "11734d92",
+    "3b88aa54",
+    "725e7a9e",
+    "1405b0af",
+    "6d47bfc2",
+    "00d0e608",
+    "cb62fa31",
+    "652a8b13",
+    "1bd5a42c"
   ],
   "landmarks": [
     {
@@ -53,9 +53,9 @@
       "hull": 100,
       "loc": "solace",
       "log": [
-        "Odile Vance straightens something on the console that was already straight.",
         "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "You wait a day in port. The dockworkers play cards. The meter runs."
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "— [dev] Scenario loaded: run. THE RUN in progress: arc stage 5, 14-day deadline, provisioned heavy —"
       ]
     },
     {
@@ -67,7 +67,7 @@
       "loc": "solace",
       "log": [
         "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "Odile Vance straightens something on the console that was already straight.",
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
         "You wait a day in port. The dockworkers play cards. The meter runs."
       ]
     },
@@ -81,7 +81,7 @@
       "log": [
         "You wait a day in port. The dockworkers play cards. The meter runs.",
         "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "Odile Vance straightens something on the console that was already straight."
+        "You wait a day in port. The dockworkers play cards. The meter runs."
       ]
     },
     {
@@ -92,7 +92,7 @@
       "hull": 100,
       "loc": "solace",
       "log": [
-        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "Odile Vance nods at the sealed crate, once, and asks nothing, loudly.",
         "You wait a day in port. The dockworkers play cards. The meter runs.",
         "You wait a day in port. The dockworkers play cards. The meter runs."
       ]
@@ -105,8 +105,8 @@
       "hull": 100,
       "loc": "solace",
       "log": [
-        "Odile Vance straightens something on the console that was already straight.",
         "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "Odile Vance nods at the sealed crate, once, and asks nothing, loudly.",
         "You wait a day in port. The dockworkers play cards. The meter runs."
       ]
     },
@@ -119,8 +119,8 @@
       "loc": "solace",
       "log": [
         "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "Odile Vance straightens something on the console that was already straight.",
-        "You wait a day in port. The dockworkers play cards. The meter runs."
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "Odile Vance nods at the sealed crate, once, and asks nothing, loudly."
       ]
     },
     {
@@ -131,9 +131,9 @@
       "hull": 100,
       "loc": "solace",
       "log": [
+        "Rex Calloway strips the sidearm down and back up again without looking, humming something tuneless.",
         "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "Odile Vance straightens something on the console that was already straight."
+        "You wait a day in port. The dockworkers play cards. The meter runs."
       ]
     },
     {
@@ -144,9 +144,9 @@
       "hull": 100,
       "loc": "solace",
       "log": [
-        "Odile Vance: \"Every hour we're still flying is an hour they haven't caught us. That's the whole scoreboard now, Captain.\"",
+        "Kesh Barlow plays solitaire against the drive hum and loses, somehow.",
         "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "You wait a day in port. The dockworkers play cards. The meter runs."
+        "Rex Calloway strips the sidearm down and back up again without looking, humming something tuneless."
       ]
     },
     {
@@ -157,9 +157,9 @@
       "hull": 100,
       "loc": "solace",
       "log": [
-        "Odile Vance straightens something on the console that was already straight.",
         "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "Odile Vance: \"Every hour we're still flying is an hour they haven't caught us. That's the whole scoreboard now, Captain.\""
+        "Kesh Barlow plays solitaire against the drive hum and loses, somehow.",
+        "You wait a day in port. The dockworkers play cards. The meter runs."
       ]
     },
     {
@@ -170,9 +170,9 @@
       "hull": 100,
       "loc": "solace",
       "log": [
-        "Kesh Barlow plays solitaire against the drive hum and loses, somehow.",
+        "Odile Vance plays solitaire against the drive hum and loses, somehow.",
         "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "Odile Vance straightens something on the console that was already straight."
+        "You wait a day in port. The dockworkers play cards. The meter runs."
       ]
     },
     {
@@ -184,7 +184,7 @@
       "loc": "solace",
       "log": [
         "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "Kesh Barlow plays solitaire against the drive hum and loses, somehow.",
+        "Odile Vance plays solitaire against the drive hum and loses, somehow.",
         "You wait a day in port. The dockworkers play cards. The meter runs."
       ]
     },
@@ -196,9 +196,9 @@
       "hull": 100,
       "loc": "solace",
       "log": [
+        "Odile Vance plays solitaire against the drive hum and loses, somehow.",
         "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "Kesh Barlow plays solitaire against the drive hum and loses, somehow."
+        "You wait a day in port. The dockworkers play cards. The meter runs."
       ]
     },
     {
@@ -210,7 +210,7 @@
       "loc": "solace",
       "log": [
         "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "Odile Vance plays solitaire against the drive hum and loses, somehow.",
         "You wait a day in port. The dockworkers play cards. The meter runs."
       ]
     },
@@ -222,9 +222,9 @@
       "hull": 100,
       "loc": "solace",
       "log": [
-        "Kesh Barlow has a panel off again, elbow-deep in the guts of her, whispering to the wiring.",
         "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "◆ Day of the deadline. The Union interdiction net snaps shut — one ship stands between you and the Gate. The big one."
+        "◆ Day of the deadline. The Union interdiction net snaps shut — one ship stands between you and the Gate. The big one.",
+        "You wait a day in port. The dockworkers play cards. The meter runs."
       ]
     },
     {
@@ -235,9 +235,9 @@
       "hull": 100,
       "loc": "solace",
       "log": [
-        "Odile Vance plays solitaire against the drive hum and loses, somehow.",
+        "Rex Calloway nods at the sealed crate, once, and asks nothing, loudly.",
         "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "Kesh Barlow has a panel off again, elbow-deep in the guts of her, whispering to the wiring."
+        "You wait a day in port. The dockworkers play cards. The meter runs."
       ]
     },
     {
@@ -248,9 +248,9 @@
       "hull": 100,
       "loc": "solace",
       "log": [
-        "Kesh Barlow: \"Every hour we're still flying is an hour they haven't caught us. That's the whole scoreboard now, Captain.\"",
         "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "Odile Vance plays solitaire against the drive hum and loses, somehow."
+        "Rex Calloway nods at the sealed crate, once, and asks nothing, loudly.",
+        "You wait a day in port. The dockworkers play cards. The meter runs."
       ]
     },
     {
@@ -261,8 +261,8 @@
       "hull": 100,
       "loc": "solace",
       "log": [
+        "Kesh Barlow: \"Somewhere out past the charts there's a shore nobody's named yet. I'd like to name one.\"",
         "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "Kesh Barlow: \"Every hour we're still flying is an hour they haven't caught us. That's the whole scoreboard now, Captain.\"",
         "You wait a day in port. The dockworkers play cards. The meter runs."
       ]
     },
@@ -275,8 +275,8 @@
       "loc": "solace",
       "log": [
         "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "Kesh Barlow: \"Every hour we're still flying is an hour they haven't caught us. That's the whole scoreboard now, Captain.\""
+        "Kesh Barlow: \"Somewhere out past the charts there's a shore nobody's named yet. I'd like to name one.\"",
+        "You wait a day in port. The dockworkers play cards. The meter runs."
       ]
     },
     {
@@ -287,9 +287,9 @@
       "hull": 100,
       "loc": "solace",
       "log": [
-        "Kesh Barlow counts their pay twice on payday and sends most of it somewhere they don't name.",
         "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "You wait a day in port. The dockworkers play cards. The meter runs."
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "Kesh Barlow: \"Somewhere out past the charts there's a shore nobody's named yet. I'd like to name one.\""
       ]
     },
     {
@@ -300,9 +300,9 @@
       "hull": 100,
       "loc": "solace",
       "log": [
-        "Kesh Barlow nods at the sealed crate, once, and asks nothing, loudly.",
+        "Kesh Barlow has a panel off again, elbow-deep in the guts of her, whispering to the wiring.",
         "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "Kesh Barlow counts their pay twice on payday and sends most of it somewhere they don't name."
+        "You wait a day in port. The dockworkers play cards. The meter runs."
       ]
     },
     {
@@ -314,7 +314,7 @@
       "loc": "solace",
       "log": [
         "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "Kesh Barlow nods at the sealed crate, once, and asks nothing, loudly.",
+        "Kesh Barlow has a panel off again, elbow-deep in the guts of her, whispering to the wiring.",
         "You wait a day in port. The dockworkers play cards. The meter runs."
       ]
     },
@@ -326,7 +326,7 @@
       "hull": 100,
       "loc": "solace",
       "log": [
-        "Odile Vance: \"That Voss woman doesn't sleep. Light under her door all night. Whatever's in her head weighs more than the cargo.\"",
+        "Odile Vance nods at the sealed crate, once, and asks nothing, loudly.",
         "You wait a day in port. The dockworkers play cards. The meter runs.",
         "You wait a day in port. The dockworkers play cards. The meter runs."
       ]
@@ -341,7 +341,7 @@
       "log": [
         "You wait a day in port. The dockworkers play cards. The meter runs.",
         "⚠ STARVING — buy food, fast.",
-        "The pantry is empty. Everyone's rationing air-paste and resentment."
+        "Rex Calloway's belt is on a tighter notch than last week. Nobody mentions it."
       ]
     },
     {
@@ -365,7 +365,7 @@
       "hull": 100,
       "loc": "solace",
       "log": [
-        "Rex Calloway: \"Every hour we're still flying is an hour they haven't caught us. That's the whole scoreboard now, Captain.\"",
+        "Rex Calloway plays solitaire against the drive hum and loses, somehow.",
         "You wait a day in port. The dockworkers play cards. The meter runs.",
         "⚠ STARVING — buy food, fast."
       ]
@@ -378,9 +378,9 @@
       "hull": 100,
       "loc": "solace",
       "log": [
-        "Rex Calloway plays solitaire against the drive hum and loses, somehow.",
         "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "⚠ STARVING — buy food, fast."
+        "⚠ STARVING — buy food, fast.",
+        "Rex Calloway plays solitaire against the drive hum and loses, somehow."
       ]
     },
     {
@@ -391,12 +391,12 @@
       "hull": 100,
       "loc": "solace",
       "log": [
-        "Rex Calloway plays solitaire against the drive hum and loses, somehow.",
         "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "⚠ STARVING — buy food, fast."
+        "⚠ STARVING — buy food, fast.",
+        "Rex Calloway plays solitaire against the drive hum and loses, somehow."
       ]
     }
   ],
-  "finalState": "{\"appearance\":{\"frame\":\"neutral\",\"garb\":\"jumpsuit\",\"head\":\"human\",\"skin\":\"#d89b6c\",\"suit\":\"#1c2131\",\"trim\":\"#e8b04b\"},\"arc\":{\"ambushed\":false,\"betrayed\":false,\"deadline\":null,\"done\":false,\"stage\":5},\"campaign\":{\"silence\":{\"billDay\":null,\"nextDay\":null,\"nextWorld\":null,\"silenced\":[],\"stage\":0}},\"captainName\":\"Cass Ardent\",\"captainRole\":null,\"cargo\":{\"lux\":0,\"med\":0,\"ore\":0},\"credits\":168,\"crew\":[{\"bundle\":{\"origin\":\"the Foundry smelter decks\",\"secret\":\"is wanted under another name in three systems\",\"secretTag\":\"wanted\",\"tell\":\"touches the hatch frame on the way out, every single time\",\"tellSituation\":\"depart\",\"traits\":[\"proud\",\"dreamer\"],\"want\":\"to see the edge of the charts with her own eyes\",\"wound\":\"owes money to people who collect in blood\",\"woundTag\":\"debt\"},\"daysAboard\":40,\"fee\":0,\"id\":1,\"name\":\"Odile Vance\",\"questStage\":0,\"revealed\":{},\"role\":\"pilot\",\"salary\":8},{\"bundle\":{\"origin\":\"the back alleys of Haven's Folly\",\"secret\":\"is wanted under another name in three systems\",\"secretTag\":\"wanted\",\"tell\":\"stops eating first, quietly, so the others don't notice\",\"tellSituation\":\"starving\",\"traits\":[\"superstitious\",\"gruff\"],\"want\":\"a clean registry and a name nobody's hunting\",\"wound\":\"knew real hunger young and counts the food stores twice\",\"woundTag\":\"hungry_years\"},\"daysAboard\":40,\"fee\":0,\"id\":2,\"name\":\"Rex Calloway\",\"questStage\":0,\"revealed\":{},\"role\":\"gunner\",\"salary\":8}],\"day\":72,\"dead\":true,\"disposition\":{\"daring\":0,\"law\":0,\"mercy\":0},\"docked\":true,\"engineLvl\":3,\"flags\":{\"gate_visible\":true,\"intro\":6,\"intro_done\":true},\"food\":0,\"fuel\":80,\"hull\":100,\"hullMax\":100,\"jobs\":[],\"ledger\":[{\"day\":70,\"fact\":\"captain_starved_us\",\"note\":\"You let Kesh Barlow go hungry until they jumped ship.\",\"weight\":-4,\"who\":\"crew:3\"}],\"loc\":\"solace\",\"logLines\":[{\"bark\":true,\"d\":71,\"m\":\"Rex Calloway plays solitaire against the drive hum and loses, somehow.\"},{\"d\":71,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":71,\"m\":\"⚠ STARVING — buy food, fast.\"},{\"bark\":true,\"d\":70,\"m\":\"Rex Calloway: \\\"Every hour we're still flying is an hour they haven't caught us. That's the whole scoreboard now, Captain.\\\"\"},{\"d\":70,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":70,\"m\":\"⚠ STARVING — buy food, fast.\"},{\"d\":70,\"m\":\"Kesh Barlow is too weak to work and jumps ship at the first chance. Starvation is bad for retention.\"},{\"d\":69,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":69,\"m\":\"⚠ STARVING — buy food, fast.\"},{\"d\":68,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":68,\"m\":\"⚠ STARVING — buy food, fast.\"},{\"d\":68,\"m\":\"The pantry is empty. Everyone's rationing air-paste and resentment.\"},{\"bark\":true,\"d\":67,\"m\":\"Odile Vance: \\\"That Voss woman doesn't sleep. Light under her door all night. Whatever's in her head weighs more than the cargo.\\\"\"},{\"d\":67,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":66,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":65,\"m\":\"Kesh Barlow nods at the sealed crate, once, and asks nothing, loudly.\"},{\"d\":65,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":64,\"m\":\"Kesh Barlow counts their pay twice on payday and sends most of it somewhere they don't name.\"},{\"d\":64,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":63,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":62,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":61,\"m\":\"Kesh Barlow: \\\"Every hour we're still flying is an hour they haven't caught us. That's the whole scoreboard now, Captain.\\\"\"},{\"d\":61,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":60,\"m\":\"Odile Vance plays solitaire against the drive hum and loses, somehow.\"},{\"d\":60,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":59,\"m\":\"Kesh Barlow has a panel off again, elbow-deep in the guts of her, whispering to the wiring.\"},{\"d\":59,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":59,\"m\":\"◆ Day of the deadline. The Union interdiction net snaps shut — one ship stands between you and the Gate. The big one.\"},{\"d\":58,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":57,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":56,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":55,\"m\":\"Kesh Barlow plays solitaire against the drive hum and loses, somehow.\"},{\"d\":55,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":54,\"m\":\"Odile Vance straightens something on the console that was already straight.\"},{\"d\":54,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":53,\"m\":\"Odile Vance: \\\"Every hour we're still flying is an hour they haven't caught us. That's the whole scoreboard now, Captain.\\\"\"},{\"d\":53,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":52,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":51,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":50,\"m\":\"Odile Vance straightens something on the console that was already straight.\"},{\"d\":50,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":49,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":48,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":47,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":46,\"m\":\"Odile Vance straightens something on the console that was already straight.\"},{\"d\":46,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":45,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":44,\"m\":\"— [dev] Scenario loaded: run. THE RUN in progress: arc stage 5, 14-day deadline, provisioned heavy —\"}],\"market\":{\"day\":44,\"loc\":\"solace\",\"missions\":[{\"desc\":\"Recovered collateral — somebody's ship, stripped to 8 units of it — back to the lienholder on Foundry. Don't read the registry plates.\",\"dest\":\"foundry\",\"id\":4,\"kind\":\"cargo\",\"needs\":[\"cargo:8\"],\"pay\":214,\"prestige\":1,\"rep\":[\"union\",1],\"title\":\"Repossession haul\",\"units\":8},{\"desc\":\"Directrix Sun requires discreet, comfortable passage to Meridian Prime. Stateroom mandatory. Reputation required.\",\"dest\":\"meridian\",\"id\":5,\"kind\":\"vip\",\"minPrestige\":8,\"needs\":[\"vip:1\",\"prestige:8\"],\"pax\":{\"motive\":\"vip\",\"name\":\"Directrix Sun\",\"sick\":false},\"pay\":460,\"prestige\":4,\"rep\":[\"union\",2],\"title\":\"VIP Charter: Directrix Sun\",\"vip\":true},{\"desc\":\"Prima Callas requires discreet, comfortable passage to Foundry. Stateroom mandatory. Reputation required.\",\"dest\":\"foundry\",\"id\":6,\"kind\":\"vip\",\"minPrestige\":8,\"needs\":[\"vip:1\",\"prestige:8\"],\"pax\":{\"motive\":\"vip\",\"name\":\"Prima Callas\",\"sick\":false},\"pay\":460,\"prestige\":4,\"rep\":[\"union\",2],\"title\":\"VIP Charter: Prima Callas\",\"vip\":true},{\"desc\":\"Haul 12 units to Kestrel's Rest. 2 day run.\",\"dest\":\"kestrel\",\"id\":9,\"kind\":\"cargo\",\"needs\":[\"cargo:12\"],\"pay\":168,\"prestige\":1,\"rep\":[\"union\",1],\"title\":\"Freight: comm relays\",\"units\":12}],\"prices\":{\"lux\":73,\"med\":43,\"ore\":17},\"recruits\":[{\"bundle\":{\"origin\":\"a decommissioned Port Solace freight cooperative\",\"secret\":\"carries an encrypted route stamped with a ship registry the Union erased\",\"secretTag\":\"black_manifest\",\"tell\":\"counts every soul aboard before departure, then counts one more time\",\"tellSituation\":\"depart\",\"traits\":[\"chatty\",\"loyal\"],\"want\":\"to deliver the final manifest its missing crew entrusted to it\",\"wound\":\"was ordered to stay on the dock while its ship departed and vanished\",\"woundTag\":\"left_behind\"},\"daysAboard\":0,\"fee\":120,\"id\":11,\"key\":\"pip7\",\"name\":\"PIP-7\",\"questStage\":0,\"role\":\"quartermaster\",\"salary\":5},{\"bundle\":{\"origin\":\"a Kestrel's Rest wheat farm\",\"secret\":\"is wanted under another name in three systems\",\"secretTag\":\"wanted\",\"tell\":\"stops eating first, quietly, so the others don't notice\",\"tellSituation\":\"starving\",\"traits\":[\"stoic\",\"cautious\"],\"want\":\"a clean registry and a name nobody's hunting\",\"wound\":\"watched a ship they loved come apart in the black\",\"woundTag\":\"lost_a_ship\"},\"daysAboard\":0,\"fee\":137,\"id\":10,\"name\":\"Ivan Cruz\",\"questStage\":0,\"role\":\"cook\",\"salary\":8}],\"rumors\":[\"\\\"Some captains hear things out past the Verge lanes that don't sound like anything. Four seconds, they say. Then it's gone.\\\"\",\"\\\"Medicine bought cheap on Meridian sells triple out past the frontier.\\\"\"]},\"modules\":[{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"cockpit\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"engine\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"fueltank\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"cargohold\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"medbay\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"cabin\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"quarters\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"hydro\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"weapons\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"shields\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"armory\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"workshop\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"smuggler\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"luxcabin\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"fueltank\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"weapons\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"weapons\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"shields\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"quarters\"}],\"npcs\":[],\"over\":true,\"poi\":[],\"portMood\":{},\"portStanding\":{},\"prestige\":8,\"rep\":{\"frontier\":0,\"syndicate\":0,\"union\":0},\"rngState\":-1839133194,\"scheduled\":[],\"seed\":8919,\"shipName\":\"Last Light\",\"slotsMax\":8,\"starve\":6,\"travel\":null,\"uid\":12,\"unpaid\":0,\"usedMarket\":null,\"version\":14,\"won\":false}",
-  "finalHash": "f58ad6b8"
+  "finalState": "{\"appearance\":{\"frame\":\"neutral\",\"garb\":\"jumpsuit\",\"head\":\"human\",\"skin\":\"#d89b6c\",\"suit\":\"#1c2131\",\"trim\":\"#e8b04b\"},\"arc\":{\"ambushed\":false,\"betrayed\":false,\"deadline\":null,\"done\":false,\"stage\":5},\"barkTick\":41,\"campaign\":{\"silence\":{\"billDay\":null,\"nextDay\":null,\"nextWorld\":null,\"silenced\":[],\"stage\":0}},\"captainName\":\"Cass Ardent\",\"captainRole\":null,\"cargo\":{\"lux\":0,\"med\":0,\"ore\":0},\"credits\":168,\"crew\":[{\"bundle\":{\"origin\":\"the Foundry smelter decks\",\"secret\":\"is wanted under another name in three systems\",\"secretTag\":\"wanted\",\"tell\":\"touches the hatch frame on the way out, every single time\",\"tellSituation\":\"depart\",\"traits\":[\"proud\",\"dreamer\"],\"want\":\"to see the edge of the charts with her own eyes\",\"wound\":\"owes money to people who collect in blood\",\"woundTag\":\"debt\"},\"daysAboard\":40,\"fee\":0,\"id\":1,\"name\":\"Odile Vance\",\"questStage\":0,\"revealed\":{},\"role\":\"pilot\",\"salary\":8},{\"bundle\":{\"origin\":\"the back alleys of Haven's Folly\",\"secret\":\"is wanted under another name in three systems\",\"secretTag\":\"wanted\",\"tell\":\"stops eating first, quietly, so the others don't notice\",\"tellSituation\":\"starving\",\"traits\":[\"superstitious\",\"gruff\"],\"want\":\"a clean registry and a name nobody's hunting\",\"wound\":\"knew real hunger young and counts the food stores twice\",\"woundTag\":\"hungry_years\"},\"daysAboard\":40,\"fee\":0,\"id\":2,\"name\":\"Rex Calloway\",\"questStage\":0,\"revealed\":{},\"role\":\"gunner\",\"salary\":8}],\"day\":72,\"dead\":true,\"disposition\":{\"daring\":0,\"law\":0,\"mercy\":0},\"docked\":true,\"engineLvl\":3,\"flags\":{\"gate_visible\":true,\"intro\":6,\"intro_done\":true},\"food\":0,\"fuel\":80,\"hull\":100,\"hullMax\":100,\"jobs\":[],\"ledger\":[{\"day\":70,\"fact\":\"captain_starved_us\",\"note\":\"You let Kesh Barlow go hungry until they jumped ship.\",\"weight\":-4,\"who\":\"crew:3\"}],\"loc\":\"solace\",\"logLines\":[{\"d\":71,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":71,\"m\":\"⚠ STARVING — buy food, fast.\"},{\"bark\":true,\"d\":70,\"m\":\"Rex Calloway plays solitaire against the drive hum and loses, somehow.\"},{\"d\":70,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":70,\"m\":\"⚠ STARVING — buy food, fast.\"},{\"d\":70,\"m\":\"Kesh Barlow is too weak to work and jumps ship at the first chance. Starvation is bad for retention.\"},{\"d\":69,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":69,\"m\":\"⚠ STARVING — buy food, fast.\"},{\"d\":68,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":68,\"m\":\"⚠ STARVING — buy food, fast.\"},{\"bark\":true,\"d\":68,\"m\":\"Rex Calloway's belt is on a tighter notch than last week. Nobody mentions it.\"},{\"bark\":true,\"d\":68,\"m\":\"Rex Calloway stops eating first, quietly, so the others don't notice.\"},{\"d\":68,\"m\":\"The pantry is empty. Everyone's rationing air-paste and resentment.\"},{\"bark\":true,\"d\":67,\"m\":\"Odile Vance nods at the sealed crate, once, and asks nothing, loudly.\"},{\"d\":67,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":66,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":65,\"m\":\"Kesh Barlow has a panel off again, elbow-deep in the guts of her, whispering to the wiring.\"},{\"d\":65,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":64,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":63,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":62,\"m\":\"Kesh Barlow: \\\"Somewhere out past the charts there's a shore nobody's named yet. I'd like to name one.\\\"\"},{\"d\":62,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":61,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":60,\"m\":\"Rex Calloway nods at the sealed crate, once, and asks nothing, loudly.\"},{\"d\":60,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":59,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":59,\"m\":\"◆ Day of the deadline. The Union interdiction net snaps shut — one ship stands between you and the Gate. The big one.\"},{\"d\":58,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":57,\"m\":\"Odile Vance plays solitaire against the drive hum and loses, somehow.\"},{\"d\":57,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":56,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":55,\"m\":\"Odile Vance plays solitaire against the drive hum and loses, somehow.\"},{\"d\":55,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":54,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":53,\"m\":\"Kesh Barlow plays solitaire against the drive hum and loses, somehow.\"},{\"d\":53,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":52,\"m\":\"Rex Calloway strips the sidearm down and back up again without looking, humming something tuneless.\"},{\"d\":52,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":51,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":50,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":49,\"m\":\"Odile Vance nods at the sealed crate, once, and asks nothing, loudly.\"},{\"d\":49,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":48,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":47,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":46,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":45,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":44,\"m\":\"— [dev] Scenario loaded: run. THE RUN in progress: arc stage 5, 14-day deadline, provisioned heavy —\"}],\"market\":{\"day\":44,\"loc\":\"solace\",\"missions\":[{\"desc\":\"Recovered collateral — somebody's ship, stripped to 8 units of it — back to the lienholder on Foundry. Don't read the registry plates.\",\"dest\":\"foundry\",\"id\":4,\"kind\":\"cargo\",\"needs\":[\"cargo:8\"],\"pay\":214,\"prestige\":1,\"rep\":[\"union\",1],\"title\":\"Repossession haul\",\"units\":8},{\"desc\":\"Directrix Sun requires discreet, comfortable passage to Meridian Prime. Stateroom mandatory. Reputation required.\",\"dest\":\"meridian\",\"id\":5,\"kind\":\"vip\",\"minPrestige\":8,\"needs\":[\"vip:1\",\"prestige:8\"],\"pax\":{\"motive\":\"vip\",\"name\":\"Directrix Sun\",\"sick\":false},\"pay\":460,\"prestige\":4,\"rep\":[\"union\",2],\"title\":\"VIP Charter: Directrix Sun\",\"vip\":true},{\"desc\":\"Prima Callas requires discreet, comfortable passage to Foundry. Stateroom mandatory. Reputation required.\",\"dest\":\"foundry\",\"id\":6,\"kind\":\"vip\",\"minPrestige\":8,\"needs\":[\"vip:1\",\"prestige:8\"],\"pax\":{\"motive\":\"vip\",\"name\":\"Prima Callas\",\"sick\":false},\"pay\":460,\"prestige\":4,\"rep\":[\"union\",2],\"title\":\"VIP Charter: Prima Callas\",\"vip\":true},{\"desc\":\"Haul 12 units to Kestrel's Rest. 2 day run.\",\"dest\":\"kestrel\",\"id\":9,\"kind\":\"cargo\",\"needs\":[\"cargo:12\"],\"pay\":168,\"prestige\":1,\"rep\":[\"union\",1],\"title\":\"Freight: comm relays\",\"units\":12}],\"prices\":{\"lux\":73,\"med\":43,\"ore\":17},\"recruits\":[{\"bundle\":{\"origin\":\"a decommissioned Port Solace freight cooperative\",\"secret\":\"carries an encrypted route stamped with a ship registry the Union erased\",\"secretTag\":\"black_manifest\",\"tell\":\"counts every soul aboard before departure, then counts one more time\",\"tellSituation\":\"depart\",\"traits\":[\"chatty\",\"loyal\"],\"want\":\"to deliver the final manifest its missing crew entrusted to it\",\"wound\":\"was ordered to stay on the dock while its ship departed and vanished\",\"woundTag\":\"left_behind\"},\"daysAboard\":0,\"fee\":120,\"id\":11,\"key\":\"pip7\",\"name\":\"PIP-7\",\"questStage\":0,\"role\":\"quartermaster\",\"salary\":5},{\"bundle\":{\"origin\":\"a Kestrel's Rest wheat farm\",\"secret\":\"is wanted under another name in three systems\",\"secretTag\":\"wanted\",\"tell\":\"stops eating first, quietly, so the others don't notice\",\"tellSituation\":\"starving\",\"traits\":[\"stoic\",\"cautious\"],\"want\":\"a clean registry and a name nobody's hunting\",\"wound\":\"watched a ship they loved come apart in the black\",\"woundTag\":\"lost_a_ship\"},\"daysAboard\":0,\"fee\":137,\"id\":10,\"name\":\"Ivan Cruz\",\"questStage\":0,\"role\":\"cook\",\"salary\":8}],\"rumors\":[\"\\\"Some captains hear things out past the Verge lanes that don't sound like anything. Four seconds, they say. Then it's gone.\\\"\",\"\\\"Medicine bought cheap on Meridian sells triple out past the frontier.\\\"\"]},\"modules\":[{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"cockpit\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"engine\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"fueltank\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"cargohold\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"medbay\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"cabin\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"quarters\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"hydro\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"weapons\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"shields\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"armory\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"workshop\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"smuggler\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"luxcabin\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"fueltank\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"weapons\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"weapons\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"shields\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"quarters\"}],\"npcs\":[],\"over\":true,\"poi\":[],\"portMood\":{},\"portStanding\":{},\"prestige\":8,\"rep\":{\"frontier\":0,\"syndicate\":0,\"union\":0},\"rngState\":-1839133194,\"scheduled\":[],\"seed\":8919,\"shipName\":\"Last Light\",\"slotsMax\":8,\"starve\":6,\"travel\":null,\"uid\":12,\"unpaid\":0,\"usedMarket\":null,\"version\":15,\"won\":false}",
+  "finalHash": "1bd5a42c"
 }

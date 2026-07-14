@@ -10,8 +10,15 @@ import { sentiment, crewKey } from "./ledger";
 
 // Cosmetic RNG: deterministic per save but does NOT advance the gameplay stream,
 // so barks never perturb combat/event rolls (keeps runs reproducible).
-let barkTick = 0;
-function cosRand(): number { return fork("bark:" + S.seed + ":" + barkTick++)(); }
+//
+// The counter lives in the SAVE (S.barkTick), not in this module. It used to be
+// a module-global, which quietly broke the promise in the line above: the
+// counter kept climbing for the life of the process and was never persisted, so
+// the chatter a save produced depended on how many barks had already fired in
+// that session. The same save loaded twice gave different lines, and no run
+// reproduced. Barks write into S.logLines, which IS saved, so this leaked into
+// saved state rather than staying cosmetic.
+function cosRand(): number { return fork("bark:" + S.seed + ":" + S.barkTick++)(); }
 function cosPick<T>(arr: T[]): T { return arr[Math.floor(cosRand() * arr.length)]; }
 
 function gateOk(b: BarkDef, c: CrewMember): boolean {

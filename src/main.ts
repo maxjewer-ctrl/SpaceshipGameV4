@@ -1,5 +1,5 @@
 import "./style.css";
-import { setRender, requestRender } from "./bus";
+import { setRender, setSfx, requestRender } from "./bus";
 import { render } from "./ui/render";
 import { loadSaved, setState, log } from "./state";
 import * as State from "./state";
@@ -13,9 +13,13 @@ import { evPirates, evPatrol, evBreakdown, evMeteor, evSalvage, evDistress, evTr
 import { loadRemoteContent } from "./supabase/content";
 import { startGamepadNav } from "./systems/gamepadNav";
 import { dispatch, installDispatch } from "./dispatch";
-import { shutdown as shutdownAudio } from "./audio";
+import { shutdown as shutdownAudio, moduleToggle, weaponFire, hullHit, systemDamage } from "./audio";
 
 setRender(render);
+// The sim asks the bus for a sound; the browser host is what knows how to make
+// one. A headless run (tests, a future engine host) simply installs a different
+// sink — see bus.ts.
+setSfx({ moduleToggle, weaponFire, hullHit, systemDamage });
 startGamepadNav();
 installDispatch();
 
