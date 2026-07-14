@@ -6,21 +6,21 @@
   ],
   "origins": [
     "a Meridian orphanage", "the Foundry smelter decks", "a Kestrel's Rest wheat farm",
-    "the back alleys of Haven's Folly", "a Union naval academy she washed out of",
+    "the back alleys of Haven's Folly", "a Union naval academy they washed out of",
     "a Verge Station salvage crew", "a generation ship that never made port",
-    "the pilgrim flotillas", "a Syndicate debt she's still paying", "nowhere he'll name"
+    "the pilgrim flotillas", "a Syndicate debt they're still paying", "nowhere they'll name"
   ],
   "wants": [
     "to find a brother who shipped out and never wrote",
     "enough credits to buy back the family farm",
-    "to see the edge of the charts with her own eyes",
+    "to see the edge of the charts with their own eyes",
     "a clean registry and a name nobody's hunting",
-    "to prove the academy wrong about washing him out",
+    "to prove the academy wrong about washing them out",
     "to bury someone properly, back where they're from",
     "one honest job that doesn't end in gunfire",
     "to stop running long enough to sleep through a night",
     "passage, eventually, to Elysium — if it's real",
-    "to matter to somebody who isn't paying her"
+    "to matter to somebody who isn't paying them"
   ],
   "wounds": [
     { "tag": "distrusts_doctors", "text": "doesn't trust doctors — will do their own stitches" },
