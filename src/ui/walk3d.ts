@@ -56,25 +56,28 @@ let actorLabels = new Map<WalkActor, THREE.Sprite>();
 const LABEL_DIM = 0.32;
 
 // One-pass CRT finish: subtle chromatic aberration, curved-tube scanlines,
-// radial vignette, and animated film grain. Runs after UnrealBloom in the
-// composer chain, before OutputPass tone-maps to sRGB. Kept gentle — this is
-// atmosphere, not a filter you fight to read gameplay through.
+// and a radial vignette. Runs after UnrealBloom in the composer chain, before
+// OutputPass tone-maps to sRGB. Kept gentle — this is atmosphere, not a filter
+// you fight to read gameplay through.
+//
+// NO film grain, deliberately. The old animated grain (hash(uv*res+time),
+// re-rolled per pixel per frame) was added in LINEAR space before tone-mapping,
+// so a ±0.014 jiggle became a huge visible step on dark deck pixels after sRGB
+// encoding — it read as white-noise static crawling over the whole scene.
 const CRT_SHADER = {
   uniforms: {
     tDiffuse: { value: null as THREE.Texture | null },
     resolution: { value: new THREE.Vector2(1, 1) },
-    time: { value: 0 },
+    time: { value: 0 }, // kept for uniform-shape stability; currently unused
     vignette: { value: 0.55 },
-    grain: { value: 0.028 },
     aberration: { value: 0.0016 },
     scanline: { value: 0.032 },
   },
   vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`,
   fragmentShader: `
-    uniform sampler2D tDiffuse; uniform vec2 resolution; uniform float time;
-    uniform float vignette; uniform float grain; uniform float aberration; uniform float scanline;
+    uniform sampler2D tDiffuse; uniform vec2 resolution;
+    uniform float vignette; uniform float aberration; uniform float scanline;
     varying vec2 vUv;
-    float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1,311.7))) * 43758.5453); }
     void main(){
       vec2 center = vUv - 0.5;
       float dist = length(center);
@@ -87,8 +90,6 @@ const CRT_SHADER = {
       col *= 1.0 - scanline * (1.0 - sl);
       float vig = smoothstep(0.85, 0.15, dist);
       col *= mix(1.0, vig, vignette);
-      float n = hash(vUv * resolution + time);
-      col += (n - 0.5) * grain;
       gl_FragColor = vec4(col, 1.0);
     }`,
 };
