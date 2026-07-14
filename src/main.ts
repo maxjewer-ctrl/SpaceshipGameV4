@@ -11,7 +11,7 @@ import { startZone, zoneActive } from "./ui/zonewalk";
 import { loadScenario } from "./debug/scenarios";
 import { evPirates, evPatrol, evBreakdown, evMeteor, evSalvage, evDistress, evTrader, evPax, evDerelict } from "./systems/events";
 import { loadRemoteContent } from "./supabase/content";
-import { startGamepadNav } from "./systems/gamepadNav";
+import { startGamepadNav } from "./ui/gamepadNav";
 import { dispatch, installDispatch } from "./dispatch";
 import { shutdown as shutdownAudio, moduleToggle, weaponFire, hullHit, systemDamage } from "./audio";
 

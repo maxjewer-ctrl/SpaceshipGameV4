@@ -24,7 +24,7 @@
 //     classes it toggles on #main).
 import { hasModal, closeModal } from "../modal";
 import { S } from "../state";
-import { nav } from "../ui/render";
+import { nav } from "./render";
 
 const GP_DEADZONE = 0.5;      // stick deflection needed to register a jump/shoulder step
 const SCROLL_DEADZONE = 0.2;  // finer threshold for analog scroll
