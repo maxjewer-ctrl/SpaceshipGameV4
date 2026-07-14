@@ -231,6 +231,53 @@ describe("run boons (Phase D)", () => {
   });
 });
 
+describe("crew perks (Phase D)", () => {
+  beforeEach(() => { loadScenario("fresh"); walk.teardown(); delete S.flags.injuredUntil; S.crew = []; });
+
+  it("a gunner aboard speeds up the gun", () => {
+    S.captainRole = "gunner";
+    startZone({ biome: "derelict", chambers: 2, vitality: 100, returnScreen: "ship" });
+    expect(zoneMods()!.fireRateMul).toBeLessThan(1);
+  });
+
+  it("a mechanic aboard hits harder; a medic adds vitality + a field revive", () => {
+    S.captainRole = "mechanic";
+    startZone({ biome: "derelict", chambers: 2, vitality: 100, returnScreen: "ship" });
+    expect(zoneMods()!.damage).toBe(2);
+    walk.teardown();
+
+    S.captainRole = "medic";
+    startZone({ biome: "derelict", chambers: 2, vitality: 100, returnScreen: "ship" });
+    const scene = buildZoneScene();
+    expect(scene.combat!.vitality).toBe(115);   // 100 + medic 15
+    expect(scene.combat!.revive).toBe(40);
+  });
+
+  it("a lone captain gets no perks — the intended friction", () => {
+    S.captainRole = null; S.crew = [];
+    startZone({ biome: "derelict", chambers: 2, vitality: 100, returnScreen: "ship" });
+    const m = zoneMods()!;
+    expect(m.fireRateMul).toBe(1);
+    expect(m.damage).toBe(1);
+    expect(buildZoneScene().combat!.revive).toBe(0);
+  });
+
+  it("the medic revive turns the first drop into a second wind", () => {
+    let revived = 0, downed = 0;
+    walk.start(arena({
+      vitality: 30, revive: 40,
+      enemies: [{ x: 505, y: 350, hp: 99 }, { x: 495, y: 350, hp: 99 }, { x: 500, y: 360, hp: 99 }],
+      onRevive: () => { revived++; },
+      onDowned: () => { downed++; },
+    }));
+    walk.debugGoto(500, 350);
+    let guard = 0;
+    while (downed === 0 && guard++ < 1200) step(1);
+    expect(revived).toBe(1);   // pulled back up once
+    expect(downed).toBe(1);    // then a real down on the second depletion
+  });
+});
+
 describe("stakes: injury + salvage loot (Phase D)", () => {
   it("an injury caps the next run's starting vitality", () => {
     loadScenario("fresh"); walk.teardown();

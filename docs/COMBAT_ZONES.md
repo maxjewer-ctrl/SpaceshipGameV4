@@ -179,8 +179,16 @@ The fun layer. Landed:
   (fewer with a med bay aboard), surfaced on the master-caution bar. Runs now
   cost something when they go wrong and give something real when they go right.
 
-Still to wire: crew perks + one gambit, a survey-POI map entrance.
-- **Deliverable:** runs that escalate and pay out. ✅ (payout, salvage, stakes)
+- **Crew perks** (`zonewalk.ts`) — your roster is your loadout. A **gunner**
+  aboard tunes your sidearm (faster fire), a **mechanic** loads heavier rounds
+  (+damage), a **medic** adds vitality and a once-per-run **field revive** (the
+  first time you'd drop, you're dragged back up). A lone captain gets none of it
+  — the intended "harder solo" friction. Perks stack onto the boon layer as the
+  run's starting `WalkMods`. (Captain's own role counts, via `stats().has`.)
+
+Still to wire: a survey-POI map entrance (a deliberate second way in).
+- **Deliverable:** runs that escalate and pay out. ✅ (payout, salvage, stakes,
+  crew loadout)
 
 ### Phase E — World integration 🚧 IN PROGRESS
 Launch zones from real play, not a debug command. Landed so far:

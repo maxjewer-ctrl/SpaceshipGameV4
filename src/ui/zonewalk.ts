@@ -50,8 +50,10 @@ interface ZoneRun {
   vitality: number;       // carried across chambers
   vitalityMax: number;
   payout: number;         // salvage banked so far this run
-  mods: WalkMods;         // the player's gun, grown by boons across the run
+  mods: WalkMods;         // the player's gun, grown by crew perks + boons
   boons: string[];        // icons of boons taken, for the HUD readout
+  reviveAmount: number;   // medic perk: vitality restored by the one field revive
+  reviveUsed: boolean;    // spent yet? (once per run, not per chamber)
   returnScreen: string;
   onExit?: (r: ZoneResult) => void;
   ended: boolean;
@@ -88,16 +90,30 @@ function stage(gc: GenChamber): Chamber {
 // Assemble a seeded run from a biome's data (content/zones.json).
 export function startZone(cfg: { biome?: string; chambers?: number; vitality?: number; returnScreen?: string; onExit?: (r: ZoneResult) => void } = {}) {
   const run = generateRun(cfg.biome ?? "derelict", cfg.chambers);
+
+  // Crew perks: your roster is your loadout. A specialist aboard shapes the run;
+  // a lone captain gets none of this, which is the intended friction.
+  const st = stats();
+  const mods = defaultMods();
+  const perks: string[] = [];
+  if (st.has("gunner")) { mods.fireRateMul *= .82; perks.push("your gunner tuned the sidearm (faster fire)"); }
+  if (st.has("mechanic")) { mods.damage += 1; perks.push("your mechanic loaded heavier rounds (+damage)"); }
+  let vitBonus = 0, reviveAmt = 0;
+  if (st.has("medic")) { vitBonus += 15; reviveAmt = 40; perks.push("your medic's on the channel (one field revive)"); }
+
   const hurt = captainInjured();
-  const vitMax = Math.round((cfg.vitality ?? 100) * (hurt ? .72 : 1));
-  if (hurt) whisper("You go in still carrying the last one's injury — you can't take as many hits.");
+  const vitMax = Math.max(20, Math.round(((cfg.vitality ?? 100) + vitBonus) * (hurt ? .72 : 1)));
+
   Z = {
     biome: run.biome, title: run.title, chambers: run.chambers.map(stage), rewards: run.rewards,
     index: 0, cleared: false, exits: null,
     vitality: vitMax, vitalityMax: vitMax, payout: 0,
-    mods: defaultMods(), boons: [],
+    mods, boons: [], reviveAmount: reviveAmt, reviveUsed: false,
     returnScreen: cfg.returnScreen ?? "map", onExit: cfg.onExit, ended: false,
   };
+  if (hurt) whisper("You go in still carrying the last one's injury — you can't take as many hits.");
+  if (perks.length) log(`Suiting up: ${perks.join("; ")}.`);
+  else whisper("You go in alone. No one's covering you down there.");
   S.screen = "zone";
   requestRender();
 }
@@ -130,8 +146,10 @@ export function buildZoneScene(): WalkScene {
     vitality: z.vitality,
     enemies: chamber.enemies,
     mods: z.mods,
+    revive: z.reviveUsed ? 0 : z.reviveAmount,   // medic's one field revive, run-wide
     onClear: onChamberClear,
     onDowned: onDowned,
+    onRevive: onRevived,
   };
 
   const boonTag = z.boons.length ? ` · ${z.boons.join("")}` : "";
@@ -199,6 +217,15 @@ function pickExit(id: string) {
   z.cleared = false;
   z.exits = null;
   requestRender();   // new chamber id → walk remounts with fresh hostiles
+}
+
+// The medic's field revive fired (walk.ts already restored vitality). Spend it
+// for the rest of the run and tell the player who just saved them.
+function onRevived() {
+  const z = Z; if (!z) return;
+  z.reviveUsed = true;
+  whisper("Your medic talks you back from the edge — you're up, barely. That's the one you get.");
+  requestRender();
 }
 
 function onDowned() {

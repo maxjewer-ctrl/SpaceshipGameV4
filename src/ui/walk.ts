@@ -62,8 +62,10 @@ export interface WalkCombat {
   vitality?: number;          // player's on-foot health pool for the zone (default 100)
   enemies: WalkCombatSpawn[];
   mods?: WalkMods;            // the player's gun for this chamber (accumulated boons)
+  revive?: number;           // medic perk: vitality restored the first time you'd drop (0 = none)
   onClear?: () => void;       // fired once when the last hostile drops
   onDowned?: () => void;      // fired once when vitality hits zero
+  onRevive?: () => void;      // fired when the revive triggers (once per run)
 }
 export interface WalkScene {
   id: string;                 // unique per context — changing it remounts at spawn
@@ -158,7 +160,8 @@ let enemies:FootEnemy[]=[];
 let foeShots:Array<{x:number;y:number;vx:number;vy:number;life:number;dmg:number}>=[];
 let vitality=0, vitalityMax=0, playerHit=0, playerInvuln=0;
 let combatActive=false, combatResolved=false;
-let onClear:(()=>void)|null=null, onDowned:(()=>void)|null=null;
+let onClear:(()=>void)|null=null, onDowned:(()=>void)|null=null, onRevive:(()=>void)|null=null;
+let reviveAmount=0, reviveLeft=0;   // medic perk: one second-wind per run
 // ---- combat juice: the gun, screen shake, muzzle flash, death debris, kills.
 let playerMods:WalkMods=defaultMods();
 let debris:Array<{x:number;y:number;vx:number;vy:number;life:number;color:string}>=[];
@@ -261,11 +264,13 @@ export function start(s: WalkScene) {
   bindListeners();
   mountWalk3d(s);
   projectiles=[]; foeShots=[]; rollTime=rollCooldown=fireCooldown=0;
-  enemies=[]; combatActive=false; combatResolved=false; onClear=onDowned=null;
-  vitality=vitalityMax=0; playerHit=playerInvuln=0;
+  enemies=[]; combatActive=false; combatResolved=false; onClear=onDowned=onRevive=null;
+  vitality=vitalityMax=0; playerHit=playerInvuln=0; reviveAmount=reviveLeft=0;
   debris=[]; shakeAmt=muzzle=killCount=rollTrail=0; playerMods=defaultMods();
   if (s.combat) {
     playerMods = s.combat.mods ?? defaultMods();
+    reviveAmount = s.combat.revive ?? 0; reviveLeft = reviveAmount > 0 ? 1 : 0;
+    onRevive = s.combat.onRevive ?? null;
     // A real battle zone: spawn the roster, seed the vitality pool, stagger the
     // opening volley so three drones don't fire on the same frame.
     vitalityMax = s.combat.vitality ?? 100; vitality = vitalityMax;
@@ -665,7 +670,11 @@ function updateCombat(dt: number) {
   }
   foeShots = foeShots.filter((s) => s.life > 0);
   if (combatActive && !combatResolved) {
-    if (vitality <= 0) { combatResolved = true; combatActive = false; onDowned?.(); }
+    if (vitality <= 0 && reviveLeft > 0) {
+      // Medic's second wind: dragged back up once per run, with a beat of mercy.
+      reviveLeft--; vitality = Math.min(vitalityMax, reviveAmount); playerInvuln = 1.3;
+      shakeAmt = Math.min(1.3, shakeAmt + .7); onRevive?.();
+    } else if (vitality <= 0) { combatResolved = true; combatActive = false; onDowned?.(); }
     else if (enemies.every((e) => e.hp <= 0)) { combatResolved = true; combatActive = false; onClear?.(); }
   }
 }
