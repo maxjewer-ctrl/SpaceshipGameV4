@@ -110,7 +110,7 @@ required to be *headlessly simulatable* (BETA_PLAN Phase C exit gate) — the
 `playtest-kestrel` skill + `walk.ts` debug hooks (`debugStep`, `debugGoto`,
 `debugWalkTo`, `debugActors`) already support this.
 
-### Phase A — Combat core in the sim
+### Phase A — Combat core in the sim ✅ SHIPPED
 Extend `walk.ts` action mode from one dummy to real combat:
 - an `Enemy` runtime list (pos, hp, state, cooldowns) mirroring the lightweight
   `types.ts:193` `Enemy` shape;
@@ -122,7 +122,15 @@ Extend `walk.ts` action mode from one dummy to real combat:
   dummy/projectile draw at walk3d.ts:606-607).
 - **Deliverable:** one room, fight 3 drones, and you can die.
 
-### Phase B — Chamber runtime & gating
+### Phase B — Chamber runtime & gating ✅ SHIPPED
+Landed as `ui/zonewalk.ts` (a scene builder, so it lives with the other walk
+builders): the run singleton `Z`, a per-chamber scene builder, exits sealed
+while a chamber is hot, reward-preview boon doors on clear, vitality carried
+across chambers (scene-`id` swap remounts each chamber), a final warden +
+extract door, and win/downed payout. New screen `S.screen === "zone"` routed in
+`render.ts`; `__zoneTest()` starts a run; verified end to end in
+`test/combatzone.test.ts`. Original sketch below:
+
 New `systems/combatZone.ts`: seal/unlock doors, wave spawner, clear-detection,
 chamber→chamber transitions (persist `vitality`/boons across chambers via either
 scene-`id` swaps or in-place `ensureRunning` mutation), and the between-chamber

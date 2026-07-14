@@ -45,6 +45,7 @@ import {
 } from "./systems/silence";
 import { pressStart, pressEnd, interact, debugStep, debugPos, debugGoto, debugActors, debugWalkTo, debugRooms, debugRenderCount, walkInsideFloors, debugCombat, debugFireAt } from "./ui/walk";
 import { wkRetreat } from "./ui/planetwalk";
+import { startZone, zoneBail, zoneActive } from "./ui/zonewalk";
 import { crewTalk, crewHighlight, wkInspect, walkDeck, sitChair } from "./ui/shipwalk";
 import { wkPay, wkTalk, wkFight } from "./systems/walkEncounters";
 import { ctVibe, ctAbout, ctShip, ctQuest, ctWorld, ctClose, ctQuestHelp, ctQuestSkip } from "./systems/crewtalk";
@@ -111,6 +112,8 @@ Object.assign(window as any, {
   // free-roam walking: D-pad/keyboard fallback buttons, crew chat, foot encounters
   walkPressStart: pressStart, walkPressEnd: pressEnd, walkInteract: interact,
   crewTalk, crewHighlight, wkInspect, walkDeck, sitChair, wkPay, wkTalk, wkFight, wkRetreat,
+  // combat zones — Hades-style incursions (docs/COMBAT_ZONES.md)
+  zoneBail,
   // crew dialogue — trust-gated topics, personal quests
   ctVibe, ctAbout, ctShip, ctQuest, ctWorld, ctClose, ctQuestHelp, ctQuestSkip,
   // damage control — crew-gap minigames (no mechanic/pilot/med bay aboard)
@@ -145,6 +148,11 @@ Object.assign(window as any, {
     s.screen = "stationwalk";
     requestRender();
     return "Dropped into dark Dustwell. Clear the pad.";
+  },
+  // dev/debug: start a multi-chamber incursion (Phase B run structure)
+  __zoneTest: (chambers?: number) => {
+    startZone({ biome: "derelict", chambers: chambers ?? 3, returnScreen: "ship", onExit: (r) => log(`[zone] ${r.won ? "won" : "bailed"} — ${r.chambersCleared} cleared, ${r.payout}cr`) });
+    return zoneActive() ? "Incursion started. Clear each chamber, then pick a hatch." : "failed to start";
   },
   // dev/debug: force a specific travel event (playtesting encounters on demand)
   __event: (k: string) => {

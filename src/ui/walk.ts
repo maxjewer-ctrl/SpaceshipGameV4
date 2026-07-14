@@ -573,6 +573,9 @@ function hurtPlayer(n: number) { vitality = Math.max(0, vitality - n); playerHit
 // Debug-only (window.__walkCombat / __walkFireAt): read fight state and drive a
 // shot toward a world point, so the headless playtest can clear a zone.
 export function debugCombat() { return { active: combatActive, resolved: combatResolved, vitality, vitalityMax, enemies: enemies.map((e) => ({ x: Math.round(e.x), y: Math.round(e.y), hp: e.hp })) }; }
+// The player's live on-foot health — read by the zone runtime at chamber-clear
+// to carry remaining vitality into the next chamber.
+export function combatVitality() { return vitality; }
 export function debugFireAt(x: number, y: number) { setAim(x, y); fireCooldown = 0; fire(); }
 
 function updateHud() {

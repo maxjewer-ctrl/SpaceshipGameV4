@@ -17,6 +17,8 @@ vi.mock("../src/ui/walk3d", () => ({
 import { loadScenario } from "../src/debug/scenarios";
 import * as walk from "../src/ui/walk";
 import type { WalkScene, WalkCombat } from "../src/ui/walk";
+import { startZone, buildZoneScene, zoneActive } from "../src/ui/zonewalk";
+import { S } from "../src/state";
 
 function arena(combat: WalkCombat): WalkScene {
   return {
@@ -86,5 +88,56 @@ describe("foot-combat battle zone", () => {
     expect(cleared).toBe(0);
     step(20);                  // must not re-fire onDowned
     expect(downed).toBe(1);
+  });
+});
+
+// Gun down every hostile in the current chamber (3 shots/volley, re-aimed).
+function clearChamber() {
+  for (let volley = 0; volley < 80; volley++) {
+    const c = walk.debugCombat();
+    if (!c.active) return;
+    const t = c.enemies.find((e) => e.hp > 0);
+    if (!t) return;
+    walk.debugGoto(t.x, t.y - 90);
+    for (let s = 0; s < 3; s++) walk.debugFireAt(t.x, t.y);
+    step(4);
+  }
+}
+
+describe("combat-zone run structure (Phase B)", () => {
+  beforeEach(() => { loadScenario("fresh"); walk.teardown(); });
+
+  it("chains chambers: seal → clear → boon door → extract, paying out on win", () => {
+    const before = S.credits;
+    let result: any = null;
+    startZone({ biome: "derelict", chambers: 3, vitality: 100, returnScreen: "ship", onExit: (r) => { result = r; } });
+    expect(zoneActive()).toBe(true);
+
+    let lastId = "", chambersEntered = 0, sealedSeen = false, guard = 0;
+    while (zoneActive() && guard++ < 20) {
+      let scene = buildZoneScene();
+      if (scene.id !== lastId) { walk.start(scene); lastId = scene.id; chambersEntered++; }
+
+      // Mid-fight the only exit is a locked hatch (the chamber is sealed).
+      if (walk.debugCombat().active) {
+        const sealed = scene.doors.find((d) => d.locked);
+        if (sealed) sealedSeen = true;
+        clearChamber();
+      }
+
+      // Cleared: rebuild the view — now boon doors are open. Take the first.
+      scene = buildZoneScene();
+      const open = scene.doors.filter((d) => !d.locked);
+      expect(open.length).toBeGreaterThan(0);
+      open[0].action();
+    }
+
+    expect(sealedSeen).toBe(true);          // exits really did seal during fights
+    expect(chambersEntered).toBe(3);        // all three chambers were entered
+    expect(zoneActive()).toBe(false);       // run resolved
+    expect(S.screen).toBe("ship");          // returned to the caller's screen
+    expect(result?.won).toBe(true);
+    expect(result?.chambersCleared).toBe(3);
+    expect(S.credits).toBeGreaterThan(before); // salvage + completion bonus paid
   });
 });

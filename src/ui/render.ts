@@ -12,10 +12,11 @@ import { travelHTML } from "./travel";
 import { buildStationScene } from "./stationwalk";
 import { buildDesertTownScene } from "./planetwalk";
 import { buildShipScene, crewRosterHTML } from "./shipwalk";
+import { buildZoneScene, zoneActive } from "./zonewalk";
 import * as walk from "./walk";
 import * as sfx from "../audio";
 
-const WALK_SCREENS = ["stationwalk", "shipwalk"];
+const WALK_SCREENS = ["stationwalk", "shipwalk", "zone"];
 
 // Screen swaps used to be a hard cut (innerHTML replaced synchronously, same
 // frame). Now the outgoing screen gets a brief exit fade/slide, THEN the
@@ -161,6 +162,11 @@ function renderMain() {
     walk.ensureRunning(scene);
   } else if (S.screen === "shipwalk") {
     const scene = buildShipScene();
+    if (walk.needsMount(scene.id)) m.innerHTML = walk.mountHTML(scene);
+    walk.ensureRunning(scene);
+  } else if (S.screen === "zone") {
+    if (!zoneActive()) { S.screen = "ship"; m.innerHTML = shipHTML(); return; }
+    const scene = buildZoneScene();
     if (walk.needsMount(scene.id)) m.innerHTML = walk.mountHTML(scene);
     walk.ensureRunning(scene);
   } else if (S.screen === "planet") m.innerHTML = planetHTML();
