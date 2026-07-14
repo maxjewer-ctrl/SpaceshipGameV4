@@ -36,6 +36,7 @@ const SCENARIOS: Record<string, { desc: string; build: () => void }> = {
     build: () => {
       base("Marrow's Luck");
       S.day = 14; S.credits = 1800; S.prestige = 4; S.fuel = 36; S.food = 26;
+      S.slotsMax = 8;
       S.modules.push(mk("cargohold"), mk("quarters"));
       S.crew.push(crew("pilot", "Odile Vance"), crew("mechanic", "Kesh Barlow"));
       S.rep.union = 2; S.rep.frontier = 1;
@@ -57,6 +58,7 @@ const SCENARIOS: Record<string, { desc: string; build: () => void }> = {
     build: () => {
       base("Long Ear");
       S.day = 17; S.credits = 1400; S.prestige = 5; S.fuel = 40; S.food = 30;
+      S.slotsMax = 8;
       S.modules.push(mk("cargohold"), mk("quarters"));
       S.crew.push(crew("pilot", "Dane Okoro"), crew("cook", "Sef Adeyemi"));
     },

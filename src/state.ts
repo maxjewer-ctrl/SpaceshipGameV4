@@ -21,17 +21,18 @@ export function newState(shipName: string): GameState {
     rngState: seed,
     shipName: shipName || "Kestrel",
     day: 1, credits: 500, fuel: 30, food: 20, hull: 100, hullMax: 100, prestige: 0,
-    engineLvl: 1, slotsMax: 14, loc: "solace", docked: true,
+    engineLvl: 1, slotsMax: 6, loc: "solace", docked: true,
     captainName: "Cass Ardent",
     appearance: { ...DEFAULT_APPEARANCE },
     captainRole: null,
     screen: "shipwalk", ptab: "cantina", sel: null, selPlanet: null,
     rep: { union: 0, frontier: 0, syndicate: 0 },
+    // A minimal starting loadout, not one of everything — the shop and slot
+    // cap (see slotsMax above) exist to make weapons/shields/smuggler/luxury
+    // bays real later purchases, not something every new ship already owns.
     modules: [
       mk("cockpit"), mk("engine"),
-      mk("fueltank"), mk("cargohold"), mk("medbay"), mk("cabin"),
-      mk("quarters"), mk("hydro"), mk("weapons"), mk("shields"),
-      mk("armory"), mk("workshop"), mk("smuggler"), mk("luxcabin"),
+      mk("fueltank"), mk("cargohold"), mk("quarters"),
     ],
     cargo: { ore: 0, med: 0, lux: 0 },
     crew: [], jobs: [], logLines: [],
