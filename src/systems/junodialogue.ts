@@ -14,7 +14,7 @@
 //                         forward on their own timetable.
 import { S, log } from "../state";
 import { JUNO_DIALOGUE, PLANETS } from "../content";
-import { modal, closeModal, hasModal } from "../modal";
+import { modal, replaceModal, closeModal } from "../modal";
 import { requestRender } from "../bus";
 import { crewPortrait } from "../ui/portraits";
 import { dialogueHeadHTML } from "../ui/portraits";
@@ -114,7 +114,11 @@ function headFor(c: CrewMember, node: JunoNode): string {
   return dialogueHeadHTML(src, "🔧", "Juno Vale", sub);
 }
 
-function renderJunoNode(nodeKey: string) {
+// force: true for a direct player action or navigation continuing the
+// already-open Juno modal (replaces in place, never queues behind itself).
+// false (default) for the unprompted docking beat (checkJunoArc), which
+// should queue behind whatever another system may already be showing.
+function renderJunoNode(nodeKey: string, force = false) {
   const c = juno();
   const tree = JUNO_DIALOGUE.nodes;
   const node = tree[nodeKey];
@@ -132,19 +136,20 @@ function renderJunoNode(nodeKey: string) {
       return `<button class="${cls}" ${ok ? "" : "disabled"} onclick="junoChoose('${nodeKey}',${x.i})">${x.ch.label}${hint}</button>`;
     })
     .join("");
-  modal(`<div class="scene">
+  const html = `<div class="scene">
     <div class="scene-loc">${sceneLoc()}</div>
     ${headFor(c, node)}
     <p>${node.text}</p>
     <div class="choices">${buttons}</div>
-  </div>`);
+  </div>`;
+  if (force) replaceModal(html); else modal(html);
 }
 
 export function openJunoDialogue() {
   const c = juno();
   if (!c) return;
   pendingAfter = null;
-  renderJunoNode(JUNO_DIALOGUE.nodes.hub ? "hub" : Object.keys(JUNO_DIALOGUE.nodes)[0]);
+  renderJunoNode(JUNO_DIALOGUE.nodes.hub ? "hub" : Object.keys(JUNO_DIALOGUE.nodes)[0], true);
   requestRender();
 }
 
@@ -160,13 +165,13 @@ export function junoChoose(nodeKey: string, idx: number) {
   if (ch.log) log(ch.log);
   const after = () => {
     if (ch.end) { activeNode.key = ""; closeModal(); requestRender(); }
-    else if (ch.goto) { renderJunoNode(ch.goto); requestRender(); }
-    else { renderJunoNode("hub"); requestRender(); } // default: back to the hub, stay talking
+    else if (ch.goto) { renderJunoNode(ch.goto, true); requestRender(); }
+    else { renderJunoNode("hub", true); requestRender(); } // default: back to the hub, stay talking
   };
   if (ch.reply) {
     pendingAfter = after;
     const src = crewPortrait(c, ch.expr || node.expr || "neutral");
-    modal(`<div class="scene">
+    replaceModal(`<div class="scene">
       <div class="scene-loc">${sceneLoc()}</div>
       ${dialogueHeadHTML(src, "🔧", "Juno Vale", "")}
       <p>${ch.reply}</p>
@@ -193,7 +198,7 @@ export function junoContinue() {
 const BEAT_SPACING_DAYS = 4;
 
 export function checkJunoArc() {
-  if (hasModal() || !S.docked) return;
+  if (!S.docked) return;
   const c = juno();
   if (!c) return;
   const cd = S.flags.juno_beat_cooldown;

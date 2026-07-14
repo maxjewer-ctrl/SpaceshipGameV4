@@ -7,7 +7,7 @@ import { S, log, whisper } from "../state";
 import { RIDERS, PLANETS, CHARACTERS, type RiderDef, type RiderEffect } from "../content";
 import type { FireWhen } from "../types";
 import { clamp } from "../util";
-import { modal, hasModal } from "../modal";
+import { modal } from "../modal";
 import { requestRender } from "../bus";
 import { startCombat } from "./combat";
 import { remember } from "./ledger";
@@ -35,10 +35,12 @@ function ready(w: FireWhen): boolean {
   return false;
 }
 
-// Called from the day tick and on docking. Fires at most one rider per call so a
-// modal payoff never stomps another; the rest wait for the next tick.
+// Called from the day tick and on docking. Fires at most one rider per call —
+// the rest wait for the next tick. A rider's modal payoff queues rather than
+// stomping if one's already showing (see modal.ts's QUEUE), so this no longer
+// needs its own hasModal() guard to avoid overlap.
 export function checkScheduler(): boolean {
-  if (hasModal() || S.over) return false;
+  if (S.over) return false;
   const idx = S.scheduled.findIndex((e) => ready(e.fireWhen));
   if (idx < 0) return false;
   const ev = S.scheduled.splice(idx, 1)[0];

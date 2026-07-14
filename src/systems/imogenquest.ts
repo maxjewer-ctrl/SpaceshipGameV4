@@ -4,7 +4,7 @@
 // days aboard), this is gated purely on trustTier() hitting "bonded" — she
 // has to believe you before she'll say it out loud.
 import { S, log } from "../state";
-import { modal, closeModal, hasModal } from "../modal";
+import { modal, closeModal } from "../modal";
 import { requestRender } from "../bus";
 import { clamp } from "../util";
 import { remember, crewKey } from "./ledger";
@@ -19,7 +19,7 @@ let pendingId: number | null = null;
 
 // Called on docking (see systems/travel.ts), same slot as checkAgendaBeats.
 export function checkImogenQuest() {
-  if (hasModal() || !S.docked) return;
+  if (!S.docked) return;
   const c = S.crew.find((cm) =>
     cm.key === "imogen"
     && trustTier(cm) === "bonded"

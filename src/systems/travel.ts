@@ -4,7 +4,6 @@ import { stats, daysTo, fuelTo, foodPerDay, salaries, perkActive, captainDoubleH
 import { rand, pick } from "../rng";
 import { clamp } from "../util";
 import { requestRender } from "../bus";
-import { hasModal } from "../modal";
 import { rollEvent, evAdrift, evQuiet } from "./events";
 import { startCombat } from "./combat";
 import { powerRebalance } from "./actions";
@@ -54,7 +53,7 @@ export function advanceDay() {
   dayTick(true);
   S.travel.left--;
   if (S.travel.left <= 0) { arrive(); requestRender(); return; }
-  if (S.over || hasModal()) { requestRender(); return; }
+  if (S.over) { requestRender(); return; }
   // The prologue scripts its own travel days — no random lane events on top.
   if (introTravelBeat()) { S.travel.evd = true; requestRender(); return; }
   // events

@@ -4,7 +4,7 @@
 // payoff — a stacking bonus on their role perk. Neglect them badly enough and
 // they leave, citing the specific memory that broke it.
 import { S, log } from "../state";
-import { modal, closeModal, hasModal } from "../modal";
+import { modal, replaceModal, closeModal } from "../modal";
 import { requestRender } from "../bus";
 import { ROLES, PLANETS } from "../content";
 import { sentiment, crewKey, remember, strongestMemory, hasMemory } from "./ledger";
@@ -43,7 +43,7 @@ function renderCrewTalk() {
   const where = S.docked && S.screen === "stationwalk"
     ? `${PLANETS[S.loc].n} · off duty`
     : `${S.shipName} · ${ROLES[c.role]?.n || c.role}`;
-  modal(`<div class="scene">
+  replaceModal(`<div class="scene">
     <div class="scene-loc">${where}</div>
     ${dialogueHeadHTML(crewPortraitKey(c), "🧑‍🚀", c.name, `${TIER_LABEL[tier]} · <span class="ctword ${dw.cls}">${dw.word}</span>`)}
     ${lastLine ? `<p>${lastLine}</p>` : `<p class="dim">${c.name} looks up as you approach.</p>`}
@@ -231,7 +231,6 @@ let pendingQuestCost = 0;
 // Called on docking (see systems/travel.ts). Opens the resolution scene the
 // moment you make port at the world their want pointed to.
 export function checkCrewQuests() {
-  if (hasModal()) return;
   const c = S.crew.find((cm) => cm.questStage === 2 && cm.questDest === S.loc);
   if (!c || !c.bundle) return;
   pendingQuestCrewId = c.id;
@@ -275,7 +274,7 @@ export function ctQuestSkip() {
 // Called on docking. Deeply neglected crew quit at the next port, citing the
 // exact memory that broke them.
 export function checkCrewDeparture() {
-  if (hasModal() || !S.docked) return;
+  if (!S.docked) return;
   const c = S.crew.find((cm) => sentiment(crewKey(cm)) <= -6);
   if (!c) return;
   S.crew = S.crew.filter((x) => x.id !== c.id);

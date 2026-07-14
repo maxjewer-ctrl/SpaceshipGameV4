@@ -9,7 +9,7 @@
 //   → 3 source known → 4 resolved (flags: silence_answered/stilled/sold)
 import { S, log, whisper } from "../state";
 import { PLANETS } from "../content";
-import { modal, hasModal, closeModal } from "../modal";
+import { modal, replaceModal, closeModal } from "../modal";
 import { requestRender } from "../bus";
 import { ri, rand, pick } from "../rng";
 import { remember, witnessAll, crewKey } from "./ledger";
@@ -54,7 +54,7 @@ export function silenceTick() {
     whisper("Three fragments, one bearing. The pattern is almost legible now — and it is getting closer to being finished with almost.");
   }
   // The Broadcast: four seconds, every radio, every world.
-  if (c.stage === 0 && S.day >= 18 && !hasModal()) {
+  if (c.stage === 0 && S.day >= 18) {
     c.stage = 1;
     S.flags.sil_stage1 = true;
     const pool: string[] = S.flags.riderRumors || (S.flags.riderRumors = []);
@@ -69,14 +69,14 @@ export function silenceTick() {
     return;
   }
   // Scheduled silencings.
-  if (c.nextDay !== null && S.day >= c.nextDay && c.stage >= 1 && c.stage < 4 && !hasModal()) {
+  if (c.nextDay !== null && S.day >= c.nextDay && c.stage >= 1 && c.stage < 4) {
     const w = c.nextWorld!;
     c.nextDay = null; c.nextWorld = null;
     silenceWorld(w);
     return;
   }
   // The sold ending's bill: the Union's "containment research" eats Foundry.
-  if (c.billDay !== null && S.day >= c.billDay && !hasModal()) {
+  if (c.billDay !== null && S.day >= c.billDay) {
     c.billDay = null;
     c.silenced.push("foundry");
     voidJobsTo("foundry");
@@ -171,7 +171,6 @@ export function silenceArrive(): boolean {
 }
 
 export function silDescend() {
-  closeModal();
   shift("daring", 2, "descended into a silenced station");
   const st = S.crew.length;
   // the deep decks take a toll — someone hears their name in the static
@@ -183,7 +182,7 @@ export function silDescend() {
   }
   const hullHit = ri(4, 9);
   S.hull = Math.max(1, S.hull - hullHit);
-  modal(`<h2>🕯 The Lower Decks</h2>
+  replaceModal(`<h2>🕯 The Lower Decks</h2>
     <p>The deeper you go, the cleaner it gets. Dust stops. Sound stops — your own boots go hushed, like the air has been persuaded not to carry them. On deck nine you find the station's entire population's worth of <b>shoes</b>, in rows, neat as a chapel.</p>
     ${scare}
     <p>And in the hollow of the reactor bay: a survey buoy the Verge crews must have hauled in from the deep black years ago and never reported. It's transmitting. It has, by its own logs, been transmitting for <b>eleven years</b> — and eleven days ago, something started <i>answering</i>.</p>
@@ -220,7 +219,6 @@ function sourceScene() {
 }
 
 export function silAnswer() {
-  closeModal();
   const c = sil();
   c.stage = 4; S.flags.sil_stage4 = true; S.flags.silence_answered = true;
   c.silenced = []; c.nextDay = null; c.nextWorld = null;
@@ -230,7 +228,7 @@ export function silAnswer() {
   const pool: string[] = S.flags.riderRumors || (S.flags.riderRumors = []);
   pool.push("\"The lost stations came back ONLINE. All of them. Every soul accounted for, and every one of them humming the same tune while they work. Sleep well.\"");
   pool.push("\"They say a freighter captain talked to it. Talked BACK to it. Bought the whole sector a seat at a table we can't see.\"");
-  modal(`<h2>◆ THE ANSWER</h2>
+  replaceModal(`<h2>◆ THE ANSWER</h2>
     <p>You open the channel, and you tell it the truth: <i>we hear you. We are small, and busy, and afraid, and we are not finished being ourselves yet.</i></p>
     <p>The question stops. The whole deep band goes still — a held breath eleven years long, releasing. And then, one by one, like ports lighting up along a dark coast: <b>the silenced worlds come back.</b> The Verge. Every colony. Every soul, walking back out of the lower decks with the mild embarrassment of people waking on a train.</p>
     <p>They remember it as a long conversation none of them can quote. All of them came back <i>kinder</i>, and all of them hum the same four seconds while they work, and on clear nights every radio in the sector carries, very faintly, the sound of something enormous learning to say <b>you're welcome</b>.</p>
@@ -241,7 +239,6 @@ export function silAnswer() {
 }
 
 export function silStill() {
-  closeModal();
   const c = sil();
   c.stage = 4; S.flags.sil_stage4 = true; S.flags.silence_stilled = true;
   c.silenced = []; c.nextDay = null; c.nextWorld = null;
@@ -250,7 +247,7 @@ export function silStill() {
   witnessAll("stilled_the_silence", 3, "At the Anechoic, the captain flooded the frequency and stilled the thing in the dark. The crew watched the coastline of black unmake itself.");
   const pool: string[] = S.flags.riderRumors || (S.flags.riderRumors = []);
   pool.push("\"Verge Station's back online like nothing happened. Eleven hundred people with a gap in their memory and no curiosity about it. Officially: solar event. Sure.\"");
-  modal(`<h2>◆ THE STILLING</h2>
+  replaceModal(`<h2>◆ THE STILLING</h2>
     <p>You flood the frequency — every watt the ship can make, screamed across the four seconds until the question can't hold its own shape.</p>
     <p>It doesn't fight. That's the part you'll wake up remembering: it just… stops asking, the way a caller who has been very patient finally, politely, hangs up. The coastline of black unravels. The instruments agree with each other again. The universe becomes exactly as large as it was advertised to be.</p>
     <p><b>The silenced worlds wake within hours</b> — everyone accounted for, remembering nothing, mildly embarrassed. Official cause: solar event. Life resumes. Prices normalize. In a year it will be a story dockworkers argue about.</p>
@@ -261,7 +258,6 @@ export function silStill() {
 }
 
 export function silSell() {
-  closeModal();
   const c = sil();
   c.stage = 4; S.flags.sil_stage4 = true; S.flags.silence_sold = true;
   c.silenced = []; c.nextDay = null; c.nextWorld = null;
@@ -270,7 +266,7 @@ export function silSell() {
   S.rep.union = clamp(S.rep.union + 8, -20, 20);
   shift("mercy", -2, "sold the deep recording");
   witnessAll("sold_the_silence", -3, "At the Anechoic, the captain recorded the question and sold it to the Union. The crew heard the price. It was 3,000 credits.");
-  modal(`<h2>◆ THE TRANSACTION</h2>
+  replaceModal(`<h2>◆ THE TRANSACTION</h2>
     <p>You don't answer, and you don't interfere. You record four clean minutes of a god's patient question, encrypt it, and burn for home.</p>
     <p>The Union pays <b>3,000 credits</b> without haggling, which is how you know you underpriced it. A research directorate you'll never see again takes delivery. The silenced worlds wake on their own within the week — whatever was asking has lost interest in colonies now that something far more interesting has begun <i>studying it back</i>.</p>
     <p>The liaison officer shakes your hand with both of hers. "The Union thanks you, Captain. This changes the strategic picture entirely." You are rich, favored, and — say it plainly — you have sold the keys to a door mankind cannot lock, to the only institution in the sector arrogant enough to open it on purpose.</p>
@@ -308,20 +304,18 @@ export function evReturnedShip() {
     </div>`);
 }
 export function silBoardReturned() {
-  closeModal();
   shift("daring", 2, "boarded a returned ship");
   const cr = ri(120, 260);
   S.credits += cr;
-  modal(`<h2>🛸 Aboard the Prodigal Anne</h2>
+  replaceModal(`<h2>🛸 Aboard the Prodigal Anne</h2>
     <p>The crew is aboard. All four of them, seated in the mess, upright and breathing, their eyes tracking together toward things that are not in the room. On the table between them, arranged with terrible care: their comm implants, removed. <i>Neatly.</i></p>
     <p>The logs are a diary of a fishing trip: they found a signal out past the charts, and they followed it, and the last entry — dated three days ago, in a ship missing eight months — reads, in a steady hand: <b>"We heard the rest of it. We came back for you."</b></p>
     <p>You strip the nav core and ${cr}cr in unclaimed salvage bonds, tow-tag the ship for the authorities, and do not look at the crew again. The nav core's final fix points deep past the Verge — the same bearing the whole sector's nightmares are pointing.</p>
     <div class="choices"><button class="primary" onclick="closeModal(); silLearnReturned()">Take the fix. Leave the Anne.</button></div>`);
 }
 export function silScanReturned() {
-  closeModal();
   S.fuel = Math.max(0, S.fuel - 2);
-  modal(`<h2>🛸 The Standoff Scan</h2>
+  replaceModal(`<h2>🛸 The Standoff Scan</h2>
     <p>You burn a careful day at sensor range. Four life signs, resting-calm heartbeats, synchronized — <i>exactly</i> synchronized, four hearts keeping one time. The drive logs show an eight-month cruise into a region your charts render as plain black, and a turnaround at a point your instruments refuse to give the same coordinates for twice.</p>
     <p>It's enough. You transmit the tow-tag, log the bearing, and leave the Prodigal Anne holding her door open for somebody braver.</p>
     <div class="choices"><button class="primary" onclick="closeModal(); silLearnReturned()">Log the bearing (−2 fuel)</button></div>`);

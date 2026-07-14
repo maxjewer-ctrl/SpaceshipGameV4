@@ -5,7 +5,7 @@
 // about play, not just a line in a dossier.
 import { S, log } from "../state";
 import { CHARACTERS } from "../content";
-import { modal, closeModal, hasModal } from "../modal";
+import { modal, closeModal } from "../modal";
 import { requestRender } from "../bus";
 import { rand, ri } from "../rng";
 import { clamp } from "../util";
@@ -23,7 +23,7 @@ function findCrew(id: number): CrewMember | undefined {
 let pendingId: number | null = null;
 
 export function checkAgendaBeats() {
-  if (hasModal() || !S.docked) return;
+  if (!S.docked) return;
   const c = S.crew.find((cm) =>
     cm.key && BEAT_KEYS.includes(cm.key)
     && (cm.daysAboard || 0) >= THRESHOLD

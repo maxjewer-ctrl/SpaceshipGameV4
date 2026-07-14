@@ -133,16 +133,24 @@ combat gets *deeper* when resolution is a decision, not a reflex — and the
 whole system becomes headlessly testable.
 
 ### 3.4 The global-onclick UI surface — REPLACE
-✅ **Dispatcher half shipped.** One delegated listener + `data-action`
-attributes + a typed action table (`dispatch("buyFuel", [5])`). `main.ts`
-stopped being a 150-export registry; handlers stopped being globals; the
-playtest harness drives `dispatch` directly.
+✅ **Shipped, both halves.** Dispatcher half: one delegated listener +
+`data-action` attributes + a typed action table (`dispatch("buyFuel", [5])`).
+`main.ts` stopped being a 150-export registry; handlers stopped being
+globals; the playtest harness drives `dispatch` directly.
 
-**Still open — the ModalQueue in GameState:** pending story beats, riders,
-and events become serialized queue entries — no more `hasModal()` guards
-scattered through systems, no more stale `#modal` HTML, no more travel-stall
-class of bug. This is the single highest-leverage engineering change left in
-the plan.
+ModalQueue half: `modal()` now queues instead of clobbering when one's
+already showing (`src/modal.ts`), so the 10 gameplay systems that used to
+each re-check `hasModal()` before firing their own beat no longer need to —
+the queue makes overlap structurally impossible instead of a matter of
+per-call-site discipline. `travel.ts`'s `advanceDay()` had that guard on its
+gate too; removing it structurally closes the `094fc96` travel-stall bug
+class (a modal open during a travel day can no longer stall the day
+counter). A distinct `replaceModal()` was added for the case `hasModal()`
+never covered: navigating *within* an already-open conversation (a dialogue
+tree's next node, a reply screen) — using the queue there would've queued a
+screen behind itself. `clearModal()` (new game, load/import a save, load a
+dev scenario, end combat) drops the whole queue, since anything queued
+belonged to the state that just got replaced.
 
 ### 3.5 Dead surfaces — ARCHIVE
 `_v2design.html`, `legacy/game-v1.html`, the `spaceport.html` demo and
@@ -168,8 +176,8 @@ hostile ground + fixed follow camera (§3.1); Rapier/three-pathfinding/yuka/
 quarks + the 2D walk fallback cut (§3.2); realtime aim minigame still pending
 its Phase C replacement (§3.3); dead HTML surfaces archived (§3.5); `Math.random`
 exterminated + lint-gated (§3.6). The **headless simulation harness and CI are
-in**, save hardening + slots shipped, and §3.4's dispatcher half is in (this
-section, below). Still open in Phase A: the ModalQueue (§3.4, second half).
+in**, save hardening + slots shipped, and §3.4 is fully shipped (both the
+dispatcher and the ModalQueue — this section, below). **Phase A is complete.**
 
 - **Headless simulation harness.** ✅ Shipped. `hasModal()` was always pure
   in-memory state and `requestRender()` a no-op until wired, so the systems
@@ -208,13 +216,28 @@ section, below). Still open in Phase A: the ModalQueue (§3.4, second half).
   registry to a thin bootstrap. Pure invocation-mechanism refactor, zero
   gameplay behavior change; the two skill docs (playtest-kestrel,
   see-the-game) updated to `window.dispatch(...)` so the headless-testing
-  workflow keeps working. The ModalQueue half (real runtime-ordering changes
-  across 10 gameplay systems, incl. structurally fixing the 094fc96
-  travel-stall bug class) is deliberately separate follow-up work, not
-  attempted in the same pass.
+  workflow keeps working.
+- **ModalQueue:** ✅ Shipped (§3.4, second half). `modal()` in `src/modal.ts`
+  queues instead of clobbering when a modal is already showing; `hasModal()`
+  guards removed from the 10 gameplay systems that used it purely to avoid
+  stomping another system's beat (`crewtalk`, `agendabeats`, `imogenquest`,
+  `junodialogue`, `scheduler`, `silence` ×3, `walkEncounters` ×2) — the queue
+  now does that structurally. `travel.ts`'s `advanceDay()` had the same guard
+  on its own gate; removing it structurally closes the `094fc96` travel-stall
+  bug class (a modal open mid-travel can no longer stall `S.travel.left`). A
+  new `replaceModal()` handles the case that was never `hasModal()`'s job:
+  navigating within an already-open conversation (dialogue-tree nodes, reply
+  screens) replaces in place instead of queueing behind itself — used in
+  `junodialogue.ts`, `crewtalk.ts`, and `silence.ts`'s chained scenes.
+  Real-time input-suppression call sites (`ui/walk.ts`, `gamepadNav.ts`) were
+  left untouched — a different concern (don't move/fire while any modal is
+  up), not content-gating. 53/53 vitest passing; verified live in a browser
+  via dynamic-imported `modal.ts` (queue/drain/clear semantics) and a direct
+  repro of the old stall scenario (`advanceDay()` with a modal open still
+  decrements `S.travel.left`).
 - Exit: game plays identically — action verbs now live only in action-mode
   scenes, camera is fixed follow everywhere; CI is the new gatekeeper.
-  **Phase A now has one item left: the ModalQueue (§3.4, second half).**
+  **Phase A is complete.**
 
 ### Phase B — THE LOOP THAT NEVER ENDS (~3 weeks)
 CORE_LOOP.md's build order, finished — this is the beta's gameplay heart:
