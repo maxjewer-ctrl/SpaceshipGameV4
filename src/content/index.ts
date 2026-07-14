@@ -15,6 +15,7 @@ import charactersJson from "./characters.json";
 import stationsJson from "./stations.json";
 import portjobsJson from "./portjobs.json";
 import junoDialogueJson from "./juno.dialogue.json";
+import bapuDialogueJson from "./bapu.dialogue.json";
 
 export const MODS = modulesJson as Record<string, ModuleDef>;
 export const PLANETS = planetsJson as Record<string, PlanetDef>;
@@ -97,14 +98,15 @@ export interface NpcDef {
   blurb?: string;                   // one-liner shown on the station map / room list
   nodes: Record<string, SceneNode>;
 }
-// ---- Juno Vale's deep conversation tree (data-driven; see systems/junodialogue.ts) ----
+// ---- Named crew's deep conversation trees (data-driven; see systems/crewdialogue.ts) ----
 // A node graph gated on a combined vocabulary: trust tier, faction standing
 // (rep), playstyle (dispo), campaign stage (sil/arc), and prior-choice flags.
-export interface JunoChoice {
+// One tree per crew `key`, registered in CREW_TREES below.
+export interface CrewDialogueChoice {
   label: string;
-  requires?: Record<string, any>;   // trust, rep, dispo, sil, arc, flag, flagNot, credits...
-  effects?: any[];                  // RiderEffect[] plus crew verbs ({perk:true}, remember.who "@juno")
-  reply?: string;                   // Juno's response line before moving on
+  requires?: Record<string, any>;   // trust, rep, dispo, sil, arc, flag, flagNot, loc, credits...
+  effects?: any[];                  // RiderEffect[] plus crew verbs ({perk:true}, remember.who "@self")
+  reply?: string;                   // their response line before moving on
   log?: string;                     // dropped into the captain's log
   goto?: string;                    // next node key (omit → return to hub)
   end?: boolean;                    // close the conversation
@@ -112,22 +114,27 @@ export interface JunoChoice {
   hidden?: boolean;                 // when requires fail, omit entirely instead of showing it locked
   tone?: "primary" | "danger";      // button styling
   expr?: string;                    // portrait expression for the reply line
+  missionTag?: string;              // marks this choice as granting/paying off a
+                                     // mission (matches the effect's mission.tag /
+                                     // job tag) — documentation only, read by
+                                     // scripts/check-content.mjs for a sanity pass,
+                                     // not by the dialogue engine itself.
 }
-export interface JunoNode {
+export interface CrewDialogueNode {
   text: string;
-  sub?: string;                     // subline under her name
-  expr?: string;                    // portrait expression: neutral | worried | angry
-  choices: JunoChoice[];
+  sub?: string;                     // subline under their name
+  expr?: string;                    // portrait expression (neutral | crew-specific variants)
+  choices: CrewDialogueChoice[];
 }
-export interface JunoBeat {
-  id: string;                       // fired-once key → flags["juno_beat_<id>"]
+export interface CrewDialogueBeat {
+  id: string;                       // fired-once key → flags["<crewKey>_beat_<id>"]
   node: string;                     // node to open
   requires?: Record<string, any>;   // same gate vocabulary
   priority?: boolean;               // mission completions etc. — bypass the ambient-beat cooldown
 }
-export interface JunoTree {
-  nodes: Record<string, JunoNode>;
-  beats?: JunoBeat[];
+export interface CrewDialogueTree {
+  nodes: Record<string, CrewDialogueNode>;
+  beats?: CrewDialogueBeat[];
 }
 
 export interface RiderDef {
@@ -156,7 +163,13 @@ export const CREWGEN = crewgenJson as CrewGen;
 export const REPUTATION = reputationJson as ReputationContent;
 export let NPCS = npcsJson as Record<string, NpcDef>;
 export const CHARACTERS = charactersJson as Record<string, CharacterDef>;
-export const JUNO_DIALOGUE = junoDialogueJson as JunoTree;
+// Registered crew conversation trees, keyed by CrewMember.key. Adding a new
+// character's tree is: author content/<key>.dialogue.json, import it, add one
+// entry here — systems/crewdialogue.ts and crewtalk.ts need no changes.
+export const CREW_TREES: Record<string, CrewDialogueTree> = {
+  juno: junoDialogueJson as CrewDialogueTree,
+  bapu: bapuDialogueJson as CrewDialogueTree,
+};
 
 // ---- Per-port station identity (docs/STATION_IDENTITY.md) ----
 // Shared walk engine, unique content: each port filters the common room set,

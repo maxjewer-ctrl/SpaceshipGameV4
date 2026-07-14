@@ -20,7 +20,7 @@ import { introTravelBeat, introArrive } from "./intro";
 import { checkCrewQuests, checkCrewDeparture } from "./crewtalk";
 import { checkAgendaBeats } from "./agendabeats";
 import { checkImogenQuest } from "./imogenquest";
-import { checkJunoArc } from "./junodialogue";
+import { checkCrewDialogueArcs } from "./crewdialogue";
 import { bumpStanding } from "./port";
 import { accrueWear } from "./wear";
 import { rankBoost, markVeteranEvent } from "./veterancy";
@@ -260,7 +260,7 @@ export function arrive() {
   checkCrewDeparture();
   checkAgendaBeats();
   checkImogenQuest();
-  checkJunoArc();
+  checkCrewDialogueArcs();
 }
 
 export function completePay(j: Job) {

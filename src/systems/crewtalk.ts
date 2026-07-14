@@ -6,14 +6,14 @@
 import { S, log } from "../state";
 import { modal, replaceModal, closeModal } from "../modal";
 import { requestRender } from "../bus";
-import { ROLES, PLANETS } from "../content";
+import { ROLES, PLANETS, CREW_TREES } from "../content";
 import { sentiment, crewKey, remember, strongestMemory, hasMemory } from "./ledger";
 import { trustTier, dispositionWord } from "./trust";
 import { dialogueHeadHTML, crewPortraitKey } from "../ui/portraits";
 import { stats } from "../derive";
 import { pick } from "../rng";
 import { fmt } from "../util";
-import { openJunoDialogue } from "./junodialogue";
+import { openCrewDialogue } from "./crewdialogue";
 import { rankOf, RANK_NAME } from "./veterancy";
 import type { CrewMember } from "../types";
 
@@ -55,7 +55,7 @@ function renderCrewTalk() {
       <button onclick="ctAbout()">Tell me about yourself</button>
       <button onclick="ctShip()">About the ship</button>
       <button onclick="ctWorld()">What do you make of all this?</button>
-      ${c.key === "juno" ? `<button onclick="ctJuno()">Talk it through — the long version</button>` : ""}
+      ${c.key && CREW_TREES[c.key] ? `<button onclick="ctDeepTalk()">Talk it through — the long version</button>` : ""}
       ${questBtn}
       <button class="primary" onclick="ctClose()">Nod and move on</button>
     </div>
@@ -333,10 +333,9 @@ export function ctClose() {
   lastLine = "";
   closeModal();
 }
-// Juno's deep conversation tree lives in systems/junodialogue.ts; this just
-// opens it from the crew-talk topic menu.
-export function ctJuno() {
-  const c = activeCrewId != null ? findCrew(activeCrewId) : undefined;
-  if (!c || c.key !== "juno") return;
-  openJunoDialogue();
+// Registered crew get a deep conversation tree (systems/crewdialogue.ts) on
+// top of the topic menu above; this just opens it for whoever's aboard.
+export function ctDeepTalk() {
+  if (activeCrewId == null) return;
+  openCrewDialogue(activeCrewId);
 }
