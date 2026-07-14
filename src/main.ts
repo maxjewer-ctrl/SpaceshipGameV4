@@ -46,7 +46,8 @@ import {
 import { pressStart, pressEnd, interact, debugStep, debugPos, debugGoto, debugActors, debugWalkTo, debugRooms, debugRenderCount, walkInsideFloors } from "./ui/walk";
 import { crewTalk, crewHighlight, wkInspect, walkDeck, sitChair } from "./ui/shipwalk";
 import { wkPay, wkTalk, wkFight } from "./systems/walkEncounters";
-import { ctVibe, ctAbout, ctShip, ctQuest, ctWorld, ctClose, ctQuestHelp, ctQuestSkip } from "./systems/crewtalk";
+import { ctVibe, ctAbout, ctShip, ctQuest, ctWorld, ctClose, ctQuestHelp, ctQuestSkip, ctJuno } from "./systems/crewtalk";
+import { junoChoose, junoContinue } from "./systems/junodialogue";
 import { dcValve, dcVector, dcCare } from "./systems/damagecontrol";
 import { refitShip } from "./systems/wear";
 import {
@@ -112,6 +113,8 @@ Object.assign(window as any, {
   crewTalk, crewHighlight, wkInspect, walkDeck, sitChair, wkPay, wkTalk, wkFight,
   // crew dialogue — trust-gated topics, personal quests
   ctVibe, ctAbout, ctShip, ctQuest, ctWorld, ctClose, ctQuestHelp, ctQuestSkip,
+  // Juno Vale — the large branching conversation tree (trust + faction rep + events)
+  ctJuno, junoChoose, junoContinue,
   // damage control — crew-gap minigames (no mechanic/pilot/med bay aboard)
   dcValve, dcVector, dcCare,
   // agenda beats — the named twelve's honest/dishonest objectives billing due
