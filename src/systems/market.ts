@@ -9,6 +9,7 @@ import { shift } from "./disposition";
 import { introOnAccept, introActive } from "./intro";
 import { markPrice } from "./modtier";
 import { genSurveyMission } from "./survey";
+import { moodGoodsMult, moodMissionPayMult, moodRecruitDelta, moodBlocksHidden, plantOutbreak } from "./moods";
 import type { Job, CrewMember, CrewBundle } from "../types";
 
 export function yardPrice(t: string, mk = 1): number {
@@ -24,8 +25,9 @@ export function refreshMarket() {
     return;
   }
   const prices: Record<string, number> = {};
+  const moodMult = moodGoodsMult(S.loc);
   for (const g in GOODS) {
-    prices[g] = Math.round(GOODS[g].base * p.goods[g] * (0.9 + rand() * 0.25));
+    prices[g] = Math.round(GOODS[g].base * p.goods[g] * (0.9 + rand() * 0.25) * moodMult);
   }
   // The job board should mostly say YES: cap gated missions (needing modules,
   // prestige, berths you don't have) at ~1/3 of the board. A new captain who
@@ -57,9 +59,14 @@ export function refreshMarket() {
     if (gated && gatedAlready >= Math.max(1, Math.floor(n / 3))) continue;
     missions.push(m);
   }
-  // Crews shouldn't be luck-gated: every cantina has at least one hand for hire.
+  // A boom pays better across the whole board — one multiplier, applied once
+  // the board's settled, rather than threading it through every job branch.
+  const payMult = moodMissionPayMult(S.loc);
+  if (payMult !== 1) for (const m of missions) m.pay = Math.round(m.pay * payMult);
+  // Crews shouldn't be luck-gated: every cantina has at least one hand for
+  // hire — but a lockdown scares labor off and a festival draws an extra hand.
   const recruits: CrewMember[] = [];
-  const rn = ri(1, 3);
+  const rn = Math.max(1, Math.min(4, ri(1, 3) + moodRecruitDelta(S.loc)));
   for (let i = 0; i < rn; i++) recruits.push(genRecruit());
   // Named roster characters drink in their home-world cantinas until hired.
   const named = namedRecruitHere();
@@ -101,6 +108,12 @@ export function genMission(): Job | null {
   } else if (roll < 0.67) { // medical
     const units = ri(3, 6);
     const deadline = S.day + dd + ri(1, 2);
+    // The contract existing means the outbreak's real, right now — sours the
+    // destination's market independent of anything the player's done. Only
+    // plant over an ordinary port or a stale outbreak; leave a live boom/
+    // festival/lockdown from something else alone.
+    const existing = S.portMood[dest];
+    if (!existing || existing.cause === "outbreak") plantOutbreak(dest, deadline);
     return { id, kind: "medical", title: "URGENT: Serum run", dest, units, deadline,
       pay: 200 + dd * 60, prestige: 3, rep: [PLANETS[dest].fac, 3],
       needs: ["cargo:" + units, "mod:medbay"],
@@ -111,7 +124,7 @@ export function genMission(): Job | null {
       pay: 350 + dd * 50 + tier * 150, prestige: 3, rep: [p.fac, 2], tier,
       needs: ["mod:weapons", "mod:armory"],
       desc: `A raider operating near ${PLANETS[dest].n}. Fly out, put them down, collect. Expect a real fight.` };
-  } else if (roll < 0.89 && !S.flags.syndicate_blacklist && (p.fac === "syndicate" || S.rep.syndicate >= 5 || S.flags.syndicate_favored)) { // smuggle
+  } else if (roll < 0.89 && !S.flags.syndicate_blacklist && !moodBlocksHidden(S.loc) && (p.fac === "syndicate" || S.rep.syndicate >= 5 || S.flags.syndicate_favored)) { // smuggle
     const units = ri(4, 8);
     // A favored Syndicate operator gets richer no-questions work.
     const favored = !!S.flags.syndicate_favored;
@@ -148,7 +161,7 @@ export function genLocalMission(): Job | null {
   let tpl: PortJobTemplate = templates[0];
   for (const t of templates) { roll -= t.weight || 1; if (roll <= 0) { tpl = t; break; } }
 
-  if ((tpl.hidden || tpl.kind === "smuggle") && S.flags.syndicate_blacklist) return null;
+  if ((tpl.hidden || tpl.kind === "smuggle") && (S.flags.syndicate_blacklist || moodBlocksHidden(S.loc))) return null;
 
   const dest = otherPlanet();
   if (!dest) return null;

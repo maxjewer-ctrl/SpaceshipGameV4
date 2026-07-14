@@ -96,6 +96,13 @@ export interface PoiMark {
   name: string; day: number; note?: string;
 }
 
+// A station's current condition — distinct from portStanding (how a port
+// feels about YOU). Mood is what condition the port itself is in right now,
+// driven by events and deliveries, not accumulated reputation. Temporary:
+// expires on `until` (a day number), same convention as riderEffect flags.
+export type PortMood = "boom" | "shortage" | "lockdown" | "festival";
+export interface PortMoodState { mood: PortMood; until: number; cause?: string; }
+
 export interface Market {
   loc: string; day: number;
   missions: Job[]; recruits: CrewMember[];
@@ -206,6 +213,9 @@ export interface GameState {
   // Charted points of interest — the player's marks, discovered via survey
   // contracts. The map reads this to render the "diary"; seams pay royalties.
   poi: PoiMark[];
+  // Current condition of visited ports (boom/shortage/lockdown/festival),
+  // keyed by planet id. Absent = ordinary. See systems/moods.ts.
+  portMood: Record<string, PortMoodState>;
   starve: number; unpaid: number; uid: number;
   over: boolean; won: boolean; dead: boolean;
 }

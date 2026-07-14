@@ -7,6 +7,7 @@ import { requestRender } from "../bus";
 import { yardPrice } from "./market";
 import { markOf, markLabel, markPrice, markScaled, yardMaxMark } from "./modtier";
 import { portPriceMult, hasPortMark } from "./port";
+import { moodFuelMult } from "./moods";
 import { strongestMemory, sentiment, crewKey } from "./ledger";
 
 // ---------- power grid ----------
@@ -130,12 +131,13 @@ export function buyFuel(n: number) {
   // stall if you set her up here.
   const guild = typeof S.flags.guild_discount === "number" && S.flags.guild_discount > S.day;
   const bev = hasPortMark(S.loc, "bev_stall");
-  const mult = portPriceMult(S.loc) * (guild ? 0.85 : 1) * (bev ? 0.9 : 1);
+  const mult = portPriceMult(S.loc) * (guild ? 0.85 : 1) * (bev ? 0.9 : 1) * moodFuelMult(S.loc);
   const p = Math.max(1, Math.round(PLANETS[S.loc].fuelP * mult));
   n = Math.min(n, Math.floor(S.credits / p), Math.floor(stats().fuelCap - S.fuel));
   if (n <= 0) { log("Tanks full or pockets empty."); requestRender(); return; }
   S.credits -= n * p; S.fuel += n;
-  const tags = [guild ? "guild" : "", bev ? "Bev's stall" : "", portPriceMult(S.loc) < 1 ? "regular's rate" : portPriceMult(S.loc) > 1 ? "revised fees" : ""].filter(Boolean).join(", ");
+  const moodTag = moodFuelMult(S.loc) < 1 ? "festival rate" : moodFuelMult(S.loc) > 1 ? "shortage pricing" : "";
+  const tags = [guild ? "guild" : "", bev ? "Bev's stall" : "", moodTag, portPriceMult(S.loc) < 1 ? "regular's rate" : portPriceMult(S.loc) > 1 ? "revised fees" : ""].filter(Boolean).join(", ");
   log(`Refueled ${n} units @ ${p}cr${tags ? " (" + tags + ")" : ""}.`); requestRender();
 }
 

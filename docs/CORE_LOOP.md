@@ -124,6 +124,13 @@ The rule: **campaigns knock; they never enter uninvited.**
 
 ## Build order (post-this-pass)
 
+**All six systems items shipped as of 2026-07-14** — the loop now has all
+four pillars' core mechanics in place. What's left is content depth, not new
+systems: parts-with-provenance (the used-module marketplace), scars/learned
+traits (veterancy's other half), the deep band as a traversable region, and
+nine more loyalty missions against the engine already built. See
+docs/BETA_PLAN.md Phase B for the live tracking of what's still open.
+
 1. ✅ **Port standing + consequence set-dressing** (pillar 3) — shipped.
    `S.portStanding` per station; delivering/helping raises it, betrayals sink
    it; drives fuel/berth pricing, the station-deck greeting, and a ship-screen
@@ -189,6 +196,28 @@ The rule: **campaigns knock; they never enter uninvited.**
    want→random-world quest (crewtalk.ts) is suppressed for characters who have
    an authored mission. 8 vitest cases. Remaining nine characters are content
    adds against this engine.
-6. **Station moods** (pillar 3, after standing works).
+6. ✅ **Station moods** (pillar 3) — shipped (systems/moods.ts). A port's
+   CURRENT CONDITION — boom/shortage/lockdown/festival — distinct from
+   portStanding (how a port feels about *you*): temporary, event-driven, and
+   independent of reputation. Composes with the existing pricing/prose chain
+   rather than replacing it (`portPriceMult`, `standingGreeting`, `PORT_MARKS`
+   all keep working; mood multiplies alongside them). The named example:
+   generating a medical "Serum run" contract sours its destination with a
+   shortage (`plantOutbreak`) — an event outside the player's making;
+   delivering that serum lifts it into a grateful festival
+   (`resolveOutbreakIfDue`). An undelivered outbreak just lapses on its own —
+   this never punishes skipping a contract, only rewards taking one. A
+   lighter autonomous tick also rolls a mood on docking (10% chance, weighted
+   by standing — warm ports lean boom/festival, cold ones lean
+   shortage/lockdown; never stacks over a live mood), so the economy moves
+   even off the back of scripted content. Effects: fuel/goods prices
+   scale with mood, a lockdown blocks hidden/smuggle contracts and thins
+   hiring, a festival draws an extra recruit, a boom pays contracts better.
+   Surfaces in the station-deck status line and room prose, and as a badge on
+   the sector-chart info panel. `S.portMood`, persisted, v13 migration. 20
+   vitest cases. Verified live: outbreak → serum delivered → festival, with
+   fuel price actually swinging at the pump (4cr → 5cr shortage → 3cr
+   festival), and the mood visible in both the WebGL station-deck status line
+   and the DOM map panel.
 
 Each lands as one playtested, committed cycle per ITERATION_PLAN.md rules.

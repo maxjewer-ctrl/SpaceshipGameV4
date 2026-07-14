@@ -2,7 +2,7 @@ import type { GameState, ModuleInstance } from "./types";
 import { DEFAULT_APPEARANCE } from "./ui/avatarDraw";
 
 export const SAVE_KEY = "kestrelrun";
-export const SAVE_VERSION = 12;
+export const SAVE_VERSION = 13;
 
 // The single mutable game state. `export let` gives live bindings to importers;
 // replace it only through setState so everyone sees the new object.
@@ -42,6 +42,7 @@ export function newState(shipName: string): GameState {
     portStanding: {},
     campaign: { silence: { stage: 0, silenced: [], nextDay: null, nextWorld: null, billDay: null } },
     poi: [],
+    portMood: {},
     starve: 0, unpaid: 0, uid: 1, over: false, won: false, dead: false,
   };
 }
@@ -251,6 +252,12 @@ export function migrate(s: any): GameState {
   if (s.version < 12) {
     if (!Array.isArray(s.poi)) s.poi = [];
     s.version = 12;
+  }
+  // v13: station moods (boom/shortage/lockdown/festival). Old saves start with
+  // every port in its ordinary condition.
+  if (s.version < 13) {
+    if (!s.portMood || typeof s.portMood !== "object") s.portMood = {};
+    s.version = 13;
   }
   return s as GameState;
 }

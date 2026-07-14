@@ -1,6 +1,7 @@
 import { S } from "../state";
 import { PLANETS, FACS } from "../content";
 import { daysTo, fuelTo, foodPerDay, planetVisible, isSilenced, crewGapWarnings } from "../derive";
+import { activeMood, MOOD_WORD, MOOD_ICON } from "../systems/moods";
 import { requestRender } from "../bus";
 import { actionAttr } from "../dispatch";
 
@@ -102,8 +103,10 @@ export function mapHTML(): string {
   let info = "";
   if (S.selPlanet) {
     const p = PLANETS[S.selPlanet];
+    const mood = activeMood(S.selPlanet);
+    const moodBadge = mood ? ` <span class="badge" title="${mood.mood}">${MOOD_ICON[mood.mood]} ${MOOD_WORD[mood.mood]}</span>` : "";
     if (S.selPlanet === from) {
-      info = `<div class="panel"><h3>${p.n}</h3><p class="dim">${p.d}</p><p class="dim">You're here.</p></div>`;
+      info = `<div class="panel"><h3>${p.n}${moodBadge}</h3><p class="dim">${p.d}</p><p class="dim">You're here.</p></div>`;
     } else {
       const d = daysTo(from, S.selPlanet), f = fuelTo(from, S.selPlanet);
       const foodNeed = foodPerDay() * d;
@@ -114,7 +117,7 @@ export function mapHTML(): string {
       const gapWarn = gaps.length
         ? `<div class="card" style="border-color:var(--red); margin:8px 0"><div class="title" style="color:var(--red)">⚠ Before you cast off</div>
             ${gaps.map((g) => `<div class="dim" style="margin-top:3px">· ${g}</div>`).join("")}</div>` : "";
-      info = `<div class="panel"><h3>${p.n} <span class="badge fac">${FACS[p.fac].n}</span></h3>
+      info = `<div class="panel"><h3>${p.n}${moodBadge} <span class="badge fac">${FACS[p.fac].n}</span></h3>
         <p class="dim">${p.d}</p>${darkWarn}${gapWarn}
         <div class="statgrid" style="margin:8px 0">
           <span>Distance</span><b>${d} days</b>

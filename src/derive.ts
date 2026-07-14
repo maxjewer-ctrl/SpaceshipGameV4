@@ -4,6 +4,7 @@ import { MODS, PLANETS, ROLES } from "./content";
 import { portPriceMult } from "./systems/port";
 import { markScaled } from "./systems/modtier";
 import { rankBoost, rankDiscount } from "./systems/veterancy";
+import { moodFuelMult } from "./systems/moods";
 import type { ModuleInstance, ShipStats, Job } from "./types";
 
 export function modInst(): ModuleInstance[] {
@@ -109,9 +110,12 @@ export function fuelTo(from: string, to: string): number {
 
 // Rough pump price at a port — used for "can you even afford to leave"
 // warnings. Ignores temporary discounts (guild echo, Bev's stall), which is
-// fine since those only make leaving cheaper than this estimate.
+// fine since those only make leaving cheaper than this estimate — but a
+// station mood is included, since a shortage/lockdown can make the estimate
+// wrong in the EXPENSIVE direction, which is exactly what this warning exists
+// to catch.
 export function fuelPriceAt(loc: string): number {
-  return Math.max(1, Math.round(PLANETS[loc].fuelP * portPriceMult(loc)));
+  return Math.max(1, Math.round(PLANETS[loc].fuelP * portPriceMult(loc) * moodFuelMult(loc)));
 }
 
 // Credits needed, right now, to buy enough fuel at the current port to reach

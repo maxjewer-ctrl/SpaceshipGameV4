@@ -26,6 +26,7 @@ import { accrueWear } from "./wear";
 import { rankBoost, markVeteranEvent } from "./veterancy";
 import { checkSurvey, seamRoyalties } from "./survey";
 import { checkLoyaltyArrive, checkLoyaltyOffer } from "./loyalty";
+import { tickPortMoods, resolveOutbreakIfDue } from "./moods";
 import type { Job } from "../types";
 
 export function depart(destId: string) {
@@ -202,6 +203,7 @@ export function arrive() {
   S.loc = dest; S.docked = true; S.travel = null; S.screen = "shipwalk";
   resetStation();
   log(`Docked at ${PLANETS[dest].n}.`);
+  tickPortMoods();
   // victory check
   if (dest === "gate" && S.arc.stage === 5) { arcVictory(); return; }
   // a crew member from this world gets a moment
@@ -298,6 +300,8 @@ export function completePay(j: Job) {
   // Delivering here earns goodwill at THIS port — the surest way to become a
   // regular somewhere is to keep showing up with the goods.
   bumpStanding(S.loc, (j.prestige || 0) >= 3 ? 2 : 1);
+  // The named CORE_LOOP example: the serum you ran ends the outbreak.
+  if (j.kind === "medical") resolveOutbreakIfDue(S.loc);
   // campaign missions report completion via flags (scenes gate on job_<tag>)
   if (j.tag) S.flags["job_" + j.tag] = true;
   log(`✓ ${j.title} — paid ${Math.round(pay).toLocaleString()}cr${j.prestige ? ", +" + j.prestige + " prestige" : ""}.`);

@@ -245,12 +245,14 @@ CORE_LOOP.md's build order, finished — this is the beta's gameplay heart:
 **Progress (2026-07-14):** port standing + consequence set-dressing, module
 wear + the refit loop, and Mk-I/II/III quality tiers all landed ahead of
 this phase (CORE_LOOP.md build-order items 1, 2, 2b — done before Phase A
-even closed). **Veterancy ranks, survey/charting contracts, and the loyalty-
-mission engine + first three missions shipped this pass** (build-order items
-3, 4, and 5, below). Scars (half of item 3), the past-Verge deep band (a
-region, distinct from the survey *contracts*), and the remaining nine
-loyalty missions (pure content against a tested engine) are deliberately
-split off as follow-up. Still open as systems work: station moods.
+even closed). **Veterancy ranks, survey/charting contracts, the loyalty-
+mission engine + first three missions, and station moods shipped this
+pass** (build-order items 3–6, below). **All six CORE_LOOP.md build-order
+systems items are now shipped — Phase B's systems work is done.** Scars
+(half of item 3), the past-Verge deep band (distinct from the survey
+*contracts*), the remaining nine loyalty missions, and the used-module
+marketplace are deliberately split off as content/follow-up work, tracked
+below per item.
 
 - **Mk-I/II/III quality tiers** per module; yard inventories always hold
   something worth wanting. ✅ Shipped (`systems/modtier.ts`, ahead of this
@@ -282,7 +284,16 @@ split off as follow-up. Still open as systems work: station moods.
   Brix (Foundry), Nyla (Kestrel's Rest, gated on her agenda beat — a true
   second act). Decoupled from `rankOf()`'s pure derivation. The nine
   remaining characters are follow-up content.
-- **Station moods**: still open.
+- **Station moods:** ✅ Shipped (`systems/moods.ts`). A port's current
+  CONDITION (boom/shortage/lockdown/festival) — temporary, event-driven,
+  distinct from portStanding's "how it feels about you." Composes with the
+  existing pricing/prose chain rather than replacing it. The named example:
+  a generated medical contract sours its destination with a shortage
+  (`plantOutbreak`); delivering the serum lifts it into a festival
+  (`resolveOutbreakIfDue`) — an undelivered outbreak just lapses, never
+  punishing. A lighter autonomous roll on docking (10%, standing-weighted)
+  keeps the economy moving off-script too. `S.portMood`, persisted, v13
+  migration. Surfaces in station-deck prose/status and a sector-chart badge.
 - Exit gate: a tester who ignores every campaign reports wanting *something*
   at day 80.
 

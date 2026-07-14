@@ -8,6 +8,7 @@ import { requestRender } from "../bus";
 import { npcsInRoom, openNPC } from "../systems/scene";
 import { introDebtDoor, introDebtScene } from "../systems/intro";
 import { hasPortMark, standingWord, standingGreeting } from "../systems/port";
+import { moodLine, moodTag } from "../systems/moods";
 import { openCrewTalk } from "../systems/crewtalk";
 import { isSilenced } from "../derive";
 
@@ -383,14 +384,19 @@ export function buildStationScene(): WalkScene {
     // Your standing colours the berth prose — the port greets you at the ramp.
     const greet = standingGreeting(S.loc);
     if (greet) roomDesc.docks = ((roomDesc.docks || "") + " " + greet).trim();
+    // The port's current condition — independent of standing — colours the
+    // concourse, where the general mood of a place is most visible.
+    const mood = moodLine(S.loc);
+    if (mood) roomDesc.concourse = ((roomDesc.concourse || "") + " " + mood).trim();
   }
 
   const p = PLANETS[S.loc];
   const swrd = dark ? "" : standingWord(S.loc);
+  const mtag = dark ? "" : moodTag(S.loc);
   return {
     id: "station:" + S.loc,
     title: `${p.n} — Station Deck${dark ? " (dark)" : ""}`,
-    status: dark ? "SIGNAL LOST · AUTOMATION ONLY" : `${p.n.toUpperCase()} STATION${swrd && swrd !== "NEUTRAL" ? " · " + swrd : ""}`,
+    status: dark ? "SIGNAL LOST · AUTOMATION ONLY" : `${p.n.toUpperCase()} STATION${mtag ? " · " + mtag : ""}${swrd && swrd !== "NEUTRAL" ? " · " + swrd : ""}`,
     width: 1000, height: 700,
     floors, rooms, roomDesc, doors, actors, ship,
     spawn: { x: 550, y: 585 }, // just inside the docks, at the ship's hatch
