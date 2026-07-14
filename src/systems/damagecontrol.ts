@@ -8,6 +8,7 @@ import { modal, closeModal } from "../modal";
 import { requestRender } from "../bus";
 import { rand, ri } from "../rng";
 import { stats } from "../derive";
+import { actionAttr } from "../dispatch";
 import { checkDead } from "./gameover";
 import { damageModule } from "./actions";
 import type { Job } from "../types";
@@ -32,7 +33,7 @@ function drawValves(lead: string) {
   const btns = [0, 1, 2].map((i) =>
     dcTried.includes(i)
       ? `<button disabled>${names[i]} <span class="dim">— tried, wrong</span></button>`
-      : `<button onclick="dcValve(${i})">${names[i]}</button>`
+      : `<button ${actionAttr("dcValve", i)}>${names[i]}</button>`
   ).join("");
   modal(`<div class="scene"><div class="scene-loc">${S.shipName} · engine room · unassisted</div>
     <h2>🔧 Coolant Rupture</h2>
@@ -77,9 +78,9 @@ export function dcMeteor() {
     <h2>☄ Swarm — Manual Helm</h2>
     <p>The scope goes from empty to gravel in four seconds. Micro-meteors, a whole drift of them, and nobody in the pilot's chair but you. Three lines through it. One of them is clean. The scope will not tell you which.</p>
     <div class="choices">
-      <button onclick="dcVector(0)">Pitch high over the drift</button>
-      <button onclick="dcVector(1)">Roll belly-to and thread the middle</button>
-      <button onclick="dcVector(2)">Burn straight through, speed as armor</button>
+      <button ${actionAttr("dcVector", 0)}>Pitch high over the drift</button>
+      <button ${actionAttr("dcVector", 1)}>Roll belly-to and thread the middle</button>
+      <button ${actionAttr("dcVector", 2)}>Burn straight through, speed as armor</button>
     </div></div>`);
 }
 
@@ -112,8 +113,8 @@ export function dcSickPassenger(j: Job) {
     <h2>🤒 ${j.pax!.name} Is Burning Up</h2>
     <p>Fever, chills, the works — and your entire medical corps is a first-aid kit and a positive attitude. They will not be paying full fare in this condition.</p>
     <div class="choices">
-      <button ${can ? "" : "disabled"} onclick="dcCare('nurse')">Play nurse — broth, cold cloths, round-the-clock <span class="dim">— −3 food, −25cr${can ? "" : " (can't afford it)"}</span></button>
-      <button onclick="dcCare('soup')">Soup and prayers — let it run its course</button>
+      <button ${can ? "" : "disabled"} ${actionAttr("dcCare", 'nurse')}>Play nurse — broth, cold cloths, round-the-clock <span class="dim">— −3 food, −25cr${can ? "" : " (can't afford it)"}</span></button>
+      <button ${actionAttr("dcCare", 'soup')}>Soup and prayers — let it run its course</button>
     </div></div>`);
 }
 

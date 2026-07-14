@@ -10,6 +10,7 @@
 import { S, log, whisper } from "../state";
 import { PLANETS } from "../content";
 import { modal, replaceModal, closeModal } from "../modal";
+import { actionAttr } from "../dispatch";
 import { requestRender } from "../bus";
 import { ri, rand, pick } from "../rng";
 import { remember, witnessAll, crewKey } from "./ledger";
@@ -64,7 +65,7 @@ export function silenceTick() {
       <p>Every radio on the ship — the galley set, the comm stack, the hand unit clipped in the airlock — plays the same four seconds of sound. Not static. Not a voice. Something between a tide and a breath, patient and enormous, like the sea heard from inside a shell the size of a system.</p>
       <p>Then it stops, and the ordinary chatter of the band resumes as if nothing happened. Except it's thinner than it was. There are <b>holes</b> in it now — frequencies that used to carry a mining colony's traffic, carrying nothing. Not distress. Nothing.</p>
       <p class="dim">The Union is calling it correlated equipment failure. The pilgrims are calling it the Quiet. Fragments of the truth are out there — in the deep lanes, in the cults, in what the Union isn't saying. A listening captain could piece it together.</p>
-      <div class="choices"><button class="primary" onclick="closeModal()">Log it. Keep flying.</button></div>`);
+      <div class="choices"><button class="primary" ${actionAttr("closeModal")}>Log it. Keep flying.</button></div>`);
     log("◇ THE BROADCAST — every radio in the sector played the same four seconds. The band has holes in it now.");
     return;
   }
@@ -85,7 +86,7 @@ export function silenceTick() {
       <p>The newsnets get four minutes of it before the Union blanket-jams the story: a "resonance research facility" on Foundry, a test that didn't stop when they told it to.</p>
       <p><b>Foundry has gone quiet.</b> The yard, the smelters, the eighty thousand people. The Union calls it a temporary exclusion zone. The word temporary is doing work no word has ever done before.</p>
       <p class="dim">You sold them the recording. They played it back louder.</p>
-      <div class="choices"><button class="primary" onclick="closeModal()">Live with it.</button></div>`);
+      <div class="choices"><button class="primary" ${actionAttr("closeModal")}>Live with it.</button></div>`);
     log("◇ FOUNDRY HAS GONE SILENT — the Union's experiments with your recording did this. The exclusion zone is permanent.");
     witnessAll("captain_sold_the_silence", -3, "Foundry went dark because the captain sold the deep recording to the Union.");
     return;
@@ -132,7 +133,7 @@ export function silenceWorld(w: string) {
       <p><b>Verge Station has gone silent.</b> Not a distress call. Not wreckage. Eleven hundred registered inhabitants, and the last transmission out of it is a dockmaster's routine manifest, ending mid-sentence — not cut off. <i>Finished</i>, like the sentence didn't need the rest of itself anymore.</p>
       <p>Refugee boats from the outer moorings are limping into every port that will have them. The ones who got out early describe the same thing: the station got <b>quiet</b>. People stopped talking mid-meal, mid-shift, mid-word — and smiled, and listened to something nobody else could hear.</p>
       <p class="dim">The Verge is still on your chart. Something is still drawing power down there. A captain could go and look — nobody else is going to.</p>
-      <div class="choices"><button class="primary" onclick="closeModal()">The black just got bigger.</button></div>`);
+      <div class="choices"><button class="primary" ${actionAttr("closeModal")}>The black just got bigger.</button></div>`);
     log("◇ VERGE STATION HAS GONE SILENT. Refugees are scattering to every port. The station is still on your chart — dark.");
   } else {
     pool.push(`"${PLANETS[w].n}. Say it again so I believe it. ${PLANETS[w].n} is GONE QUIET. That's not an outer moon, that's the breadbasket."`);
@@ -140,7 +141,7 @@ export function silenceWorld(w: string) {
       <p><b>${PLANETS[w].n} has gone silent.</b> The pattern is the same as the Verge — no distress, no wreckage, a last transmission that simply considers itself complete.</p>
       <p>The sector is starting to understand that this is a <i>spreading</i> thing, and the understanding looks like fuel hoarding, port riots, and a Union fleet that patrols in tight, frightened circles and boards nobody.</p>
       <p class="dim">However many fragments of this you've gathered, the arithmetic is now simple: someone has to follow the signal all the way down, or the map keeps dimming.</p>
-      <div class="choices"><button class="primary" onclick="closeModal()">Time is not on the sector's side.</button></div>`);
+      <div class="choices"><button class="primary" ${actionAttr("closeModal")}>Time is not on the sector's side.</button></div>`);
     log(`◇ ${PLANETS[w].n.toUpperCase()} HAS GONE SILENT. The Dimming is spreading.`);
     S.prestige = Math.max(0, S.prestige); // no penalty — but the galaxy is worse
   }
@@ -157,8 +158,8 @@ export function silenceArrive(): boolean {
       <p>The docking clamps accept you like they always did; the automation never stopped caring. Past the airlock, the station is lit and warm and utterly wrong. Trays of food at empty tables, gone soft. A cantina radio playing the <i>hiss between stations</i> at careful, deliberate volume.</p>
       <p>No bodies. No blood. Eleven hundred people are simply <b>elsewhere</b>, and the deeper decks hum with power draw that has no business being there. Whatever they heard, they followed it <i>down</i>.</p>
       <div class="choices">
-        <button class="danger" onclick="silDescend()">Descend into the lower decks</button>
-        <button onclick="closeModal(); log('You stay in the ring dock and keep your boots off the deck plating. Some doors want opening; this one only wants company. You can come back.')">Not yet. Undock and breathe.</button>
+        <button class="danger" ${actionAttr("silDescend")}>Descend into the lower decks</button>
+        <button ${actionAttr("closeModalLog", "You stay in the ring dock and keep your boots off the deck plating. Some doors want opening; this one only wants company. You can come back.")}>Not yet. Undock and breathe.</button>
       </div>`);
     return true;
   }
@@ -189,7 +190,7 @@ export function silDescend() {
     <p>You rip the nav solution out of its core a half-second before the buoy notices you the way a sleeping thing notices a fly. The scramble back to the ship costs you paint and hull plating (−${hullHit} hull) and any remaining belief that this is a natural phenomenon.</p>
     <p><b>You have the bearing. The source is on your chart now: THE ANECHOIC.</b></p>
     <p class="dim">It's deep. Provision like your life depends on it — fuel, food, hull. It does.</p>
-    <div class="choices"><button class="primary" onclick="silBearing()">Plot it.</button></div>`);
+    <div class="choices"><button class="primary" ${actionAttr("silBearing")}>Plot it.</button></div>`);
 }
 
 export function silBearing() {
@@ -212,9 +213,9 @@ function sourceScene() {
     <p>It has been asking for eleven years. The colonies that went quiet are the places where something finally answered. It doesn't take. It <i>invites</i> — and it does not understand why the rest of you keep declining the call.</p>
     <p>The transmitter array Voss's people would recognize is right there on your board. You could answer it. You could scream across its frequency and still it for good. You could record four clean minutes and sell the Union the keys to a god's front door.</p>
     <div class="choices">
-      <button onclick="silAnswer()">◆ ANSWER IT — open the channel and speak for the sector</button>
-      <button onclick="silStill()">◆ STILL IT — flood the frequency, end the invitation</button>
-      <button onclick="silSell()">◆ RECORD IT — four clean minutes, for the Union's price</button>
+      <button ${actionAttr("silAnswer")}>◆ ANSWER IT — open the channel and speak for the sector</button>
+      <button ${actionAttr("silStill")}>◆ STILL IT — flood the frequency, end the invitation</button>
+      <button ${actionAttr("silSell")}>◆ RECORD IT — four clean minutes, for the Union's price</button>
     </div>`);
 }
 
@@ -234,7 +235,7 @@ export function silAnswer() {
     <p>They remember it as a long conversation none of them can quote. All of them came back <i>kinder</i>, and all of them hum the same four seconds while they work, and on clear nights every radio in the sector carries, very faintly, the sound of something enormous learning to say <b>you're welcome</b>.</p>
     <p>The galaxy is different now. Wondrous, and slightly tilted, forever. It knows your ship's name.</p>
     <p style="color:var(--amber)"><b>THE LONG SILENCE — ANSWERED. The sector wakes strange and whole.</b></p>
-    <div class="choices"><button class="primary" onclick="closeModal(); log('◇ The worlds are awake. The band is full of voices again — and one more voice than there used to be. It likes you.')">Keep flying</button></div>`);
+    <div class="choices"><button class="primary" ${actionAttr("closeModalLog", "◇ The worlds are awake. The band is full of voices again — and one more voice than there used to be. It likes you.")}>Keep flying</button></div>`);
   log("◇ CAMPAIGN COMPLETE — you ANSWERED the Silence. Every silenced world woke. The deep band will never be empty again.");
 }
 
@@ -253,7 +254,7 @@ export function silStill() {
     <p><b>The silenced worlds wake within hours</b> — everyone accounted for, remembering nothing, mildly embarrassed. Official cause: solar event. Life resumes. Prices normalize. In a year it will be a story dockworkers argue about.</p>
     <p>Only your crew knows that the galaxy used to contain one more voice than it does now — and that you're the captain who declined the call on everyone's behalf. It was probably right. You'll spend the rest of your life listening to ordinary static, checking.</p>
     <p style="color:var(--amber)"><b>THE LONG SILENCE — STILLED. The sector is safe, small, and yours to fly.</b></p>
-    <div class="choices"><button class="primary" onclick="closeModal(); log('◇ The band is ordinary again. Sometimes, docked and half asleep, you reach over and turn the radio on. Just to check.')">Keep flying</button></div>`);
+    <div class="choices"><button class="primary" ${actionAttr("closeModalLog", "◇ The band is ordinary again. Sometimes, docked and half asleep, you reach over and turn the radio on. Just to check.")}>Keep flying</button></div>`);
   log("◇ CAMPAIGN COMPLETE — you STILLED the Silence. The worlds woke, remembering nothing. Only your crew knows what the sector lost.");
 }
 
@@ -272,7 +273,7 @@ export function silSell() {
     <p>The liaison officer shakes your hand with both of hers. "The Union thanks you, Captain. This changes the strategic picture entirely." You are rich, favored, and — say it plainly — you have sold the keys to a door mankind cannot lock, to the only institution in the sector arrogant enough to open it on purpose.</p>
     <p class="dim">Somewhere, in a facility with no name, a playback is being scheduled.</p>
     <p style="color:var(--amber)"><b>THE LONG SILENCE — SOLD. The worlds woke. The recording is theirs now.</b></p>
-    <div class="choices"><button class="primary" onclick="closeModal(); log('◇ 3,000 credits. The worlds woke on their own. The Union has the recording, and the Union has never once left a lever unpulled.')">Spend it well</button></div>`);
+    <div class="choices"><button class="primary" ${actionAttr("closeModalLog", "◇ 3,000 credits. The worlds woke on their own. The Union has the recording, and the Union has never once left a lever unpulled.")}>Spend it well</button></div>`);
   log("◇ CAMPAIGN COMPLETE — you SOLD the Silence to the Union for 3,000cr. The worlds woke. The recording did not stay in a drawer.");
 }
 
@@ -282,12 +283,13 @@ export function evNumbersStation() {
     modal(`<h2>📻 Numbers</h2>
       <p>Mid-shift, the comm stack locks onto a channel nobody tuned. A voice — flat, unhurried, neither man nor woman — is reading numbers. It has the cadence of someone reading a list they have read a very long time.</p>
       <p>Your nav computer, unprompted, starts writing the numbers down. When you finally kill the channel, it has produced something impossible: a partial <b>bearing</b>, deep past the Verge, annotated in your own computer's hand with a word it did not learn from you: <i>SOON.</i></p>
-      <div class="choices"><button class="primary" onclick="closeModal(); silLearnNumbers()">Log the bearing</button></div>`);
+      <div class="choices"><button class="primary" ${actionAttr("silLearnNumbers")}>Log the bearing</button></div>`);
   } else {
     whisper("The numbers station again, fainter this time. The same patient voice. You don't write it down. It doesn't need you to.");
   }
 }
 export function silLearnNumbers() {
+  closeModal();
   learn("sk_numbers", "a numbers station is broadcasting a bearing into the deep black, and your own nav computer transcribed it.");
   requestRender();
 }
@@ -298,9 +300,9 @@ export function evReturnedShip() {
     <p>She's drifting sunward on a dead-slow tumble: the <b>Prodigal Anne</b>, a Verge-registered prospector that the traffic nets listed as overdue eight months ago. Hull intact. Reactor warm. Running lights cycling a pattern running lights don't have.</p>
     <p>She's answering hails — with a carrier tone. Just the tone. Held open, like a door.</p>
     <div class="choices">
-      <button class="danger" onclick="silBoardReturned()">Suit up and board her</button>
-      <button onclick="silScanReturned()">Stand off and deep-scan (a day's fuel margin, no risk)</button>
-      <button onclick="closeModal(); log('You give the Prodigal Anne a wide, superstitious berth. Some doors hold themselves open for a reason.')">Burn away. Not today.</button>
+      <button class="danger" ${actionAttr("silBoardReturned")}>Suit up and board her</button>
+      <button ${actionAttr("silScanReturned")}>Stand off and deep-scan (a day's fuel margin, no risk)</button>
+      <button ${actionAttr("closeModalLog", "You give the Prodigal Anne a wide, superstitious berth. Some doors hold themselves open for a reason.")}>Burn away. Not today.</button>
     </div>`);
 }
 export function silBoardReturned() {
@@ -311,16 +313,17 @@ export function silBoardReturned() {
     <p>The crew is aboard. All four of them, seated in the mess, upright and breathing, their eyes tracking together toward things that are not in the room. On the table between them, arranged with terrible care: their comm implants, removed. <i>Neatly.</i></p>
     <p>The logs are a diary of a fishing trip: they found a signal out past the charts, and they followed it, and the last entry — dated three days ago, in a ship missing eight months — reads, in a steady hand: <b>"We heard the rest of it. We came back for you."</b></p>
     <p>You strip the nav core and ${cr}cr in unclaimed salvage bonds, tow-tag the ship for the authorities, and do not look at the crew again. The nav core's final fix points deep past the Verge — the same bearing the whole sector's nightmares are pointing.</p>
-    <div class="choices"><button class="primary" onclick="closeModal(); silLearnReturned()">Take the fix. Leave the Anne.</button></div>`);
+    <div class="choices"><button class="primary" ${actionAttr("silLearnReturned")}>Take the fix. Leave the Anne.</button></div>`);
 }
 export function silScanReturned() {
   S.fuel = Math.max(0, S.fuel - 2);
   replaceModal(`<h2>🛸 The Standoff Scan</h2>
     <p>You burn a careful day at sensor range. Four life signs, resting-calm heartbeats, synchronized — <i>exactly</i> synchronized, four hearts keeping one time. The drive logs show an eight-month cruise into a region your charts render as plain black, and a turnaround at a point your instruments refuse to give the same coordinates for twice.</p>
     <p>It's enough. You transmit the tow-tag, log the bearing, and leave the Prodigal Anne holding her door open for somebody braver.</p>
-    <div class="choices"><button class="primary" onclick="closeModal(); silLearnReturned()">Log the bearing (−2 fuel)</button></div>`);
+    <div class="choices"><button class="primary" ${actionAttr("silLearnReturned")}>Log the bearing (−2 fuel)</button></div>`);
 }
 export function silLearnReturned() {
+  closeModal();
   learn("sk_returned", "a ship eight months lost came back with its crew changed and its nav core pointing into the deep black.");
   requestRender();
 }

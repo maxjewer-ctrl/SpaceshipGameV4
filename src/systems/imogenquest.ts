@@ -8,6 +8,7 @@ import { modal, closeModal } from "../modal";
 import { requestRender } from "../bus";
 import { clamp } from "../util";
 import { remember, crewKey } from "./ledger";
+import { actionAttr } from "../dispatch";
 import { trustTier } from "./trust";
 import type { CrewMember } from "../types";
 
@@ -33,9 +34,9 @@ export function checkImogenQuest() {
     <p>You catch her mid-dose, alone, cutting a vial with water to stretch it. She doesn't jump — she's too tired to. "Directorate compounds," she says, before you can ask. "I stood two doors down from the dispersal-modeling teams for six years, Captain. Turns out the air recyclers weren't as one-way as the safety briefings promised."</p>
     <p>She sets the needle down. "It's slow. It's not stopping. And the only formulary that actually holds it back sits in a Union medical annex on Meridian — the one attached to the directorate I ran from. I wasn't going to ask. I'm asking."</p>
     <div class="choices">
-      <button class="primary" onclick="imogenTreatUnion()">Take her through Union channels <span class="dim">— 220cr, on the record</span></button>
-      <button onclick="imogenTreatSyndicate()">Get it off the books instead <span class="dim">— 140cr, a favor owed</span></button>
-      <button onclick="imogenDecline()">Tell her the ship can't spare either the credits or the risk</button>
+      <button class="primary" ${actionAttr("imogenTreatUnion")}>Take her through Union channels <span class="dim">— 220cr, on the record</span></button>
+      <button ${actionAttr("imogenTreatSyndicate")}>Get it off the books instead <span class="dim">— 140cr, a favor owed</span></button>
+      <button ${actionAttr("imogenDecline")}>Tell her the ship can't spare either the credits or the risk</button>
     </div></div>`);
   requestRender();
 }

@@ -8,6 +8,7 @@ import { RIDERS, PLANETS, CHARACTERS, type RiderDef, type RiderEffect } from "..
 import type { FireWhen } from "../types";
 import { clamp } from "../util";
 import { modal } from "../modal";
+import { actionAttr } from "../dispatch";
 import { requestRender } from "../bus";
 import { startCombat } from "./combat";
 import { remember } from "./ledger";
@@ -59,11 +60,11 @@ export function fireRider(key: string, _payload?: Record<string, any>) {
     pendingCombat = r.combat;
     modal(`<h2>${r.title || "◆ Contact"}</h2>
       <p>${r.text || ""}</p>
-      <div class="choices"><button class="danger" onclick="riderFight()">Brace for it.</button></div>`);
+      <div class="choices"><button class="danger" ${actionAttr("riderFight")}>Brace for it.</button></div>`);
   } else if (r.title || r.text) {
     modal(`<h2>${r.title || "◆"}</h2>
       <p>${r.text || ""}</p>
-      <div class="choices"><button class="primary" onclick="closeModal()">Noted.</button></div>`);
+      <div class="choices"><button class="primary" ${actionAttr("closeModal")}>Noted.</button></div>`);
   }
   requestRender();
 }

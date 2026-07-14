@@ -36,7 +36,7 @@ import {
 import { depart, waitDay, advanceDay, abandonJob } from "./systems/travel";
 import { startCombat, cAct, endCombat } from "./systems/combat";
 import {
-  pirateWin, pirateLoseFlee, pirateFlee, pirateBribe, pirateSurrender,
+  pirateWin, pirateLoseFlee, pirateFlee, pirateBribe, pirateSurrender, pirateBattle,
   patrolBribe, patrolRun, patrolSubmit,
   distressHelp, distressIgnore, traderBuy, traderSell, paxMerchantSell, adriftTow,
 } from "./systems/events";
@@ -45,6 +45,7 @@ import {
   ambushHandOver, ambushFight, ambushRun,
   hunterWin, hunterFled, hunterRun, interceptWin, interceptFled,
   runPicketAround, runPicketThread, runNetDecoy, runNetSilent, runNetPush,
+  arcHunterFight, arcPicketFight, arcInterdictorFight,
 } from "./systems/arc";
 import { riderFight } from "./systems/scheduler";
 import { sceneChoose, sceneContinue } from "./systems/scene";
@@ -72,9 +73,14 @@ import {
   surveyStake, surveyLogSeam, surveyDecode, surveyLogBeacon,
 } from "./systems/survey";
 
+// Shared helper for the many "dismiss this scene and log a flavor line" button
+// call sites that used to be a compound `onclick="closeModal(); log('...')"`
+// string. One dispatched action does both steps atomically.
+function closeModalLog(msg: string) { closeModal(); log(msg); }
+
 const ACTIONS: Record<string, (...args: any[]) => void> = {
   // navigation & screens
-  nav, ptab, selSlot, selPlanet, closeModal, log, shipView, masterCaution,
+  nav, ptab, selSlot, selPlanet, closeModal, closeModalLog, log, shipView, masterCaution,
   // cockpit pedestal — physical controls
   setThrottle, throttleLive, bayToggle, jettisonGood, ventGuard, ventFuel,
   commsTune, engageBurn,
@@ -94,13 +100,14 @@ const ACTIONS: Record<string, (...args: any[]) => void> = {
   // combat
   startCombat, cAct, endCombat,
   // events
-  pirateWin, pirateLoseFlee, pirateFlee, pirateBribe, pirateSurrender,
+  pirateWin, pirateLoseFlee, pirateFlee, pirateBribe, pirateSurrender, pirateBattle,
   patrolBribe, patrolRun, patrolSubmit,
   distressHelp, distressIgnore, traderBuy, traderSell, paxMerchantSell, adriftTow,
   // story arc
   arcMeet, arcAcceptCrate, arcAcceptVoss, arcStartRun,
   ambushHandOver, ambushFight, ambushRun,
   hunterWin, hunterFled, hunterRun, interceptWin, interceptFled,
+  arcHunterFight, arcPicketFight, arcInterdictorFight,
   runPicketAround, runPicketThread, runNetDecoy, runNetSilent, runNetPush,
   // consequence scheduler
   riderFight,

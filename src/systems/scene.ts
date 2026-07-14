@@ -7,6 +7,7 @@ import { NPCS, PLANETS } from "../content";
 import type { SceneChoice } from "../content";
 import { stats, paxJobs, vipJobs, cargoUsed, isSilenced } from "../derive";
 import { modal, closeModal } from "../modal";
+import { actionAttr } from "../dispatch";
 import { requestRender } from "../bus";
 import { dialogueHeadHTML } from "../ui/portraits";
 import { applyEffects } from "./scheduler";
@@ -63,7 +64,7 @@ function renderNode(key: string, nodeKey: string) {
   if (!node) { closeModal(); requestRender(); return; }
   const choices = node.choices.map((c: SceneChoice, i: number) => {
     const [ok, why] = checkReq(c.requires);
-    return `<button ${ok ? "" : "disabled"} onclick="sceneChoose('${key}','${nodeKey}',${i})">${c.label}${ok ? "" : ` <span class="dim">— ${why}</span>`}</button>`;
+    return `<button ${ok ? "" : "disabled"} ${actionAttr("sceneChoose", key, nodeKey, i)}>${c.label}${ok ? "" : ` <span class="dim">— ${why}</span>`}</button>`;
   }).join("");
   modal(`<div class="scene"><div class="scene-loc">${PLANETS[S.loc].n} · station</div>
     ${dialogueHeadHTML(null, npc.icon || "◆", npc.name, npc.blurb)}
@@ -85,7 +86,7 @@ export function sceneChoose(key: string, nodeKey: string, idx: number) {
     pendingAfter = after;
     modal(`<div class="scene">${dialogueHeadHTML(null, npc.icon || "◆", npc.name)}
       <p>${c.reply}</p>
-      <div class="choices"><button class="primary" onclick="sceneContinue()">Continue</button></div></div>`);
+      <div class="choices"><button class="primary" ${actionAttr("sceneContinue")}>Continue</button></div></div>`);
   } else {
     after();
   }

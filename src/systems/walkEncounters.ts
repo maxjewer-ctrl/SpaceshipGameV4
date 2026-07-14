@@ -7,6 +7,7 @@ import { rand, ri, pick } from "../rng";
 import { modal, closeModal } from "../modal";
 import { requestRender } from "../bus";
 import { isSilenced } from "../derive";
+import { actionAttr } from "../dispatch";
 import { rollEvent } from "./events";
 import { shift } from "./disposition";
 import { bark } from "./barks";
@@ -63,9 +64,9 @@ function shakedown() {
   modal(`<h2>⚠ The Undercity</h2>
     <p>Two figures peel off the wall ahead, unhurried, blocking the corridor the way people do when they've done this before. "Toll for walking through," one says. "Standard rate. Nobody needs to know you paid it."</p>
     <div class="choices">
-      <button onclick="wkPay()">Pay the toll (60cr)</button>
-      <button onclick="wkTalk()">Talk your way past</button>
-      <button onclick="wkFight()">Push through</button>
+      <button ${actionAttr("wkPay")}>Pay the toll (60cr)</button>
+      <button ${actionAttr("wkTalk")}>Talk your way past</button>
+      <button ${actionAttr("wkFight")}>Push through</button>
     </div>`);
 }
 export function wkPay() {

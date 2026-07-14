@@ -16,6 +16,7 @@ import { PLANETS } from "../content";
 import { rand, ri, pick } from "../rng";
 import { modal, closeModal, replaceModal } from "../modal";
 import { requestRender } from "../bus";
+import { actionAttr } from "../dispatch";
 import { daysTo, planetVisible, isSilenced, cargoUsed } from "../derive";
 import { stats } from "../derive";
 import { shift } from "./disposition";
@@ -104,9 +105,9 @@ function openDerelict(name: string) {
     <p>The readings sharpen into a hull — a mid-tonnage freighter, dark and tumbling slow, no transponder, no answer to the hail. Old damage along her flank, the kind nobody walks away from in a hurry. She's been out here a while.</p>
     <p class="dim">Salvage law out past the lanes is whatever you can carry and defend.</p>
     <div class="choices">
-      <button class="danger" onclick="surveyBoard()">Suit up and board her</button>
-      <button onclick="surveyScan()">Strip what the scanners can reach — no boarding</button>
-      <button class="primary" onclick="surveyLogGo()">Log the wreck and keep the burn</button>
+      <button class="danger" ${actionAttr("surveyBoard")}>Suit up and board her</button>
+      <button ${actionAttr("surveyScan")}>Strip what the scanners can reach — no boarding</button>
+      <button class="primary" ${actionAttr("surveyLogGo")}>Log the wreck and keep the burn</button>
     </div>`);
   requestRender();
 }
@@ -129,7 +130,7 @@ export function surveyBoard() {
   replaceModal(`<h2>◆ ${s.name} — Boarded</h2>
     <p>She's a tomb, and tombs pay. You crack her strongroom for ${cr}cr${cargoLine}, and clip your suit on a jagged edge doing it (−${hullHit} hull). Whatever happened to her crew, the logs are wiped and you don't linger to wonder.</p>
     <p class="dim">Charted: ${s.name}. It's on your map now.</p>
-    <div class="choices"><button class="primary" onclick="closeModal()">Back to the burn.</button></div>`);
+    <div class="choices"><button class="primary" ${actionAttr("closeModal")}>Back to the burn.</button></div>`);
   pendingSurvey = null;
   requestRender();
 }
@@ -141,7 +142,7 @@ export function surveyScan() {
   replaceModal(`<h2>◆ ${s.name} — Scanned</h2>
     <p>You hold at range and let the scanners do the reaching — enough loose salvage drifting off her hull to net ${cr}cr on the magnetic sweep, no boots on her deck. Cautious money, but money.</p>
     <p class="dim">Charted: ${s.name}. It's on your map now.</p>
-    <div class="choices"><button class="primary" onclick="closeModal()">Back to the burn.</button></div>`);
+    <div class="choices"><button class="primary" ${actionAttr("closeModal")}>Back to the burn.</button></div>`);
   pendingSurvey = null;
   requestRender();
 }
@@ -160,8 +161,8 @@ function openSeam(name: string) {
     <p>The coordinate isn't empty — it's a drifting field of fractured rock, and the assay comes back rich: a mineral seam nobody's registered, quietly leaking value into the black.</p>
     <p class="dim">Stake it under your registry and the Circle's brokers will route you a cut whenever you make port. It won't make you rich. It'll never stop, either.</p>
     <div class="choices">
-      <button class="primary" onclick="surveyStake()">Stake the claim</button>
-      <button onclick="surveyLogSeam()">Just log the find</button>
+      <button class="primary" ${actionAttr("surveyStake")}>Stake the claim</button>
+      <button ${actionAttr("surveyLogSeam")}>Just log the find</button>
     </div>`);
   requestRender();
 }
@@ -172,7 +173,7 @@ export function surveyStake() {
   replaceModal(`<h2>◆ ${s.name} — Claimed</h2>
     <p>You file the coordinates and the assay under your own name before anyone else can. It's not a fortune. It's a small, steady stream that follows you home to every port from here on.</p>
     <p class="dim">Charted: ${s.name}. Royalties will find you dockside.</p>
-    <div class="choices"><button class="primary" onclick="closeModal()">Back to the burn.</button></div>`);
+    <div class="choices"><button class="primary" ${actionAttr("closeModal")}>Back to the burn.</button></div>`);
   pendingSurvey = null;
   requestRender();
 }
@@ -196,8 +197,8 @@ function openBeacon(name: string) {
     <p>The reading is a dead beacon, running on the last of a reactor that should have died a generation back, broadcasting a repair manual to no one, page by patient page.</p>
     ${strange}
     <div class="choices">
-      <button onclick="surveyDecode()">Decode the loop before you go</button>
-      <button class="primary" onclick="surveyLogBeacon()">Log the beacon and fly on</button>
+      <button ${actionAttr("surveyDecode")}>Decode the loop before you go</button>
+      <button class="primary" ${actionAttr("surveyLogBeacon")}>Log the beacon and fly on</button>
     </div>`);
   void s;
   requestRender();
@@ -212,7 +213,7 @@ export function surveyDecode() {
   replaceModal(`<h2>◆ ${s.name} — Decoded</h2>
     <p>You sit in the loop long enough to pull the header out from under the manual: a crew, a mission, a date that predates the sector's own charts. A little piece of who was out here before the lanes had names. (+1 prestige)</p>
     <p class="dim">Charted: ${s.name}. It's on your map now.</p>
-    <div class="choices"><button class="primary" onclick="closeModal()">Back to the burn.</button></div>`);
+    <div class="choices"><button class="primary" ${actionAttr("closeModal")}>Back to the burn.</button></div>`);
   pendingSurvey = null;
   requestRender();
 }

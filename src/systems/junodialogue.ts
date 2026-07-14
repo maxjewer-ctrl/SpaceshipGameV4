@@ -17,6 +17,7 @@ import { JUNO_DIALOGUE, PLANETS } from "../content";
 import { modal, replaceModal, closeModal } from "../modal";
 import { requestRender } from "../bus";
 import { crewPortrait } from "../ui/portraits";
+import { actionAttr } from "../dispatch";
 import { dialogueHeadHTML } from "../ui/portraits";
 import { applyEffects } from "./scheduler";
 import { sentiment, crewKey, remember } from "./ledger";
@@ -133,7 +134,7 @@ function renderJunoNode(nodeKey: string, force = false) {
       if (!ok && x.ch.hidden) return "";
       const cls = x.ch.tone === "primary" ? "primary" : x.ch.tone === "danger" ? "danger" : "";
       const hint = !ok && why ? ` <span class="dim">— ${why}</span>` : "";
-      return `<button class="${cls}" ${ok ? "" : "disabled"} onclick="junoChoose('${nodeKey}',${x.i})">${x.ch.label}${hint}</button>`;
+      return `<button class="${cls}" ${ok ? "" : "disabled"} ${actionAttr("junoChoose", nodeKey, x.i)}>${x.ch.label}${hint}</button>`;
     })
     .join("");
   const html = `<div class="scene">
@@ -175,7 +176,7 @@ export function junoChoose(nodeKey: string, idx: number) {
       <div class="scene-loc">${sceneLoc()}</div>
       ${dialogueHeadHTML(src, "🔧", "Juno Vale", "")}
       <p>${ch.reply}</p>
-      <div class="choices"><button class="primary" onclick="junoContinue()">Continue</button></div>
+      <div class="choices"><button class="primary" ${actionAttr("junoContinue")}>Continue</button></div>
     </div>`);
     requestRender();
   } else {

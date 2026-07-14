@@ -25,8 +25,18 @@ import { bumpStanding } from "./port";
 import { accrueWear } from "./wear";
 import { rankBoost, markVeteranEvent } from "./veterancy";
 import { checkSurvey, seamRoyalties } from "./survey";
+import { teardown as walkTeardown } from "../ui/walk";
 import type { Job } from "../types";
 
+// Departure and arrival flip S.screen directly rather than going through
+// ui/render.ts's nav() (which does its own exit-animation bookkeeping) — but
+// that means nav()'s WALK_SCREENS teardown never runs across a voyage, so
+// walk.ts's mountedId survives untouched. On arrival, if the ship's scene id
+// is unchanged (same layout), renderMain()'s needsMount() check comes back
+// false and it skips repainting #main entirely — leaving the stale in-transit
+// "travel" HTML on screen even though S.screen/S.loc have already flipped.
+// Tearing down the walk mount at both ends of the voyage forces a real
+// repaint whenever a walk screen (shipwalk/stationwalk) is entered again.
 export function depart(destId: string) {
   if (!S.docked || S.travel) return;
   const d = daysTo(S.loc, destId);
@@ -34,6 +44,7 @@ export function depart(destId: string) {
   if (S.fuel < f) { log(`Not enough fuel — need ${f}, have ${Math.floor(S.fuel)}.`); requestRender(); return; }
   S.travel = { from: S.loc, dest: destId, total: d, left: d };
   S.docked = false;
+  walkTeardown();
   S.screen = "travel";
   S.selPlanet = null;
   log(`Departed ${PLANETS[S.loc].n} for ${PLANETS[destId].n}. ${d} days out. ${pick(FLAVOR.depart)}`);
@@ -198,7 +209,9 @@ export function abandonJob(id: number) {
 
 export function arrive() {
   const dest = S.travel!.dest;
-  S.loc = dest; S.docked = true; S.travel = null; S.screen = "shipwalk";
+  S.loc = dest; S.docked = true; S.travel = null;
+  walkTeardown();
+  S.screen = "shipwalk";
   resetStation();
   log(`Docked at ${PLANETS[dest].n}.`);
   // victory check

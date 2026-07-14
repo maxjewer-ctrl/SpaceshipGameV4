@@ -4,6 +4,7 @@ import { stats, cargoUsed, scargoUsed, dist, bribeCost } from "../derive";
 import { rand, ri, pick, pickFresh } from "../rng";
 import { clamp } from "../util";
 import { modal, closeModal } from "../modal";
+import { actionAttr } from "../dispatch";
 import { startCombat } from "./combat";
 import { checkDead } from "./gameover";
 import { damageModule } from "./actions";
@@ -84,11 +85,15 @@ export function evPirates() {
   modal(`<h2>⚠ Contact — ${e.name}</h2>
     <p>${hail}</p>
     <div class="choices">
-      <button onclick="closeModal(); startCombat(${JSON.stringify(e).replace(/"/g, "&quot;")}, pirateWin, pirateLoseFlee)">Battle stations${outgunned ? ' <span class="dim">— tactical readout: OUTGUNNED. This is how ships die.</span>' : ""}</button>
-      <button onclick="pirateFlee(${e.dmg})">Punch it and run ${stats().has("pilot") ? "(pilot aboard — good odds)" : ""}</button>
-      <button onclick="pirateBribe(${e.bribe})">Pay them off (${bribeCost(e.bribe)}cr)</button>
-      <button onclick="pirateSurrender()">Surrender the cargo</button>
+      <button ${actionAttr("pirateBattle", e)}>Battle stations${outgunned ? ' <span class="dim">— tactical readout: OUTGUNNED. This is how ships die.</span>' : ""}</button>
+      <button ${actionAttr("pirateFlee", e.dmg)}>Punch it and run ${stats().has("pilot") ? "(pilot aboard — good odds)" : ""}</button>
+      <button ${actionAttr("pirateBribe", e.bribe)}>Pay them off (${bribeCost(e.bribe)}cr)</button>
+      <button ${actionAttr("pirateSurrender")}>Surrender the cargo</button>
     </div>`);
+}
+export function pirateBattle(e: { name: string; hull: number; dmg: number; bribe: number; loot: number }) {
+  closeModal();
+  startCombat(e, pirateWin, pirateLoseFlee);
 }
 export function pirateWin() {
   const loot = ri(100, 300);
@@ -165,9 +170,9 @@ export function evPatrol() {
   modal(`<h2>🛰 Union Patrol — Compliance Scan</h2>
     <p>A Union cutter orders you to hold for inspection. Standard sweep — except ${problem}.</p>
     <div class="choices">
-      <button onclick="patrolBribe()">Slip the inspector a gratuity (${bribeCost(180)}cr)</button>
-      <button onclick="patrolRun()">Run for it</button>
-      <button onclick="patrolSubmit()">Submit to the scan</button>
+      <button ${actionAttr("patrolBribe")}>Slip the inspector a gratuity (${bribeCost(180)}cr)</button>
+      <button ${actionAttr("patrolRun")}>Run for it</button>
+      <button ${actionAttr("patrolSubmit")}>Submit to the scan</button>
     </div>`);
 }
 export function patrolBribe() {
@@ -261,8 +266,8 @@ export function evDistress() {
   modal(`<h2>📡 Distress Signal</h2>
     <p>A weak beacon: a mining shuttle, life support failing, three souls aboard. Helping costs time and supplies. Space is full of stories about fake beacons, too.</p>
     <div class="choices">
-      <button onclick="distressHelp()">Alter course and help (−3 food)</button>
-      <button onclick="distressIgnore()">Keep flying. Not your problem.</button>
+      <button ${actionAttr("distressHelp")}>Alter course and help (−3 food)</button>
+      <button ${actionAttr("distressIgnore")}>Keep flying. Not your problem.</button>
     </div>`);
 }
 export function distressHelp() {
@@ -298,10 +303,10 @@ export function evTrader() {
   modal(`<h2>🛒 Tinker Barge "Bargain"</h2>
     <p>A patchwork trader hails you, grinning through static: <i>"Fuel, food, fair-ish prices! Also buying goods at a premium — I know a guy."</i></p>
     <div class="choices">
-      <button onclick="traderBuy('fuel')">Buy 10 fuel — 70cr</button>
-      <button onclick="traderBuy('food')">Buy 10 food — 30cr</button>
-      <button onclick="traderSell()">Sell all trade goods at 115% market</button>
-      <button onclick="closeModal(); log('You wave the tinker off. He sells you nothing but a bad feeling.')">Not today</button>
+      <button ${actionAttr("traderBuy", 'fuel')}>Buy 10 fuel — 70cr</button>
+      <button ${actionAttr("traderBuy", 'food')}>Buy 10 food — 30cr</button>
+      <button ${actionAttr("traderSell")}>Sell all trade goods at 115% market</button>
+      <button ${actionAttr("closeModalLog", "You wave the tinker off. He sells you nothing but a bad feeling.")}>Not today</button>
     </div>`);
 }
 export function traderBuy(what: string) {
@@ -341,8 +346,8 @@ export function evPax() {
       modal(`<h2>💼 A Private Offer</h2>
         <p>${p.name} taps your cargo manifest. <i>"That ${GOODS[g].n.toLowerCase()} — I'll take all ${n} units at ${price} a head, right now, cash."</i></p>
         <div class="choices">
-          <button onclick="paxMerchantSell('${g}',${price})">Sell (${n * price}cr)</button>
-          <button onclick="closeModal(); log('You decline. ${p.name.replace(/'/g, "")} shrugs and goes back to their bunk.')">Decline</button>
+          <button ${actionAttr("paxMerchantSell", g, price)}>Sell (${n * price}cr)</button>
+          <button ${actionAttr("closeModalLog", `You decline. ${p.name.replace(/'/g, "")} shrugs and goes back to their bunk.`)}>Decline</button>
         </div>`);
       return;
     }
@@ -377,7 +382,7 @@ export function evAdrift() {
   modal(`<h2>⛽ Tanks Dry</h2>
     <p>The drive coughs, stutters, dies. You are adrift in the deep black. The silence is total and the options are few.</p>
     <div class="choices">
-      <button onclick="adriftTow()">Send an SOS — commercial tow (expensive, humiliating)</button>
+      <button ${actionAttr("adriftTow")}>Send an SOS — commercial tow (expensive, humiliating)</button>
     </div>`);
 }
 export function adriftTow() {

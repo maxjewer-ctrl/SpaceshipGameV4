@@ -10,6 +10,7 @@ import { requestRender } from "../bus";
 import { startCombat } from "./combat";
 import { witnessAll } from "./ledger";
 import { shift } from "./disposition";
+import { actionAttr } from "../dispatch";
 
 export function arcCantinaCard(): string {
   const a = S.arc;
@@ -19,7 +20,7 @@ export function arcCantinaCard(): string {
       return `<div class="card" style="border-color:var(--amber)">
         <div class="title" style="color:var(--amber)">◆ A woman in a grey coat</div>
         <div class="dim">She's been in the corner all night, nursing one drink, watching you. When you glance over, she nods — like she already knows you'll come.</div>
-        <button class="primary" style="margin-top:8px" onclick="arcMeet()">Hear her out</button>
+        <button class="primary" style="margin-top:8px" ${actionAttr("arcMeet")}>Hear her out</button>
       </div>`;
     }
     // She's a fixture in every cantina from day one — visible, unexplained,
@@ -36,14 +37,14 @@ export function arcCantinaCard(): string {
     return `<div class="card" style="border-color:var(--amber)">
       <div class="title" style="color:var(--amber)">◆ Dr. Voss is waiting</div>
       <div class="dim">She needs passage to Haven's Folly. One passenger berth or stateroom required.</div>
-      <button class="primary" style="margin-top:8px" onclick="arcAcceptVoss()">Take her aboard (pay: 500cr on arrival)</button>
+      <button class="primary" style="margin-top:8px" ${actionAttr("arcAcceptVoss")}>Take her aboard (pay: 500cr on arrival)</button>
     </div>`;
   }
   if (a.stage === 4 && S.loc === "havens") {
     return `<div class="card" style="border-color:var(--amber)">
       <div class="title" style="color:var(--amber)">◆ Voss: "Ready when you are, Captain."</div>
       <div class="dim">The Run to Elysium Gate. Once you commit, the Union will know within hours — and the clock starts. Stock fuel and food FIRST.</div>
-      <button class="primary" style="margin-top:8px" onclick="arcStartRun()">Begin the Run</button>
+      <button class="primary" style="margin-top:8px" ${actionAttr("arcStartRun")}>Begin the Run</button>
     </div>`;
   }
   return "";
@@ -55,8 +56,8 @@ export function arcMeet() {
     <p>"The Union would prefer it didn't arrive. That's all you need to know, and honestly more than is safe."</p>
     <p class="dim">Requires 4 free cargo space. Pays 600cr on delivery.</p>
     <div class="choices">
-      <button class="primary" onclick="arcAcceptCrate()">Take the crate</button>
-      <button onclick="closeModal(); log('You pass on the grey-coat woman\\'s job. She\\'ll be around.')">Not interested</button>
+      <button class="primary" ${actionAttr("arcAcceptCrate")}>Take the crate</button>
+      <button ${actionAttr("closeModalLog", "You pass on the grey-coat woman's job. She'll be around.")}>Not interested</button>
     </div>`);
 }
 
@@ -85,7 +86,7 @@ export function arcVergeScene() {
     <p>"Evidence," she says. "Of what the Union did at Meridian, eleven years ago. Sixty thousand people, Captain. They called it a reactor accident."</p>
     <p>"I need to reach a broker on <b>Haven's Folly</b> who can decrypt it. I need a ship nobody looks at twice. I need <i>you</i>."</p>
     <p class="dim">Take Dr. Voss to Haven's Folly (needs 1 free berth or stateroom — find her in the Verge cantina when ready). 500cr.</p>
-    <div class="choices"><button class="primary" onclick="closeModal()">"...I'll think about it."</button></div>`);
+    <div class="choices"><button class="primary" ${actionAttr("closeModal")}>"...I'll think about it."</button></div>`);
   log("◆ The crate held a Union data core. Voss wants passage to Haven's Folly. She'll wait in the Verge cantina.");
 }
 
@@ -114,9 +115,9 @@ export function evAmbush() {
     <p><i>"Freighter, we know Elara Voss is aboard. Surrender the fugitive and her cargo, and you fly away rich. This offer expires in sixty seconds."</i></p>
     <p>Behind you, Voss says quietly: "Sixty thousand people, Captain."</p>
     <div class="choices">
-      <button onclick="ambushHandOver()">Hand her over (+1,000cr, Union loves you)</button>
-      <button onclick="ambushFight()">"Get off my ship's scope." (fight)</button>
-      <button onclick="ambushRun()">Run the blockade</button>
+      <button ${actionAttr("ambushHandOver")}>Hand her over (+1,000cr, Union loves you)</button>
+      <button ${actionAttr("ambushFight")}>"Get off my ship's scope." (fight)</button>
+      <button ${actionAttr("ambushRun")}>Run the blockade</button>
     </div>`);
 }
 export function ambushHandOver() {
@@ -168,7 +169,7 @@ export function arcHavensScene() {
     <p>It's all there. Orders, signatures, sensor logs. The Meridian "accident" was a strike — and the survivors, the witnesses, fled beyond the charts to a place called <b>Elysium Gate</b>. The Union has hunted them for eleven years. This core is proof, and the Gate's location, both.</p>
     <p>"Get me and the core to the Gate," Voss says. "They can broadcast it from there — a transmitter the Union can't silence. But the moment we buy fuel for that heading, they'll know. We'll have <b>14 days</b> before their interdiction net closes."</p>
     <p class="dim">When you begin the Run, Elysium Gate appears on your star map and the countdown starts. Hunters will dog you daily. Stock up FIRST — fuel, food, hull, weapons. This is the part of the story where captains die.</p>
-    <div class="choices"><button class="primary" onclick="closeModal()">"I'll say when."</button></div>`);
+    <div class="choices"><button class="primary" ${actionAttr("closeModal")}>"I'll say when."</button></div>`);
   log("◆ The core is decrypted. When you're provisioned, see Voss in the Haven's Folly cantina to begin the Run.");
 }
 
@@ -182,7 +183,7 @@ export function arcStartRun() {
     <p>Voss straps in beside you and sets the duffel between her boots. Somewhere back toward the core worlds, alarms you'll never hear are starting to sound.</p>
     <p><b>Reach Elysium Gate by day ${S.arc.deadline}.</b> Union hunter-killers will find you almost daily. Fuel and food burn fast. There are no friendly ports where you're going.</p>
     <p class="dim">It's roughly a ${daysTo("havens", "gate")}-day burn from Haven's Folly — if nothing goes wrong. Something will go wrong.</p>
-    <div class="choices"><button class="primary" onclick="closeModal()">Punch it.</button></div>`);
+    <div class="choices"><button class="primary" ${actionAttr("closeModal")}>Punch it.</button></div>`);
 }
 
 // The Run's daily pressure rotates through three shapes — a straight fight, a
@@ -196,19 +197,27 @@ export function evHunter() {
   modal(`<h2>⚠ Hunter-Killer on Intercept</h2>
     <p>A sleek Union hunter drops out of high burn, weapons already cycling. No hails. No demands. They're not here to arrest anyone anymore.</p>
     <div class="choices">
-      <button onclick="closeModal(); startCombat({name:'Union Hunter-Killer', hull:58, dmg:15}, hunterWin, hunterFled)">Turn and fight</button>
-      <button onclick="hunterRun()">Evade (${Math.round((0.35 + (stats().has("pilot") ? 0.25 : 0) + S.engineLvl * 0.08) * 100)}%)</button>
+      <button ${actionAttr("arcHunterFight")}>Turn and fight</button>
+      <button ${actionAttr("hunterRun")}>Evade (${Math.round((0.35 + (stats().has("pilot") ? 0.25 : 0) + S.engineLvl * 0.08) * 100)}%)</button>
     </div>`);
+}
+export function arcHunterFight() {
+  closeModal();
+  startCombat({ name: "Union Hunter-Killer", hull: 58, dmg: 15 }, hunterWin, hunterFled);
 }
 
 function evRunPicket() {
   modal(`<h2>⚠ Picket Line</h2>
     <p>Two Union interceptors hold station across the lane ahead, drives cold, running dark — a tripwire with guns. They haven't seen you yet. The wide way around costs fuel you'd rather keep.</p>
     <div class="choices">
-      <button onclick="runPicketAround()">Burn wide around them <span class="dim">— −4 fuel, clean</span></button>
-      <button onclick="runPicketThread()">Thread the line dark <span class="dim">— nerve and drift, no burn</span></button>
-      <button onclick="closeModal(); startCombat({name:'Union Interceptor', hull:40, dmg:11}, hunterWin, hunterFled)">Hit the picket before it wakes</button>
+      <button ${actionAttr("runPicketAround")}>Burn wide around them <span class="dim">— −4 fuel, clean</span></button>
+      <button ${actionAttr("runPicketThread")}>Thread the line dark <span class="dim">— nerve and drift, no burn</span></button>
+      <button ${actionAttr("arcPicketFight")}>Hit the picket before it wakes</button>
     </div>`);
+}
+export function arcPicketFight() {
+  closeModal();
+  startCombat({ name: "Union Interceptor", hull: 40, dmg: 11 }, hunterWin, hunterFled);
 }
 export function runPicketAround() {
   closeModal();
@@ -234,9 +243,9 @@ function evRunNet() {
   modal(`<h2>📡 The Listening Net</h2>
     <p>The band fills with soft, patient pinging — a Union drone net sweeping the lane, triangulating everything that moves. No guns out here. Just ears, and every hour they listen, the hunters behind you get a cleaner fix.</p>
     <div class="choices">
-      <button onclick="runNetDecoy()">Rig a decoy beacon from spares <span class="dim">— −80cr, they chase the ghost</span></button>
-      <button onclick="runNetSilent()">Go silent and drift through <span class="dim">— costs most of a day</span></button>
-      <button onclick="runNetPush()">Push through at full burn <span class="dim">— they'll vector something onto you</span></button>
+      <button ${actionAttr("runNetDecoy")}>Rig a decoy beacon from spares <span class="dim">— −80cr, they chase the ghost</span></button>
+      <button ${actionAttr("runNetSilent")}>Go silent and drift through <span class="dim">— costs most of a day</span></button>
+      <button ${actionAttr("runNetPush")}>Push through at full burn <span class="dim">— they'll vector something onto you</span></button>
     </div>`);
 }
 export function runNetDecoy() {
@@ -279,7 +288,11 @@ export function arcIntercept() {
   modal(`<h2>◆ The Net Closes</h2>
     <p>You're out of time. Ahead, silhouetted against the stars, a Union <b>Interdictor</b> — twice the tonnage of anything that's chased you yet — powers up its main battery.</p>
     <p>Voss checks the duffel strap. "Through them, then."</p>
-    <div class="choices"><button class="danger" onclick="closeModal(); startCombat({name:'Union Interdictor', hull:90, dmg:16}, interceptWin, interceptFled)">Through them, then.</button></div>`);
+    <div class="choices"><button class="danger" ${actionAttr("arcInterdictorFight")}>Through them, then.</button></div>`);
+}
+export function arcInterdictorFight() {
+  closeModal();
+  startCombat({ name: "Union Interdictor", hull: 90, dmg: 16 }, interceptWin, interceptFled);
 }
 export function interceptWin() {
   log("◆ The Interdictor lists, venting fire. The lane to the Gate is open. Nothing else will catch you now.");
@@ -306,8 +319,8 @@ export function arcVictory() {
     <p class="dim">Day ${S.day} · ${fmt(S.credits)}cr · ${S.prestige}★ prestige · crew of ${S.crew.length}</p>
     <p style="color:var(--amber)"><b>YOU KEPT FLYING. YOU WON.</b></p>
     <div class="choices">
-      <button class="primary" onclick="closeModal(); log('◆ The Gate refuels and repairs your ship. The sky is still full of work.')">Keep flying (freeplay)</button>
-      <button onclick="newGame()">New game</button>
+      <button class="primary" ${actionAttr("closeModalLog", "◆ The Gate refuels and repairs your ship. The sky is still full of work.")}>Keep flying (freeplay)</button>
+      <button ${actionAttr("newGame")}>New game</button>
     </div>`);
   log("◆ VICTORY — the Meridian truth is broadcast from Elysium Gate.");
 }
