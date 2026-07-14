@@ -39,12 +39,11 @@ const IN_SCOPE = (rel) =>
 // Files that still legitimately touch the host because they haven't been split
 // into sim + view yet. This list is the migration TODO, CI-enforced: it may only
 // SHRINK. When it's empty, the sim core is fully host-independent.
-//   combat.ts — sim tangled with its HTML view + FX     (Stage 1 task 4)
-//   intro.ts  — prologue tangled with its modal HTML     (Stage 1 task 5)
-// gamepadNav.ts graduated in Stage 1 task 3: it was an input adapter misfiled
-// as a system, and now lives in src/ui/ (outside this guard's scope entirely).
+//   intro.ts — prologue tangled with its modal HTML     (Stage 1 task 5)
+// Graduated: gamepadNav.ts (task 3, moved to src/ui/), combat.ts (task 4, split
+// into pure sim + ui/combatView.ts). combat's fight logic is now host-independent
+// and golden-mastered — the whole point of the split.
 const MIGRATING = new Set([
-  "src/systems/combat.ts",
   "src/systems/intro.ts",
 ]);
 

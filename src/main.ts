@@ -1,5 +1,6 @@
 import "./style.css";
-import { setRender, setSfx, requestRender } from "./bus";
+import { setRender, setSfx, setCombatView, requestRender } from "./bus";
+import { combatViewImpl } from "./ui/combatView";
 import { render } from "./ui/render";
 import { loadSaved, setState, log } from "./state";
 import * as State from "./state";
@@ -20,6 +21,9 @@ setRender(render);
 // one. A headless run (tests, a future engine host) simply installs a different
 // sink — see bus.ts.
 setSfx({ moduleToggle, weaponFire, hullHit, systemDamage });
+// Ship combat's HTML/FX/avatar view. The sim (systems/combat.ts) stays pure and
+// asks the bus to render; headless hosts install nothing and combat runs silent.
+setCombatView(combatViewImpl);
 startGamepadNav();
 installDispatch();
 

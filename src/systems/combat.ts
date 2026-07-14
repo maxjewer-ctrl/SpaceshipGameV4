@@ -1,20 +1,20 @@
 import { S } from "../state";
 import { platform } from "../platform";
 import { stats, bribeCost } from "../derive";
-import { actionAttr } from "../dispatch";
 import { rand, ri, pick } from "../rng";
-import { modal, replaceModal, clearModal, modalHTML } from "../modal";
-import { requestRender, sfx } from "../bus";
+import { requestRender, sfx, combatView } from "../bus";
 import { gameOver } from "./gameover";
 import { damageModule } from "./actions";
 import { bark, tellBark } from "./barks";
 import { shift } from "./disposition";
 import type { Enemy } from "../types";
 import { markVeteranEvent } from "./veterancy";
-import { mountCombatAvatar, teardownCombatAvatar, updateCombatAvatar } from "../ui/combatAvatar3d";
 
-type MoveId = "laser" | "torpedo" | "ion" | "evasive" | "flee" | "bribe" | "decoy" | "gambit";
-type CombatPhase = "command" | "target" | "aim" | "over";
+// Exported for the view (ui/combatView.ts) — it renders a fight from combatVM()
+// and needs these shapes. Combat itself never imports the view; it emits render
+// / fx / teardown through the bus (see bus.ts CombatViewSink).
+export type MoveId = "laser" | "torpedo" | "ion" | "evasive" | "flee" | "bribe" | "decoy" | "gambit";
+export type CombatPhase = "command" | "target" | "aim" | "over";
 
 interface CombatTarget extends Enemy {
   id: number;
@@ -89,7 +89,7 @@ export function startCombat(e: Enemy, onWin?: () => void, onEscape?: () => void)
     evadeBoost: 0,
   };
   if (!tellBark("combat_start")) bark("combat_start", { chance: 0.8 });
-  drawCombat();
+  combatView.render();
 }
 
 function buildTargets(e: Enemy): CombatTarget[] {
@@ -128,56 +128,6 @@ function escortName(name: string) {
   return "Escort Skiff";
 }
 
-// Drawn silhouettes instead of icon glyphs: each archetype is a tiny inline
-// SVG with a pulsing engine and a damage-flicker class as its hull drops.
-function foeShipSVG(t: CombatTarget): string {
-  const n = t.name.toLowerCase();
-  const hp = Math.max(0, t.hull / t.maxhull);
-  const cls = t.hull <= 0 ? "" : hp < 0.35 ? " crit" : hp < 0.7 ? " hurt" : "";
-  let body: string;
-  if (/drone|screen/.test(n)) {
-    body = `<path class="fsh" d="M24 5 39 16 24 27 9 16Z"/><circle class="fsc" cx="24" cy="16" r="3.4"/>`;
-  } else if (/union|cutter|gunship|hunter|interdictor|lattice|patrol/.test(n)) {
-    body = `<path class="fsh" d="M5 20 13 11 40 11 45 15.5 40 20 13 21.5Z"/><rect class="fsh2" x="17" y="6.5" width="13" height="5" rx="2"/><rect class="fsh2" x="34" y="13" width="9" height="2.6" rx="1.2"/><circle class="fse" cx="8" cy="15.8" r="2.4"/>`;
-  } else if (/pirate|corsair|skiff|raider|vengeance|seeker|wolf|knife|scav/.test(n)) {
-    body = `<path class="fsh" d="M6 16 20 7 44 14 44 18 20 25Z"/><path class="fsf" d="M19 8 28 2.5 33 9.5Z"/><path class="fsf" d="M19 24 28 29.5 33 22.5Z"/><circle class="fse" cx="9.5" cy="16" r="2.4"/>`;
-  } else {
-    body = `<path class="fsh" d="M6 18 15 8.5 37 8.5 44 16 37 23.5 15 23.5Z"/><rect class="fsh2" x="20" y="12" width="12" height="8" rx="2"/><circle class="fse" cx="9" cy="16" r="2.4"/>`;
-  }
-  return `<svg class="foe-ship${cls}" viewBox="0 0 48 32">${body}</svg>`;
-}
-
-// ---- transient weapon FX ----
-// Queued by the combat logic, flushed into the freshly-rendered .battle-window
-// right after modal() replaces the DOM — pure CSS animations from there.
-interface PendingFX { kind: "shot" | "return"; x: number; y: number; color: string; score?: number; }
-let pendingFX: PendingFX[] = [];
-
-function flushFX() {
-  const win = document.querySelector(".battle-window") as HTMLElement | null;
-  if (!win) { pendingFX = []; return; }
-  const px = 44, py = 72; // player nose, in % of the window (hull sits bottom-left)
-  for (const fx of pendingFX) {
-    const [x1, y1, x2, y2] = fx.kind === "shot" ? [px, py, fx.x, fx.y] : [fx.x, fx.y, px, py];
-    const dx = (x2 - x1) * win.clientWidth / 100, dy = (y2 - y1) * win.clientHeight / 100;
-    const tr = document.createElement("div");
-    tr.className = "fx-tracer" + (fx.kind === "return" ? " ret" : "");
-    tr.style.cssText = `left:${x1}%;top:${y1}%;width:${Math.hypot(dx, dy)}px;transform:rotate(${Math.atan2(dy, dx) * 180 / Math.PI}deg);color:${fx.color}`;
-    tr.innerHTML = "<i></i>";
-    win.appendChild(tr);
-    const imp = document.createElement("div");
-    imp.className = "fx-impact" + ((fx.score ?? 0) > 0.62 ? " big" : "") + (fx.kind === "return" ? " ret" : "");
-    imp.style.cssText = `left:${x2}%;top:${y2}%;color:${fx.color}`;
-    win.appendChild(imp);
-    if (fx.kind === "return") win.classList.add("fx-hit");
-  }
-  pendingFX = [];
-}
-
-function esc(s: string): string {
-  return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[c]!));
-}
-
 function aliveTargets() {
   return C ? C.targets.filter((t) => t.hull > 0) : [];
 }
@@ -210,109 +160,71 @@ function availableMoves(): Array<{ id: MoveId; name: string; desc: string }> {
   return list;
 }
 
-function drawCombat() {
-  if (!C) return;
+// ---- the combat view model ----
+// The plain-data snapshot the view (ui/combatView.ts) renders a fight from. The
+// sim owns the fight; the view owns the pixels; this struct is the whole contract
+// between them. That's what makes the fight portable — a C# host renders from the
+// same data instead of reaching into combat's internals.
+//
+// It is deliberately PRE-CHEWED: the view does no game logic, so everything that
+// takes a rule (which moves are legal, whether a move is affordable, the flee
+// odds, the shield value) is resolved here. Whoever adds a combat field updates
+// this struct too; that one-line cost is the price of the sim/view separation.
+export interface CombatVMTarget {
+  id: number; name: string; role: string;
+  hull: number; maxhull: number;
+  x: number; y: number; aimX: number; aimY: number;
+  dead: boolean; selected: boolean;
+}
+export interface CombatVMMove { id: MoveId; name: string; desc: string; disabled: boolean; extra: string; }
+export interface CombatVM {
+  scenario: { title: string; note: string };
+  phase: CombatPhase;
+  move: MoveId | null;
+  selectedMoveName: string | null;
+  targets: CombatVMTarget[];
+  // The target the aim overlay + readout track: the explicitly-picked one, or
+  // the first still alive. Distinct from per-target `selected`, which is the raw
+  // pick used for the highlight ring.
+  aimTargetId: number | null;
+  aimTargetName: string | null;
+  shield: number;
+  fleeChance: number;
+  moves: CombatVMMove[];
+  log: string[];
+}
+
+export function combatVM(): CombatVM | null {
+  if (!C) return null;
   const st = stats();
-  const selectedTarget = C.targets.find((t) => t.id === C!.targetId) || aliveTargets()[0];
-  const php = Math.max(0, Math.round((S.hull / S.hullMax) * 100));
+  const aimTarget = C.targets.find((t) => t.id === C!.targetId) || aliveTargets()[0];
+  const selectedMove = MOVES.find((m) => m.id === C!.move) || null;
   const fleeChance = Math.round(fleeOdds() * 100);
-  const selectedMove = MOVES.find((m) => m.id === C!.move);
+  const bribe = C.targets[0].bribe;
 
-  const html = `<div class="combat">
-    <div class="cbt-band">ENGAGEMENT · ${esc(C.scenario.title)}</div>
-    <div class="battle-window">
-      <div class="battle-stars"></div>
-      <div class="combat-avatar">
-        <div class="combat-avatar-stage" data-combat-avatar></div>
-        <div class="combat-avatar-tag">${esc(S.captainName || "Captain")}</div>
-      </div>
-      <div class="player-ship">
-        <div class="engine-flare"></div>
-        <div class="ship-hull"></div>
-      </div>
-      ${C.targets.map(targetHTML).join("")}
-      ${C.phase === "aim" && selectedTarget ? aimHTML(selectedTarget) : ""}
-      <div class="battle-hud">
-        <span>${esc(S.shipName)}</span>
-        <span>HULL ${Math.max(0, Math.round(S.hull))}/${S.hullMax}</span>
-      </div>
-    </div>
-    <div class="cbt-status">
-      <div>
-        <b>${esc(C.scenario.note)}</b>
-        <span>${st.shield ? `Shields absorbing ${st.shield}/hit.` : "No active shields."}</span>
-      </div>
-      <div class="mini-gauge"><i style="width:${php}%"></i></div>
-    </div>
-    ${phaseHTML(selectedMove, selectedTarget, fleeChance)}
-    <div class="clog">${C.log.slice(-5).map((l) => "<div>› " + esc(l) + "</div>").join("")}</div>
-  </div>`;
-  if (modalHTML()?.includes("class=\"combat\"")) replaceModal(html);
-  else modal(html);
-  flushFX();
-  mountCombatAvatarIfPresent();
-}
-
-function mountCombatAvatarIfPresent() {
-  if (!C) return;
-  const stage = typeof document !== "undefined" ? document.querySelector<HTMLElement>("[data-combat-avatar]") : null;
-  if (!stage) return;
-  mountCombatAvatar(stage, C.phase);
-  updateCombatAvatar(C.phase);
-}
-
-function targetHTML(t: CombatTarget) {
-  const hp = Math.max(0, Math.round((t.hull / t.maxhull) * 100));
-  const dead = t.hull <= 0;
-  const selected = C && C.targetId === t.id;
-  return `<button class="space-target ${dead ? "dead" : ""} ${selected ? "selected" : ""}"
-      style="left:${t.x}%; top:${t.y}%"
-      ${dead || C?.phase === "aim" ? "disabled" : actionAttr("cAct", `target:${t.id}`)}>
-    ${foeShipSVG(t)}
-    <span class="target-name">${esc(t.role)}</span>
-    <span class="target-hp"><i style="width:${hp}%"></i></span>
-  </button>`;
-}
-
-function aimHTML(t: CombatTarget) {
-  const move = C?.move || "laser";
-  const tight = move === "torpedo" ? "tight" : move === "ion" ? "wide" : "";
-  return `<div class="aim-layer">
-    <div class="aim-box ${tight}" style="left:${t.aimX}%; top:${t.aimY}%"></div>
-    <div class="aim-reticle ${tight}"><i></i><b></b></div>
-  </div>`;
-}
-
-function phaseHTML(selectedMove: typeof MOVES[number] | undefined, selectedTarget: CombatTarget | undefined, fleeChance: number) {
-  if (!C) return "";
-  if (C.phase === "over") return `<div class="choices"><button class="primary" ${actionAttr("endCombat")}>Continue</button></div>`;
-  if (C.phase === "aim") {
-    return `<div class="cbt-command">
-      <div class="command-readout">
-        <b>${selectedMove ? esc(selectedMove.name) : "Weapon"}</b>
-        <span>Targeting ${selectedTarget ? esc(selectedTarget.name) : "hostile"} · wait for the reticle to cross the box.</span>
-      </div>
-      <button class="primary fire-button" ${actionAttr("cAct", "release")}>Fire</button>
-      <button ${actionAttr("cAct", "back")}>Back</button>
-    </div>`;
-  }
-  if (C.phase === "target") {
-    return `<div class="cbt-command">
-      <div class="command-readout">
-        <b>${selectedMove ? esc(selectedMove.name) : "Choose Target"}</b>
-        <span>Pick a hostile contact in the viewport.</span>
-      </div>
-      <button ${selectedTarget ? "" : "disabled"} class="primary" ${actionAttr("cAct", "aim")}>Line Up Shot</button>
-      <button ${actionAttr("cAct", "back")}>Back</button>
-    </div>`;
-  }
-  return `<div class="move-grid">
-    ${availableMoves().map((m) => {
-    const disabled = (m.id === "bribe" && !C!.targets[0].bribe) ? "disabled" : "";
-    const extra = m.id === "flee" ? ` · ${fleeChance}%` : m.id === "bribe" ? ` · ${bribeCost(C!.targets[0].bribe || 0)}cr` : "";
-    return `<button ${disabled} ${actionAttr("cAct", `move:${m.id}`)}><b>${esc(m.name)}</b><span>${esc(m.desc)}${extra}</span></button>`;
-  }).join("")}
-  </div>`;
+  return {
+    scenario: { title: C.scenario.title, note: C.scenario.note },
+    phase: C.phase,
+    move: C.move,
+    selectedMoveName: selectedMove ? selectedMove.name : null,
+    targets: C.targets.map((t) => ({
+      id: t.id, name: t.name, role: t.role,
+      hull: t.hull, maxhull: t.maxhull,
+      x: t.x, y: t.y, aimX: t.aimX, aimY: t.aimY,
+      dead: t.hull <= 0,
+      selected: C!.targetId === t.id,
+    })),
+    aimTargetId: aimTarget ? aimTarget.id : null,
+    aimTargetName: aimTarget ? aimTarget.name : null,
+    shield: st.shield,
+    fleeChance,
+    moves: availableMoves().map((m) => ({
+      id: m.id, name: m.name, desc: m.desc,
+      disabled: m.id === "bribe" && !bribe,
+      extra: m.id === "flee" ? ` · ${fleeChance}%` : m.id === "bribe" ? ` · ${bribeCost(bribe || 0)}cr` : "",
+    })),
+    log: C.log.slice(-5),
+  };
 }
 
 // `now` is the wall clock, and in this system it is a GAMEPLAY INPUT, not a
@@ -330,7 +242,7 @@ function phaseHTML(selectedMove: typeof MOVES[number] | undefined, selectedTarge
 export function cAct(action: string, now: number = platform.now()) {
   if (!C) return;
   if (action === "back") {
-    C.phase = "command"; C.move = null; C.targetId = null; drawCombat(); return;
+    C.phase = "command"; C.move = null; C.targetId = null; combatView.render(); return;
   }
   if (action.startsWith("move:")) {
     const move = action.slice(5) as MoveId;
@@ -339,7 +251,7 @@ export function cAct(action: string, now: number = platform.now()) {
   }
   if (action.startsWith("target:")) {
     C.targetId = Number(action.slice(7));
-    drawCombat();
+    combatView.render();
     return;
   }
   if (action === "aim") {
@@ -356,7 +268,7 @@ export function cAct(action: string, now: number = platform.now()) {
     t.aimY = Math.min(72, Math.max(28, 50 + Math.sin(el * speed * 2.2 + 1.7) * 25 + ri(-4, 4)));
     C.phase = "aim";
     C.aimStart = now;
-    drawCombat();
+    combatView.render();
     return;
   }
   if (action === "release") releaseShot(now);
@@ -375,7 +287,7 @@ function chooseMove(move: MoveId) {
     if (rand() < fleeOdds()) {
       C.log.push("You redline the drive and break contact. Gone.");
       shift("daring", -1, "fled a fight");
-      C.phase = "over"; C.result = "fled"; bark("combat_flee", { chance: 0.6 }); drawCombat(); return;
+      C.phase = "over"; C.result = "fled"; bark("combat_flee", { chance: 0.6 }); combatView.render(); return;
     }
     C.log.push("They match your burn. No escape this pass.");
     enemyTurn(false);
@@ -388,7 +300,7 @@ function chooseMove(move: MoveId) {
     if (bribe && S.credits >= cost) {
       S.credits -= cost;
       C.log.push(`You transfer ${cost}cr. The hostile flight peels away, satisfied.`);
-      C.phase = "over"; C.result = "fled"; drawCombat(); return;
+      C.phase = "over"; C.result = "fled"; combatView.render(); return;
     }
     C.log.push(bribe ? "Not enough credits. They laugh on an open channel." : "No one answers the money channel.");
     enemyTurn(false);
@@ -405,7 +317,7 @@ function chooseMove(move: MoveId) {
     }
     if (rand() < 0.85) {
       C.log.push("You blow the hold latches — three units of cargo tumble out, glittering. The hostiles break formation for the loot, and you burn hard the other way.");
-      C.phase = "over"; C.result = "fled"; drawCombat(); return;
+      C.phase = "over"; C.result = "fled"; combatView.render(); return;
     }
     C.log.push("They don't even slow down for it — professionals. The cargo spins away, wasted.");
     enemyTurn(false);
@@ -419,7 +331,7 @@ function chooseMove(move: MoveId) {
     if (gi.kind === "parley") {
       if (rand() < 0.65) {
         C.log.push("Rook takes the channel and says four names, a dock number, and a date. Long silence. Then: \"...tell Knife-Eight we're square.\" The hostiles stand down and burn away.");
-        C.phase = "over"; C.result = "fled"; drawCombat(); return;
+        C.phase = "over"; C.result = "fled"; combatView.render(); return;
       }
       C.log.push("Whoever's flying today doesn't owe Rook anything. The answer comes back as guns.");
       enemyTurn(false); finishRound(); return;
@@ -436,7 +348,7 @@ function chooseMove(move: MoveId) {
         C.log.push(`${t.name} breaks apart and spins out of formation.`);
         if (!aliveTargets().length) {
           C.log.push("The scope clears. Nothing hostile remains.");
-          C.phase = "over"; C.result = "win"; bark("combat_win", { chance: 0.7 }); drawCombat(); return;
+          C.phase = "over"; C.result = "win"; bark("combat_win", { chance: 0.7 }); combatView.render(); return;
         }
       }
       enemyTurn(false); finishRound(); return;
@@ -451,7 +363,7 @@ function chooseMove(move: MoveId) {
   }
   C.targetId = aliveTargets()[0]?.id ?? null;
   C.phase = "target";
-  drawCombat();
+  combatView.render();
 }
 
 function releaseShot(now: number) {
@@ -466,7 +378,7 @@ function releaseShot(now: number) {
   if (C.move === "laser") base *= 1.05;
   const dmg = Math.max(1, Math.round(base * (0.3 + score * 1.15)));
   sfx.weaponFire(C.move as 'laser' | 'torpedo' | 'ion');
-  pendingFX.push({ kind: "shot", x: target.x, y: target.y, score,
+  combatView.fx({ kind: "shot", x: target.x, y: target.y, score,
     color: C.move === "ion" ? "#5aa7ff" : C.move === "torpedo" ? "#e8843b" : "#ffd66b" });
   target.hull -= dmg;
   const grade = score > 0.88 ? "perfect lock" : score > 0.62 ? "solid hit" : score > 0.32 ? "glancing hit" : "wild shot";
@@ -481,7 +393,7 @@ function releaseShot(now: number) {
   if (!aliveTargets().length) {
     C.log.push("The scope clears. Nothing hostile remains.");
     if (C.targets[0].maxhull >= 60) shift("daring", 2, "beat a heavy warship");
-    C.phase = "over"; C.result = "win"; bark("combat_win", { chance: 0.7 }); drawCombat(); return;
+    C.phase = "over"; C.result = "win"; bark("combat_win", { chance: 0.7 }); combatView.render(); return;
   }
   enemyTurn(false);
   finishRound();
@@ -520,7 +432,7 @@ function enemyTurn(evasive: boolean) {
   if (total <= 0) return;
   S.hull -= total;
   sfx.hullHit();
-  for (const e of aliveTargets()) pendingFX.push({ kind: "return", x: e.x, y: e.y, color: "#ff5d4d" });
+  for (const e of aliveTargets()) combatView.fx({ kind: "return", x: e.x, y: e.y, color: "#ff5d4d" });
   C.log.push(`Hostiles rake the hull for ${total} damage${evasive ? " through evasive maneuvers" : ""}.`);
   if (S.hull <= 0) {
     C.log.push("Alarms. Fire. Silence.");
@@ -537,7 +449,7 @@ function finishRound() {
   C.phase = C.result ? "over" : "command";
   C.move = null;
   C.targetId = null;
-  drawCombat();
+  combatView.render();
 }
 
 function fleeOdds() {
@@ -580,8 +492,7 @@ export function endCombat() {
   const r = C.result;
   const onWin = C.onWin, onEscape = C.onEscape;
   C = null;
-  teardownCombatAvatar();
-  clearModal();
+  combatView.teardown();
   if (r === "dead") { gameOver("Your ship broke apart under enemy fire. The black keeps what it takes."); return; }
   if (r === "win") {
     const gunner = S.crew.find((c) => c.role === "gunner");
