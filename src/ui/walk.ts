@@ -250,7 +250,7 @@ export function mountHTML(s: WalkScene): string {
             <span class="wk-hostiles" id="wk-hostiles"></span>
           </div>
         </div>
-        <div class="scope-foot"><span id="wk-status"></span><span>[E] interact${s.action ? " · LMB fire · [F] melee · [SPACE] roll" : ""}</span></div>
+        <div class="scope-foot"><span id="wk-status"></span><span>${s.action ? "[E]/Ⓐ interact · LMB/RT fire · [F]/Ⓧ melee · [SPACE]/Ⓑ roll" : "[E]/Ⓐ interact"}</span></div>
       </div>
     </div>
     <p class="dim" id="wk-desc" style="margin-top:8px; min-height:16px"></p>
