@@ -4,12 +4,14 @@
 // services as freestanding buildings you cross the square to reach. walk3d.ts
 // reads scene.openGround + scene.obstacles to raise the town wall and the
 // buildings, and swaps in the desert set-dressing (sand, planks, Meshy props).
-import { S } from "../state";
+import { S, log, whisper } from "../state";
 import { PLANETS, NPCS } from "../content";
 import { npcsInRoom, openNPC } from "../systems/scene";
 import { openCrewTalk } from "../systems/crewtalk";
 import { isSilenced } from "../derive";
 import { stationWalkTick } from "../systems/walkEncounters";
+import { modal, closeModal } from "../modal";
+import { requestRender } from "../bus";
 import * as sfx from "../audio";
 import { boardShip, departureBoard, stationEnter } from "./stationwalk";
 import { shipHatch } from "./walk";
@@ -143,6 +145,34 @@ export function buildDesertTownScene(): WalkScene {
   const roomDesc: Record<string, string> = {};
   for (const r of rooms) roomDesc[r.id] = (dark ? DARK_DESC[r.id] : ROOM_DESC[r.id]) || "";
 
+  // When the town's gone dark (the Silence), the pad isn't empty — salvage
+  // drones have moved in. A small, self-contained battle zone: clear the
+  // square, strip the wrecks, fall back aboard. Once cleared this session the
+  // dark town is just quiet. (Phase A of docs/COMBAT_ZONES.md.)
+  const padCleared = !!S.flags.dustwell_pad_cleared;
+  const combat = (dark && !padCleared) ? {
+    vitality: 100,
+    enemies: [
+      { x: 300, y: 300, kind: "drone", hp: 5 },
+      { x: 640, y: 300, kind: "drone", hp: 5 },
+      { x: 470, y: 520, kind: "drone", hp: 6 },
+    ],
+    onClear: () => {
+      if (S.flags.dustwell_pad_cleared) return;
+      S.flags.dustwell_pad_cleared = true;
+      const bounty = 150;
+      S.credits += bounty;
+      log(`The pad falls quiet. You strip the downed drones for parts and salvage (+${bounty}cr).`);
+      whisper("Whatever sent them, it isn't here now. Best not to wait and find out.");
+      requestRender();
+    },
+    onDowned: () => {
+      modal(`<h2>⚠ Overwhelmed</h2>
+        <p>Too many, too close. A hit rings your helmet and the square tilts — you break for the ship on instinct, the hatch slamming behind you. You'll carry the bruises off this rock.</p>
+        <div class="choices"><button class="primary" onclick="wkRetreat()">Fall back aboard</button></div>`);
+    },
+  } : undefined;
+
   const p = PLANETS[S.loc];
   return {
     id: "station:" + S.loc,
@@ -152,6 +182,7 @@ export function buildDesertTownScene(): WalkScene {
     floors, rooms, roomDesc, doors, actors, obstacles, ship: SHIP,
     spawn: { x: 470, y: 380 }, // the middle of the square
     dark,
+    combat,
     // Frontier ground is action mode; open-ground raises the town wall + buildings.
     action: true,
     openGround: true,
@@ -161,6 +192,10 @@ export function buildDesertTownScene(): WalkScene {
     },
   };
 }
+
+// Battle-zone retreat: bail out of a lost pad fight straight through the ship's
+// rear hatch. Registered as a global for the onDowned modal button.
+export function wkRetreat() { closeModal(); boardShip(); }
 
 // Expose the plaza + gate geometry so walk3d can raise the perimeter wall.
 export const DUSTWELL_PLAZA = PLAZA;

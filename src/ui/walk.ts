@@ -33,6 +33,17 @@ export function shipHatch(b: ShipBerth): { x: number; y: number } {
     default: return { x: b.x - m, y: cy };            // nose east  → hatch west
   }
 }
+// Foot combat (Phase A): a self-contained battle zone declared as scene data.
+// One spawn = one hostile placed at (x,y). The sim owns the live fight state
+// (hp, projectiles, the player's vitality) at module scope — see below — so an
+// interleaved render() rebuilding this scene object never resets a fight.
+export interface WalkCombatSpawn { x: number; y: number; kind?: string; hp?: number; }
+export interface WalkCombat {
+  vitality?: number;          // player's on-foot health pool for the zone (default 100)
+  enemies: WalkCombatSpawn[];
+  onClear?: () => void;       // fired once when the last hostile drops
+  onDowned?: () => void;      // fired once when vitality hits zero
+}
 export interface WalkScene {
   id: string;                 // unique per context — changing it remounts at spawn
   title: string;
@@ -58,6 +69,10 @@ export interface WalkScene {
   // buildings) vs. the default warren of rooms + corridors. Drives walk3d's
   // town-wall / building rendering. Planet towns set this; stations don't.
   openGround?: boolean;
+  // A self-contained battle zone: hostiles spawn on entry, the exits stay open
+  // (Phase A — gating comes later), and clearing them fires onClear. Requires
+  // action mode for the aim/fire/roll kit.
+  combat?: WalkCombat;
   onTick?: (moving: boolean, dt: number, roomId: string | null) => void;
 }
 
@@ -100,6 +115,16 @@ let aim={x:0,y:1}, rollDir={x:0,y:1};
 let rollTime=0, rollCooldown=0, fireCooldown=0;
 let projectiles:Array<{x:number;y:number;vx:number;vy:number;life:number}>=[];
 let dummy:{x:number;y:number;hp:number;hit:number}|null=null;
+// ---- foot combat: enemies that chase + shoot, a player vitality pool, and
+// clear/downed resolution. Driven by scene.combat; all live state is here (not
+// on the scene object) so re-render never resets a fight, exactly like `dummy`.
+interface FootEnemy { x:number; y:number; hp:number; maxhp:number; hit:number; fireCd:number; touchCd:number; kind:string; }
+const COMBAT = { enemySpeed:150, standoff:150, range:340, fireGap:1.6, shotSpeed:300, shotDmg:9, touchDmg:7, touchGap:.8, hitInvuln:.5, shotLife:2.2 };
+let enemies:FootEnemy[]=[];
+let foeShots:Array<{x:number;y:number;vx:number;vy:number;life:number}>=[];
+let vitality=0, vitalityMax=0, playerHit=0, playerInvuln=0;
+let combatActive=false, combatResolved=false;
+let onClear:(()=>void)|null=null, onDowned:(()=>void)|null=null;
 type Walk3D = typeof import("./walk3d");
 let walk3d: Walk3D | null = null;
 let walk3dLoading: Promise<Walk3D> | null = null;
@@ -161,6 +186,11 @@ export function mountHTML(s: WalkScene): string {
         <div class="scope-head"><span>◄ FREE MOVEMENT ▬ WASD / ARROWS ►</span><span class="sh-r" id="wk-room"></span></div>
         <div class="walk-viewport" id="walk-viewport" style="aspect-ratio:${s.width}/${s.height}">
           <div class="walk-prompt" id="wk-prompt"></div>
+          <div class="wk-combat" id="wk-combat" style="display:none">
+            <span class="wk-vit-label">VITALITY</span>
+            <div class="wk-vit-bar"><i id="wk-vit-fill"></i></div>
+            <span class="wk-hostiles" id="wk-hostiles"></span>
+          </div>
         </div>
         <div class="scope-foot"><span id="wk-status"></span><span>[E] interact${s.action ? " · [SPACE] roll" : ""}</span></div>
       </div>
@@ -192,11 +222,25 @@ export function start(s: WalkScene) {
   viewport = document.getElementById("walk-viewport");
   bindListeners();
   mountWalk3d(s);
-  projectiles=[]; rollTime=rollCooldown=fireCooldown=0;
-  // Practice target only in HOSTILE action scenes (silenced/dark) — a friendly
-  // frontier town like Dustwell is action-mode for movement feel, but a red
-  // TARGET dummy on its landing pad reads as a bug, not a town.
-  if (s.action && s.dark) {
+  projectiles=[]; foeShots=[]; rollTime=rollCooldown=fireCooldown=0;
+  enemies=[]; combatActive=false; combatResolved=false; onClear=onDowned=null;
+  vitality=vitalityMax=0; playerHit=playerInvuln=0;
+  if (s.combat) {
+    // A real battle zone: spawn the roster, seed the vitality pool, stagger the
+    // opening volley so three drones don't fire on the same frame.
+    vitalityMax = s.combat.vitality ?? 100; vitality = vitalityMax;
+    enemies = s.combat.enemies.map((e, i) => {
+      const dp = nearestLegal(e.x, e.y) || { x: e.x, y: e.y };
+      const hp = e.hp ?? 5;
+      return { x: dp.x, y: dp.y, hp, maxhp: hp, hit: 0, fireCd: .8 + i * .45, touchCd: 0, kind: e.kind ?? "drone" };
+    });
+    onClear = s.combat.onClear ?? null; onDowned = s.combat.onDowned ?? null;
+    combatActive = enemies.length > 0;
+    dummy = null;
+  } else if (s.action && s.dark) {
+    // Practice target only in HOSTILE action scenes (silenced/dark) — a friendly
+    // frontier town like Dustwell is action-mode for movement feel, but a red
+    // TARGET dummy on its landing pad reads as a bug, not a town.
     const dp=nearestLegal(pos.x+150,pos.y)||nearestLegal(pos.x,pos.y-150);
     dummy=dp?{...dp,hp:5,hit:0}:null;
   } else dummy=null;
@@ -377,7 +421,7 @@ export function debugRenderCount() { return renderCount; }
 function drawFrame() {
   if (!scene) return;
   renderCount++;
-  walk3d?.render({ pos, facing, moving, phase: walkPhase, nearDoor, nearActor, time: last, aim, rolling: rollTime > 0, rollCooldown, projectiles, dummy, highlightKey });
+  walk3d?.render({ pos, facing, moving, phase: walkPhase, nearDoor, nearActor, time: last, aim, rolling: rollTime > 0, rollCooldown, projectiles, dummy, highlightKey, enemies, foeShots, playerHit });
   updateHud();
 }
 
@@ -467,8 +511,9 @@ function simulate(dt: number) {
       else if (vy !== 0) facing = vy > 0 ? "down" : "up";
       walkPhase += dt * 9;
     }
-    for(const p of projectiles){p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;if(!insideFloors(p.x,p.y))p.life=0;if(dummy&&dummy.hp>0&&Math.hypot(p.x-dummy.x,p.y-dummy.y)<22){dummy.hp--;dummy.hit=.12;p.life=0;}}
+    for(const p of projectiles){p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;if(!insideFloors(p.x,p.y))p.life=0;if(dummy&&dummy.hp>0&&Math.hypot(p.x-dummy.x,p.y-dummy.y)<22){dummy.hp--;dummy.hit=.12;p.life=0;}for(const e of enemies){if(e.hp>0&&Math.hypot(p.x-e.x,p.y-e.y)<20){e.hp--;e.hit=.12;p.life=0;break;}}}
     projectiles=projectiles.filter(p=>p.life>0);
+    if (combatActive || enemies.length) updateCombat(dt);
     nearDoor = null;
     let bestD = 46;
     for (const d of scene.doors) { const dd = rectDist(pos.x, pos.y, d); if (dd < bestD) { bestD = dd; nearDoor = d; } }
@@ -481,6 +526,55 @@ function simulate(dt: number) {
   }
 }
 
+// Enemy AI + resolution, stepped inside simulate()'s no-modal branch so a fight
+// pauses under the win/lose modal. Enemies chase to a standoff ring, strafe, and
+// lob shots; the player takes damage from shots and contact unless rolling or
+// briefly invulnerable after a hit.
+function updateCombat(dt: number) {
+  if (playerHit > 0) playerHit -= dt;
+  if (playerInvuln > 0) playerInvuln -= dt;
+  const invuln = rollTime > 0 || playerInvuln > 0;
+  for (const e of enemies) {
+    if (e.hit > 0) e.hit -= dt;
+    if (e.touchCd > 0) e.touchCd -= dt;
+    if (e.hp <= 0) continue;
+    const dx = pos.x - e.x, dy = pos.y - e.y, d = Math.hypot(dx, dy) || 1;
+    if (d > COMBAT.standoff) {
+      const nx = e.x + dx / d * COMBAT.enemySpeed * dt, ny = e.y + dy / d * COMBAT.enemySpeed * dt;
+      e.x = creepAxis(e.x, nx, (v) => insideFloors(v, e.y));
+      e.y = creepAxis(e.y, ny, (v) => insideFloors(e.x, v));
+    } else {
+      // Orbit the player at the standoff ring so they don't stack on one point.
+      const sx = -dy / d, sy = dx / d, dir = Math.sin(last * .001 + e.x * .01) >= 0 ? 1 : -1;
+      const nx = e.x + sx * dir * COMBAT.enemySpeed * .5 * dt, ny = e.y + sy * dir * COMBAT.enemySpeed * .5 * dt;
+      e.x = creepAxis(e.x, nx, (v) => insideFloors(v, e.y));
+      e.y = creepAxis(e.y, ny, (v) => insideFloors(e.x, v));
+    }
+    e.fireCd -= dt;
+    if (e.fireCd <= 0 && d < COMBAT.range) {
+      e.fireCd = COMBAT.fireGap;
+      foeShots.push({ x: e.x + dx / d * 16, y: e.y + dy / d * 16, vx: dx / d * COMBAT.shotSpeed, vy: dy / d * COMBAT.shotSpeed, life: COMBAT.shotLife });
+    }
+    if (d < 24 && e.touchCd <= 0) { e.touchCd = COMBAT.touchGap; if (!invuln) hurtPlayer(COMBAT.touchDmg); }
+  }
+  for (const s of foeShots) {
+    s.x += s.vx * dt; s.y += s.vy * dt; s.life -= dt;
+    if (!insideFloors(s.x, s.y)) s.life = 0;
+    if (s.life > 0 && Math.hypot(s.x - pos.x, s.y - pos.y) < 15) { s.life = 0; if (!invuln) hurtPlayer(COMBAT.shotDmg); }
+  }
+  foeShots = foeShots.filter((s) => s.life > 0);
+  if (combatActive && !combatResolved) {
+    if (vitality <= 0) { combatResolved = true; combatActive = false; onDowned?.(); }
+    else if (enemies.every((e) => e.hp <= 0)) { combatResolved = true; combatActive = false; onClear?.(); }
+  }
+}
+function hurtPlayer(n: number) { vitality = Math.max(0, vitality - n); playerHit = .18; playerInvuln = COMBAT.hitInvuln; }
+
+// Debug-only (window.__walkCombat / __walkFireAt): read fight state and drive a
+// shot toward a world point, so the headless playtest can clear a zone.
+export function debugCombat() { return { active: combatActive, resolved: combatResolved, vitality, vitalityMax, enemies: enemies.map((e) => ({ x: Math.round(e.x), y: Math.round(e.y), hp: e.hp })) }; }
+export function debugFireAt(x: number, y: number) { setAim(x, y); fireCooldown = 0; fire(); }
+
 function updateHud() {
   if (!scene) return;
   const r = roomAt(pos.x, pos.y);
@@ -490,6 +584,21 @@ function updateHud() {
   if (statusEl) statusEl.textContent = inAction()
     ? `${scene.status} · ROLL ${rollCooldown<=0?"READY":rollCooldown.toFixed(1)+"s"} · LMB FIRE`
     : scene.status;
+  const combatEl = document.getElementById("wk-combat");
+  if (combatEl) {
+    if (combatActive || (vitalityMax > 0 && vitality < vitalityMax)) {
+      combatEl.style.display = "";
+      const fill = document.getElementById("wk-vit-fill");
+      if (fill) {
+        const pct = Math.max(0, Math.round(vitality / vitalityMax * 100));
+        fill.style.width = pct + "%";
+        fill.classList.toggle("low", pct <= 30);
+      }
+      const host = document.getElementById("wk-hostiles");
+      const n = enemies.filter((e) => e.hp > 0).length;
+      if (host) host.textContent = combatActive ? `HOSTILES ${n}` : "PAD CLEAR";
+    } else combatEl.style.display = "none";
+  }
   const descEl = document.getElementById("wk-desc");
   if (descEl) {
     const d = (r && scene.roomDesc && scene.roomDesc[r.id]) || "";

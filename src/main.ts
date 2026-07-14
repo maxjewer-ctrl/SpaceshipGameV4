@@ -43,7 +43,8 @@ import {
   silDescend, silBearing, silAnswer, silStill, silSell,
   silBoardReturned, silScanReturned, silLearnNumbers, silLearnReturned,
 } from "./systems/silence";
-import { pressStart, pressEnd, interact, debugStep, debugPos, debugGoto, debugActors, debugWalkTo, debugRooms, debugRenderCount, walkInsideFloors } from "./ui/walk";
+import { pressStart, pressEnd, interact, debugStep, debugPos, debugGoto, debugActors, debugWalkTo, debugRooms, debugRenderCount, walkInsideFloors, debugCombat, debugFireAt } from "./ui/walk";
+import { wkRetreat } from "./ui/planetwalk";
 import { crewTalk, crewHighlight, wkInspect, walkDeck, sitChair } from "./ui/shipwalk";
 import { wkPay, wkTalk, wkFight } from "./systems/walkEncounters";
 import { ctVibe, ctAbout, ctShip, ctQuest, ctWorld, ctClose, ctQuestHelp, ctQuestSkip } from "./systems/crewtalk";
@@ -109,7 +110,7 @@ Object.assign(window as any, {
   silBoardReturned, silScanReturned, silLearnNumbers, silLearnReturned,
   // free-roam walking: D-pad/keyboard fallback buttons, crew chat, foot encounters
   walkPressStart: pressStart, walkPressEnd: pressEnd, walkInteract: interact,
-  crewTalk, crewHighlight, wkInspect, walkDeck, sitChair, wkPay, wkTalk, wkFight,
+  crewTalk, crewHighlight, wkInspect, walkDeck, sitChair, wkPay, wkTalk, wkFight, wkRetreat,
   // crew dialogue — trust-gated topics, personal quests
   ctVibe, ctAbout, ctShip, ctQuest, ctWorld, ctClose, ctQuestHelp, ctQuestSkip,
   // damage control — crew-gap minigames (no mechanic/pilot/med bay aboard)
@@ -132,7 +133,19 @@ Object.assign(window as any, {
   __walkRenders: debugRenderCount,
   __walkGoto: debugGoto,
   __walkTo: debugWalkTo,
+  __walkCombat: debugCombat,
+  __walkFireAt: debugFireAt,
   __scenario: loadScenario,
+  // dev/debug: drop into the Dustwell dark-pad battle zone (Phase A combat slice)
+  __combatTest: () => {
+    const s = State.S;
+    s.loc = "dustwell"; s.docked = true; s.travel = null;
+    if (s.campaign && !s.campaign.silence.silenced.includes("dustwell")) s.campaign.silence.silenced.push("dustwell");
+    delete s.flags.dustwell_pad_cleared;
+    s.screen = "stationwalk";
+    requestRender();
+    return "Dropped into dark Dustwell. Clear the pad.";
+  },
   // dev/debug: force a specific travel event (playtesting encounters on demand)
   __event: (k: string) => {
     const evs: Record<string, () => void> = {
