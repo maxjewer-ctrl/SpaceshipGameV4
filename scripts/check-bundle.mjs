@@ -4,8 +4,12 @@
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { gzipSync } from "node:zlib";
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const DIST = new URL("../dist/assets", import.meta.url).pathname;
+// fileURLToPath, not .pathname: on Windows the latter yields "/C:/a%20b/..." --
+// slash-prefixed and percent-encoded -- so any checkout under a path with a
+// space in it (e.g. "GitHub Repositories") failed with ENOENT.
+const DIST = fileURLToPath(new URL("../dist/assets", import.meta.url));
 const BUDGET_KB = 1500;
 
 let total = 0;

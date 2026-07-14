@@ -15,7 +15,7 @@ import { wearTier } from "../systems/wear";
 import type { WalkActor, WalkDoor, WalkScene, ShipBerth } from "./walk";
 import { spawnProp } from "./props3d";
 import { buildCharacter, poseCharacter, type CharacterRig } from "./character3d";
-import { createPlayerModel, disposePlayerModel, type PlayerModel } from "./playerModel3d";
+import { createPlayerModel, disposePlayerModel, MODEL_HEIGHT, type PlayerModel } from "./playerModel3d";
 import bulkheadWallUrl from "../assets/ship/bulkhead-wall.webp";
 import corridorWallUrl from "../assets/ship/corridor-wall.webp";
 import corridorFloorUrl from "../assets/ship/corridor-floor.webp";
@@ -58,7 +58,10 @@ let signature = "";
 let doorLabels = new Map<WalkDoor, THREE.Sprite>();
 let actorLabels = new Map<WalkActor, THREE.Sprite>();
 const LABEL_DIM = 0.32;
-const WALK_PLAYER_HEIGHT = 0.72;
+// Match the crew (fitCrewModel's 1.28 default) -- the captain was half their
+// height, and the combat FX already assume an adult: muzzle flashes and tracers
+// are drawn around y=.5, which sat above a 0.72 captain's head.
+const WALK_PLAYER_HEIGHT = 1.28;
 
 // One-pass CRT finish: subtle chromatic aberration, curved-tube scanlines, and
 // a radial vignette. Runs after UnrealBloom in the composer chain, before
@@ -150,14 +153,6 @@ const CAM_FOV = 62;
 
 const wx = (x: number) => (x - (current?.width || 0) / 2) * SCALE;
 const wz = (y: number) => (y - (current?.height || 0) / 2) * SCALE;
-
-function groundCaptainModel() {
-  if (!captainModel) return;
-  const box = new THREE.Box3().setFromObject(captainModel.group);
-  if (!Number.isFinite(box.min.y)) return;
-  const parentScale = avatar.scale.y || 1;
-  captainModel.group.position.y -= box.min.y / parentScale;
-}
 
 // Civilian wardrobe + skin tones for actors without an explicit roster colour.
 const WARDROBE = ["#3a4a63", "#4f3a55", "#54402e", "#2f5240", "#5a3333", "#39505c", "#4a4436", "#333a52"];
@@ -765,10 +760,10 @@ export function render(v:{pos:{x:number;y:number};facing:string;moving:boolean;p
       captainModelPending=null;
       if(token!==captainModelToken||!avatar.parent){disposePlayerModel(model);return model;}
       captainModel=model;
-      model.group.scale.setScalar(WALK_PLAYER_HEIGHT / 1.5);
-      groundCaptainModel();
+      // createPlayerModel hands back a MODEL_HEIGHT-tall rig standing on its own
+      // origin, so scaling the group is enough -- avatar sits on the deck at y=0.
+      model.group.scale.setScalar(WALK_PLAYER_HEIGHT / MODEL_HEIGHT);
       avatar.add(model.group);
-      groundCaptainModel();
       return model;
     });
   }
@@ -777,7 +772,6 @@ export function render(v:{pos:{x:number;y:number};facing:string;moving:boolean;p
     lastCaptainModelTime=v.time;
     if(captainModel.walk) captainModel.walk.timeScale=v.moving?1:0;
     captainModel.mixer?.update(dt);
-    groundCaptainModel();
   }
   for(const a of current.actors){const r=actorRigs.get(a.key);if(r)poseCharacter(r,{t:v.time+(a.x*131)%997});}
   avatar.rotation.z=v.rolling?-.45:0;avatar.scale.setScalar(v.rolling?.82:1);
