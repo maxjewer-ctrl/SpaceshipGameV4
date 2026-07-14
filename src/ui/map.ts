@@ -70,6 +70,16 @@ export function mapHTML(): string {
       ${isSource ? `<text x="${p.x}" y="${p.y - 24}" fill="#a86bd9" font-size="11" text-anchor="middle" font-family="monospace">◇ THE SILENCE</text>` : ""}
     </g>`;
   }
+  // Charted points of interest — the player's own marks, the map-as-diary.
+  // Rendered under the ship/course so a live transit never hides behind them.
+  for (const poi of S.poi) {
+    const glyph = poi.kind === "seam" ? "◆" : poi.kind === "derelict" ? "✶" : "◇";
+    const col = poi.kind === "seam" ? "#6fbf73" : poi.kind === "derelict" ? "#d9a55b" : "#8fa0c4";
+    svg += `<g class="poi-mark">
+      <text x="${poi.x}" y="${poi.y + 4}" text-anchor="middle" font-size="12" fill="${col}" opacity="0.85">${glyph}</text>
+      <text x="${poi.x}" y="${poi.y - 8}" text-anchor="middle" font-family="monospace" font-size="7" fill="${col}" opacity="0.6" letter-spacing="0.3">${poi.name.toUpperCase()}</text>
+    </g>`;
+  }
   if (S.travel) {
     const A = PLANETS[S.travel.from], B = PLANETS[S.travel.dest];
     const t = 1 - S.travel.left / S.travel.total;

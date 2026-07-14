@@ -81,6 +81,19 @@ export interface Job {
   arcCrate?: boolean; arcVoss?: boolean;
   // On completion, sets flags["job_<tag>"] — how campaign missions report back.
   tag?: string;
+  // Survey/charting contract (kind:"survey"): a coordinate to take readings at,
+  // reached en route to `dest` (the deliverable port). `surveyed` flips true the
+  // moment the find-scene fires mid-journey; the charting fee pays on docking.
+  sx?: number; sy?: number; surveyed?: boolean;
+}
+
+// A charted point of interest — the player's own mark on the sector map. Found
+// by running a survey contract; persists forever, turning the chart into a
+// diary. A "seam" pays passive royalties each time you make port.
+export interface PoiMark {
+  id: number; x: number; y: number;
+  kind: "seam" | "derelict" | "beacon";
+  name: string; day: number; note?: string;
 }
 
 export interface Market {
@@ -190,6 +203,9 @@ export interface GameState {
   // Clamped -10..10. Absent key = neutral (0).
   portStanding: Record<string, number>;
   campaign: CampaignState;
+  // Charted points of interest — the player's marks, discovered via survey
+  // contracts. The map reads this to render the "diary"; seams pay royalties.
+  poi: PoiMark[];
   starve: number; unpaid: number; uid: number;
   over: boolean; won: boolean; dead: boolean;
 }

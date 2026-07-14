@@ -24,6 +24,7 @@ import { checkJunoArc } from "./junodialogue";
 import { bumpStanding } from "./port";
 import { accrueWear } from "./wear";
 import { rankBoost, markVeteranEvent } from "./veterancy";
+import { checkSurvey, seamRoyalties } from "./survey";
 import type { Job } from "../types";
 
 export function depart(destId: string) {
@@ -67,6 +68,9 @@ export function advanceDay() {
     requestRender();
     return;
   }
+  // A charting contract riding this journey takes its readings at the midpoint —
+  // a planted payoff the player chose, so it outranks a random lane event.
+  if (checkSurvey()) { S.travel.evd = true; requestRender(); return; }
   // Planted consequences take priority over fresh random noise.
   if (checkScheduler()) { S.travel.evd = true; requestRender(); return; }
   // No dead legs: if a hop has been pure silence, its last full day always
@@ -225,11 +229,22 @@ export function arrive() {
   }
   for (const j of arrivals) {
     if (j.kind === "bounty") continue;
+    // A charting contract only pays if you actually took the readings en route.
+    // Arriving with an un-surveyed one (you routed around the coordinate) voids
+    // the charting fee — the Circle pays for data, not for showing up.
+    if (j.kind === "survey" && !j.surveyed) {
+      S.jobs = S.jobs.filter((x) => x.id !== j.id);
+      S.prestige = Math.max(0, S.prestige - 1);
+      log(`Charting contract "${j.title}" voided — you never took the readings. The Circle doesn't pay for an empty logbook (−1 prestige).`);
+      continue;
+    }
     S.jobs = S.jobs.filter((x) => x.id !== j.id);
     completePay(j);
     if (j.arcCrate) arcVergeScene();
     if (j.arcVoss) arcHavensScene();
   }
+  // Staked seams pay their trickle every time you make port.
+  seamRoyalties();
   refreshMarket();
   // campaign beats own the arrival if one is due (the prologue's docking,
   // dark stations, the source)

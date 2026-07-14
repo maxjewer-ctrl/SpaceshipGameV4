@@ -245,9 +245,11 @@ CORE_LOOP.md's build order, finished — this is the beta's gameplay heart:
 **Progress (2026-07-14):** port standing + consequence set-dressing, module
 wear + the refit loop, and Mk-I/II/III quality tiers all landed ahead of
 this phase (CORE_LOOP.md build-order items 1, 2, 2b — done before Phase A
-even closed). **Veterancy ranks shipped this pass** (build-order item 3,
-below). Scars are deliberately split off as separate follow-up. Still open:
-survey/charting contracts, loyalty missions, station moods.
+even closed). **Veterancy ranks and survey/charting contracts shipped this
+pass** (build-order items 3 and 4, below). Scars (half of item 3) and the
+past-Verge deep band (a region, distinct from the survey *contracts*) are
+deliberately split off as separate follow-up. Still open: loyalty missions,
+station moods.
 
 - **Mk-I/II/III quality tiers** per module; yard inventories always hold
   something worth wanting. ✅ Shipped (`systems/modtier.ts`, ahead of this
@@ -263,9 +265,15 @@ survey/charting contracts, loyalty missions, station moods.
   learned traits** (`steady_under_fire`, `flinches_at_static` gating barks
   and mechanics) remain open — a distinct event-triggered mechanism, not a
   rank curve, scoped out of this pass on purpose.
-- **Survey/charting contracts + POI map marks:** the map becomes a diary;
-  the deep band past Verge becomes a place (fuel/hull-gated, portless). Still
-  open — next up per CORE_LOOP.md's build order.
+- **Survey/charting contracts + POI map marks:** ✅ Shipped
+  (`systems/survey.ts`). Charting contracts on the job board name a coordinate
+  out between worlds; you pass it mid-journey and take your readings (seam /
+  derelict / dead beacon), and the coordinate becomes a permanent named mark
+  on the chart (`S.poi`, persisted, v12 migration) — the map-as-diary. Built
+  as a scripted find-scene injected into ordinary port-to-port travel, so
+  `S.loc` stays a real port and no engine invariant moved. **The deep band**
+  (past-Verge soft-gated *region*, fuel/hull-gated, portless) is the deferred
+  half — it wants true non-port traversal, a separate lift.
 - **Loyalty missions** and **station moods**: still open.
 - Exit gate: a tester who ignores every campaign reports wanting *something*
   at day 80.

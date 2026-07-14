@@ -6,8 +6,9 @@ import { rand, ri, pick } from "../rng";
 import { requestRender } from "../bus";
 import { bark } from "./barks";
 import { shift } from "./disposition";
-import { introOnAccept } from "./intro";
+import { introOnAccept, introActive } from "./intro";
 import { markPrice } from "./modtier";
+import { genSurveyMission } from "./survey";
 import type { Job, CrewMember, CrewBundle } from "../types";
 
 export function yardPrice(t: string, mk = 1): number {
@@ -37,6 +38,12 @@ export function refreshMarket() {
   // Foundry (heavy tows). The rest of the board stays generalist.
   const seed = genLocalMission();
   if (seed) missions.push(seed);
+  // Past the prologue, a charting contract turns up on the board now and then —
+  // the game's standing invitation to fly out past the lanes for its own sake.
+  if (!introActive() && rand() < 0.35) {
+    const survey = genSurveyMission();
+    if (survey) missions.push(survey);
+  }
   let guard = 16;
   while (missions.length < n && guard-- > 0) {
     // Occasionally a second local job, otherwise the generic pool.

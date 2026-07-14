@@ -158,7 +158,22 @@ The rule: **campaigns knock; they never enter uninvited.**
    out as separate follow-up work: they're event-triggered rather than a rank
    curve, and gate barks/mechanics through a different mechanism (extending
    `gateOk()` beyond generated `bundle.traits`). 11 new vitest cases.
-4. **Survey contracts + POI map marks** (pillar 4).
+4. ✅ **Survey contracts + POI map marks** (pillar 4) — shipped
+   (systems/survey.ts). Charting contracts appear on the job board past the
+   prologue: each names a deliverable port and a coordinate out between worlds.
+   Flying to the port, you pass the coordinate at the journey's midpoint and
+   take your readings — a mineral seam (recurring dockside royalties), a
+   derelict (a board / scan / log salvage choice), or a dead beacon (lore,
+   with a faint Silence whisper while that campaign is live — never a
+   summons). Whatever you find becomes a permanent, named mark on the sector
+   chart (`S.poi`, persisted, v12 migration), color-coded by kind — the
+   map-as-diary. **Deliberately never leaves port-to-port travel**: the survey
+   is a scripted find-scene injected mid-journey (the intro-beat / planted-
+   rider machinery), so `S.loc` stays a real port and no engine invariant
+   changes — the coordinate is only ever a mark, never a destination. The
+   charting fee pays on delivery; skipping the readings voids it. 11 new
+   vitest cases. The deep-band (past-Verge soft-gated *region*) from pillar 4
+   is deferred: it wants true non-port traversal, a separate lift.
 5. **Loyalty missions** (pillar 2, biggest content lift, best payoff).
 6. **Station moods** (pillar 3, after standing works).
 

@@ -67,6 +67,10 @@ import {
   abMiriEnd, abMiriKeep,
 } from "./systems/agendabeats";
 import { imogenTreatUnion, imogenTreatSyndicate, imogenDecline } from "./systems/imogenquest";
+import {
+  surveyBoard, surveyScan, surveyLogGo,
+  surveyStake, surveyLogSeam, surveyDecode, surveyLogBeacon,
+} from "./systems/survey";
 
 const ACTIONS: Record<string, (...args: any[]) => void> = {
   // navigation & screens
@@ -123,6 +127,9 @@ const ACTIONS: Record<string, (...args: any[]) => void> = {
   abMiriEnd, abMiriKeep,
   // Dr. Imogen Hale — bonded-trust quest (her illness, kept secret until earned)
   imogenTreatUnion, imogenTreatSyndicate, imogenDecline,
+  // survey / charting contracts — the find-scene out at the coordinate
+  surveyBoard, surveyScan, surveyLogGo,
+  surveyStake, surveyLogSeam, surveyDecode, surveyLogBeacon,
 };
 
 export function dispatch(action: string, args: unknown[] = []) {
