@@ -19,6 +19,7 @@ import * as walk from "../src/ui/walk";
 import type { WalkScene, WalkCombat } from "../src/ui/walk";
 import { startZone, buildZoneScene, zoneActive } from "../src/ui/zonewalk";
 import { generateRun } from "../src/systems/zonegen";
+import { derelictBoard } from "../src/systems/events";
 import { S } from "../src/state";
 
 function arena(combat: WalkCombat): WalkScene {
@@ -186,5 +187,40 @@ describe("seeded zone generator (Phase C)", () => {
     const run = generateRun("does-not-exist", 3);
     expect(run.chambers.length).toBe(3);
     expect(run.title.length).toBeGreaterThan(0);
+  });
+});
+
+// Fully clear the current chamber and take its first open exit, mimicking the
+// render → clear → pick loop the game runs. Returns when the run resolves.
+function runIncursionToExtract() {
+  let lastId = "", guard = 0;
+  while (zoneActive() && guard++ < 20) {
+    let scene = buildZoneScene();
+    if (scene.id !== lastId) { walk.start(scene); lastId = scene.id; }
+    if (walk.debugCombat().active) clearChamber();
+    scene = buildZoneScene();
+    const open = scene.doors.filter((d) => !d.locked);
+    if (!open.length) break;
+    open[0].action();
+  }
+}
+
+describe("world integration: derelict boarding (Phase E)", () => {
+  beforeEach(() => { loadScenario("trader"); walk.teardown(); });
+
+  it("boards a derelict into an incursion and returns to transit with the payout", () => {
+    S.screen = "travel";
+    const cr0 = S.credits, prestige0 = S.prestige;
+
+    derelictBoard("raid");                 // the modal's "board" button
+    expect(zoneActive()).toBe(true);
+    expect(S.screen).toBe("zone");
+
+    runIncursionToExtract();
+
+    expect(zoneActive()).toBe(false);
+    expect(S.screen).toBe("travel");       // dropped back into the flight
+    expect(S.credits).toBeGreaterThan(cr0); // zone salvage banked
+    expect(S.prestige).toBe(prestige0 + 1); // derelict onExit consequence
   });
 });

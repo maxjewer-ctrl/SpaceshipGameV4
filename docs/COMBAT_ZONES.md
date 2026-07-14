@@ -154,11 +154,17 @@ Door-reward previews, the field-boon pool, end-of-zone payout to credits/cargo/
 parts + ledger, downed/injury handling, crew perks + one gambit.
 - **Deliverable:** runs that escalate and pay out.
 
-### Phase E — World integration
-Launch zones from:
-- **ranging / survey contracts** — POIs on the star map (CORE_LOOP pillar 4);
-- **derelict boarding** — the Shared Dead wrecks (PLAN.md Phase 2 hook made
-  interactive);
+### Phase E — World integration 🚧 IN PROGRESS
+Launch zones from real play, not a debug command. Landed so far:
+- **✅ Derelict boarding** — a travel event (`evDerelict`, in the daily roll from
+  day 6) offers a boardable wreck: suit up for an on-foot incursion, strip the
+  outer hull for a small safe take, or leave it. Boarding launches a 2–3 chamber
+  run (`raid` biome, or `silence` once the Broadcast has happened) and drops you
+  back into transit with the salvage + a prestige bump. `__event('derelict')`
+  fires it on demand; verified in `test/combatzone.test.ts`.
+
+Still to wire (the other two entrances):
+- **ranging / survey contracts** — POIs on the star map (CORE_LOOP pillar 4).
 - **enemy boarding actions** — a lost ship-combat round or a scripted board →
   fight through your own corridors (`buildShipScene()` flipped hostile).
 - **Deliverable:** zones are part of the core loop, not a menu.

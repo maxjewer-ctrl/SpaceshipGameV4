@@ -30,6 +30,7 @@ import {
   pirateWin, pirateLoseFlee, pirateFlee, pirateBribe, pirateSurrender,
   patrolBribe, patrolRun, patrolSubmit,
   distressHelp, distressIgnore, traderBuy, traderSell, paxMerchantSell, adriftTow,
+  derelictBoard, derelictStrip,
 } from "./systems/events";
 import {
   arcMeet, arcAcceptCrate, arcAcceptVoss, arcStartRun,
@@ -60,7 +61,7 @@ import {
 } from "./systems/agendabeats";
 import { imogenTreatUnion, imogenTreatSyndicate, imogenDecline } from "./systems/imogenquest";
 import { loadScenario } from "./debug/scenarios";
-import { evPirates, evPatrol, evBreakdown, evMeteor, evSalvage, evDistress, evTrader, evPax } from "./systems/events";
+import { evPirates, evPatrol, evBreakdown, evMeteor, evSalvage, evDistress, evTrader, evPax, evDerelict } from "./systems/events";
 import { loadRemoteContent } from "./supabase/content";
 import { startGamepadNav } from "./systems/gamepadNav";
 
@@ -97,6 +98,7 @@ Object.assign(window as any, {
   pirateWin, pirateLoseFlee, pirateFlee, pirateBribe, pirateSurrender,
   patrolBribe, patrolRun, patrolSubmit,
   distressHelp, distressIgnore, traderBuy, traderSell, paxMerchantSell, adriftTow,
+  derelictBoard, derelictStrip,
   // story arc
   arcMeet, arcAcceptCrate, arcAcceptVoss, arcStartRun,
   ambushHandOver, ambushFight, ambushRun,
@@ -159,7 +161,7 @@ Object.assign(window as any, {
   __event: (k: string) => {
     const evs: Record<string, () => void> = {
       pirates: evPirates, patrol: evPatrol, breakdown: evBreakdown, meteor: evMeteor,
-      salvage: evSalvage, distress: evDistress, trader: evTrader, pax: evPax,
+      salvage: evSalvage, distress: evDistress, trader: evTrader, pax: evPax, derelict: evDerelict,
     };
     if (evs[k]) evs[k](); else console.log("events: " + Object.keys(evs).join(", "));
   },

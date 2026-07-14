@@ -15,6 +15,7 @@ import { shift } from "./disposition";
 import { evNumbersStation, evReturnedShip } from "./silence";
 import { dcBreakdown, dcMeteor, dcSickPassenger } from "./damagecontrol";
 import { planetVisible, isSilenced } from "../derive";
+import { startZone } from "../ui/zonewalk";
 
 // ---------- daily event roll ----------
 export function rollEvent() {
@@ -25,6 +26,10 @@ export function rollEvent() {
   add(2, evBreakdown);
   add(2, evMeteor);
   add(2, evSalvage);
+  // Derelicts you can actually board: an on-foot incursion, not a menu. Rarer
+  // than passive salvage, and only once the run has legs (past the fragile
+  // opening days). The Silence turns wrecks into something worse.
+  if (S.day >= 6) add(2, evDerelict);
   add(2, evDistress);
   add(2, evTrader);
   if (S.jobs.some((j) => j.pax)) add(3, evPax);
@@ -251,6 +256,60 @@ export function evSalvage() {
   }
   bark("salvage", { chance: 0.6 });
 }
+
+// A boardable derelict — the in-game door into an on-foot incursion
+// (docs/COMBAT_ZONES.md Phase E). Board it to fight room-by-room for salvage,
+// strip the hull for a small safe take, or leave it. Crew-gap: boarding is the
+// captain's own risk today (Phase D adds crew perks); the friction is the fight
+// itself — your vitality and the chance of getting downed — not a missing hire.
+export function evDerelict() {
+  const dark = S.campaign.silence.stage >= 1 && rand() < 0.35;
+  const biome = dark ? "silence" : "raid";
+  modal(`<h2>🛰 Derelict Contact</h2>
+    <p>${dark
+      ? "A hulk hangs dead in silenced space, running lights long out. Your scope paints movement in its corridors that isn't drift. Something's aboard — and it isn't crew."
+      : "A gutted freighter tumbles slow across your lane, hull split and cold. The kind of wreck that still has salvage worth pulling — and the kind that scavengers already claimed and never left."}</p>
+    <div class="choices">
+      <button onclick="derelictBoard('${biome}')">Suit up and board it</button>
+      <button onclick="derelictStrip()">Strip the outer hull only (safe, small)</button>
+      <button onclick="closeModal(); log('You log the wreck&#39;s drift and leave it for the next captain.')">Leave it be</button>
+    </div>`);
+}
+export function derelictBoard(biome: string) {
+  closeModal();
+  const back = S.screen === "shipwalk" ? "shipwalk" : "travel";
+  bark("salvage", { chance: 0.5 });
+  startZone({
+    biome: biome || "raid",
+    chambers: ri(2, 3),      // smallish, self-contained
+    returnScreen: back,
+    onExit: (r) => {
+      shift("daring", 1, "boarded a derelict");
+      if (r.won) {
+        S.prestige += 1;
+        log("You back out through the airlock with the hold heavier than it went in. The hulk drifts on, a little more stripped than before (+1 prestige).");
+      } else {
+        log("You pull back to your ship bruised, the wreck keeping most of its dark. Some things out here you don't get to loot twice.");
+      }
+    },
+  });
+}
+export function derelictStrip() {
+  closeModal();
+  const space = stats().cargoCap - cargoUsed();
+  if (space >= 2) {
+    const g = pick(["ore", "med", "lux"]);
+    const n = Math.min(space, ri(2, 5));
+    S.cargo[g] += n;
+    log(`You stay suited to the hull and cut loose what's reachable — ${n} ${GOODS[g].n}. You leave the inside to whatever's inside.`);
+  } else {
+    const cr = ri(40, 90);
+    S.credits += cr;
+    log(`You strip ${cr}cr of plating and antennae off the outer hull and burn away without opening her up.`);
+  }
+  bark("salvage", { chance: 0.5 });
+}
+
 export function evDistress() {
   modal(`<h2>📡 Distress Signal</h2>
     <p>A weak beacon: a mining shuttle, life support failing, three souls aboard. Helping costs time and supplies. Space is full of stories about fake beacons, too.</p>
