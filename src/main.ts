@@ -13,10 +13,17 @@ import { evPirates, evPatrol, evBreakdown, evMeteor, evSalvage, evDistress, evTr
 import { loadRemoteContent } from "./supabase/content";
 import { startGamepadNav } from "./systems/gamepadNav";
 import { dispatch, installDispatch } from "./dispatch";
+import { shutdown as shutdownAudio } from "./audio";
 
 setRender(render);
 startGamepadNav();
 installDispatch();
+
+// `pagehide` reliably fires when the game window/tab is closed (including in
+// desktop webviews). `beforeunload` is retained as a fallback for hosts that
+// do not dispatch pagehide during shutdown.
+window.addEventListener("pagehide", shutdownAudio);
+window.addEventListener("beforeunload", shutdownAudio);
 // Dev-only self-screenshot helper (window.__shot) — see src/debug/shot.ts.
 if (import.meta.env.DEV) import("./debug/shot").then((m) => m.installShot());
 

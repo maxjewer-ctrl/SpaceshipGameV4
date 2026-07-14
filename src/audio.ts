@@ -367,6 +367,33 @@ export function update(opts: { travel: boolean; hullPct: number; cautionKey: str
 // No looping alarm to cancel — kept for API compatibility.
 export function ackAlarm() { /* one-shot warning; nothing to cancel */ }
 
+// Permanently release every looping source when the game page closes. Closing
+// the context stops oscillators/noise sources that intentionally have no end
+// time, so they cannot survive after the game has gone away.
+export function shutdown() {
+  if (cockpitBeepTimer) {
+    clearTimeout(cockpitBeepTimer);
+    cockpitBeepTimer = null;
+  }
+
+  const closingContext = ctx;
+  ctx = null;
+  master?.disconnect();
+  master = null;
+  hum = null;
+  buses = null;
+  _noiseBuf = null;
+  currentRoomKind = null;
+  walkActive = false;
+  lastHullPct = 1;
+
+  // close() is asynchronous, but transitions the context to "closing"
+  // immediately, which silences all of its active sources.
+  if (closingContext && closingContext.state !== "closed") {
+    void closingContext.close().catch(() => {});
+  }
+}
+
 // ---- one-shot SFX ----
 
 export function bayDoors(opening: boolean) {
