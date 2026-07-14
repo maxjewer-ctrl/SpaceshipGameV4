@@ -133,14 +133,16 @@ combat gets *deeper* when resolution is a decision, not a reflex — and the
 whole system becomes headlessly testable.
 
 ### 3.4 The global-onclick UI surface — REPLACE
-One delegated listener + `data-action` attributes + a typed action table
-(`dispatch("buyFuel", 5)`). `main.ts` stops being a 150-export registry;
-handlers stop being globals; the playtest harness drives `dispatch` directly.
-Alongside it, a real **ModalQueue in GameState**: pending story beats,
-riders, and events become serialized queue entries — no more `hasModal()`
-guards scattered through systems, no more stale `#modal` HTML, no more
-travel-stall class of bug. This is the single highest-leverage engineering
-change in the plan.
+✅ **Dispatcher half shipped.** One delegated listener + `data-action`
+attributes + a typed action table (`dispatch("buyFuel", [5])`). `main.ts`
+stopped being a 150-export registry; handlers stopped being globals; the
+playtest harness drives `dispatch` directly.
+
+**Still open — the ModalQueue in GameState:** pending story beats, riders,
+and events become serialized queue entries — no more `hasModal()` guards
+scattered through systems, no more stale `#modal` HTML, no more travel-stall
+class of bug. This is the single highest-leverage engineering change left in
+the plan.
 
 ### 3.5 Dead surfaces — ARCHIVE
 `_v2design.html`, `legacy/game-v1.html`, the `spaceport.html` demo and
@@ -161,13 +163,13 @@ playtest gate met, committed, pushed — plus the new rule: **CI green**.
 ### Phase A — FOUNDATIONS & THE KNIFE (~2–3 weeks)
 Everything in §3, plus:
 
-**Progress (2026-07-13):** the knife has landed — action layer scoped to
+**Progress (2026-07-14):** the knife has landed — action layer scoped to
 hostile ground + fixed follow camera (§3.1); Rapier/three-pathfinding/yuka/
 quarks + the 2D walk fallback cut (§3.2); realtime aim minigame still pending
 its Phase C replacement (§3.3); dead HTML surfaces archived (§3.5); `Math.random`
 exterminated + lint-gated (§3.6). The **headless simulation harness and CI are
-in** (this section, below). Still open in Phase A: the typed dispatcher +
-ModalQueue (§3.4) and save-transient hardening + slots.
+in**, save hardening + slots shipped, and §3.4's dispatcher half is in (this
+section, below). Still open in Phase A: the ModalQueue (§3.4, second half).
 
 - **Headless simulation harness.** ✅ Shipped. `hasModal()` was always pure
   in-memory state and `requestRender()` a no-op until wired, so the systems
@@ -199,9 +201,20 @@ ModalQueue (§3.4) and save-transient hardening + slots.
   cases cover transient stripping, slot isolation, legacy migration,
   delete, dead-run non-persistence, and export/import round-trips (incl.
   migrating an imported old-version save). Harness now 28 tests.
+- **Delegated dispatcher:** ✅ Shipped (§3.4, first half). All ~150
+  window-global onclick/onpointer* handlers replaced with one delegated
+  listener (`src/dispatch.ts`) + `data-action`/`data-args` attributes + a
+  typed `dispatch(action, args)` table — `main.ts` shrinks from a 150-entry
+  registry to a thin bootstrap. Pure invocation-mechanism refactor, zero
+  gameplay behavior change; the two skill docs (playtest-kestrel,
+  see-the-game) updated to `window.dispatch(...)` so the headless-testing
+  workflow keeps working. The ModalQueue half (real runtime-ordering changes
+  across 10 gameplay systems, incl. structurally fixing the 094fc96
+  travel-stall bug class) is deliberately separate follow-up work, not
+  attempted in the same pass.
 - Exit: game plays identically — action verbs now live only in action-mode
   scenes, camera is fixed follow everywhere; CI is the new gatekeeper.
-  **Phase A now has one item left: the typed dispatcher + ModalQueue (§3.4).**
+  **Phase A now has one item left: the ModalQueue (§3.4, second half).**
 
 ### Phase B — THE LOOP THAT NEVER ENDS (~3 weeks)
 CORE_LOOP.md's build order, finished — this is the beta's gameplay heart:
