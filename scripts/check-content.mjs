@@ -130,6 +130,23 @@ for (const [k, c] of Object.entries(load("characters.json"))) {
   if (c.role && !roles.has(c.role)) err(`characters.${k}`, `unknown role '${c.role}'`);
 }
 
+// ---- 8. loyalty missions: crew key, role, dest, act-one memory hook ----
+for (const [k, m] of Object.entries(load("loyalty.json"))) {
+  const where = `loyalty.${k}`;
+  if (!characters.has(k)) err(where, `not a known character key`);
+  if (!m.role || !roles.has(m.role)) err(where, `unknown role '${m.role}'`);
+  if (!m.dest || !planetKeys.has(m.dest)) err(where, `unknown dest '${m.dest}'`);
+  if (!m.gate || typeof m.gate.daysMin !== "number") err(where, `gate.daysMin must be a number`);
+  if (!Array.isArray(m.choices) || m.choices.length < 1) err(where, `needs at least one choice`);
+  for (const [i, ch] of (m.choices || []).entries()) {
+    if (ch.rep) factionRef(`${where}.choices[${i}].rep`, ch.rep);
+    if (!ch.label || !ch.reply) err(`${where}.choices[${i}]`, `missing 'label' or 'reply'`);
+  }
+  for (const f of ["offerTitle", "offerText", "arriveTitle", "arriveText", "acceptLog", "bondFact", "log"]) {
+    if (!m[f]) err(where, `missing '${f}'`);
+  }
+}
+
 // ---- report ----
 if (errors.length) {
   console.error(`content check: ${errors.length} unresolved reference(s):`);

@@ -15,6 +15,7 @@ import { pick } from "../rng";
 import { fmt } from "../util";
 import { openJunoDialogue } from "./junodialogue";
 import { rankOf, RANK_NAME } from "./veterancy";
+import { LOYALTY_KEYS } from "./loyalty";
 import type { CrewMember } from "../types";
 
 function findCrew(id: number): CrewMember | undefined {
@@ -206,6 +207,13 @@ function pickQuestDest(c: CrewMember): string {
 
 function questLine(c: CrewMember): string {
   const tier = trustTier(c);
+  // A named character with an authored loyalty mission doesn't run the generic
+  // want→random-world quest — their errand is hand-written and offered on
+  // docking once the bond is deep (see systems/loyalty.ts). Keep the topic warm
+  // without ever advancing the generic quest to a random destination.
+  if (c.key && LOYALTY_KEYS.has(c.key)) {
+    return `${c.name} holds something back — not from mistrust. There's a thing they'll ask of you, when they're ready. Not yet.`;
+  }
   if (c.questStage === 1) {
     if (tier === "bonded" && (c.daysAboard || 0) >= 15) {
       c.questStage = 2;
@@ -234,7 +242,7 @@ let pendingQuestCost = 0;
 // Called on docking (see systems/travel.ts). Opens the resolution scene the
 // moment you make port at the world their want pointed to.
 export function checkCrewQuests() {
-  const c = S.crew.find((cm) => cm.questStage === 2 && cm.questDest === S.loc);
+  const c = S.crew.find((cm) => cm.questStage === 2 && cm.questDest === S.loc && !(cm.key && LOYALTY_KEYS.has(cm.key)));
   if (!c || !c.bundle) return;
   pendingQuestCrewId = c.id;
   pendingQuestCost = 60 + c.daysAboard! * 2;

@@ -71,6 +71,7 @@ import {
   surveyBoard, surveyScan, surveyLogGo,
   surveyStake, surveyLogSeam, surveyDecode, surveyLogBeacon,
 } from "./systems/survey";
+import { loyaltyAccept, loyaltyDecline, loyaltyResolve } from "./systems/loyalty";
 
 const ACTIONS: Record<string, (...args: any[]) => void> = {
   // navigation & screens
@@ -130,6 +131,8 @@ const ACTIONS: Record<string, (...args: any[]) => void> = {
   // survey / charting contracts — the find-scene out at the coordinate
   surveyBoard, surveyScan, surveyLogGo,
   surveyStake, surveyLogSeam, surveyDecode, surveyLogBeacon,
+  // loyalty missions — the named crew errands (offer aboard → fly → payoff)
+  loyaltyAccept, loyaltyDecline, loyaltyResolve,
 };
 
 export function dispatch(action: string, args: unknown[] = []) {

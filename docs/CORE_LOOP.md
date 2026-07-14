@@ -174,7 +174,21 @@ The rule: **campaigns knock; they never enter uninvited.**
    charting fee pays on delivery; skipping the readings voids it. 11 new
    vitest cases. The deep-band (past-Verge soft-gated *region*) from pillar 4
    is deferred: it wants true non-port traversal, a separate lift.
-5. **Loyalty missions** (pillar 2, biggest content lift, best payoff).
+5. ✅ **Loyalty missions** (pillar 2) — engine shipped + first three authored
+   (systems/loyalty.ts, content/loyalty.json). The Mass Effect move: once a
+   named crew member is bonded, they ask for a real thing in a real place — an
+   offer scene aboard ship → a course to an authored world → a payoff scene
+   there → their role perk unlocks for good, plus a permanent bond memory.
+   Data-driven so every further mission is pure content against a tested
+   engine. Shipped: **Ada** (bury her sister on Meridian), **Brix** (settle
+   the stolen-kit debt with the Foundry yard boss), **Nyla** (lay a stone at
+   Kestrel's Rest — gated on her agenda beat's empathetic resolution, so it's
+   a true "second act"). Decoupled from veterancy: rankOf() stays a pure
+   day+event derivation; loyalty grants the perk (CORE_LOOP's "rank-3 gate")
+   and the bond, both feeding role effectiveness independently. The generic
+   want→random-world quest (crewtalk.ts) is suppressed for characters who have
+   an authored mission. 8 vitest cases. Remaining nine characters are content
+   adds against this engine.
 6. **Station moods** (pillar 3, after standing works).
 
 Each lands as one playtested, committed cycle per ITERATION_PLAN.md rules.

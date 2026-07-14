@@ -15,6 +15,7 @@ import charactersJson from "./characters.json";
 import stationsJson from "./stations.json";
 import portjobsJson from "./portjobs.json";
 import junoDialogueJson from "./juno.dialogue.json";
+import loyaltyJson from "./loyalty.json";
 
 export const MODS = modulesJson as Record<string, ModuleDef>;
 export const PLANETS = planetsJson as Record<string, PlanetDef>;
@@ -157,6 +158,34 @@ export const REPUTATION = reputationJson as ReputationContent;
 export let NPCS = npcsJson as Record<string, NpcDef>;
 export const CHARACTERS = charactersJson as Record<string, CharacterDef>;
 export const JUNO_DIALOGUE = junoDialogueJson as JunoTree;
+
+// ---- Loyalty missions (docs/CORE_LOOP.md Pillar 2 — the "Mass Effect move") ----
+// One authored errand per named character: an offer scene aboard ship (gated on
+// a deep bond), a real place to fly to, and a payoff scene there. Completing one
+// grants the crew member's role perk and a permanent bond memory. See
+// systems/loyalty.ts. The "second act" of an agenda beat when gate.memory keys
+// off that beat's resolution (e.g. Nyla's "captain_asked_instead").
+export interface LoyaltyChoice {
+  label: string; reply: string;
+  dispo?: { axis: string; n: number };
+  credits?: number; prestige?: number; rep?: [string, number];
+}
+export interface LoyaltyDef {
+  role: string;               // the crew role whose perk this unlocks
+  dest: string;               // planet where the errand resolves
+  icon: string;
+  gate: { daysMin: number; memory?: string }; // memory = a ledger fact that must exist (act-1 hook)
+  offerSub: string;
+  offerTitle: string;
+  offerText: string;
+  acceptLabel: string; declineLabel: string;
+  acceptLog: string; declineReply: string;
+  arriveTitle: string; arriveText: string;
+  choices: LoyaltyChoice[];   // 1–2, all completing — the choice only shades the ending
+  bondFact: string; bondNote: string;
+  log: string;
+}
+export const LOYALTY = loyaltyJson as Record<string, LoyaltyDef>;
 
 // ---- Per-port station identity (docs/STATION_IDENTITY.md) ----
 // Shared walk engine, unique content: each port filters the common room set,

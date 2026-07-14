@@ -245,11 +245,12 @@ CORE_LOOP.md's build order, finished — this is the beta's gameplay heart:
 **Progress (2026-07-14):** port standing + consequence set-dressing, module
 wear + the refit loop, and Mk-I/II/III quality tiers all landed ahead of
 this phase (CORE_LOOP.md build-order items 1, 2, 2b — done before Phase A
-even closed). **Veterancy ranks and survey/charting contracts shipped this
-pass** (build-order items 3 and 4, below). Scars (half of item 3) and the
-past-Verge deep band (a region, distinct from the survey *contracts*) are
-deliberately split off as separate follow-up. Still open: loyalty missions,
-station moods.
+even closed). **Veterancy ranks, survey/charting contracts, and the loyalty-
+mission engine + first three missions shipped this pass** (build-order items
+3, 4, and 5, below). Scars (half of item 3), the past-Verge deep band (a
+region, distinct from the survey *contracts*), and the remaining nine
+loyalty missions (pure content against a tested engine) are deliberately
+split off as follow-up. Still open as systems work: station moods.
 
 - **Mk-I/II/III quality tiers** per module; yard inventories always hold
   something worth wanting. ✅ Shipped (`systems/modtier.ts`, ahead of this
@@ -274,7 +275,14 @@ station moods.
   `S.loc` stays a real port and no engine invariant moved. **The deep band**
   (past-Verge soft-gated *region*, fuel/hull-gated, portless) is the deferred
   half — it wants true non-port traversal, a separate lift.
-- **Loyalty missions** and **station moods**: still open.
+- **Loyalty missions:** ✅ Engine shipped + first three authored
+  (`systems/loyalty.ts`, `content/loyalty.json`). Bonded named crew ask for a
+  real errand in a real place (offer scene → travel → payoff scene → role
+  perk + permanent bond); data-driven so the rest are content. Ada (Meridian),
+  Brix (Foundry), Nyla (Kestrel's Rest, gated on her agenda beat — a true
+  second act). Decoupled from `rankOf()`'s pure derivation. The nine
+  remaining characters are follow-up content.
+- **Station moods**: still open.
 - Exit gate: a tester who ignores every campaign reports wanting *something*
   at day 80.
 

@@ -25,6 +25,7 @@ import { bumpStanding } from "./port";
 import { accrueWear } from "./wear";
 import { rankBoost, markVeteranEvent } from "./veterancy";
 import { checkSurvey, seamRoyalties } from "./survey";
+import { checkLoyaltyArrive, checkLoyaltyOffer } from "./loyalty";
 import type { Job } from "../types";
 
 export function depart(destId: string) {
@@ -256,11 +257,15 @@ export function arrive() {
   // a crew member's personal quest may resolve here, or a badly neglected one
   // may walk, or a named character's agenda may surface — at most one of
   // these opens a modal per docking
+  // A loyalty errand resolving here takes precedence — you flew all this way
+  // for it — and is checked before a new one can be offered.
+  checkLoyaltyArrive();
   checkCrewQuests();
   checkCrewDeparture();
   checkAgendaBeats();
   checkImogenQuest();
   checkJunoArc();
+  checkLoyaltyOffer();
 }
 
 export function completePay(j: Job) {
