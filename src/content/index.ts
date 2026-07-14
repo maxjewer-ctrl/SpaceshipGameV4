@@ -14,6 +14,7 @@ import npcsJson from "./npcs.json";
 import charactersJson from "./characters.json";
 import stationsJson from "./stations.json";
 import portjobsJson from "./portjobs.json";
+import zonesJson from "./zones.json";
 
 export const MODS = modulesJson as Record<string, ModuleDef>;
 export const PLANETS = planetsJson as Record<string, PlanetDef>;
@@ -155,6 +156,27 @@ export interface PortJobTemplate {
   desc: string;                        // {dest} {units} {deadline} placeholders
 }
 export const PORTJOBS = portjobsJson as unknown as Record<string, PortJobTemplate[]>;
+
+// ---- Combat zones (docs/COMBAT_ZONES.md) ----
+// A biome is a foot-combat setting: an enemy archetype table (stats the walk
+// sim reads per hostile), chamber templates (weighted spawn groups), a boss
+// template, and reward ranges. systems/zonegen.ts assembles a seeded run from
+// these; ui/zonewalk.ts stages it as chambers.
+export interface ZoneEnemyDef {
+  hp: number; speed: number; fireGap: number; shotDmg: number;
+  touchDmg: number; range: number; size: number; color: string;
+}
+export interface ZoneSpawnGroup { type: string; min: number; max: number; }
+export interface ZoneChamberDef { spawns: ZoneSpawnGroup[]; }
+export interface ZoneBiomeDef {
+  title: string;
+  enemies: Record<string, ZoneEnemyDef>;
+  chambers: Record<string, ZoneChamberDef>;
+  boss: ZoneChamberDef;
+  pool: string[];
+  rewards: { credits: [number, number]; heal: [number, number] };
+}
+export const ZONES = zonesJson as unknown as { biomes: Record<string, ZoneBiomeDef> };
 
 // Merge hot-loaded content over the bundled baseline. Called by the content
 // loader. MERGE, never replace: bundled JSON is the baseline (per the loader's

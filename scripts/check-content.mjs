@@ -130,6 +130,24 @@ for (const [k, c] of Object.entries(load("characters.json"))) {
   if (c.role && !roles.has(c.role)) err(`characters.${k}`, `unknown role '${c.role}'`);
 }
 
+// ---- 8. zones: chamber spawns + pool + boss reference the biome's enemies ----
+const zones = load("zones.json");
+for (const [bk, b] of Object.entries(zones.biomes || {})) {
+  const enemyKeys = new Set(Object.keys(b.enemies || {}));
+  const chamberKeys = new Set(Object.keys(b.chambers || {}));
+  const checkSpawns = (where, def) => {
+    for (const g of def?.spawns || []) {
+      if (!enemyKeys.has(g.type)) err(where, `unknown enemy '${g.type}'`);
+      if (!(g.min <= g.max)) err(where, `min ${g.min} > max ${g.max}`);
+    }
+  };
+  for (const [ck, c] of Object.entries(b.chambers || {})) checkSpawns(`zones.${bk}.chambers.${ck}`, c);
+  checkSpawns(`zones.${bk}.boss`, b.boss);
+  for (const p of b.pool || []) if (!chamberKeys.has(p)) err(`zones.${bk}.pool`, `unknown chamber '${p}'`);
+  if (!b.boss) err(`zones.${bk}`, `missing boss chamber`);
+  if (!b.pool || !b.pool.length) err(`zones.${bk}`, `empty pool`);
+}
+
 // ---- report ----
 if (errors.length) {
   console.error(`content check: ${errors.length} unresolved reference(s):`);

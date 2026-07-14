@@ -37,7 +37,13 @@ export function shipHatch(b: ShipBerth): { x: number; y: number } {
 // One spawn = one hostile placed at (x,y). The sim owns the live fight state
 // (hp, projectiles, the player's vitality) at module scope — see below — so an
 // interleaved render() rebuilding this scene object never resets a fight.
-export interface WalkCombatSpawn { x: number; y: number; kind?: string; hp?: number; }
+export interface WalkCombatSpawn {
+  x: number; y: number; kind?: string; hp?: number;
+  // Per-archetype combat stats (from content/zones.json via the generator);
+  // any omitted field falls back to the COMBAT defaults below.
+  speed?: number; fireGap?: number; shotDmg?: number; touchDmg?: number;
+  range?: number; size?: number; color?: string;
+}
 export interface WalkCombat {
   vitality?: number;          // player's on-foot health pool for the zone (default 100)
   enemies: WalkCombatSpawn[];
@@ -118,7 +124,10 @@ let dummy:{x:number;y:number;hp:number;hit:number}|null=null;
 // ---- foot combat: enemies that chase + shoot, a player vitality pool, and
 // clear/downed resolution. Driven by scene.combat; all live state is here (not
 // on the scene object) so re-render never resets a fight, exactly like `dummy`.
-interface FootEnemy { x:number; y:number; hp:number; maxhp:number; hit:number; fireCd:number; touchCd:number; kind:string; }
+interface FootEnemy {
+  x:number; y:number; hp:number; maxhp:number; hit:number; fireCd:number; touchCd:number; kind:string;
+  speed:number; fireGap:number; shotDmg:number; touchDmg:number; range:number; size:number; color:string;
+}
 const COMBAT = { enemySpeed:150, standoff:150, range:340, fireGap:1.6, shotSpeed:300, shotDmg:9, touchDmg:7, touchGap:.8, hitInvuln:.5, shotLife:2.2 };
 let enemies:FootEnemy[]=[];
 let foeShots:Array<{x:number;y:number;vx:number;vy:number;life:number}>=[];
@@ -232,7 +241,13 @@ export function start(s: WalkScene) {
     enemies = s.combat.enemies.map((e, i) => {
       const dp = nearestLegal(e.x, e.y) || { x: e.x, y: e.y };
       const hp = e.hp ?? 5;
-      return { x: dp.x, y: dp.y, hp, maxhp: hp, hit: 0, fireCd: .8 + i * .45, touchCd: 0, kind: e.kind ?? "drone" };
+      return {
+        x: dp.x, y: dp.y, hp, maxhp: hp, hit: 0, fireCd: .8 + i * .45, touchCd: 0,
+        kind: e.kind ?? "drone",
+        speed: e.speed ?? COMBAT.enemySpeed, fireGap: e.fireGap ?? COMBAT.fireGap,
+        shotDmg: e.shotDmg ?? COMBAT.shotDmg, touchDmg: e.touchDmg ?? COMBAT.touchDmg,
+        range: e.range ?? COMBAT.range, size: e.size ?? 1, color: e.color ?? "#c23b5a",
+      };
     });
     onClear = s.combat.onClear ?? null; onDowned = s.combat.onDowned ?? null;
     combatActive = enemies.length > 0;
@@ -540,22 +555,22 @@ function updateCombat(dt: number) {
     if (e.hp <= 0) continue;
     const dx = pos.x - e.x, dy = pos.y - e.y, d = Math.hypot(dx, dy) || 1;
     if (d > COMBAT.standoff) {
-      const nx = e.x + dx / d * COMBAT.enemySpeed * dt, ny = e.y + dy / d * COMBAT.enemySpeed * dt;
+      const nx = e.x + dx / d * e.speed * dt, ny = e.y + dy / d * e.speed * dt;
       e.x = creepAxis(e.x, nx, (v) => insideFloors(v, e.y));
       e.y = creepAxis(e.y, ny, (v) => insideFloors(e.x, v));
     } else {
       // Orbit the player at the standoff ring so they don't stack on one point.
       const sx = -dy / d, sy = dx / d, dir = Math.sin(last * .001 + e.x * .01) >= 0 ? 1 : -1;
-      const nx = e.x + sx * dir * COMBAT.enemySpeed * .5 * dt, ny = e.y + sy * dir * COMBAT.enemySpeed * .5 * dt;
+      const nx = e.x + sx * dir * e.speed * .5 * dt, ny = e.y + sy * dir * e.speed * .5 * dt;
       e.x = creepAxis(e.x, nx, (v) => insideFloors(v, e.y));
       e.y = creepAxis(e.y, ny, (v) => insideFloors(e.x, v));
     }
     e.fireCd -= dt;
-    if (e.fireCd <= 0 && d < COMBAT.range) {
-      e.fireCd = COMBAT.fireGap;
+    if (e.fireCd <= 0 && d < e.range) {
+      e.fireCd = e.fireGap;
       foeShots.push({ x: e.x + dx / d * 16, y: e.y + dy / d * 16, vx: dx / d * COMBAT.shotSpeed, vy: dy / d * COMBAT.shotSpeed, life: COMBAT.shotLife });
     }
-    if (d < 24 && e.touchCd <= 0) { e.touchCd = COMBAT.touchGap; if (!invuln) hurtPlayer(COMBAT.touchDmg); }
+    if (d < 24 && e.touchCd <= 0) { e.touchCd = COMBAT.touchGap; if (!invuln) hurtPlayer(e.touchDmg); }
   }
   for (const s of foeShots) {
     s.x += s.vx * dt; s.y += s.vy * dt; s.life -= dt;

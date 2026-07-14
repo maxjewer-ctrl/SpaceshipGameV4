@@ -149,9 +149,10 @@ Object.assign(window as any, {
     requestRender();
     return "Dropped into dark Dustwell. Clear the pad.";
   },
-  // dev/debug: start a multi-chamber incursion (Phase B run structure)
-  __zoneTest: (chambers?: number) => {
-    startZone({ biome: "derelict", chambers: chambers ?? 3, returnScreen: "ship", onExit: (r) => log(`[zone] ${r.won ? "won" : "bailed"} — ${r.chambersCleared} cleared, ${r.payout}cr`) });
+  // dev/debug: start a multi-chamber incursion (Phase B/C). Biome from
+  // content/zones.json: derelict | silence | raid.
+  __zoneTest: (biome?: string, chambers?: number) => {
+    startZone({ biome: biome ?? "derelict", chambers, returnScreen: "ship", onExit: (r) => log(`[zone] ${r.won ? "won" : "bailed"} — ${r.chambersCleared} cleared, ${r.payout}cr`) });
     return zoneActive() ? "Incursion started. Clear each chamber, then pick a hatch." : "failed to start";
   },
   // dev/debug: force a specific travel event (playtesting encounters on demand)

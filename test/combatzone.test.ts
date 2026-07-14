@@ -18,6 +18,7 @@ import { loadScenario } from "../src/debug/scenarios";
 import * as walk from "../src/ui/walk";
 import type { WalkScene, WalkCombat } from "../src/ui/walk";
 import { startZone, buildZoneScene, zoneActive } from "../src/ui/zonewalk";
+import { generateRun } from "../src/systems/zonegen";
 import { S } from "../src/state";
 
 function arena(combat: WalkCombat): WalkScene {
@@ -139,5 +140,51 @@ describe("combat-zone run structure (Phase B)", () => {
     expect(result?.won).toBe(true);
     expect(result?.chambersCleared).toBe(3);
     expect(S.credits).toBeGreaterThan(before); // salvage + completion bonus paid
+  });
+});
+
+describe("seeded zone generator (Phase C)", () => {
+  beforeEach(() => { loadScenario("fresh"); });
+
+  it("is deterministic: same rngState → identical run", () => {
+    S.rngState = 12345;
+    const a = generateRun("derelict", 4);
+    S.rngState = 12345;
+    const b = generateRun("derelict", 4);
+    expect(b).toEqual(a);
+    expect(a.chambers.length).toBe(4);
+  });
+
+  it("ends every run on the biome boss chamber", () => {
+    for (const biome of ["derelict", "silence", "raid"]) {
+      S.rngState = 999;
+      const run = generateRun(biome, 3);
+      expect(run.chambers[run.chambers.length - 1].boss).toBe(true);
+      expect(run.chambers.slice(0, -1).every((c) => !c.boss)).toBe(true);
+    }
+  });
+
+  it("draws distinct rosters + stats per biome from the data", () => {
+    S.rngState = 7;
+    const kindsOf = (biome: string) => new Set(generateRun(biome, 4).chambers.flatMap((c) => c.enemies.map((e) => e.kind)));
+    const derelict = kindsOf("derelict");
+    const silence = kindsOf("silence");
+    expect(derelict.has("warden")).toBe(true);   // boss archetype present
+    expect(silence.has("cantor")).toBe(true);
+    // The two biomes don't share a roster.
+    expect([...derelict].some((k) => silence.has(k))).toBe(false);
+    // Archetype stats come through: the derelict warden is beefier than a drone.
+    const run = generateRun("derelict", 3);
+    const warden = run.chambers.flatMap((c) => c.enemies).find((e) => e.kind === "warden")!;
+    const drone = run.chambers.flatMap((c) => c.enemies).find((e) => e.kind === "drone")!;
+    expect(warden.hp).toBeGreaterThan(drone.hp);
+    expect(warden.size).toBeGreaterThan(drone.size);
+  });
+
+  it("falls back to a real biome when handed an unknown key", () => {
+    S.rngState = 3;
+    const run = generateRun("does-not-exist", 3);
+    expect(run.chambers.length).toBe(3);
+    expect(run.title.length).toBeGreaterThan(0);
   });
 });

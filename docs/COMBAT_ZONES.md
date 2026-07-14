@@ -137,11 +137,17 @@ scene-`id` swaps or in-place `ensureRunning` mutation), and the between-chamber
 reward step.
 - **Deliverable:** a 3-chamber chain cleared end to end.
 
-### Phase C — Zone schema + generator
-`content/zones` JSON + a seeded assembler (chamber-layout templates, enemy tables
-by biome/difficulty, reward tables, objective). Save-version bump for new `S`
-fields (`vitality`, incursion progress).
-- **Deliverable:** two biomes (derelict, silenced-station) generating varied runs.
+### Phase C — Zone schema + generator ✅ SHIPPED
+`content/zones.json` defines biomes as data: an enemy-archetype table (hp, speed,
+fire-rate, damage, range, size, colour — the walk sim now reads these per
+hostile), weighted chamber templates, a boss template, and reward ranges.
+`systems/zonegen.ts` assembles a **seeded** run (reproducible from `rngState`);
+`ui/zonewalk.ts` stages each chamber into the arena. Three biomes shipped
+(derelict, silence, raid), each with a distinct roster. `check-content.mjs`
+validates every spawn/pool/boss reference. No save-version bump needed — a run
+is transient module state, not persisted. `__zoneTest(biome, chambers)` starts
+any biome; verified in `test/combatzone.test.ts` (determinism, per-biome rosters,
+boss-last, unknown-biome fallback).
 
 ### Phase D — Rewards, boons, meta
 Door-reward previews, the field-boon pool, end-of-zone payout to credits/cargo/

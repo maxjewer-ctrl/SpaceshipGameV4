@@ -12,18 +12,23 @@
 import { S, log, whisper } from "../state";
 import { modal, closeModal } from "../modal";
 import { requestRender } from "../bus";
-import { rand, ri, pick } from "../rng";
+import { ri, pick } from "../rng";
 import { combatVitality, teardown as walkTeardown } from "./walk";
 import type { WalkScene, WalkDoor, WalkRoom, WalkRect, WalkCombatSpawn } from "./walk";
+import { generateRun } from "../systems/zonegen";
+import type { GenChamber } from "../systems/zonegen";
 
 interface Chamber { enemies: WalkCombatSpawn[]; warden: boolean; }
+type RewardRanges = { credits: [number, number]; heal: [number, number] };
 type ExitKind = "credits" | "heal" | "extract";
 interface ZoneExit { id: string; kind: ExitKind; icon: string; label: string; amount: number; }
 export interface ZoneResult { won: boolean; chambersCleared: number; payout: number; }
 
 interface ZoneRun {
   biome: string;
+  title: string;
   chambers: Chamber[];
+  rewards: RewardRanges;
   index: number;          // current chamber (0-based)
   cleared: boolean;       // is the CURRENT chamber cleared?
   exits: ZoneExit[] | null;
@@ -39,34 +44,33 @@ let Z: ZoneRun | null = null;
 
 const ARENA = { w: 900, h: 640 };
 const SPAWN = { x: 450, y: 585 };  // bottom-centre entrance
-const BIOME_TITLE: Record<string, string> = {
-  derelict: "DERELICT — BOARDING", silence: "SILENCED DECK", raid: "SURFACE SITE",
-};
 
 export function zoneActive() { return !!Z && !Z.ended; }
 
-// Assemble a run. Enemy counts ramp per chamber; the last is a warden fight.
+// Assign arena positions to a generated chamber's enemies. The boss holds the
+// centre-high ground; the rest fan out across the upper arena, away from the
+// entrance. Placement is seeded (done once at startZone), never per-render.
+function stage(gc: GenChamber): Chamber {
+  const enemies: WalkCombatSpawn[] = gc.enemies.map((g, i) => {
+    const boss = gc.boss && i === 0;
+    const x = boss ? ARENA.w / 2 : 150 + ri(0, ARENA.w - 300);
+    const y = boss ? 205 : 130 + ri(0, 250);
+    return {
+      x, y, kind: g.kind, hp: g.hp,
+      speed: g.speed, fireGap: g.fireGap, shotDmg: g.shotDmg,
+      touchDmg: g.touchDmg, range: g.range, size: g.size, color: g.color,
+    };
+  });
+  return { enemies, warden: gc.boss };
+}
+
+// Assemble a seeded run from a biome's data (content/zones.json).
 export function startZone(cfg: { biome?: string; chambers?: number; vitality?: number; returnScreen?: string; onExit?: (r: ZoneResult) => void } = {}) {
-  const n = cfg.chambers ?? (3 + Math.floor(rand() * 2)); // 3–4 chambers
-  const chambers: Chamber[] = [];
-  for (let i = 0; i < n; i++) {
-    const last = i === n - 1;
-    const enemies: WalkCombatSpawn[] = [];
-    if (last) {
-      enemies.push({ x: ARENA.w / 2, y: 210, kind: "warden", hp: 14 });
-      enemies.push({ x: ARENA.w / 2 - 150, y: 270, kind: "drone", hp: 5 });
-      enemies.push({ x: ARENA.w / 2 + 150, y: 270, kind: "drone", hp: 5 });
-    } else {
-      const count = 2 + Math.min(2, i); // 2, 3, 3…
-      for (let k = 0; k < count; k++) {
-        enemies.push({ x: 170 + ri(0, ARENA.w - 340), y: 130 + ri(0, 250), kind: "drone", hp: 5 });
-      }
-    }
-    chambers.push({ enemies, warden: last });
-  }
+  const run = generateRun(cfg.biome ?? "derelict", cfg.chambers);
   const vitMax = cfg.vitality ?? 100;
   Z = {
-    biome: cfg.biome ?? "derelict", chambers, index: 0, cleared: false, exits: null,
+    biome: run.biome, title: run.title, chambers: run.chambers.map(stage), rewards: run.rewards,
+    index: 0, cleared: false, exits: null,
     vitality: vitMax, vitalityMax: vitMax, payout: 0,
     returnScreen: cfg.returnScreen ?? "map", onExit: cfg.onExit, ended: false,
   };
@@ -107,7 +111,7 @@ export function buildZoneScene(): WalkScene {
 
   return {
     id: `zone:${z.biome}:${z.index}`,   // stable per chamber; advancing remounts
-    title: `Incursion — ${BIOME_TITLE[z.biome] || z.biome.toUpperCase()}`,
+    title: `Incursion — ${z.title}`,
     status: z.cleared ? "CHAMBER CLEAR · CHOOSE A HATCH" : `HOSTILES INBOUND · CHAMBER ${z.index + 1}/${z.chambers.length}`,
     width: ARENA.w, height: ARENA.h,
     floors, rooms, doors, actors: [],
@@ -128,16 +132,16 @@ function onChamberClear() {
     z.exits = [{ id: "extract", kind: "extract", icon: "⏏", label: "Extract", amount: 0 }];
     whisper("The warden goes dark. The extraction hatch blows its bolts ahead of you.");
   } else {
-    z.exits = rollExits();
+    z.exits = rollExits(z.rewards);
     whisper("The last contact drops. Two hatches cycle open — you can only take one.");
   }
   requestRender();
 }
 
 // Two boon doors: bank salvage, or patch up. You only get one.
-function rollExits(): ZoneExit[] {
-  const credits = ri(60, 140);
-  const heal = ri(20, 40);
+function rollExits(r: RewardRanges): ZoneExit[] {
+  const credits = ri(r.credits[0], r.credits[1]);
+  const heal = ri(r.heal[0], r.heal[1]);
   const salvageWord = pick(["salvage", "scrap", "a cracked cache", "a stripped panel"]);
   return [
     { id: "credits", kind: "credits", icon: "💰", label: `${salvageWord} +${credits}cr`, amount: credits },
