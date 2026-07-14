@@ -21,6 +21,7 @@
     "meshy:shrink": "node scripts/meshy/shrink-models.mjs"
   },
   "devDependencies": {
+    "@types/node": "^22.20.1",
     "@types/three": "^0.185.1",
     "jsdom": "^29.1.1",
     "sharp": "^0.35.3",

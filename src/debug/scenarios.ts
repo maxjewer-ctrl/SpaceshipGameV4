@@ -19,9 +19,14 @@ function crew(role: string, name: string): CrewMember {
   };
 }
 
+// The seed a build() should start from. Set by loadScenario before the build
+// runs, so that crew bundles and the opening market — both of which draw from
+// the RNG during construction — are reproducible from the seed alone.
+let pendingSeed: number | undefined;
+
 // Every scenario starts past the prologue with a clean slate.
 function base(name: string) {
-  setState(newState(name));
+  setState(newState(name, pendingSeed));
   S.flags.intro_done = true;
   S.flags.intro = 6;
 }
@@ -100,15 +105,26 @@ const SCENARIOS: Record<string, { desc: string; build: () => void }> = {
   },
 };
 
-export function loadScenario(name?: string): string {
+// `seed` pins the RNG stream from construction onward, so the same
+// (scenario, seed) always yields the same ship, crew, market and future.
+// Omit it for an ordinary random dev jump; pass it to reproduce a run exactly
+// — from the console (`__scenario('trader', 8919)`) or from the golden-master
+// harness. Without this, a seed reproduced nothing: the opening market and crew
+// bundles were drawn before any pin could take effect.
+export function loadScenario(name?: string, seed?: number): string {
   if (!name || !SCENARIOS[name]) {
     return "Scenarios: " + Object.keys(SCENARIOS).map((k) => `${k} — ${SCENARIOS[k].desc}`).join(" · ");
   }
   clearModal();
-  SCENARIOS[name].build();
-  refreshMarket();
+  pendingSeed = seed;
+  try {
+    SCENARIOS[name].build();
+    refreshMarket();
+  } finally {
+    pendingSeed = undefined;
+  }
   log(`— [dev] Scenario loaded: ${name}. ${SCENARIOS[name].desc} —`);
   save();
   requestRender();
-  return `Loaded '${name}': ${SCENARIOS[name].desc}`;
+  return `Loaded '${name}': ${SCENARIOS[name].desc}${seed === undefined ? "" : ` (seed ${seed})`}`;
 }

@@ -9,12 +9,12 @@ import { PLANETS } from "../src/content";
 
 export const SCENARIOS = ["fresh", "trader", "fighter", "silence", "arc", "run", "reckoning"] as const;
 
-// Deterministic seed: scenarios call newState() which seeds from crypto, so
-// pin the stream afterward for reproducible fuzz runs.
+// Deterministic seed. The seed is handed to loadScenario so it is pinned BEFORE
+// construction, not after: scenario builders draw crew bundles from the RNG and
+// the opening market is rolled during load, so a seed applied afterwards left
+// both randomised and no run ever truly reproduced. See test/golden/.
 export function loadSeeded(scenario: string, seed: number) {
-  loadScenario(scenario);
-  S.seed = seed | 0;
-  S.rngState = seed | 0;
+  loadScenario(scenario, seed | 0);
 }
 
 const NUM_FIELDS = ["credits", "fuel", "food", "hull", "hullMax", "prestige", "day", "engineLvl", "slotsMax", "starve", "unpaid"] as const;

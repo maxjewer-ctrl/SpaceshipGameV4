@@ -11,10 +11,19 @@ export function setState(s: GameState) { S = s; }
 
 export function mk(t: string, mark = 1): ModuleInstance { return { t, on: true, dmg: false, mk: mark }; }
 
-export function newState(shipName: string): GameState {
-  // New-game entropy: crypto, not Math.random — the seeded stream (src/rng.ts)
-  // owns every roll after this moment.
-  const seed = (crypto.getRandomValues(new Int32Array(1))[0] ^ Date.now()) | 0;
+// New-game entropy: crypto, not Math.random — the seeded stream (src/rng.ts)
+// owns every roll after this moment.
+export function freshSeed(): number {
+  return (crypto.getRandomValues(new Int32Array(1))[0] ^ Date.now()) | 0;
+}
+
+// `seed` is injectable so a run can be reproduced exactly. This matters more
+// than it looks: the seed must be pinned BEFORE the first roll, because scenario
+// builders and the opening market draw from the stream immediately. Pinning it
+// afterwards (as the test harness used to) leaves the starting market and crew
+// bundles randomised, which quietly broke every "reproduce it from the seed"
+// promise we made. See test/golden/.
+export function newState(shipName: string, seed: number = freshSeed()): GameState {
   return {
     version: SAVE_VERSION,
     seed,

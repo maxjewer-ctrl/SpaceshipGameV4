@@ -1,0 +1,431 @@
+{
+  "scenario": "fighter",
+  "seed": 424242,
+  "days": 30,
+  "ticks": [
+    "624a28bf",
+    "458882bf",
+    "5c931025",
+    "3fb7a813",
+    "473d241e",
+    "89629818",
+    "6e88f883",
+    "b6920742",
+    "48903472",
+    "bc74d979",
+    "896de26b",
+    "707d5f82",
+    "b25ad407",
+    "d173ebf4",
+    "cba7b513",
+    "4c569bfe",
+    "8216fbb4",
+    "8315bd5c",
+    "5e04d917",
+    "cc865b39",
+    "0d7ab002",
+    "6667e344",
+    "6079f5e7",
+    "2adaa590",
+    "43db3c4c",
+    "92db3498",
+    "69afc672",
+    "03b3780a",
+    "bb3f7714",
+    "1a0a5c5f"
+  ],
+  "landmarks": [
+    {
+      "day": 21,
+      "credits": 884,
+      "fuel": 38,
+      "food": 21,
+      "hull": 100,
+      "loc": "solace",
+      "log": [
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "◇ THE BROADCAST — every radio in the sector played the same four seconds. The band has holes in it now.",
+        "— [dev] Scenario loaded: fighter. Day 20 armed ship: 2 weapons + shields + armory, gunner, engine Mk-II —"
+      ]
+    },
+    {
+      "day": 22,
+      "credits": 868,
+      "fuel": 38,
+      "food": 20,
+      "hull": 100,
+      "loc": "solace",
+      "log": [
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "◇ THE BROADCAST — every radio in the sector played the same four seconds. The band has holes in it now."
+      ]
+    },
+    {
+      "day": 23,
+      "credits": 852,
+      "fuel": 38,
+      "food": 19,
+      "hull": 100,
+      "loc": "solace",
+      "log": [
+        "Pia Osei has a panel off again, elbow-deep in the guts of her, whispering to the wiring.",
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "You wait a day in port. The dockworkers play cards. The meter runs."
+      ]
+    },
+    {
+      "day": 24,
+      "credits": 836,
+      "fuel": 38,
+      "food": 18,
+      "hull": 100,
+      "loc": "solace",
+      "log": [
+        "Pia Osei has a panel off again, elbow-deep in the guts of her, whispering to the wiring.",
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "Pia Osei has a panel off again, elbow-deep in the guts of her, whispering to the wiring."
+      ]
+    },
+    {
+      "day": 25,
+      "credits": 820,
+      "fuel": 38,
+      "food": 17,
+      "hull": 100,
+      "loc": "solace",
+      "log": [
+        "Pia Osei: \"Peace and quiet. That's how you know something's about to go wrong.\"",
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "Pia Osei has a panel off again, elbow-deep in the guts of her, whispering to the wiring."
+      ]
+    },
+    {
+      "day": 26,
+      "credits": 804,
+      "fuel": 38,
+      "food": 16,
+      "hull": 100,
+      "loc": "solace",
+      "log": [
+        "Pia Osei: \"Peace and quiet. That's how you know something's about to go wrong.\"",
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "Pia Osei: \"Peace and quiet. That's how you know something's about to go wrong.\""
+      ]
+    },
+    {
+      "day": 27,
+      "credits": 788,
+      "fuel": 38,
+      "food": 15,
+      "hull": 100,
+      "loc": "solace",
+      "log": [
+        "Rex Calloway plays solitaire against the drive hum and loses, somehow.",
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "Pia Osei: \"Peace and quiet. That's how you know something's about to go wrong.\""
+      ]
+    },
+    {
+      "day": 28,
+      "credits": 772,
+      "fuel": 38,
+      "food": 14,
+      "hull": 100,
+      "loc": "solace",
+      "log": [
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "Rex Calloway plays solitaire against the drive hum and loses, somehow.",
+        "You wait a day in port. The dockworkers play cards. The meter runs."
+      ]
+    },
+    {
+      "day": 29,
+      "credits": 756,
+      "fuel": 38,
+      "food": 13,
+      "hull": 100,
+      "loc": "solace",
+      "log": [
+        "Pia Osei has taken to leaving the radio on at night. \"So I'd notice,\" they say, \"if it went quiet.\"",
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "You wait a day in port. The dockworkers play cards. The meter runs."
+      ]
+    },
+    {
+      "day": 30,
+      "credits": 740,
+      "fuel": 38,
+      "food": 12,
+      "hull": 100,
+      "loc": "solace",
+      "log": [
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "Pia Osei has taken to leaving the radio on at night. \"So I'd notice,\" they say, \"if it went quiet.\"",
+        "You wait a day in port. The dockworkers play cards. The meter runs."
+      ]
+    },
+    {
+      "day": 31,
+      "credits": 724,
+      "fuel": 38,
+      "food": 11,
+      "hull": 100,
+      "loc": "solace",
+      "log": [
+        "Pia Osei has taken to leaving the radio on at night. \"So I'd notice,\" they say, \"if it went quiet.\"",
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "You wait a day in port. The dockworkers play cards. The meter runs."
+      ]
+    },
+    {
+      "day": 32,
+      "credits": 708,
+      "fuel": 38,
+      "food": 10,
+      "hull": 100,
+      "loc": "solace",
+      "log": [
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "Pia Osei has taken to leaving the radio on at night. \"So I'd notice,\" they say, \"if it went quiet.\"",
+        "You wait a day in port. The dockworkers play cards. The meter runs."
+      ]
+    },
+    {
+      "day": 33,
+      "credits": 692,
+      "fuel": 38,
+      "food": 9,
+      "hull": 100,
+      "loc": "solace",
+      "log": [
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "Pia Osei has taken to leaving the radio on at night. \"So I'd notice,\" they say, \"if it went quiet.\""
+      ]
+    },
+    {
+      "day": 34,
+      "credits": 676,
+      "fuel": 38,
+      "food": 8,
+      "hull": 100,
+      "loc": "solace",
+      "log": [
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "You wait a day in port. The dockworkers play cards. The meter runs."
+      ]
+    },
+    {
+      "day": 35,
+      "credits": 660,
+      "fuel": 38,
+      "food": 7,
+      "hull": 100,
+      "loc": "solace",
+      "log": [
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "You wait a day in port. The dockworkers play cards. The meter runs."
+      ]
+    },
+    {
+      "day": 36,
+      "credits": 644,
+      "fuel": 38,
+      "food": 6,
+      "hull": 100,
+      "loc": "solace",
+      "log": [
+        "Pia Osei counts their pay twice on payday and sends most of it somewhere they don't name.",
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "You wait a day in port. The dockworkers play cards. The meter runs."
+      ]
+    },
+    {
+      "day": 37,
+      "credits": 628,
+      "fuel": 38,
+      "food": 5,
+      "hull": 100,
+      "loc": "solace",
+      "log": [
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "Pia Osei counts their pay twice on payday and sends most of it somewhere they don't name.",
+        "You wait a day in port. The dockworkers play cards. The meter runs."
+      ]
+    },
+    {
+      "day": 38,
+      "credits": 612,
+      "fuel": 38,
+      "food": 4,
+      "hull": 100,
+      "loc": "solace",
+      "log": [
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "Pia Osei counts their pay twice on payday and sends most of it somewhere they don't name."
+      ]
+    },
+    {
+      "day": 39,
+      "credits": 596,
+      "fuel": 38,
+      "food": 3,
+      "hull": 100,
+      "loc": "solace",
+      "log": [
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "You wait a day in port. The dockworkers play cards. The meter runs."
+      ]
+    },
+    {
+      "day": 40,
+      "credits": 580,
+      "fuel": 38,
+      "food": 2,
+      "hull": 100,
+      "loc": "solace",
+      "log": [
+        "Rex Calloway tells a story about a generation ship that never made port that you're fairly sure changes every time.",
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "You wait a day in port. The dockworkers play cards. The meter runs."
+      ]
+    },
+    {
+      "day": 41,
+      "credits": 564,
+      "fuel": 38,
+      "food": 1,
+      "hull": 100,
+      "loc": "solace",
+      "log": [
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "Rex Calloway tells a story about a generation ship that never made port that you're fairly sure changes every time.",
+        "You wait a day in port. The dockworkers play cards. The meter runs."
+      ]
+    },
+    {
+      "day": 42,
+      "credits": 548,
+      "fuel": 38,
+      "food": 0,
+      "hull": 100,
+      "loc": "solace",
+      "log": [
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "Rex Calloway tells a story about a generation ship that never made port that you're fairly sure changes every time."
+      ]
+    },
+    {
+      "day": 43,
+      "credits": 532,
+      "fuel": 38,
+      "food": 0,
+      "hull": 100,
+      "loc": "solace",
+      "log": [
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "You wait a day in port. The dockworkers play cards. The meter runs."
+      ]
+    },
+    {
+      "day": 44,
+      "credits": 516,
+      "fuel": 38,
+      "food": 0,
+      "hull": 100,
+      "loc": "solace",
+      "log": [
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "⚠ STARVING — buy food, fast.",
+        "Rex Calloway's belt is on a tighter notch than last week. Nobody mentions it."
+      ]
+    },
+    {
+      "day": 45,
+      "credits": 500,
+      "fuel": 38,
+      "food": 0,
+      "hull": 100,
+      "loc": "solace",
+      "log": [
+        "Pia Osei has a panel off again, elbow-deep in the guts of her, whispering to the wiring.",
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "⚠ STARVING — buy food, fast."
+      ]
+    },
+    {
+      "day": 46,
+      "credits": 492,
+      "fuel": 38,
+      "food": 0,
+      "hull": 100,
+      "loc": "solace",
+      "log": [
+        "Rex Calloway has taken to leaving the radio on at night. \"So I'd notice,\" they say, \"if it went quiet.\"",
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "⚠ STARVING — buy food, fast."
+      ]
+    },
+    {
+      "day": 47,
+      "credits": 484,
+      "fuel": 38,
+      "food": 0,
+      "hull": 100,
+      "loc": "solace",
+      "log": [
+        "Rex Calloway names the ship on the far scope without looking twice. \"Bad crowd,\" they add, in the tone of someone who used to be invited.\"",
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "Rex Calloway has taken to leaving the radio on at night. \"So I'd notice,\" they say, \"if it went quiet.\""
+      ]
+    },
+    {
+      "day": 48,
+      "credits": 476,
+      "fuel": 38,
+      "food": 0,
+      "hull": 100,
+      "loc": "solace",
+      "log": [
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "Rex Calloway names the ship on the far scope without looking twice. \"Bad crowd,\" they add, in the tone of someone who used to be invited.\"",
+        "You wait a day in port. The dockworkers play cards. The meter runs."
+      ]
+    },
+    {
+      "day": 49,
+      "credits": 468,
+      "fuel": 38,
+      "food": 0,
+      "hull": 100,
+      "loc": "solace",
+      "log": [
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "Rex Calloway names the ship on the far scope without looking twice. \"Bad crowd,\" they add, in the tone of someone who used to be invited.\""
+      ]
+    },
+    {
+      "day": 50,
+      "credits": 460,
+      "fuel": 38,
+      "food": 0,
+      "hull": 100,
+      "loc": "solace",
+      "log": [
+        "Rex Calloway plays solitaire against the drive hum and loses, somehow.",
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "You wait a day in port. The dockworkers play cards. The meter runs."
+      ]
+    }
+  ],
+  "finalState": "{\"appearance\":{\"frame\":\"neutral\",\"garb\":\"jumpsuit\",\"head\":\"human\",\"skin\":\"#d89b6c\",\"suit\":\"#1c2131\",\"trim\":\"#e8b04b\"},\"arc\":{\"ambushed\":false,\"betrayed\":false,\"deadline\":null,\"done\":false,\"stage\":0},\"campaign\":{\"silence\":{\"billDay\":null,\"nextDay\":null,\"nextWorld\":null,\"silenced\":[],\"stage\":1}},\"captainName\":\"Cass Ardent\",\"captainRole\":null,\"cargo\":{\"lux\":0,\"med\":0,\"ore\":0},\"credits\":460,\"crew\":[{\"bundle\":{\"origin\":\"a generation ship that never made port\",\"secret\":\"used to fly under a black flag and knows those crews by name\",\"secretTag\":\"ex_pirate\",\"tell\":\"touches the hatch frame on the way out, every single time\",\"tellSituation\":\"depart\",\"traits\":[\"superstitious\",\"chatty\"],\"want\":\"to find a brother who shipped out and never wrote\",\"wound\":\"watched a ship they loved come apart in the black\",\"woundTag\":\"lost_a_ship\"},\"daysAboard\":42,\"fee\":0,\"id\":1,\"name\":\"Rex Calloway\",\"questStage\":0,\"revealed\":{},\"role\":\"gunner\",\"salary\":8}],\"day\":50,\"dead\":false,\"disposition\":{\"daring\":6,\"law\":0,\"mercy\":0},\"docked\":true,\"engineLvl\":2,\"flags\":{\"intro\":6,\"intro_done\":true,\"riderRumors\":[\"\\\"Every receiver on the station played it. Four seconds. My cousin on Meridian heard the same four seconds at the same tick. Explain that.\\\"\"],\"sil_stage1\":true},\"food\":0,\"fuel\":38,\"hull\":100,\"hullMax\":100,\"jobs\":[],\"ledger\":[{\"day\":46,\"fact\":\"captain_starved_us\",\"note\":\"You let Pia Osei go hungry until they jumped ship.\",\"weight\":-4,\"who\":\"crew:2\"}],\"loc\":\"solace\",\"logLines\":[{\"bark\":true,\"d\":50,\"m\":\"Rex Calloway plays solitaire against the drive hum and loses, somehow.\"},{\"d\":50,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":49,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":48,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":47,\"m\":\"Rex Calloway names the ship on the far scope without looking twice. \\\"Bad crowd,\\\" they add, in the tone of someone who used to be invited.\\\"\"},{\"d\":47,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":46,\"m\":\"Rex Calloway has taken to leaving the radio on at night. \\\"So I'd notice,\\\" they say, \\\"if it went quiet.\\\"\"},{\"d\":46,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":46,\"m\":\"⚠ STARVING — buy food, fast.\"},{\"d\":46,\"m\":\"Pia Osei is too weak to work and jumps ship at the first chance. Starvation is bad for retention.\"},{\"bark\":true,\"d\":45,\"m\":\"Pia Osei has a panel off again, elbow-deep in the guts of her, whispering to the wiring.\"},{\"d\":45,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":45,\"m\":\"⚠ STARVING — buy food, fast.\"},{\"d\":44,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":44,\"m\":\"⚠ STARVING — buy food, fast.\"},{\"bark\":true,\"d\":44,\"m\":\"Rex Calloway's belt is on a tighter notch than last week. Nobody mentions it.\"},{\"d\":44,\"m\":\"The pantry is empty. Everyone's rationing air-paste and resentment.\"},{\"d\":43,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":42,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":41,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":40,\"m\":\"Rex Calloway tells a story about a generation ship that never made port that you're fairly sure changes every time.\"},{\"d\":40,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":39,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":38,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":37,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":36,\"m\":\"Pia Osei counts their pay twice on payday and sends most of it somewhere they don't name.\"},{\"d\":36,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":35,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":34,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":33,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":32,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":31,\"m\":\"Pia Osei has taken to leaving the radio on at night. \\\"So I'd notice,\\\" they say, \\\"if it went quiet.\\\"\"},{\"d\":31,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":30,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":29,\"m\":\"Pia Osei has taken to leaving the radio on at night. \\\"So I'd notice,\\\" they say, \\\"if it went quiet.\\\"\"},{\"d\":29,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":28,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":27,\"m\":\"Rex Calloway plays solitaire against the drive hum and loses, somehow.\"},{\"d\":27,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":26,\"m\":\"Pia Osei: \\\"Peace and quiet. That's how you know something's about to go wrong.\\\"\"},{\"d\":26,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":25,\"m\":\"Pia Osei: \\\"Peace and quiet. That's how you know something's about to go wrong.\\\"\"},{\"d\":25,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":24,\"m\":\"Pia Osei has a panel off again, elbow-deep in the guts of her, whispering to the wiring.\"},{\"d\":24,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":23,\"m\":\"Pia Osei has a panel off again, elbow-deep in the guts of her, whispering to the wiring.\"},{\"d\":23,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":22,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":21,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":21,\"m\":\"◇ THE BROADCAST — every radio in the sector played the same four seconds. The band has holes in it now.\"},{\"d\":20,\"m\":\"— [dev] Scenario loaded: fighter. Day 20 armed ship: 2 weapons + shields + armory, gunner, engine Mk-II —\"}],\"market\":{\"day\":20,\"loc\":\"solace\",\"missions\":[{\"desc\":\"Recovered collateral — somebody's ship, stripped to 6 units of it — back to the lienholder on Haven's Folly. Don't read the registry plates.\",\"dest\":\"havens\",\"id\":3,\"kind\":\"cargo\",\"needs\":[\"cargo:6\"],\"pay\":258,\"prestige\":1,\"rep\":[\"union\",1],\"title\":\"Repossession haul\",\"units\":6},{\"desc\":\"Haul 14 units to Kestrel's Rest. 3 day run.\",\"dest\":\"kestrel\",\"id\":5,\"kind\":\"cargo\",\"needs\":[\"cargo:14\"],\"pay\":230,\"prestige\":1,\"rep\":[\"union\",1],\"title\":\"Freight: water recyclers\",\"units\":14},{\"desc\":\"Haul 12 units to Verge Station. 5 day run.\",\"dest\":\"verge\",\"id\":9,\"kind\":\"cargo\",\"needs\":[\"cargo:12\"],\"pay\":234,\"prestige\":1,\"rep\":[\"union\",1],\"title\":\"Freight: textiles\",\"units\":12},{\"desc\":\"Directrix Sun requires discreet, comfortable passage to Dustwell. Stateroom mandatory. Reputation required.\",\"dest\":\"dustwell\",\"id\":10,\"kind\":\"vip\",\"minPrestige\":8,\"needs\":[\"vip:1\",\"prestige:8\"],\"pax\":{\"motive\":\"vip\",\"name\":\"Directrix Sun\",\"sick\":false},\"pay\":540,\"prestige\":4,\"rep\":[\"union\",2],\"title\":\"VIP Charter: Directrix Sun\",\"vip\":true},{\"desc\":\"Haul 12 units to Haven's Folly. 4 day run.\",\"dest\":\"havens\",\"id\":11,\"kind\":\"cargo\",\"needs\":[\"cargo:12\"],\"pay\":224,\"prestige\":1,\"rep\":[\"union\",1],\"title\":\"Freight: sealed containers\",\"units\":12}],\"prices\":{\"lux\":63,\"med\":36,\"ore\":17},\"recruits\":[{\"bundle\":{\"origin\":\"a generation ship that never made port\",\"secret\":\"was somebody important once, before the fall\",\"secretTag\":\"rich_once\",\"tell\":\"hums a tune from somewhere you can't place when it's quiet\",\"tellSituation\":\"quiet\",\"traits\":[\"devout\",\"gentle\"],\"want\":\"passage, eventually, to Elysium — if it's real\",\"wound\":\"the deep black past the charts frightens them, badly\",\"woundTag\":\"afraid_of_the_deep\"},\"daysAboard\":0,\"fee\":80,\"id\":15,\"key\":\"bapu\",\"name\":\"Bapu Okafor\",\"questStage\":0,\"role\":\"cook\",\"salary\":6},{\"bundle\":{\"origin\":\"a Verge Station salvage crew\",\"secret\":\"is a Union deserter — a patrol scan is a death sentence\",\"secretTag\":\"union_deserter\",\"tell\":\"scans every new dock for a face they never find\",\"tellSituation\":\"arrive\",\"traits\":[\"cautious\",\"devout\"],\"want\":\"to see the edge of the charts with her own eyes\",\"wound\":\"was left in a cell once and hasn't forgotten it\",\"woundTag\":\"left_behind\"},\"daysAboard\":0,\"fee\":122,\"id\":12,\"name\":\"Kesh Stone\",\"questStage\":0,\"role\":\"gunner\",\"salary\":11},{\"bundle\":{\"origin\":\"the back alleys of Haven's Folly\",\"secret\":\"is a Union deserter — a patrol scan is a death sentence\",\"secretTag\":\"union_deserter\",\"tell\":\"checks the same weld on the bulkhead twice before every fight\",\"tellSituation\":\"combat_start\",\"traits\":[\"hotheaded\",\"greedy\"],\"want\":\"to matter to somebody who isn't paying her\",\"wound\":\"knew real hunger young and counts the food stores twice\",\"woundTag\":\"hungry_years\"},\"daysAboard\":0,\"fee\":76,\"id\":13,\"name\":\"June Iqbal\",\"questStage\":0,\"role\":\"medic\",\"salary\":14},{\"bundle\":{\"origin\":\"a Verge Station salvage crew\",\"secret\":\"is sicker than they let on and hasn't told a soul\",\"secretTag\":\"dying\",\"tell\":\"hums a tune from somewhere you can't place when it's quiet\",\"tellSituation\":\"quiet\",\"traits\":[\"hotheaded\",\"stoic\"],\"want\":\"enough credits to buy back the family farm\",\"wound\":\"watched a ship they loved come apart in the black\",\"woundTag\":\"lost_a_ship\"},\"daysAboard\":0,\"fee\":112,\"id\":14,\"name\":\"Lupe Moreau\",\"questStage\":0,\"role\":\"pilot\",\"salary\":9}],\"rumors\":[\"\\\"Medicine bought cheap on Meridian sells triple out past the frontier.\\\"\",\"\\\"Pirates work the long empty runs. Weapons bay ain't optional forever, captain.\\\"\"]},\"modules\":[{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"cockpit\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"engine\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"fueltank\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"cargohold\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"medbay\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"cabin\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"quarters\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"hydro\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"weapons\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"shields\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"armory\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"workshop\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"smuggler\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"luxcabin\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"weapons\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"weapons\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"shields\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"armory\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"quarters\"}],\"npcs\":[],\"over\":false,\"poi\":[],\"portMood\":{},\"portStanding\":{},\"prestige\":2,\"rep\":{\"frontier\":0,\"syndicate\":0,\"union\":0},\"rngState\":-1526588186,\"scheduled\":[],\"seed\":424242,\"shipName\":\"Spite & Polish\",\"slotsMax\":8,\"starve\":0,\"travel\":null,\"uid\":16,\"unpaid\":0,\"usedMarket\":null,\"version\":14,\"won\":false}",
+  "finalHash": "1a0a5c5f"
+}

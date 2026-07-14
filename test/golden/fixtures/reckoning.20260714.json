@@ -1,0 +1,375 @@
+{
+  "scenario": "reckoning",
+  "seed": 20260714,
+  "days": 30,
+  "ticks": [
+    "e78f7fd3",
+    "d9e96bfe",
+    "bd331387",
+    "b2170f22",
+    "4d64f54c",
+    "1613c623",
+    "63378db6",
+    "7825a115",
+    "255f0530",
+    "5980f76e",
+    "a5044c03",
+    "b7785961",
+    "524c832a",
+    "eeb8284a",
+    "f52a06f4",
+    "20e0275a",
+    "c6b99539",
+    "f9adde07",
+    "60a1b653",
+    "9c647c50",
+    "73bb87aa",
+    "01049e78",
+    "cdc7d67a",
+    "fa116ee3",
+    "4c796815",
+    "3deccd0d"
+  ],
+  "landmarks": [
+    {
+      "day": 53,
+      "credits": 3176,
+      "fuel": 70,
+      "food": 38,
+      "hull": 100,
+      "loc": "solace",
+      "log": [
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "◇ THE BROADCAST — every radio in the sector played the same four seconds. The band has holes in it now.",
+        "— [dev] Scenario loaded: reckoning. Voss arc resolved (broadcast made) — the Tribunal threads are live —"
+      ]
+    },
+    {
+      "day": 54,
+      "credits": 3152,
+      "fuel": 70,
+      "food": 36,
+      "hull": 100,
+      "loc": "solace",
+      "log": [
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "◇ THE BROADCAST — every radio in the sector played the same four seconds. The band has holes in it now."
+      ]
+    },
+    {
+      "day": 55,
+      "credits": 3128,
+      "fuel": 70,
+      "food": 34,
+      "hull": 100,
+      "loc": "solace",
+      "log": [
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "You wait a day in port. The dockworkers play cards. The meter runs."
+      ]
+    },
+    {
+      "day": 56,
+      "credits": 3104,
+      "fuel": 70,
+      "food": 32,
+      "hull": 100,
+      "loc": "solace",
+      "log": [
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "You wait a day in port. The dockworkers play cards. The meter runs."
+      ]
+    },
+    {
+      "day": 57,
+      "credits": 3080,
+      "fuel": 70,
+      "food": 30,
+      "hull": 100,
+      "loc": "solace",
+      "log": [
+        "Odile Vance: \"Sixty thousand people heard the truth because this bucket kept flying. I think about that when the recycler acts up.\"",
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "You wait a day in port. The dockworkers play cards. The meter runs."
+      ]
+    },
+    {
+      "day": 58,
+      "credits": 3056,
+      "fuel": 70,
+      "food": 28,
+      "hull": 100,
+      "loc": "solace",
+      "log": [
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "Odile Vance: \"Sixty thousand people heard the truth because this bucket kept flying. I think about that when the recycler acts up.\"",
+        "You wait a day in port. The dockworkers play cards. The meter runs."
+      ]
+    },
+    {
+      "day": 59,
+      "credits": 3032,
+      "fuel": 70,
+      "food": 26,
+      "hull": 100,
+      "loc": "solace",
+      "log": [
+        "Odile Vance plays solitaire against the drive hum and loses, somehow.",
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "You wait a day in port. The dockworkers play cards. The meter runs."
+      ]
+    },
+    {
+      "day": 60,
+      "credits": 3008,
+      "fuel": 70,
+      "food": 24,
+      "hull": 100,
+      "loc": "solace",
+      "log": [
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "Odile Vance plays solitaire against the drive hum and loses, somehow.",
+        "You wait a day in port. The dockworkers play cards. The meter runs."
+      ]
+    },
+    {
+      "day": 61,
+      "credits": 2984,
+      "fuel": 70,
+      "food": 22,
+      "hull": 100,
+      "loc": "solace",
+      "log": [
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "Odile Vance plays solitaire against the drive hum and loses, somehow."
+      ]
+    },
+    {
+      "day": 62,
+      "credits": 2960,
+      "fuel": 70,
+      "food": 20,
+      "hull": 100,
+      "loc": "solace",
+      "log": [
+        "Ansel Grey: \"That Voss woman doesn't sleep. Light under her door all night. Whatever's in her head weighs more than the cargo.\"",
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "You wait a day in port. The dockworkers play cards. The meter runs."
+      ]
+    },
+    {
+      "day": 63,
+      "credits": 2936,
+      "fuel": 70,
+      "food": 18,
+      "hull": 100,
+      "loc": "solace",
+      "log": [
+        "Kesh Barlow: \"Sixty thousand people heard the truth because this bucket kept flying. I think about that when the recycler acts up.\"",
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "Ansel Grey: \"That Voss woman doesn't sleep. Light under her door all night. Whatever's in her head weighs more than the cargo.\""
+      ]
+    },
+    {
+      "day": 64,
+      "credits": 2912,
+      "fuel": 70,
+      "food": 16,
+      "hull": 100,
+      "loc": "solace",
+      "log": [
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "Kesh Barlow: \"Sixty thousand people heard the truth because this bucket kept flying. I think about that when the recycler acts up.\"",
+        "You wait a day in port. The dockworkers play cards. The meter runs."
+      ]
+    },
+    {
+      "day": 65,
+      "credits": 2888,
+      "fuel": 70,
+      "food": 14,
+      "hull": 100,
+      "loc": "solace",
+      "log": [
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "Kesh Barlow: \"Sixty thousand people heard the truth because this bucket kept flying. I think about that when the recycler acts up.\""
+      ]
+    },
+    {
+      "day": 66,
+      "credits": 2864,
+      "fuel": 70,
+      "food": 12,
+      "hull": 100,
+      "loc": "solace",
+      "log": [
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "You wait a day in port. The dockworkers play cards. The meter runs."
+      ]
+    },
+    {
+      "day": 67,
+      "credits": 2840,
+      "fuel": 70,
+      "food": 10,
+      "hull": 100,
+      "loc": "solace",
+      "log": [
+        "Ansel Grey is inventorying the medkit for the third time this week. Some habits are load-bearing.",
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "You wait a day in port. The dockworkers play cards. The meter runs."
+      ]
+    },
+    {
+      "day": 68,
+      "credits": 2816,
+      "fuel": 70,
+      "food": 8,
+      "hull": 100,
+      "loc": "solace",
+      "log": [
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "Ansel Grey is inventorying the medkit for the third time this week. Some habits are load-bearing.",
+        "You wait a day in port. The dockworkers play cards. The meter runs."
+      ]
+    },
+    {
+      "day": 69,
+      "credits": 2792,
+      "fuel": 70,
+      "food": 6,
+      "hull": 100,
+      "loc": "solace",
+      "log": [
+        "Ansel Grey has taken to leaving the radio on at night. \"So I'd notice,\" they say, \"if it went quiet.\"",
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "You wait a day in port. The dockworkers play cards. The meter runs."
+      ]
+    },
+    {
+      "day": 70,
+      "credits": 2768,
+      "fuel": 70,
+      "food": 4,
+      "hull": 100,
+      "loc": "solace",
+      "log": [
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "Ansel Grey has taken to leaving the radio on at night. \"So I'd notice,\" they say, \"if it went quiet.\"",
+        "You wait a day in port. The dockworkers play cards. The meter runs."
+      ]
+    },
+    {
+      "day": 71,
+      "credits": 2744,
+      "fuel": 70,
+      "food": 2,
+      "hull": 100,
+      "loc": "solace",
+      "log": [
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "Ansel Grey has taken to leaving the radio on at night. \"So I'd notice,\" they say, \"if it went quiet.\""
+      ]
+    },
+    {
+      "day": 72,
+      "credits": 2720,
+      "fuel": 70,
+      "food": 0,
+      "hull": 100,
+      "loc": "solace",
+      "log": [
+        "Ansel Grey says nothing for a long while, which from Ansel Grey counts as a whole conversation.",
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "You wait a day in port. The dockworkers play cards. The meter runs."
+      ]
+    },
+    {
+      "day": 73,
+      "credits": 2696,
+      "fuel": 70,
+      "food": 0,
+      "hull": 100,
+      "loc": "solace",
+      "log": [
+        "Kesh Barlow names the ship on the far scope without looking twice. \"Bad crowd,\" they add, in the tone of someone who used to be invited.\"",
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "Ansel Grey says nothing for a long while, which from Ansel Grey counts as a whole conversation."
+      ]
+    },
+    {
+      "day": 74,
+      "credits": 2672,
+      "fuel": 70,
+      "food": 0,
+      "hull": 100,
+      "loc": "solace",
+      "log": [
+        "Kesh Barlow has taken to leaving the radio on at night. \"So I'd notice,\" they say, \"if it went quiet.\"",
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "⚠ STARVING — buy food, fast."
+      ]
+    },
+    {
+      "day": 75,
+      "credits": 2648,
+      "fuel": 70,
+      "food": 0,
+      "hull": 100,
+      "loc": "solace",
+      "log": [
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "⚠ STARVING — buy food, fast.",
+        "Kesh Barlow has taken to leaving the radio on at night. \"So I'd notice,\" they say, \"if it went quiet.\""
+      ]
+    },
+    {
+      "day": 76,
+      "credits": 2632,
+      "fuel": 70,
+      "food": 0,
+      "hull": 100,
+      "loc": "solace",
+      "log": [
+        "Odile Vance: \"Sixty thousand people heard the truth because this bucket kept flying. I think about that when the recycler acts up.\"",
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "⚠ STARVING — buy food, fast."
+      ]
+    },
+    {
+      "day": 77,
+      "credits": 2616,
+      "fuel": 70,
+      "food": 0,
+      "hull": 100,
+      "loc": "solace",
+      "log": [
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "⚠ STARVING — buy food, fast.",
+        "Odile Vance: \"Sixty thousand people heard the truth because this bucket kept flying. I think about that when the recycler acts up.\""
+      ]
+    },
+    {
+      "day": 78,
+      "credits": 2616,
+      "fuel": 70,
+      "food": 0,
+      "hull": 100,
+      "loc": "solace",
+      "log": [
+        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "⚠ STARVING — buy food, fast.",
+        "Odile Vance: \"Sixty thousand people heard the truth because this bucket kept flying. I think about that when the recycler acts up.\""
+      ]
+    }
+  ],
+  "finalState": "{\"appearance\":{\"frame\":\"neutral\",\"garb\":\"jumpsuit\",\"head\":\"human\",\"skin\":\"#d89b6c\",\"suit\":\"#1c2131\",\"trim\":\"#e8b04b\"},\"arc\":{\"ambushed\":false,\"betrayed\":false,\"deadline\":null,\"done\":true,\"stage\":6},\"campaign\":{\"silence\":{\"billDay\":null,\"nextDay\":null,\"nextWorld\":null,\"silenced\":[],\"stage\":1}},\"captainName\":\"Cass Ardent\",\"captainRole\":null,\"cargo\":{\"lux\":0,\"med\":0,\"ore\":0},\"credits\":2616,\"crew\":[{\"bundle\":{\"origin\":\"the pilgrim flotillas\",\"secret\":\"used to fly under a black flag and knows those crews by name\",\"secretTag\":\"ex_pirate\",\"tell\":\"scans every new dock for a face they never find\",\"tellSituation\":\"arrive\",\"traits\":[\"superstitious\",\"cautious\"],\"want\":\"enough credits to buy back the family farm\",\"wound\":\"the Union took someone from them and never explained\",\"woundTag\":\"union_took_someone\"},\"daysAboard\":38,\"fee\":0,\"id\":1,\"name\":\"Odile Vance\",\"questStage\":0,\"revealed\":{},\"role\":\"pilot\",\"salary\":8},{\"bundle\":{\"origin\":\"nowhere he'll name\",\"secret\":\"is sicker than they let on and hasn't told a soul\",\"secretTag\":\"dying\",\"tell\":\"touches the hatch frame on the way out, every single time\",\"tellSituation\":\"depart\",\"traits\":[\"stoic\",\"gruff\"],\"want\":\"passage, eventually, to Elysium — if it's real\",\"wound\":\"the Union took someone from them and never explained\",\"woundTag\":\"union_took_someone\"},\"daysAboard\":38,\"fee\":0,\"id\":2,\"name\":\"Ansel Grey\",\"questStage\":0,\"revealed\":{},\"role\":\"medic\",\"salary\":8}],\"day\":78,\"dead\":true,\"disposition\":{\"daring\":0,\"law\":0,\"mercy\":0},\"docked\":true,\"engineLvl\":3,\"flags\":{\"arc_broadcast\":true,\"arc_resolved\":true,\"intro\":6,\"intro_done\":true,\"riderRumors\":[\"\\\"Every receiver on the station played it. Four seconds. My cousin on Meridian heard the same four seconds at the same tick. Explain that.\\\"\"],\"sil_stage1\":true},\"food\":0,\"fuel\":70,\"hull\":100,\"hullMax\":100,\"jobs\":[],\"ledger\":[{\"day\":76,\"fact\":\"captain_starved_us\",\"note\":\"You let Kesh Barlow go hungry until they jumped ship.\",\"weight\":-4,\"who\":\"crew:3\"}],\"loc\":\"solace\",\"logLines\":[{\"d\":77,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":77,\"m\":\"⚠ STARVING — buy food, fast.\"},{\"bark\":true,\"d\":76,\"m\":\"Odile Vance: \\\"Sixty thousand people heard the truth because this bucket kept flying. I think about that when the recycler acts up.\\\"\"},{\"d\":76,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":76,\"m\":\"⚠ STARVING — buy food, fast.\"},{\"d\":76,\"m\":\"Kesh Barlow is too weak to work and jumps ship at the first chance. Starvation is bad for retention.\"},{\"d\":75,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":75,\"m\":\"⚠ STARVING — buy food, fast.\"},{\"bark\":true,\"d\":74,\"m\":\"Kesh Barlow has taken to leaving the radio on at night. \\\"So I'd notice,\\\" they say, \\\"if it went quiet.\\\"\"},{\"d\":74,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":74,\"m\":\"⚠ STARVING — buy food, fast.\"},{\"bark\":true,\"d\":74,\"m\":\"Odile Vance's belt is on a tighter notch than last week. Nobody mentions it.\"},{\"d\":74,\"m\":\"The pantry is empty. Everyone's rationing air-paste and resentment.\"},{\"bark\":true,\"d\":73,\"m\":\"Kesh Barlow names the ship on the far scope without looking twice. \\\"Bad crowd,\\\" they add, in the tone of someone who used to be invited.\\\"\"},{\"d\":73,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":72,\"m\":\"Ansel Grey says nothing for a long while, which from Ansel Grey counts as a whole conversation.\"},{\"d\":72,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":71,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":70,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":69,\"m\":\"Ansel Grey has taken to leaving the radio on at night. \\\"So I'd notice,\\\" they say, \\\"if it went quiet.\\\"\"},{\"d\":69,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":68,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":67,\"m\":\"Ansel Grey is inventorying the medkit for the third time this week. Some habits are load-bearing.\"},{\"d\":67,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":66,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":65,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":64,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":63,\"m\":\"Kesh Barlow: \\\"Sixty thousand people heard the truth because this bucket kept flying. I think about that when the recycler acts up.\\\"\"},{\"d\":63,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":62,\"m\":\"Ansel Grey: \\\"That Voss woman doesn't sleep. Light under her door all night. Whatever's in her head weighs more than the cargo.\\\"\"},{\"d\":62,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":61,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":60,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":59,\"m\":\"Odile Vance plays solitaire against the drive hum and loses, somehow.\"},{\"d\":59,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":58,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"bark\":true,\"d\":57,\"m\":\"Odile Vance: \\\"Sixty thousand people heard the truth because this bucket kept flying. I think about that when the recycler acts up.\\\"\"},{\"d\":57,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":56,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":55,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":54,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":53,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":53,\"m\":\"◇ THE BROADCAST — every radio in the sector played the same four seconds. The band has holes in it now.\"},{\"d\":52,\"m\":\"— [dev] Scenario loaded: reckoning. Voss arc resolved (broadcast made) — the Tribunal threads are live —\"}],\"market\":{\"day\":52,\"loc\":\"solace\",\"missions\":[{\"desc\":\"Recovered collateral — somebody's ship, stripped to 9 units of it — back to the lienholder on Dustwell. Don't read the registry plates.\",\"dest\":\"dustwell\",\"id\":4,\"kind\":\"cargo\",\"needs\":[\"cargo:9\"],\"pay\":222,\"prestige\":1,\"rep\":[\"union\",1],\"title\":\"Repossession haul\",\"units\":9},{\"desc\":\"The Cartographers' Circle wants readings from a coordinate out past the lanes, on your way to Haven's Folly. Take the survey en route; deliver the charts on arrival. Whatever's out there is yours to keep.\",\"dest\":\"havens\",\"id\":5,\"kind\":\"survey\",\"pay\":320,\"prestige\":2,\"rep\":[\"union\",1],\"sx\":386,\"sy\":193,\"title\":\"Survey: the Sable Run\"},{\"desc\":\"Haul 14 units to Kestrel's Rest. 2 day run.\",\"dest\":\"kestrel\",\"id\":6,\"kind\":\"cargo\",\"needs\":[\"cargo:14\"],\"pay\":158,\"prestige\":1,\"rep\":[\"union\",1],\"title\":\"Freight: comm relays\",\"units\":14},{\"desc\":\"Kesh Stone needs passage to Verge Station. They asks a lot of casual questions.\",\"dest\":\"verge\",\"id\":9,\"kind\":\"passenger\",\"needs\":[\"pax:1\"],\"pax\":{\"motive\":\"spy\",\"name\":\"Kesh Stone\",\"sick\":false},\"pay\":280,\"prestige\":1,\"rep\":[\"union\",1],\"title\":\"Passenger: Kesh Stone\"}],\"prices\":{\"lux\":62,\"med\":36,\"ore\":17},\"recruits\":[{\"bundle\":{\"origin\":\"a decommissioned Port Solace freight cooperative\",\"secret\":\"carries an encrypted route stamped with a ship registry the Union erased\",\"secretTag\":\"black_manifest\",\"tell\":\"counts every soul aboard before departure, then counts one more time\",\"tellSituation\":\"depart\",\"traits\":[\"chatty\",\"loyal\"],\"want\":\"to deliver the final manifest its missing crew entrusted to it\",\"wound\":\"was ordered to stay on the dock while its ship departed and vanished\",\"woundTag\":\"left_behind\"},\"daysAboard\":0,\"fee\":120,\"id\":11,\"key\":\"pip7\",\"name\":\"PIP-7\",\"questStage\":0,\"role\":\"quartermaster\",\"salary\":5},{\"bundle\":{\"origin\":\"the Foundry smelter decks\",\"secret\":\"is sicker than they let on and hasn't told a soul\",\"secretTag\":\"dying\",\"tell\":\"stops eating first, quietly, so the others don't notice\",\"tellSituation\":\"starving\",\"traits\":[\"proud\",\"superstitious\"],\"want\":\"passage, eventually, to Elysium — if it's real\",\"wound\":\"sold out a crew once, or was sold out — won't say which\",\"woundTag\":\"betrayed_crew\"},\"daysAboard\":0,\"fee\":122,\"id\":10,\"name\":\"Mira Marsh\",\"questStage\":0,\"role\":\"mechanic\",\"salary\":14}],\"rumors\":[\"\\\"My grandmother swore Elysium was real — a moon past the charts where the Meridian dead all washed up alive. Spacer's tale. Probably.\\\"\",\"\\\"A stateroom pays for itself in two VIP charters, if you can stomach the clientele.\\\"\"]},\"modules\":[{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"cockpit\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"engine\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"fueltank\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"cargohold\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"medbay\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"cabin\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"quarters\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"hydro\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"weapons\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"shields\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"armory\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"workshop\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"smuggler\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"luxcabin\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"fueltank\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"weapons\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"shields\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"quarters\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"cabin\"}],\"npcs\":[],\"over\":true,\"poi\":[],\"portMood\":{},\"portStanding\":{},\"prestige\":9,\"rep\":{\"frontier\":6,\"syndicate\":0,\"union\":-6},\"rngState\":-1250986926,\"scheduled\":[],\"seed\":20260714,\"shipName\":\"Verdict\",\"slotsMax\":8,\"starve\":6,\"travel\":null,\"uid\":12,\"unpaid\":0,\"usedMarket\":null,\"version\":14,\"won\":false}",
+  "finalHash": "3deccd0d"
+}
