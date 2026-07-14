@@ -60,7 +60,7 @@ rAF is suspended, so a fresh mount is a blank/stale buffer until you step it.
 step more first (`__walkStep(dt)` is the manual stepper from playtest-kestrel):
 
 ```js
-window.nav('shipwalk');
+window.dispatch('nav', ['shipwalk']);
 for (let i=0;i<12;i++) window.__walkStep(0.03);   // let the camera settle
 return await window.__shot();
 ```
@@ -68,9 +68,9 @@ return await window.__shot();
 To walk the captain into frame before shooting, drive the movement then step:
 
 ```js
-window.walkPressStart('right');
+window.dispatch('walkPressStart', ['right']);
 for (let i=0;i<55;i++) window.__walkStep(0.04);    // travel aft
-window.walkPressEnd('right');
+window.dispatch('walkPressEnd', ['right']);
 for (let i=0;i<4;i++) window.__walkStep(0.03);
 return await window.__shot();
 ```
@@ -91,7 +91,7 @@ Screenshots (the Read of a ~1-3MB PNG) are the main token cost. So:
 
 - **HMR does not remount the 3D scene.** After editing `walk3d.ts`, an HMR reload
   leaves the old scene mounted. Force a remount by navigating away and back:
-  `window.nav('ship'); window.nav('shipwalk');` then re-step frames. Give HMR
+  `window.dispatch('nav',['ship']); window.dispatch('nav',['shipwalk']);` then re-step frames. Give HMR
   ~600ms to settle first (`await new Promise(r=>setTimeout(r,600))`).
 - **`const` persists across javascript_tool calls.** Each eval shares one global
   scope, so a bare `const cv = ...` throws "already declared" on the next call.

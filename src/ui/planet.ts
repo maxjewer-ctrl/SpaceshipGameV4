@@ -9,6 +9,7 @@ import { arcCantinaCard } from "../systems/arc";
 import { reputation } from "../systems/disposition";
 import { refitCost, wearTier, anyWorn } from "../systems/wear";
 import { crewPortrait, portraitFigure, storeOwnerPortrait } from "./portraits";
+import { actionAttr } from "../dispatch";
 
 // Names of modules currently worn or failing — the refit card's honest pitch.
 function wornList(): string[] {
@@ -22,7 +23,7 @@ export function ptab(t: string) { S.ptab = t; requestRender(); }
 export function planetHTML(): string {
   refreshMarket();
   const p = PLANETS[S.loc];
-  const tab = (id: string, label: string) => `<button class="${S.ptab === id ? "tab-on" : ""}" onclick="ptab('${id}')">${label}</button>`;
+  const tab = (id: string, label: string) => `<button class="${S.ptab === id ? "tab-on" : ""}" ${actionAttr("ptab", id)}>${label}</button>`;
   let body = "";
   if (S.ptab === "cantina") body = cantinaHTML();
   else if (S.ptab === "market") body = marketHTML();
@@ -32,8 +33,8 @@ export function planetHTML(): string {
     <p class="dim" style="margin-bottom:10px">${p.d}</p>
     <div style="display:flex; gap:6px; flex-wrap:wrap">
       ${tab("cantina", "🍺 Cantina")} ${tab("market", "⚖ Market")} ${tab("yard", "🔧 Shipyard")}
-      <button onclick="waitDay()" title="Pass a day: refreshes jobs & prices, consumes food & payroll">⏳ Wait a day</button>
-      <button onclick="nav('stationwalk')" style="margin-left:auto">🚪 Back to the deck</button>
+      <button ${actionAttr("waitDay")} title="Pass a day: refreshes jobs & prices, consumes food & payroll">⏳ Wait a day</button>
+      <button ${actionAttr("nav", "stationwalk")} style="margin-left:auto">🚪 Back to the deck</button>
     </div>
   </div>` + body;
 }
@@ -53,7 +54,7 @@ function cantinaHTML(): string {
       <div>${needBadges(m)} <span class="badge fac">${FACS[m.rep![0]].n} +${m.rep![1]}</span>${m.prestige ? `<span class="badge">+${m.prestige}★</span>` : ""} ${fuelWarn}</div>
       <div style="margin-top:6px; display:flex; justify-content:space-between; align-items:center">
         <span class="pay">${fmt(m.pay)}cr${m.deadline ? ` <span class="dim">· by day ${m.deadline}</span>` : ""}</span>
-        <button ${ok ? "" : "disabled"} title="${ok ? "" : why}" onclick="acceptMission(${i})">${ok ? "Accept" : "Can't take"}</button>
+        <button ${ok ? "" : "disabled"} title="${ok ? "" : why}" ${actionAttr("acceptMission", i)}>${ok ? "Accept" : "Can't take"}</button>
       </div></div>`;
   }).join("") : `<div class="dim">The job board is picked clean. Wait a day or fly on.</div>`;
   const recruits = M.recruits.length ? M.recruits.map((r, i) =>
@@ -64,7 +65,7 @@ function cantinaHTML(): string {
         <div class="dim">${ROLES[r.role].d}</div>
         <div style="margin-top:6px; display:flex; justify-content:space-between; align-items:center; gap:8px">
           <span class="dim">Fee ${r.fee}cr · salary ${r.salary}cr/day</span>
-          <button onclick="hire(${i})">Hire</button>
+          <button ${actionAttr("hire", i)}>Hire</button>
         </div>
       </div>
     </div>`).join("") : `<div class="dim">Nobody worth hiring tonight — just regulars and bad decisions.</div>`;
@@ -102,8 +103,8 @@ function marketHTML(): string {
     const buy = M.prices[g], sell = Math.round(buy * 0.92);
     return `<tr><td>${GOODS[g].n}</td><td>${buy}cr</td><td>${sell}cr</td><td>${S.cargo[g]}</td>
       <td>
-        <button onclick="buyGood('${g}',1)">+1</button> <button onclick="buyGood('${g}',10)">+10</button>
-        <button onclick="sellGood('${g}',1)">−1</button> <button onclick="sellGood('${g}',10)">−10</button>
+        <button ${actionAttr("buyGood", g, 1)}>+1</button> <button ${actionAttr("buyGood", g, 10)}>+10</button>
+        <button ${actionAttr("sellGood", g, 1)}>−1</button> <button ${actionAttr("sellGood", g, 10)}>−10</button>
       </td></tr>`;
   }).join("");
   return `<div class="row"><div class="col">
@@ -113,9 +114,9 @@ function marketHTML(): string {
     </div></div>
     <div class="col"><div class="panel"><h3>Provisions</h3>
       <div class="card"><div class="title">⛽ Fuel — ${p.fuelP}cr/unit <span class="dim">(${Math.floor(S.fuel)}/${stats().fuelCap})</span></div>
-        <div style="margin-top:6px"><button onclick="buyFuel(10)">+10</button> <button onclick="buyFuel(999)">Fill tanks (${Math.ceil(stats().fuelCap - S.fuel) * p.fuelP}cr)</button></div></div>
+        <div style="margin-top:6px"><button ${actionAttr("buyFuel", 10)}>+10</button> <button ${actionAttr("buyFuel", 999)}>Fill tanks (${Math.ceil(stats().fuelCap - S.fuel) * p.fuelP}cr)</button></div></div>
       <div class="card"><div class="title">🍞 Food — ${p.foodP}cr/unit <span class="dim">(${Math.floor(S.food)} held, eating ${foodPerDay()}/day)</span></div>
-        <div style="margin-top:6px"><button onclick="buyFood(10)">+10</button> <button onclick="buyFood(30)">+30</button></div></div>
+        <div style="margin-top:6px"><button ${actionAttr("buyFood", 10)}>+10</button> <button ${actionAttr("buyFood", 30)}>+30</button></div></div>
     </div></div></div>`;
 }
 
@@ -138,7 +139,7 @@ function yardHTML(): string {
     const buys = marks.map((mk) => {
       const price = yardPrice(t, mk);
       const ok = S.credits >= price && !full;
-      return `<button class="mk-buy" ${ok ? "" : "disabled"} onclick="buyMod('${t}',${mk})">Mk-${markLabel(mk)} · ${price}cr</button>`;
+      return `<button class="mk-buy" ${ok ? "" : "disabled"} ${actionAttr("buyMod", t, mk)}>Mk-${markLabel(mk)} · ${price}cr</button>`;
     }).join("");
     // Upgrade path: if you own a sound instance below this yard's max mark.
     const upCand = owns.filter((mm) => !mm.dmg && markOf(mm) < maxMark).sort((a, b) => markOf(a) - markOf(b))[0];
@@ -146,7 +147,7 @@ function yardHTML(): string {
     if (upCand) {
       const to = markOf(upCand) + 1;
       const cost = yardPrice(t, to) - yardPrice(t, markOf(upCand));
-      upBtn = `<button class="mk-up" ${S.credits >= cost ? "" : "disabled"} onclick="upgradeMod('${t}')">⤴ Upgrade a unit → Mk-${markLabel(to)} (${cost}cr)</button>`;
+      upBtn = `<button class="mk-up" ${S.credits >= cost ? "" : "disabled"} ${actionAttr("upgradeMod", t)}>⤴ Upgrade a unit → Mk-${markLabel(to)} (${cost}cr)</button>`;
     }
     return `<div class="card"><div class="title">${m.icon} ${m.n} ${ownedBadge}</div>
       <div class="dim">${m.d}</div>
@@ -165,18 +166,18 @@ function yardHTML(): string {
     <div class="col">
       <div class="panel"><h3>Dry Dock</h3>
         <div class="card"><div class="title">🛠 Hull repair — 4cr/point <span class="dim">(${Math.round(S.hull)}/${S.hullMax})</span></div>
-          <div style="margin-top:6px"><button ${S.hull < S.hullMax ? "" : "disabled"} onclick="repairShip()">Repair all (${(S.hullMax - Math.round(S.hull)) * 4}cr)</button></div></div>
+          <div style="margin-top:6px"><button ${S.hull < S.hullMax ? "" : "disabled"} ${actionAttr("repairShip")}>Repair all (${(S.hullMax - Math.round(S.hull)) * 4}cr)</button></div></div>
         <div class="card"><div class="title">⚡ System repairs — 80cr/module ${dmgd.length ? `<span class="low">(${dmgd.length} damaged)</span>` : '<span class="dim">(all systems nominal)</span>'}</div>
           ${dmgd.length ? `<div class="dim">${dmgd.map((m) => MODS[m.t].n).join(", ")}</div>` : ""}
-          <div style="margin-top:6px"><button ${dmgd.length ? "" : "disabled"} onclick="repairSystems()">Restore all systems (${dmgd.length * 80}cr)</button></div></div>
+          <div style="margin-top:6px"><button ${dmgd.length ? "" : "disabled"} ${actionAttr("repairSystems")}>Restore all systems (${dmgd.length * 80}cr)</button></div></div>
         <div class="card"><div class="title">🔩 Full refit ${wornList().length ? `<span class="low">(${wornList().join(", ")})</span>` : '<span class="dim">(nothing worn)</span>'}</div>
           <div class="dim">Flying wears the ship: worn systems break first, failing ones quit on their own. A refit strips and trues everything back to spec.</div>
-          <div style="margin-top:6px"><button ${anyWorn() && S.credits >= refitCost() ? "" : "disabled"} onclick="refitShip()">Refit all worn systems (${refitCost()}cr)</button></div></div>
+          <div style="margin-top:6px"><button ${anyWorn() && S.credits >= refitCost() ? "" : "disabled"} ${actionAttr("refitShip")}>Refit all worn systems (${refitCost()}cr)</button></div></div>
         <div class="card"><div class="title">🔥 Drive Core — Mk-${["", "I", "II", "III"][S.engineLvl]}</div>
           <div class="dim">Faster travel: fewer days means less fuel, less food, fewer chances for trouble. Helps you flee, and each mark adds +2 reactor power.</div>
-          <div style="margin-top:6px"><button ${S.engineLvl < 3 && S.credits >= engCost ? "" : "disabled"} onclick="upgradeEngine()">${S.engineLvl < 3 ? `Upgrade to Mk-${["", "", "II", "III"][S.engineLvl + 1]} (${engCost}cr)` : "Maxed out"}</button></div></div>
+          <div style="margin-top:6px"><button ${S.engineLvl < 3 && S.credits >= engCost ? "" : "disabled"} ${actionAttr("upgradeEngine")}>${S.engineLvl < 3 ? `Upgrade to Mk-${["", "", "II", "III"][S.engineLvl + 1]} (${engCost}cr)` : "Maxed out"}</button></div></div>
         <div class="card"><div class="title">🧱 Hull expansion — +2 module slots <span class="dim">(${S.slotsMax}/10)</span></div>
-          <div style="margin-top:6px"><button ${S.slotsMax < 10 && S.credits >= slotCost ? "" : "disabled"} onclick="buySlots()">${S.slotsMax < 10 ? `Expand (${slotCost}cr)` : "Fully expanded"}</button></div></div>
+          <div style="margin-top:6px"><button ${S.slotsMax < 10 && S.credits >= slotCost ? "" : "disabled"} ${actionAttr("buySlots")}>${S.slotsMax < 10 ? `Expand (${slotCost}cr)` : "Fully expanded"}</button></div></div>
         <p class="dim">Sell installed modules from the Ship screen (60% of list).</p>
       </div>
     </div></div>`;

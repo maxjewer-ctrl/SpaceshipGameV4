@@ -19,6 +19,7 @@ import { teardown, setHighlight, walkInsideFloors } from "./walk";
 import * as sfx from "../audio";
 import type { WalkScene, WalkRoom, WalkRect, WalkDoor, WalkActor } from "./walk";
 import { steerAgent } from "../systems/walkRuntime";
+import { actionAttr } from "../dispatch";
 
 const CAT_COLOR: Record<string, string> = {
   "cat-combat": "#d96b6b", "cat-flow": "#e8b04b", "cat-life": "#57b6c9",
@@ -51,8 +52,13 @@ export function wkInspect(i: number) {
   const status = m.dmg ? "DAMAGED" : md.pw ? (m.on ? `ONLINE · drawing ${md.pw}⚡` : "POWERED DOWN") : "OPERATIONAL";
   modal(`<h2>${md.icon} ${md.n}</h2><p><b>${status}</b></p>
     <p class="dim">${md.d}</p><p>Wear: <b>${wt.toUpperCase()}</b> · ${Math.round(wearOf(m))}%</p>
-    <div class="choices">${md.pw && !m.dmg ? `<button onclick="toggleMod(${i});wkInspect(${i})">${m.on ? "⏻ Power down" : "⏻ Power up"}</button>` : ""}<button class="primary" onclick="closeModal()">Done</button></div>`);
+    <div class="choices">${md.pw && !m.dmg ? `<button ${actionAttr("toggleModAndInspect", i)}>${m.on ? "⏻ Power down" : "⏻ Power up"}</button>` : ""}<button class="primary" ${actionAttr("closeModal")}>Done</button></div>`);
 }
+
+// The inspect modal's power-toggle button used to chain two calls in one
+// onclick string (`toggleMod(i);wkInspect(i)`) — the dispatcher's data-action
+// only carries one action name, so this composite stands in for that pair.
+export function toggleModAndInspect(i: number) { toggleMod(i); wkInspect(i); }
 function toStation() { S.screen = "stationwalk"; requestRender(); }
 
 const ROOM_KIND: Record<string, string> = {
@@ -265,7 +271,7 @@ export function crewRosterHTML(): string {
     const tier = trustTier(c);
     const dw = dispositionWord(c);
     const quest = c.questStage === 2 ? " · on a quiet errand" : c.questStage === 3 && c.perk ? " · settled, and grateful" : "";
-    return `<div class="cr-row" onclick="crewHighlight(${c.id})" title="Click to find them on deck">
+    return `<div class="cr-row" ${actionAttr("crewHighlight", c.id)} title="Click to find them on deck">
       <span class="cr-dot" style="background:${TIER_DOT[tier]}"></span>
       <div class="cr-info">
         <div class="cr-name">${c.name}</div>

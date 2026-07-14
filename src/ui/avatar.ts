@@ -11,6 +11,7 @@ import { mountCreatorPreview, type CreatorPreview } from "./creatorPreview3d";
 import { ROLES } from "../content";
 import { startGame } from "./help";
 import { introStart } from "../systems/intro";
+import { actionAttr } from "../dispatch";
 
 const NAME_POOL = [
   "Cass Ardent", "Juno Marlowe", "Dashiell Okoro", "Vera Sant", "Idris Vale",
@@ -41,25 +42,25 @@ export function openCreator() {
       <div class="cc-stage">
         <canvas id="avatarpreview" width="200" height="230"></canvas>
         <div class="cc-turn">
-          <button onclick="avFace('left')" title="Face left">◀</button>
-          <button onclick="avFace('down')" title="Face forward">●</button>
-          <button onclick="avFace('up')" title="Face away">▲</button>
-          <button onclick="avFace('right')" title="Face right">▶</button>
+          <button ${actionAttr("avFace", "left")} title="Face left">◀</button>
+          <button ${actionAttr("avFace", "down")} title="Face forward">●</button>
+          <button ${actionAttr("avFace", "up")} title="Face away">▲</button>
+          <button ${actionAttr("avFace", "right")} title="Face right">▶</button>
         </div>
       </div>
       <div class="cc-controls">
-        <label class="cc-lbl">Captain's name <button class="cc-dice" onclick="avRandomName()" title="Random name">⟳</button></label>
+        <label class="cc-lbl">Captain's name <button class="cc-dice" ${actionAttr("avRandomName")} title="Random name">⟳</button></label>
         <input id="captainnamein" value="${draft.captainName}" maxlength="20" oninput="avName(this.value)" class="cc-input">
         <label class="cc-lbl">Ship's name</label>
         <input id="shipnamein" value="Kestrel" maxlength="18" class="cc-input">
         <label class="cc-lbl">Former specialty</label>
         <select id="captainrolein" class="cc-input">${roleOpts}</select>
         <div class="cc-cyc"><span>Look</span>
-          <button onclick="avLook(-1)">◀</button><b id="cc-look">${AVATAR_LOOKS[lookIndex][0]}</b><button onclick="avLook(1)">▶</button></div>
+          <button ${actionAttr("avLook", -1)}>◀</button><b id="cc-look">${AVATAR_LOOKS[lookIndex][0]}</b><button ${actionAttr("avLook", 1)}>▶</button></div>
         <div class="cc-cyc"><span>Species</span>
-          <button onclick="avHead(-1)">◀</button><b id="cc-head">${HEADS[idx(HEADS, draft.app.head)].name}</b><button onclick="avHead(1)">▶</button></div>
+          <button ${actionAttr("avHead", -1)}>◀</button><b id="cc-head">${HEADS[idx(HEADS, draft.app.head)].name}</b><button ${actionAttr("avHead", 1)}>▶</button></div>
         <div class="cc-cyc"><span>Attire</span>
-          <button onclick="avGarb(-1)">◀</button><b id="cc-garb">${GARBS[idx(GARBS, draft.app.garb)].name}</b><button onclick="avGarb(1)">▶</button></div>
+          <button ${actionAttr("avGarb", -1)}>◀</button><b id="cc-garb">${GARBS[idx(GARBS, draft.app.garb)].name}</b><button ${actionAttr("avGarb", 1)}>▶</button></div>
         <div class="cc-sw-lbl">Skin</div><div class="cc-swatches" id="cc-skin">${swatches(SKINS, draft.app.skin, "avSkin")}</div>
         <div class="cc-sw-lbl">Clothing</div><div class="cc-swatches" id="cc-suit">${swatches(SUITS, draft.app.suit, "avSuit")}</div>
         <div class="cc-sw-lbl">Trim</div><div class="cc-swatches" id="cc-trim">${swatches(TRIMS, draft.app.trim, "avTrim")}</div>
@@ -67,7 +68,7 @@ export function openCreator() {
     </div>
     <p class="dim" style="margin:10px 0 0; font-size:11px">A captain covers their old station until they hire a replacement — but a captain below decks isn't captaining.</p>
     <div class="choices">
-      <button class="primary" onclick="avStart('prologue')">◆ Begin</button>
+      <button class="primary" ${actionAttr("avStart", "prologue")}>◆ Begin</button>
     </div>
   </div>`);
   startPreview();
@@ -75,7 +76,7 @@ export function openCreator() {
 
 function swatches(list: string[], sel: string, handler: string): string {
   return list.map((hex) =>
-    `<button class="cc-swatch${hex === sel ? " on" : ""}" style="background:${hex}" onclick="${handler}('${hex}')" aria-label="${hex}"></button>`
+    `<button class="cc-swatch${hex === sel ? " on" : ""}" style="background:${hex}" ${actionAttr(handler, hex)} aria-label="${hex}"></button>`
   ).join("");
 }
 

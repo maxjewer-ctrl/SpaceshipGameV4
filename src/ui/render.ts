@@ -14,6 +14,7 @@ import { buildDesertTownScene } from "./planetwalk";
 import { buildShipScene, crewRosterHTML } from "./shipwalk";
 import * as walk from "./walk";
 import * as sfx from "../audio";
+import { actionAttr } from "../dispatch";
 
 const WALK_SCREENS = ["stationwalk", "shipwalk"];
 
@@ -87,7 +88,7 @@ export function masterCaution() {
   modal(`<h2>⚠ Master Caution</h2>
     ${cs.length ? cs.map((c) => `<div class="logline" style="border-left-color:${c.crit ? "var(--red)" : "var(--amber)"};color:${c.crit ? "var(--red)" : "var(--amber)"}">${c.t}</div>`).join("")
       : '<p class="dim">All systems nominal. The board is dark, Captain.</p>'}
-    <div class="choices"><button class="primary" onclick="closeModal()">ACKNOWLEDGE</button></div>`);
+    <div class="choices"><button class="primary" ${actionAttr("closeModal")}>ACKNOWLEDGE</button></div>`);
   requestRender();
 }
 
@@ -118,7 +119,7 @@ function renderTop() {
 
 function renderNav() {
   const b = (id: string, label: string, on?: boolean, dis?: boolean) =>
-    `<button class="${on ? "tab-on" : ""}" ${dis ? "disabled" : ""} onclick="nav('${id}')"><span class="navdot"></span>${label}</button>`;
+    `<button class="${on ? "tab-on" : ""}" ${dis ? "disabled" : ""} ${actionAttr("nav", id)}><span class="navdot"></span>${label}</button>`;
   const cs = cautions();
   const lit = cs.length > 0 && cautionAck !== cs.map((c) => c.t).join("|");
   // No direct shortcut into the cantina/market/yard screen: the station deck
@@ -130,10 +131,10 @@ function renderNav() {
     (S.docked && S.loc !== "gate" && S.loc !== "anechoic" ? b("stationwalk", isSilenced(S.loc) ? "Station (dark)" : "Station", S.screen === "stationwalk") : "") +
     (S.travel ? b("travel", "In Transit", S.screen === "travel") : "") +
     `<span class="right">
-      <button class="mcaution${lit ? " lit" : ""}" onclick="masterCaution()">⚠ MASTER CAUTION</button>
-      <button onclick="openSaves()">💾 Saves</button>
-      <button onclick="showHelp()">? Help</button>
-      <button class="danger" onclick="confirmNewGame()">New Game</button>
+      <button class="mcaution${lit ? " lit" : ""}" ${actionAttr("masterCaution")}>⚠ MASTER CAUTION</button>
+      <button ${actionAttr("openSaves")}>💾 Saves</button>
+      <button ${actionAttr("showHelp")}>? Help</button>
+      <button class="danger" ${actionAttr("confirmNewGame")}>New Game</button>
     </span>`;
 }
 

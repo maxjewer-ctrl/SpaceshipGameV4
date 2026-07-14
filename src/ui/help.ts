@@ -9,6 +9,7 @@ import { refreshMarket } from "../systems/market";
 import { PLANETS } from "../content";
 import { openCreator, getCaptainName, getAppearance } from "./avatar";
 import { $ } from "../util";
+import { actionAttr } from "../dispatch";
 
 // The character creator (ui/avatar.ts) renders the #captainrolein select; both
 // startGame() here and systems/intro.ts introStart() read the selection.
@@ -32,7 +33,7 @@ export function showHelp() {
       <p id="gp-status" class="dim">Checking for a controller…</p>
       <p class="dim" style="margin-top:6px">Wired Xbox / standard-mapping USB controllers: left stick or D-pad moves in the walking scenes (Walk Ship / Station), A interacts. Browsers only report a controller after it's woken up — press any button or move a stick on it now.</p>
     </div>
-    <div class="choices"><button class="primary" onclick="closeHelp()">Back to the black</button></div>`);
+    <div class="choices"><button class="primary" ${actionAttr("closeHelp")}>Back to the black</button></div>`);
   startGamepadWatch();
 }
 
@@ -74,8 +75,8 @@ export function closeHelp() {
 export function confirmNewGame() {
   modal(`<h2>Abandon ship?</h2><p>This scuttles the current save and starts over.</p>
     <div class="choices">
-      <button class="danger" onclick="newGame()">Yes — new game</button>
-      <button onclick="closeModal()">Keep flying</button>
+      <button class="danger" ${actionAttr("newGame")}>Yes — new game</button>
+      <button ${actionAttr("closeModal")}>Keep flying</button>
     </div>`);
 }
 
@@ -95,7 +96,7 @@ function slotRow(m: SlotMeta): string {
   if (m.empty) {
     return `<div class="panel" style="margin:6px 0; display:flex; justify-content:space-between; align-items:center; gap:10px">
       <div><b>Slot ${m.slot + 1}</b>${tag}<br><span class="dim">— empty —</span></div>
-      <div class="choices" style="margin:0"><button onclick="saveHere(${m.slot})">Save here</button></div>
+      <div class="choices" style="margin:0"><button ${actionAttr("saveHere", m.slot)}>Save here</button></div>
     </div>`;
   }
   const where = (m.loc && PLANETS[m.loc]?.n) || m.loc || "the black";
@@ -104,9 +105,9 @@ function slotRow(m: SlotMeta): string {
       <span>${m.captainName || "Captain"} · ${m.shipName || "ship"}</span><br>
       <span class="dim">Day ${m.day ?? "?"} · ${(m.credits ?? 0).toLocaleString()}cr · ${m.prestige ?? 0}★ · ${where}</span></div>
     <div class="choices" style="margin:0; flex-wrap:wrap; justify-content:flex-end">
-      <button class="primary" onclick="loadSaveSlot(${m.slot})">Load</button>
-      <button onclick="saveHere(${m.slot})">Save here</button>
-      <button class="danger" onclick="deleteSaveSlot(${m.slot})">Delete</button>
+      <button class="primary" ${actionAttr("loadSaveSlot", m.slot)}>Load</button>
+      <button ${actionAttr("saveHere", m.slot)}>Save here</button>
+      <button class="danger" ${actionAttr("deleteSaveSlot", m.slot)}>Delete</button>
     </div>
   </div>`;
 }
@@ -119,12 +120,12 @@ export function openSaves() {
     <div class="panel" style="margin-top:10px">
       <h3>Backup</h3>
       <div class="choices" style="margin-top:8px">
-        <button onclick="exportSaveFile()">⬇ Export current game</button>
-        <button onclick="importSaveFile()">⬆ Import from file</button>
+        <button ${actionAttr("exportSaveFile")}>⬇ Export current game</button>
+        <button ${actionAttr("importSaveFile")}>⬆ Import from file</button>
       </div>
       <p id="save-msg" class="dim" style="margin-top:8px; min-height:16px"></p>
     </div>
-    <div class="choices"><button class="primary" onclick="closeModal()">Back to the black</button></div>`);
+    <div class="choices"><button class="primary" ${actionAttr("closeModal")}>Back to the black</button></div>`);
 }
 
 function saveMsg(text: string) { const el = document.getElementById("save-msg"); if (el) el.textContent = text; }

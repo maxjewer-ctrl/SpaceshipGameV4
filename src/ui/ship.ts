@@ -11,6 +11,7 @@ import { wearTier } from "../systems/wear";
 import { ensureSlots, bayCount } from "../systems/actions";
 import { markOf, markLabel, markPrice } from "../systems/modtier";
 import { viewportHTML, pedestalHTML, reactorPanelHTML, lifeSupportHTML, commsFullHTML } from "./cockpit";
+import { actionAttr } from "../dispatch";
 
 export function selSlot(i: number) { S.sel = S.sel === i ? null : i; requestRender(); }
 
@@ -81,7 +82,7 @@ function breakersHTML(): string {
   if (!rows.length) return "";
   return `<div class="panel"><h3>Breaker Panel</h3><div class="breakers">
     ${rows.map(({ m, md, i }) => `<div class="breaker${m.on && !m.dmg ? " on" : ""}${m.dmg ? " dmgd" : ""}"
-        onclick="toggleMod(${i})" title="${md.n}${m.dmg ? " — DAMAGED" : m.on ? " — online, drawing " + md.pw + "⚡" : " — powered down"}">
+        ${actionAttr("toggleMod", i)} title="${md.n}${m.dmg ? " — DAMAGED" : m.on ? " — online, drawing " + md.pw + "⚡" : " — powered down"}">
       <div class="bk-well"><div class="bk-handle"></div></div>
       <div class="bk-led"></div>
       <div class="bk-name">${md.n}</div>
@@ -155,15 +156,15 @@ export function shipHTML(): string {
       const nameC = m.dmg ? "var(--red)" : "#cfeaff";
       const tag = md.pw ? (m.on ? `ON ${md.pw}⚡` : `OFF`) : (md.gen ? `+${md.gen}⚡` : "PSV");
       const cls = (m.dmg ? " dmgd" : "") + (!m.dmg && md.pw && !m.on ? " offline" : "") + (S.sel === idx ? " selected" : "");
-      slotsHtml += `<div class="v2-bay ${cat}${cls}" onclick="selSlot(${idx})" title="${md.n}${m.dmg ? " — DAMAGED" : (md.pw && !m.on ? " — powered down" : "")}">
+      slotsHtml += `<div class="v2-bay ${cat}${cls}" ${actionAttr("selSlot", idx)} title="${md.n}${m.dmg ? " — DAMAGED" : (md.pw && !m.on ? " — powered down" : "")}">
         <div class="v2-bay-fill" style="height:${fill};background:${fillC}"></div>
         <div class="v2-bay-top"><span class="v2-bay-tag" style="color:${tagC}">${tag}</span><span class="v2-bay-led" style="background:${led};box-shadow:0 0 6px ${led}"></span></div>
         <div class="v2-bay-bot"><span class="v2-bay-icon">${md.icon}</span><span class="v2-bay-name" style="color:${nameC}">${md.n}${markOf(m) > 1 ? ` <b style="color:var(--accent)">${markLabel(markOf(m))}</b>` : ""}</span></div>
       </div>`;
     } else if (i < S.slotsMax) {
       slotsHtml += carrying != null
-        ? `<div class="v2-bay empty" onclick="moveModTo(${carrying},${i})" title="Move ${MODS[inst[carrying].t].n} to this bay"><div class="v2-bay-bot"><span class="v2-bay-icon">⇄</span><span class="v2-bay-name dim">move here</span></div></div>`
-        : `<div class="v2-bay empty" onclick="selSlot(-1)"><div class="v2-bay-bot"><span class="v2-bay-icon">＋</span><span class="v2-bay-name dim">empty bay</span></div></div>`;
+        ? `<div class="v2-bay empty" ${actionAttr("moveModTo", carrying, i)} title="Move ${MODS[inst[carrying].t].n} to this bay"><div class="v2-bay-bot"><span class="v2-bay-icon">⇄</span><span class="v2-bay-name dim">move here</span></div></div>`
+        : `<div class="v2-bay empty" ${actionAttr("selSlot", -1)}><div class="v2-bay-bot"><span class="v2-bay-icon">＋</span><span class="v2-bay-name dim">empty bay</span></div></div>`;
     } else {
       slotsHtml += `<div class="v2-bay locked"><div class="v2-bay-bot"><span class="v2-bay-icon">🔒</span><span class="v2-bay-name dim">hull expansion</span></div></div>`;
     }
@@ -188,10 +189,10 @@ export function shipHTML(): string {
       <p class="dim" style="margin-bottom:8px">${md.d}</p>
       ${m.dmg ? '<p class="dim" style="margin-bottom:8px">Repair at any shipyard dry dock (80cr), or a mechanic may jury-rig it in flight.</p>' : ""}
       <div style="display:flex; gap:6px; flex-wrap:wrap">
-        ${md.pw && !m.dmg ? `<button onclick="toggleMod(${S.sel})">${m.on ? "⏻ Power down" : "⏻ Power up (+" + md.pw + "⚡)"}</button>` : ""}
-        <button ${m.slot! > 0 ? "" : "disabled"} onclick="moveModTo(${S.sel},${m.slot! - 1})" title="Swap toward the bow">◀ Fore</button>
-        <button ${m.slot! < S.slotsMax - 1 ? "" : "disabled"} onclick="moveModTo(${S.sel},${m.slot! + 1})" title="Swap toward the stern">Aft ▶</button>
-        <button ${S.docked ? "" : "disabled"} onclick="sellMod(${S.sel})">Sell for ${Math.round(markPrice(m.t, markOf(m)) * (m.dmg ? 0.4 : 0.6))}cr${S.docked ? "" : " (dock first)"}</button>
+        ${md.pw && !m.dmg ? `<button ${actionAttr("toggleMod", S.sel)}>${m.on ? "⏻ Power down" : "⏻ Power up (+" + md.pw + "⚡)"}</button>` : ""}
+        <button ${m.slot! > 0 ? "" : "disabled"} ${actionAttr("moveModTo", S.sel, m.slot! - 1)} title="Swap toward the bow">◀ Fore</button>
+        <button ${m.slot! < S.slotsMax - 1 ? "" : "disabled"} ${actionAttr("moveModTo", S.sel, m.slot! + 1)} title="Swap toward the stern">Aft ▶</button>
+        <button ${S.docked ? "" : "disabled"} ${actionAttr("sellMod", S.sel)}>Sell for ${Math.round(markPrice(m.t, markOf(m)) * (m.dmg ? 0.4 : 0.6))}cr${S.docked ? "" : " (dock first)"}</button>
       </div>
       <p class="dim" style="margin-top:8px">Bay ${m.slot! + 1} of ${S.slotsMax}. Click an empty bay to move this module there — the deck you walk mirrors this arrangement.</p></div>`;
   } else if (S.sel === -1) {
@@ -200,7 +201,7 @@ export function shipHTML(): string {
   const crewHtml = S.crew.length ? S.crew.map((c, i) =>
     `<div class="card"><div class="title">${c.name} <span class="dim">— ${ROLES[c.role].n}, ${c.salary}cr/day</span></div>
      <div class="dim">${ROLES[c.role].d}</div>
-     ${S.docked ? `<button style="margin-top:6px" onclick="fireCrew(${i})">Dismiss</button>` : ""}</div>`).join("")
+     ${S.docked ? `<button style="margin-top:6px" ${actionAttr("fireCrew", i)}>Dismiss</button>` : ""}</div>`).join("")
     : `<div class="dim">No crew. It's just you, the hum of the recyclers, and every job on the ship. Hire hands in planet cantinas (needs Crew Quarters).</div>`;
   const paxAll = S.jobs.filter((j) => j.pax);
   const paxHtml = paxAll.length ? paxAll.map((j) =>
@@ -210,7 +211,7 @@ export function shipHTML(): string {
   const jobsHtml = S.jobs.length ? S.jobs.map((j) =>
     `<div class="card"><div class="title">${j.title}</div>
      <div class="dim">→ ${PLANETS[j.dest].n} · <span class="pay">${fmt(j.pay)}cr</span>${j.deadline ? ` · <span class="${S.day + daysTo(S.loc, j.dest) > j.deadline ? "low" : ""}">by day ${j.deadline}</span>` : ""}${j.units ? ` · ${j.units}u${j.hidden ? " hidden" : ""}` : ""}</div>
-     ${j.arcCrate || j.arcVoss ? "" : `<div style="margin-top:6px"><button onclick="abandonJob(${j.id})" title="Drop this contract now — frees the cargo/berth it holds, costs 1 prestige and standing with the client">Abandon</button></div>`}</div>`).join("")
+     ${j.arcCrate || j.arcVoss ? "" : `<div style="margin-top:6px"><button ${actionAttr("abandonJob", j.id)} title="Drop this contract now — frees the cargo/berth it holds, costs 1 prestige and standing with the client">Abandon</button></div>`}</div>`).join("")
     : `<div class="dim">No active contracts. The bank account won't fill itself — hit a cantina.</div>`;
   const repHtml = Object.keys(FACS).filter((f) => f !== "none").map((f) => {
     const v = S.rep[f];
@@ -229,7 +230,7 @@ export function shipHTML(): string {
   // pilot's seat, physical controls on the pedestal below.
   return `<div class="cockpit">
     ${viewportHTML()}
-    <div class="cockpit-walk-return"><button class="primary" onclick="walkDeck()">🧍 Stand up — walk the deck</button></div>
+    <div class="cockpit-walk-return"><button class="primary" ${actionAttr("walkDeck")}>🧍 Stand up — walk the deck</button></div>
     <div class="dash">
     <div class="console con-left">
       <div class="panel"><h3>Ship Systems</h3>
@@ -261,14 +262,14 @@ export function shipHTML(): string {
         <div class="shipframe ${hullState}">
           <div class="frame-head">
             <span class="fh-tabs">
-              <button class="fh-tab${shipViewMode === "plan" ? " on" : ""}" onclick="shipView('plan')">◀ DECK PLAN</button>
-              <button class="fh-tab${shipViewMode === "feed" ? " on" : ""}" onclick="shipView('feed')">LIVE FEED ▶</button>
+              <button class="fh-tab${shipViewMode === "plan" ? " on" : ""}" ${actionAttr("shipView", "plan")}>◀ DECK PLAN</button>
+              <button class="fh-tab${shipViewMode === "feed" ? " on" : ""}" ${actionAttr("shipView", "feed")}>LIVE FEED ▶</button>
             </span>
             <span class="fh-r">REG ${reg}</span>
           </div>
           <div class="scansweep"></div>
           ${shipViewMode === "feed" ? liveFeedHTML() : `<div class="v2-deck">
-            <div class="v2-deck-nose" onclick="selSlot(-1)">
+            <div class="v2-deck-nose" ${actionAttr("selSlot", -1)}>
               <span class="v2-deck-nled" style="background:var(--green);box-shadow:0 0 6px var(--green)"></span>
               <span class="v2-deck-nlbl">COCKPIT</span>
             </div>

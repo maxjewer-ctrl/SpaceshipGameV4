@@ -6,8 +6,9 @@ description: Play and test The Kestrel Run in a browser like a real player — d
 # Playtesting The Kestrel Run
 
 The game is a browser TypeScript app (Vite). It exposes debug accessors on
-`window` and drives every action through global handler functions, so you can
-play it end to end from the browser MCP tools without clicking a single button.
+`window`, and every onclick-driven UI action goes through one dispatcher —
+`window.dispatch(action, args)` — so you can play it end to end from the
+browser MCP tools without clicking a single button.
 
 > To **see** what the game renders (screenshots hang in the preview browser),
 > use the **see-the-game** skill — `window.__shot()` → `.shots/latest.png` →
@@ -72,16 +73,26 @@ window.__modal = () => {
 
 To click a modal choice: `document.querySelectorAll('#modal .choices button')[i].click()`.
 
-## 4. The handler API (all on `window`)
+## 4. The action API — `window.dispatch(action, args)`
 
-Registered in `src/main.ts`. The important ones:
+Handlers used to be individual `window.<name>(...)` globals; they now live in
+`src/dispatch.ts`'s action table, and the ONE thing still on `window` for this
+surface is `dispatch`. Call as `window.dispatch('<name>', [arg1, arg2, ...])`
+— e.g. `window.dispatch('buyFuel', [10])`, `window.dispatch('nav', ['ship'])`.
+(Dev/debug accessors below in §3 — anything `__`-prefixed — were never part of
+this and stay bare globals: `window.__S()`, `window.__scenario(...)`, etc.)
 
-- **Navigation**: `nav('ship'|'map'|'stationwalk'|'shipwalk'|'travel')`, `ptab(tab)`.
-- **Provisioning / trade** (docked): `buyFuel(n)`, `buyFood(n)`, `buyGood('ore'|'med'|'lux', n)`, `sellGood(g,n)`, `buyMod(type)`, `sellMod(idx)`, `upgradeEngine()`, `buySlots()`, `repairShip()`, `repairSystems()`.
+The important actions:
+
+- **Navigation**: `nav` (arg: `'ship'|'map'|'stationwalk'|'shipwalk'|'travel'`), `ptab` (arg: tab).
+- **Provisioning / trade** (docked): `buyFuel(n)`, `buyFood(n)`, `buyGood('ore'|'med'|'lux', n)`, `sellGood(g,n)`, `buyMod(type, mark)`, `sellMod(idx)`, `upgradeEngine()`, `buySlots()`, `repairShip()`, `repairSystems()`.
 - **Market**: read `__S().market` for `missions`, `recruits`, `prices`, `rumors`. `acceptMission(i)`, `hire(i)`.
 - **Travel**: `depart(destId)` then `advanceDay()` per day (or `waitDay()` in port).
 - **Combat**: `startCombat(enemy, onWin, onEscape)`, `cAct(action)`, `endCombat()`.
 - **Prologue** (DEAD RECKONING): `introStart()`, `introAct(key)`.
+
+Each of the above is one action name — call it via
+`window.dispatch('<name>', [<args>])`.
 
 Planet ids: `meridian foundry solace kestrel havens verge` (+ hidden `gate anechoic`).
 Module ids: `fueltank cargohold cabin quarters hydro medbay weapons shields armory workshop smuggler luxcabin reactor`.
@@ -98,9 +109,10 @@ rAF loop. Two debug helpers bypass the sprite movement:
 - `window.__walkGoto(x, y)` → teleport (bypasses collision) and re-scan for the
   nearest door/actor.
 - `window.__walkPos()` → current `{x,y}`.
-- `window.walkInteract()` → fire the nearest door/actor (same as pressing **E**).
+- `window.dispatch('walkInteract')` → fire the nearest door/actor (same as
+  pressing **E**).
 
-So to trigger a room: `__walkGoto(cx, cy); walkInteract();`
+So to trigger a room: `__walkGoto(cx, cy); dispatch('walkInteract');`
 
 **Station room centers** (world is 1000×700; `src/ui/stationwalk.ts`):
 `harbor ~765,115 · concourse ~690,375 · market ~385,295 · cantina ~150,165 · docks ~550,595 · drydock ~870,610 · undercity ~205,615`.
@@ -129,11 +141,11 @@ So after each `advanceDay()`, check **both** `__modal()` **and**
 Loop pattern:
 
 ```js
-window.depart('verge');
+window.dispatch('depart', ['verge']);
 for (let i=0;i<12;i++){
   const s=window.__S();
   if(!s.travel){ /* arrived */ break; }
-  window.advanceDay();
+  window.dispatch('advanceDay');
   const m=window.__modal();
   if(m){ /* a decision event / arrival — handle it, then break or continue */ break; }
   // else read s.logLines[0] for the auto-resolved beat
@@ -143,7 +155,7 @@ for (let i=0;i<12;i++){
 ## 7. Combat — a phased timing duel
 
 `startCombat` builds a modal with phases `command → target → aim → over`. Drive
-it with `cAct(...)`:
+it with `dispatch('cAct', [...])`:
 
 1. `cAct('move:laser')` (or `torpedo`/`ion`/`evasive`/`flee`/`bribe`). Weapons
    moves go to the target phase; `evasive`/`flee`/`bribe` resolve immediately.
@@ -161,7 +173,7 @@ a separate `aim` then `release` almost always reads as a *wild shot*. To fire
 well, do it in ONE synchronous block with a busy-wait to the optimal instant:
 
 ```js
-// after cAct('move:laser'); cAct('target:0'); cAct('aim');
+// after dispatch('cAct',['move:laser']); dispatch('cAct',['target:0']); dispatch('cAct',['aim']);
 const box=document.querySelector('.aim-box');
 const bx=+box.style.left.slice(0,-1)*1||parseFloat(box.style.left), by=parseFloat(box.style.top);
 const aim=1.02; // scenario.aim — see SCENARIOS; or just try ~1.0
@@ -169,7 +181,7 @@ const speed=1.12*aim, win=36; // laser; torpedo speed 1.45/win 27; ion 0.92/win 
 const score=el=>{const x=50+Math.sin(el*speed*3.1)*38,y=50+Math.sin(el*speed*2.2+1.7)*25;return Math.max(0,1-Math.hypot(x-bx,y-by)/win);};
 let best=0,bt=0.2; for(let el=0.2;el<3;el+=0.005){const s=score(el); if(s>best){best=s;bt=el;}}
 const t0=Date.now(); while(Date.now()-t0 < bt*1000){}   // busy-wait
-window.cAct('release');
+window.dispatch('cAct', ['release']);
 ```
 
 Note: because the box is random but the reticle path is fixed, some boxes cap
@@ -178,8 +190,8 @@ below a perfect lock even at the ideal instant — that's expected.
 ## 8. Crew-gap damage control (minigames when a specialist is missing)
 
 Travel hazards WITHOUT the right crew open interactive modals instead of
-auto-resolving (`src/systems/damagecontrol.ts`, globals `dcValve`/`dcVector`/
-`dcCare`):
+auto-resolving (`src/systems/damagecontrol.ts`, dispatch actions `dcValve`/
+`dcVector`/`dcCare`):
 - **No mechanic** + breakdown → valve-guessing scramble (wrong = −hull −fuel,
   repeat until right).
 - **No pilot** + meteor swarm → pick 1 of 3 vectors; wrong = big hull hit +

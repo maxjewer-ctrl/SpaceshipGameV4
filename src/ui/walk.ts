@@ -5,6 +5,7 @@
 // string-template render() cycle — so walking around isn't interrupted every
 // time an unrelated state change calls requestRender() elsewhere in the game.
 import { hasModal } from "../modal";
+import { actionAttr, holdActionAttr } from "../dispatch";
 
 export interface WalkRect { x: number; y: number; w: number; h: number; }
 export interface WalkDoor extends WalkRect { label: string; locked?: boolean; lockedHint?: string; action: () => void; }
@@ -156,7 +157,7 @@ export function needsMount(id: string): boolean { return mountedId !== id; }
 
 export function mountHTML(s: WalkScene): string {
   const dpad = (dir: string, glyph: string, cls: string) =>
-    `<button class="wk-dbtn ${cls}" onpointerdown="walkPressStart('${dir}')" onpointerup="walkPressEnd('${dir}')" onpointerleave="walkPressEnd('${dir}')" onpointercancel="walkPressEnd('${dir}')">${glyph}</button>`;
+    `<button class="wk-dbtn ${cls}" ${holdActionAttr("walkPressStart", "walkPressEnd", dir)}>${glyph}</button>`;
   // The inline aspect-ratio derives the viewport's height from its width with
   // no min-height (see .walk-viewport's CSS comment — a fixed min-height
   // fights that on narrow/mobile viewports). Left unclamped it tracks the
@@ -180,7 +181,7 @@ export function mountHTML(s: WalkScene): string {
     <div class="walk-controls">
       <div class="walk-dpad">
         ${dpad("up", "▲", "wk-up")}
-        <div class="wk-dpad-mid">${dpad("left", "◀", "wk-left")}<button class="wk-dbtn wk-interact" onclick="walkInteract()">E</button>${dpad("right", "▶", "wk-right")}</div>
+        <div class="wk-dpad-mid">${dpad("left", "◀", "wk-left")}<button class="wk-dbtn wk-interact" ${actionAttr("walkInteract")}>E</button>${dpad("right", "▶", "wk-right")}</div>
         ${dpad("down", "▼", "wk-down")}
       </div>
       <div class="walk-fallback" id="wk-fallback"></div>
@@ -518,8 +519,8 @@ function updateHud() {
     const key = nearDoor ? (nearDoor.locked ? "" : "d:" + nearDoor.label) : nearActor ? "a:" + nearActor.key : "";
     if (fbEl.dataset.key !== key) {
       fbEl.dataset.key = key;
-      if (nearDoor && !nearDoor.locked) fbEl.innerHTML = `<button class="primary" onclick="walkInteract()">${nearDoor.label}</button>`;
-      else if (nearActor) fbEl.innerHTML = `<button class="primary" onclick="walkInteract()">${nearActor.verb || "Talk to"} ${nearActor.label}</button>`;
+      if (nearDoor && !nearDoor.locked) fbEl.innerHTML = `<button class="primary" ${actionAttr("walkInteract")}>${nearDoor.label}</button>`;
+      else if (nearActor) fbEl.innerHTML = `<button class="primary" ${actionAttr("walkInteract")}>${nearActor.verb || "Talk to"} ${nearActor.label}</button>`;
       else fbEl.innerHTML = "";
     }
   }

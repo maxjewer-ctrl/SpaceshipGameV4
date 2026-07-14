@@ -2,6 +2,7 @@ import { S } from "../state";
 import { PLANETS, FACS } from "../content";
 import { daysTo, fuelTo, foodPerDay, planetVisible, isSilenced, crewGapWarnings } from "../derive";
 import { requestRender } from "../bus";
+import { actionAttr } from "../dispatch";
 
 export function selPlanet(k: string) { S.selPlanet = k; requestRender(); }
 
@@ -53,7 +54,7 @@ export function mapHTML(): string {
     const c = dark ? "#2c3140" : FACS[p.fac].c;
     const isGate = k === "gate";
     const isSource = k === "anechoic";
-    svg += `<g class="planet-dot" onclick="selPlanet('${k}')">
+    svg += `<g class="planet-dot" ${actionAttr("selPlanet", k)}>
       ${isSource ? `<circle cx="${p.x}" cy="${p.y}" r="20" fill="none" stroke="#a86bd9" stroke-width="1" stroke-dasharray="3 6" opacity="0.7"/>` : ""}
       <circle cx="${p.x}" cy="${p.y}" r="${isGate || isSource ? 13 : 11}" fill="${isSource ? "#0a0710" : c}" ${dark || isSource ? "" : 'filter="url(#nodeGlow)"'} opacity="0.9" ${isSource ? 'stroke="#a86bd9" stroke-width="1.5"' : ""}/>
       <circle cx="${p.x}" cy="${p.y}" r="${isGate || isSource ? 13 : 11}" fill="none" stroke="#05070d" stroke-width="1.5"/>
@@ -111,7 +112,7 @@ export function mapHTML(): string {
           <span>Food needed (est.)</span><b class="${S.food >= foodNeed ? "" : "low"}">~${foodNeed} (have ${Math.floor(S.food)})</b>
           <span>Fuel price there</span><b>${p.fuelP || "—"}cr</b>
         </div>
-        ${S.docked ? `<button class="primary" ${ok ? "" : "disabled"} onclick="depart('${S.selPlanet}')">${ok ? "⛽ Depart (" + f + " fuel, " + d + " days)" : "Not enough fuel"}</button>` : `<span class="dim">Already in transit.</span>`}
+        ${S.docked ? `<button class="primary" ${ok ? "" : "disabled"} ${actionAttr("depart", S.selPlanet)}>${ok ? "⛽ Depart (" + f + " fuel, " + d + " days)" : "Not enough fuel"}</button>` : `<span class="dim">Already in transit.</span>`}
       </div>`;
     }
   } else {
