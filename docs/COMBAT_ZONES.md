@@ -110,6 +110,13 @@ required to be *headlessly simulatable* (BETA_PLAN Phase C exit gate) — the
 `playtest-kestrel` skill + `walk.ts` debug hooks (`debugStep`, `debugGoto`,
 `debugWalkTo`, `debugActors`) already support this.
 
+### Player kit — gun · melee · dodge (in `walk.ts` action mode)
+The on-foot verb set: **gun** (LMB — ranged, the weapon boons reshape), **melee**
+(F / gamepad X — a close cone swipe: high flat damage, a forward lunge, knockback,
+and it *cancels* an enemy's windup/charge, so it's the counter to chargers),
+and **dodge roll** (Space / gamepad B — i-frames + burst move). Gun and melee
+share the aim; melee's damage rides the Heavy Rounds boon.
+
 ### Phase A — Combat core in the sim ✅ SHIPPED
 Extend `walk.ts` action mode from one dummy to real combat:
 - an `Enemy` runtime list (pos, hp, state, cooldowns) mirroring the lightweight

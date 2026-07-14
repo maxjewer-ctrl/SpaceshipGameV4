@@ -44,7 +44,7 @@ import {
   silDescend, silBearing, silAnswer, silStill, silSell,
   silBoardReturned, silScanReturned, silLearnNumbers, silLearnReturned,
 } from "./systems/silence";
-import { pressStart, pressEnd, interact, debugStep, debugPos, debugGoto, debugActors, debugWalkTo, debugRooms, debugRenderCount, walkInsideFloors, debugCombat, debugFireAt } from "./ui/walk";
+import { pressStart, pressEnd, interact, debugStep, debugPos, debugGoto, debugActors, debugWalkTo, debugRooms, debugRenderCount, walkInsideFloors, debugCombat, debugFireAt, debugMelee } from "./ui/walk";
 import { wkRetreat } from "./ui/planetwalk";
 import { startZone, zoneBail, zoneActive } from "./ui/zonewalk";
 import { crewTalk, crewHighlight, wkInspect, walkDeck, sitChair } from "./ui/shipwalk";
@@ -140,6 +140,7 @@ Object.assign(window as any, {
   __walkTo: debugWalkTo,
   __walkCombat: debugCombat,
   __walkFireAt: debugFireAt,
+  __walkMelee: debugMelee,
   __scenario: loadScenario,
   // dev/debug: drop into the Dustwell dark-pad battle zone (Phase A combat slice)
   __combatTest: () => {

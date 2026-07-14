@@ -231,6 +231,27 @@ describe("run boons (Phase D)", () => {
   });
 });
 
+describe("melee weapon", () => {
+  it("a swing damages a foe in front, knocks it back, and cancels its windup", () => {
+    loadScenario("fresh"); walk.teardown();
+    walk.start(arena({ vitality: 100, enemies: [{ x: 500, y: 300, hp: 8 }] }));
+    walk.debugGoto(500, 344);          // stand just below the enemy (~44px)
+    walk.debugMelee(500, 300);         // swing upward, into it
+
+    const e = walk.debugCombat().enemies[0];
+    expect(e.hp).toBeLessThan(8);      // took melee damage
+    expect(e.y).toBeLessThan(300);     // knocked away from the player (upward)
+  });
+
+  it("a swing misses a foe outside the cone (behind you)", () => {
+    loadScenario("fresh"); walk.teardown();
+    walk.start(arena({ vitality: 100, enemies: [{ x: 500, y: 300, hp: 8 }] }));
+    walk.debugGoto(500, 256);          // stand ABOVE the enemy
+    walk.debugMelee(500, 100);         // swing further up — away from the enemy behind
+    expect(walk.debugCombat().enemies[0].hp).toBe(8);   // untouched
+  });
+});
+
 describe("crew perks (Phase D)", () => {
   beforeEach(() => { loadScenario("fresh"); walk.teardown(); delete S.flags.injuredUntil; S.crew = []; });
 

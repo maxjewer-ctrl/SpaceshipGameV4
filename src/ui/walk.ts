@@ -111,6 +111,7 @@ const gpDirs = new Set<string>();
 let gpAxis = { x: 0, y: 0 };
 let gpPrevA = false;
 let gpPrevB = false;
+let gpPrevX = false;
 const GP_DEADZONE = 0.35;
 let raf: number | null = null;
 let last = 0;
@@ -133,9 +134,12 @@ let highlightKey: string | null = null;
 // Two strides: decks are for walking and talking; action scenes move quicker.
 const DECK_SPEED = 230;
 const ACTION = { moveSpeed:320, rollSpeed:620, rollDuration:.24, rollCooldown:.7, fireCooldown:.18, projectileSpeed:720 };
+// Melee: a close-range cone swipe. High flat damage, brief forward lunge, knocks
+// foes back AND cancels their windup/charge — the answer to enemies that rush you.
+const MELEE = { reach:58, arc:.5, dmg:4, cd:.42, active:.16, knock:46, lunge:24 };
 const inAction = () => !!scene?.action;
 let aim={x:0,y:1}, rollDir={x:0,y:1};
-let rollTime=0, rollCooldown=0, fireCooldown=0;
+let rollTime=0, rollCooldown=0, fireCooldown=0, meleeTime=0, meleeCd=0;
 // Player shots carry their boon payload: damage, whether they pierce, how many
 // wall bounces remain, and which enemies they've already hit (so a piercing
 // shot damages each foe once).
@@ -208,6 +212,7 @@ function bindListeners() {
     if (dir) { keys.add(dir); clearClickMove(); e.preventDefault(); return; }
     if (e.code === "KeyE") { e.preventDefault(); interact(); }
     if (e.code === "Space") { e.preventDefault(); startRoll(); }
+    if (e.code === "KeyF") { e.preventDefault(); meleeSwing(); }
   });
   document.addEventListener("keyup", (e) => {
     const dir = KEYMAP[e.code];
@@ -233,7 +238,7 @@ export function mountHTML(s: WalkScene): string {
             <span class="wk-hostiles" id="wk-hostiles"></span>
           </div>
         </div>
-        <div class="scope-foot"><span id="wk-status"></span><span>[E] interact${s.action ? " · [SPACE] roll" : ""}</span></div>
+        <div class="scope-foot"><span id="wk-status"></span><span>[E] interact${s.action ? " · LMB fire · [F] melee · [SPACE] roll" : ""}</span></div>
       </div>
     </div>
     <p class="dim" id="wk-desc" style="margin-top:8px; min-height:16px"></p>
@@ -353,6 +358,30 @@ function fire(){
   muzzle=.06;
   sfxSafe(()=>sfx.weaponFire('laser'));
 }
+// A melee swing: instant cone hit in front, forward lunge, knockback, and it
+// interrupts any windup/charge — melee is how you punish a foe that closes in.
+function meleeSwing(){
+  if(!inAction()||meleeCd>0||hasModal())return;
+  meleeCd=MELEE.cd; meleeTime=MELEE.active;
+  const nx=pos.x+aim.x*MELEE.lunge, ny=pos.y+aim.y*MELEE.lunge;   // step into the swing
+  pos.x=creepAxis(pos.x,nx,(v)=>insideFloors(v,pos.y));
+  pos.y=creepAxis(pos.y,ny,(v)=>insideFloors(pos.x,v));
+  const dmg=MELEE.dmg+(playerMods.damage-1);                      // Heavy Rounds helps melee too
+  let hitAny=false;
+  for(const e of enemies){
+    if(e.hp<=0)continue;
+    const ex=e.x-pos.x, ey=e.y-pos.y, d=Math.hypot(ex,ey)||1;
+    if(d>MELEE.reach*(e.size||1))continue;
+    if((ex/d)*aim.x+(ey/d)*aim.y<MELEE.arc)continue;              // outside the swing cone
+    e.hp-=dmg; e.hit=.16; hitAny=true;
+    e.windup=0; e.telegraph=0; e.chargeTime=0;                    // interrupt whatever they were doing
+    e.x=creepAxis(e.x,e.x+(ex/d)*MELEE.knock,(v)=>insideFloors(v,e.y));
+    e.y=creepAxis(e.y,e.y+(ey/d)*MELEE.knock,(v)=>insideFloors(e.x,v));
+    if(e.hp<=0)onEnemyKilled(e);
+  }
+  if(hitAny)shakeAmt=Math.min(1.3,shakeAmt+.3);
+  sfxSafe(()=>sfx.weaponFire('torpedo'));
+}
 
 // ---- gamepad (Xbox/standard-mapping USB controllers) ----
 // Polled once per frame in simulate() rather than event-driven — the Gamepad
@@ -374,6 +403,7 @@ function pollGamepad(_dt: number) {
   gpPrevA = aPressed;
   if (inAction()) {
     const bPressed=!!gp.buttons[1]?.pressed;if(bPressed&&!gpPrevB)startRoll();gpPrevB=bPressed;
+    const xPressed=!!gp.buttons[2]?.pressed;if(xPressed&&!gpPrevX)meleeSwing();gpPrevX=xPressed;
     if(gp.buttons[7]?.pressed)fire();
     // Right stick aims. Camera is fixed (screen axes = world axes), so the
     // stick direction is the aim direction directly — no transform.
@@ -485,7 +515,7 @@ export function debugRenderCount() { return renderCount; }
 function drawFrame() {
   if (!scene) return;
   renderCount++;
-  walk3d?.render({ pos, facing, moving, phase: walkPhase, nearDoor, nearActor, time: last, aim, rolling: rollTime > 0, rollCooldown, projectiles, dummy, highlightKey, enemies, foeShots, playerHit, debris, shake: shakeAmt, muzzle, shotColor: playerMods.color, rollTrail });
+  walk3d?.render({ pos, facing, moving, phase: walkPhase, nearDoor, nearActor, time: last, aim, rolling: rollTime > 0, rollCooldown, projectiles, dummy, highlightKey, enemies, foeShots, playerHit, debris, shake: shakeAmt, muzzle, shotColor: playerMods.color, rollTrail, melee: meleeTime });
   updateHud();
 }
 
@@ -527,7 +557,9 @@ export function debugWalkTo(x: number, y: number) { setClickMove(x, y); }
 function simulate(dt: number) {
   if (!scene) return; // torn down mid-frame
   pollGamepad(dt);
-  rollCooldown=Math.max(0,rollCooldown-dt);fireCooldown=Math.max(0,fireCooldown-dt);if(dummy)dummy.hit=Math.max(0,dummy.hit-dt);
+  rollCooldown=Math.max(0,rollCooldown-dt);fireCooldown=Math.max(0,fireCooldown-dt);
+  meleeCd=Math.max(0,meleeCd-dt);meleeTime=Math.max(0,meleeTime-dt);
+  if(dummy)dummy.hit=Math.max(0,dummy.hit-dt);
   if (!hasModal()) {
     let vx = 0, vy = 0;
     if (keys.has("up")) vy -= 1;
@@ -728,6 +760,7 @@ export function debugCombat() { return { active: combatActive, resolved: combatR
 // to carry remaining vitality into the next chamber.
 export function combatVitality() { return vitality; }
 export function debugFireAt(x: number, y: number) { setAim(x, y); fireCooldown = 0; fire(); }
+export function debugMelee(x: number, y: number) { setAim(x, y); meleeCd = 0; meleeSwing(); }
 
 function updateHud() {
   if (!scene) return;
