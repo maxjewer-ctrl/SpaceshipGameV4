@@ -59,6 +59,71 @@ Legend: 🐛 bug · ✅ works · ⚠️ questionable/rough edge
   which is a separate code path from the procedural materials above) and is
   worth a fresh repro with the console open.
 
+## Verification pass — real clicks, isolated worktree, all six bugs re-tested
+
+Re-tested every fix above by actually clicking rendered DOM buttons (real
+`.click()` calls, not `window.dispatch()` — dispatch would mask exactly the
+class of bug being verified) in a fresh worktree checked out to the final
+fixed commit (`940cc96`), with `localStorage` cleared for a genuine new game.
+**All six critical bugs are confirmed fixed:**
+
+- **Bug #1** (Begin softlock): real click on ◆ Begin now correctly opens
+  "◆ DEAD RECKONING" immediately.
+- **Bug #2** (dead `onclick`s, incl. the `shipwalk.ts` walk-door variant):
+  real click on "Get up.", and walking to + interacting with the cockpit
+  chair / engine jury-rig / EVA locker doors via `__walkGoto` +
+  `dispatch('walkInteract')` (the actual player input path), all worked
+  with no console errors.
+- **Bug #3** (prologue modal-queue softlock): played the full salvage sweep
+  (Vesper → Cutter → drop-skiff) and the debt/job-board ending with real
+  clicks — every choice replaced the screen immediately, no stale content,
+  no need to "double-click to catch up."
+- **Bug #4** (arrival screen freeze): confirmed on two separate arrivals
+  (Port Solace ending the prologue, Verge Station ending an arc delivery
+  run) — the ship-walk/station-walk screen is fresh and correct (current
+  day/fuel/hull, correct location, correct crew roster) the instant travel
+  ends, no stale in-transit readout.
+- **Bug #5** (starting modules): a fresh `fresh` scenario now shows
+  "SLOTS 3/6" at the module shop with only Fuel Tank/Cargo Hold/Crew
+  Quarters owned — Weapons Bay (600cr) is a genuine stretch against 500cr
+  starting credits, matching the intended early-game economy.
+- **Bug #6** (combat modal-queue freeze): fought multiple full rounds via
+  real clicks on the actual weapon/target/"Line Up Shot"/Fire buttons —
+  each phase transition rendered immediately (hull and target-HP bars
+  updated live), then real-clicked "Break Contact" to flee and "Continue"
+  to close out cleanly.
+
+Also spot-checked crew dialogue (`Odile Vance`, "Tell me about yourself")
+with real clicks — works correctly, another previously-dead-`onclick`
+system now functioning.
+
+### Playing further: the story arc & the Long Silence
+
+Jumped to `__scenario('arc')` (12★ prestige, day 30) to reach content far
+beyond where the original session stopped. The grey-coat hook (Dr. Elara
+Voss) fired correctly in the Solace cantina; took her sealed-crate job to
+Verge Station — real random travel events fired en route, including two
+**Long Silence** beats (📻 The Broadcast, 🛸 The Returned — boarding the
+derelict *Prodigal Anne* is genuinely unsettling, well-written horror-lite
+content) and a pirate ambush (paid it off to protect the arc cargo), all
+handled correctly with real clicks. Arrived at Verge and got the follow-up
+hook (Voss wants passage to Haven's Folly with the decrypted evidence of a
+Union cover-up at Meridian) — didn't chase it further this session, but the
+handoff scene and its state (arc job removed, new arc flags, prestige
+bump) all resolved correctly.
+
+### New, minor finding from this pass
+
+- `[error] THREE.GLTFLoader: Couldn't load texture blob:...` fires
+  repeatedly (a dozen+ times) on boot/scene load, distinct from the
+  THREE.Material undefined-color warnings addressed above. Given the
+  earlier investigation's note that a GLTF-model path (`attachCrewModel`)
+  is separate from the procedural character materials, this is likely that
+  same path failing to decode a texture format under headless/software
+  WebGL (`swiftshader`) — worth a look, but did not visibly break any
+  rendered scene in this session (cosmetic/console-noise as far as I could
+  tell), so treating as low-priority unless a real visual glitch surfaces.
+
 ## TL;DR
 
 The writing, the world-state/consequence systems, and the base ship/station/
