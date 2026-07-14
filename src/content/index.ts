@@ -165,6 +165,8 @@ export const PORTJOBS = portjobsJson as unknown as Record<string, PortJobTemplat
 export interface ZoneEnemyDef {
   hp: number; speed: number; fireGap: number; shotDmg: number;
   touchDmg: number; range: number; size: number; color: string;
+  // How this archetype attacks: gunner | burst | sniper | charger | boss.
+  behavior: string;
 }
 export interface ZoneSpawnGroup { type: string; min: number; max: number; }
 export interface ZoneChamberDef { spawns: ZoneSpawnGroup[]; }

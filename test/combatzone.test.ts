@@ -181,6 +181,9 @@ describe("seeded zone generator (Phase C)", () => {
     const drone = run.chambers.flatMap((c) => c.enemies).find((e) => e.kind === "drone")!;
     expect(warden.hp).toBeGreaterThan(drone.hp);
     expect(warden.size).toBeGreaterThan(drone.size);
+    // Attack behaviour threads from the data: the boss is a boss, mooks aren't.
+    expect(warden.behavior).toBe("boss");
+    expect(drone.behavior).toBe("gunner");
   });
 
   it("falls back to a real biome when handed an unknown key", () => {

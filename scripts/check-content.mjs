@@ -132,8 +132,11 @@ for (const [k, c] of Object.entries(load("characters.json"))) {
 
 // ---- 8. zones: chamber spawns + pool + boss reference the biome's enemies ----
 const zones = load("zones.json");
+const ZONE_BEHAVIORS = new Set(["gunner", "burst", "sniper", "charger", "boss"]);
 for (const [bk, b] of Object.entries(zones.biomes || {})) {
   const enemyKeys = new Set(Object.keys(b.enemies || {}));
+  for (const [ek, en] of Object.entries(b.enemies || {}))
+    if (en.behavior && !ZONE_BEHAVIORS.has(en.behavior)) err(`zones.${bk}.enemies.${ek}`, `unknown behavior '${en.behavior}'`);
   const chamberKeys = new Set(Object.keys(b.chambers || {}));
   const checkSpawns = (where, def) => {
     for (const g of def?.spawns || []) {

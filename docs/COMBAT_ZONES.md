@@ -164,6 +164,14 @@ The fun layer. Landed:
   after-image; hit/kill/fire SFX (audio-safe under headless). Kill counter in
   the HUD.
 
+- **Enemy behaviours + telegraphs + bosses** (`walk.ts` + `zones.json`) — every
+  archetype attacks its own way: `gunner` (aimed shot), `burst` (3-round burst),
+  `sniper` (long windup, fast heavy round), `charger` (winds up then lunges for
+  heavy contact), `boss` (cycles fan → lunge → burst and enrages under 35% hp).
+  Every attack starts with a **windup telegraph** — the enemy flashes gold with
+  a pulsing warning ring and locks its aim — so hits are dodgeable if you read
+  the tell. Behaviour is data (`ZoneEnemyDef.behavior`), validated by the lint.
+
 Still to wire: end-of-zone payout to cargo/parts + ledger, crew perks + one
 gambit, injury-on-downed.
 - **Deliverable:** runs that escalate and pay out.

@@ -73,7 +73,7 @@ function stage(gc: GenChamber): Chamber {
     return {
       x, y, kind: g.kind, hp: g.hp,
       speed: g.speed, fireGap: g.fireGap, shotDmg: g.shotDmg,
-      touchDmg: g.touchDmg, range: g.range, size: g.size, color: g.color,
+      touchDmg: g.touchDmg, range: g.range, size: g.size, color: g.color, behavior: g.behavior,
     };
   });
   return { enemies, warden: gc.boss };

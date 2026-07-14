@@ -46,7 +46,7 @@ export interface WalkCombatSpawn {
   // Per-archetype combat stats (from content/zones.json via the generator);
   // any omitted field falls back to the COMBAT defaults below.
   speed?: number; fireGap?: number; shotDmg?: number; touchDmg?: number;
-  range?: number; size?: number; color?: string;
+  range?: number; size?: number; color?: string; behavior?: string;
 }
 // The player's gun, mutated by run boons (zonewalk.ts). Defaults = a single
 // straight cyan shot; boons stack pellets, pierce, ricochet, damage, lifesteal.
@@ -146,10 +146,16 @@ let dummy:{x:number;y:number;hp:number;hit:number}|null=null;
 interface FootEnemy {
   x:number; y:number; hp:number; maxhp:number; hit:number; fireCd:number; touchCd:number; kind:string;
   speed:number; fireGap:number; shotDmg:number; touchDmg:number; range:number; size:number; color:string;
+  // attack behaviour + telegraph state: enemies wind up (a readable tell) before
+  // releasing an attack, so every hit is dodgeable if you read the flash.
+  behavior:string; windup:number; telegraph:number; aimx:number; aimy:number;
+  burstLeft:number; burstCd:number; chargeTime:number; phase:number;
 }
 const COMBAT = { enemySpeed:150, standoff:150, range:340, fireGap:1.6, shotSpeed:300, shotDmg:9, touchDmg:7, touchGap:.8, hitInvuln:.5, shotLife:2.2 };
+// Windup (telegraph) seconds per behaviour — longer = more warning, bigger hit.
+const BEHAVIOR:Record<string,number>={ gunner:.34, burst:.4, sniper:.8, charger:.5, boss:.55 };
 let enemies:FootEnemy[]=[];
-let foeShots:Array<{x:number;y:number;vx:number;vy:number;life:number}>=[];
+let foeShots:Array<{x:number;y:number;vx:number;vy:number;life:number;dmg:number}>=[];
 let vitality=0, vitalityMax=0, playerHit=0, playerInvuln=0;
 let combatActive=false, combatResolved=false;
 let onClear:(()=>void)|null=null, onDowned:(()=>void)|null=null;
@@ -272,6 +278,8 @@ export function start(s: WalkScene) {
         speed: e.speed ?? COMBAT.enemySpeed, fireGap: e.fireGap ?? COMBAT.fireGap,
         shotDmg: e.shotDmg ?? COMBAT.shotDmg, touchDmg: e.touchDmg ?? COMBAT.touchDmg,
         range: e.range ?? COMBAT.range, size: e.size ?? 1, color: e.color ?? "#c23b5a",
+        behavior: e.behavior ?? "gunner", windup: 0, telegraph: 0, aimx: 0, aimy: 1,
+        burstLeft: 0, burstCd: 0, chargeTime: 0, phase: 0,
       };
     });
     onClear = s.combat.onClear ?? null; onDowned = s.combat.onDowned ?? null;
@@ -606,33 +614,54 @@ function updateCombat(dt: number) {
   if (playerHit > 0) playerHit -= dt;
   if (playerInvuln > 0) playerInvuln -= dt;
   const invuln = rollTime > 0 || playerInvuln > 0;
+  const boss = last * .001;
   for (const e of enemies) {
     if (e.hit > 0) e.hit -= dt;
     if (e.touchCd > 0) e.touchCd -= dt;
     if (e.hp <= 0) continue;
     const dx = pos.x - e.x, dy = pos.y - e.y, d = Math.hypot(dx, dy) || 1;
+
+    // CHARGING: rush along the locked lunge vector, heavy contact, stop on wall.
+    if (e.chargeTime > 0) {
+      e.chargeTime -= dt;
+      const cs = e.speed * 3.1, px = e.x, py = e.y;
+      e.x = creepAxis(e.x, e.x + e.aimx * cs * dt, (v) => insideFloors(v, e.y));
+      e.y = creepAxis(e.y, e.y + e.aimy * cs * dt, (v) => insideFloors(e.x, v));
+      if (Math.hypot(e.x - px, e.y - py) < 1) e.chargeTime = 0;
+      if (d < 30 && e.touchCd <= 0) { e.touchCd = COMBAT.touchGap; if (!invuln) hurtPlayer(Math.round(e.touchDmg * 1.5)); e.chargeTime = 0; }
+      continue;
+    }
+    // BURST follow-up shots after the opening shot of a burst attack.
+    if (e.burstLeft > 0) {
+      e.burstCd -= dt;
+      if (e.burstCd <= 0) { spawnEnemyShot(e, (e.burstLeft - 1.5) * .05); e.burstLeft--; e.burstCd = .1; }
+    }
+    // WINDUP: hold, flash the telegraph, then release the attack pattern.
+    if (e.windup > 0) {
+      e.windup -= dt; e.telegraph = 1;
+      if (e.windup <= 0) { e.telegraph = 0; releaseAttack(e); e.fireCd = e.fireGap * (e.behavior === "boss" && e.hp < e.maxhp * .35 ? .55 : 1); }
+      continue;
+    }
+    e.telegraph = Math.max(0, e.telegraph - dt * 4);
+
+    // Move: chase to the standoff ring, then orbit so foes don't stack.
     if (d > COMBAT.standoff) {
-      const nx = e.x + dx / d * e.speed * dt, ny = e.y + dy / d * e.speed * dt;
-      e.x = creepAxis(e.x, nx, (v) => insideFloors(v, e.y));
-      e.y = creepAxis(e.y, ny, (v) => insideFloors(e.x, v));
+      e.x = creepAxis(e.x, e.x + dx / d * e.speed * dt, (v) => insideFloors(v, e.y));
+      e.y = creepAxis(e.y, e.y + dy / d * e.speed * dt, (v) => insideFloors(e.x, v));
     } else {
-      // Orbit the player at the standoff ring so they don't stack on one point.
-      const sx = -dy / d, sy = dx / d, dir = Math.sin(last * .001 + e.x * .01) >= 0 ? 1 : -1;
-      const nx = e.x + sx * dir * e.speed * .5 * dt, ny = e.y + sy * dir * e.speed * .5 * dt;
-      e.x = creepAxis(e.x, nx, (v) => insideFloors(v, e.y));
-      e.y = creepAxis(e.y, ny, (v) => insideFloors(e.x, v));
+      const sx = -dy / d, sy = dx / d, dir = Math.sin(boss + e.x * .01) >= 0 ? 1 : -1;
+      e.x = creepAxis(e.x, e.x + sx * dir * e.speed * .5 * dt, (v) => insideFloors(v, e.y));
+      e.y = creepAxis(e.y, e.y + sy * dir * e.speed * .5 * dt, (v) => insideFloors(e.x, v));
     }
+    // Decide to attack: lock aim (so the committed shot is dodgeable) and wind up.
     e.fireCd -= dt;
-    if (e.fireCd <= 0 && d < e.range) {
-      e.fireCd = e.fireGap;
-      foeShots.push({ x: e.x + dx / d * 16, y: e.y + dy / d * 16, vx: dx / d * COMBAT.shotSpeed, vy: dy / d * COMBAT.shotSpeed, life: COMBAT.shotLife });
-    }
+    if (e.fireCd <= 0 && d < e.range) { e.aimx = dx / d; e.aimy = dy / d; e.windup = BEHAVIOR[e.behavior] ?? .34; }
     if (d < 24 && e.touchCd <= 0) { e.touchCd = COMBAT.touchGap; if (!invuln) hurtPlayer(e.touchDmg); }
   }
   for (const s of foeShots) {
     s.x += s.vx * dt; s.y += s.vy * dt; s.life -= dt;
     if (!insideFloors(s.x, s.y)) s.life = 0;
-    if (s.life > 0 && Math.hypot(s.x - pos.x, s.y - pos.y) < 15) { s.life = 0; if (!invuln) hurtPlayer(COMBAT.shotDmg); }
+    if (s.life > 0 && Math.hypot(s.x - pos.x, s.y - pos.y) < 15) { s.life = 0; if (!invuln) hurtPlayer(s.dmg); }
   }
   foeShots = foeShots.filter((s) => s.life > 0);
   if (combatActive && !combatResolved) {
@@ -643,6 +672,29 @@ function updateCombat(dt: number) {
 function hurtPlayer(n: number) {
   vitality = Math.max(0, vitality - n); playerHit = .18; playerInvuln = COMBAT.hitInvuln;
   shakeAmt = Math.min(1.3, shakeAmt + .55); sfxSafe(()=>sfx.hullHit());
+}
+// Spawn one enemy shot along the enemy's LOCKED aim (set at windup start), with
+// an optional angle offset for fans/bursts. Carries the enemy's own damage.
+function spawnEnemyShot(e: FootEnemy, angOff = 0) {
+  const a = Math.atan2(e.aimy, e.aimx) + angOff, sp = COMBAT.shotSpeed;
+  const mul = e.behavior === "sniper" ? 1.9 : 1;
+  foeShots.push({ x: e.x + Math.cos(a) * 16, y: e.y + Math.sin(a) * 16, vx: Math.cos(a) * sp * mul, vy: Math.sin(a) * sp * mul, life: COMBAT.shotLife, dmg: e.shotDmg });
+}
+// Fire the enemy's attack pattern when its windup completes.
+function releaseAttack(e: FootEnemy) {
+  switch (e.behavior) {
+    case "burst": spawnEnemyShot(e); e.burstLeft = 2; e.burstCd = .1; break;
+    case "sniper": spawnEnemyShot(e); break;                                   // one fast, heavy round
+    case "charger": e.chargeTime = .5; break;                                  // lunge instead of shoot
+    case "boss": {                                                             // cycles fan → lunge → burst
+      e.phase = (e.phase + 1) % 3;
+      if (e.phase === 0) { for (let i = -2; i <= 2; i++) spawnEnemyShot(e, i * .15); }
+      else if (e.phase === 1) e.chargeTime = .55;
+      else { spawnEnemyShot(e); e.burstLeft = 3; e.burstCd = .09; }
+      break;
+    }
+    default: spawnEnemyShot(e); break;                                         // gunner: single aimed shot
+  }
 }
 // A satisfying death: a burst of coloured debris, a kick of screen shake, a pop,
 // and any lifesteal boon paying out.
@@ -662,7 +714,7 @@ export function debugKills() { return killCount; }
 
 // Debug-only (window.__walkCombat / __walkFireAt): read fight state and drive a
 // shot toward a world point, so the headless playtest can clear a zone.
-export function debugCombat() { return { active: combatActive, resolved: combatResolved, vitality, vitalityMax, enemies: enemies.map((e) => ({ x: Math.round(e.x), y: Math.round(e.y), hp: e.hp })) }; }
+export function debugCombat() { return { active: combatActive, resolved: combatResolved, vitality, vitalityMax, telegraphing: enemies.some((e) => e.hp > 0 && e.telegraph > 0), enemies: enemies.map((e) => ({ x: Math.round(e.x), y: Math.round(e.y), hp: e.hp, behavior: e.behavior, tel: e.telegraph })) }; }
 // The player's live on-foot health — read by the zone runtime at chamber-clear
 // to carry remaining vitality into the next chamber.
 export function combatVitality() { return vitality; }

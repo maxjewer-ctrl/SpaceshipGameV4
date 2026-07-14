@@ -11,7 +11,7 @@ import { rand, ri, pick } from "../rng";
 // by the stager (ui/zonewalk.ts owns the arena geometry).
 export interface GenEnemy {
   kind: string; hp: number; speed: number; fireGap: number;
-  shotDmg: number; touchDmg: number; range: number; size: number; color: string;
+  shotDmg: number; touchDmg: number; range: number; size: number; color: string; behavior: string;
 }
 export interface GenChamber { enemies: GenEnemy[]; boss: boolean; }
 export interface GenRun {
