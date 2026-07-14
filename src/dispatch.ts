@@ -55,8 +55,8 @@ import {
 import { pressStart, pressEnd, interact } from "./ui/walk";
 import { crewTalk, crewHighlight, wkInspect, walkDeck, sitChair, toggleModAndInspect } from "./ui/shipwalk";
 import { wkPay, wkTalk, wkFight } from "./systems/walkEncounters";
-import { ctVibe, ctAbout, ctShip, ctQuest, ctWorld, ctClose, ctQuestHelp, ctQuestSkip, ctJuno } from "./systems/crewtalk";
-import { junoChoose, junoContinue } from "./systems/junodialogue";
+import { ctVibe, ctAbout, ctShip, ctQuest, ctWorld, ctClose, ctQuestHelp, ctQuestSkip, ctDeepTalk } from "./systems/crewtalk";
+import { crewDialogueChoose, crewDialogueContinue } from "./systems/crewdialogue";
 import { dcValve, dcVector, dcCare } from "./systems/damagecontrol";
 import { refitShip } from "./systems/wear";
 import {
@@ -115,8 +115,8 @@ const ACTIONS: Record<string, (...args: any[]) => void> = {
   toggleModAndInspect,
   // crew dialogue — trust-gated topics, personal quests
   ctVibe, ctAbout, ctShip, ctQuest, ctWorld, ctClose, ctQuestHelp, ctQuestSkip,
-  // Juno Vale — the large branching conversation tree (trust + faction rep + events)
-  ctJuno, junoChoose, junoContinue,
+  // named crew's deep conversation trees (trust + faction rep + events) — Juno, Bapu, ...
+  ctDeepTalk, crewDialogueChoose, crewDialogueContinue,
   // damage control — crew-gap minigames (no mechanic/pilot/med bay aboard)
   dcValve, dcVector, dcCare,
   // agenda beats — the named twelve's honest/dishonest objectives billing due

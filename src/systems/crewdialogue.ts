@@ -19,6 +19,7 @@ import { S, log } from "../state";
 import { CREW_TREES, PLANETS } from "../content";
 import { modal, replaceModal, closeModal } from "../modal";
 import { requestRender } from "../bus";
+import { actionAttr } from "../dispatch";
 import { crewPortrait, dialogueHeadHTML } from "../ui/portraits";
 import { applyEffects } from "./scheduler";
 import { sentiment, crewKey, remember } from "./ledger";
@@ -132,7 +133,7 @@ function renderCrewNode(key: string, tree: CrewDialogueTree, nodeKey: string, fo
       if (!ok && x.ch.hidden) return "";
       const cls = x.ch.tone === "primary" ? "primary" : x.ch.tone === "danger" ? "danger" : "";
       const hint = !ok && why ? ` <span class="dim">— ${why}</span>` : "";
-      return `<button class="${cls}" ${ok ? "" : "disabled"} onclick="crewDialogueChoose('${key}','${nodeKey}',${x.i})">${x.ch.label}${hint}</button>`;
+      return `<button class="${cls}" ${ok ? "" : "disabled"} ${actionAttr("crewDialogueChoose", key, nodeKey, x.i)}>${x.ch.label}${hint}</button>`;
     })
     .join("");
   const html = `<div class="scene">
@@ -178,7 +179,7 @@ export function crewDialogueChoose(key: string, nodeKey: string, idx: number) {
       <div class="scene-loc">${sceneLoc()}</div>
       ${dialogueHeadHTML(src, "🧑‍🚀", c.name, "")}
       <p>${ch.reply}</p>
-      <div class="choices"><button class="primary" onclick="crewDialogueContinue()">Continue</button></div>
+      <div class="choices"><button class="primary" ${actionAttr("crewDialogueContinue")}>Continue</button></div>
     </div>`);
     requestRender();
   } else {
