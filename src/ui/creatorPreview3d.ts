@@ -38,19 +38,19 @@ export function mountCreatorPreview(stage: HTMLElement, getApp: () => Appearance
 
   // pedestal disc so the figure isn't floating in the void
   const disc = new THREE.Mesh(
-    new THREE.CylinderGeometry(.52, .58, .06, 28),
+    new THREE.CylinderGeometry(.42, .46, .05, 28),
     new THREE.MeshStandardMaterial({ color: 0x1c2534, roughness: .6, metalness: .4, emissive: 0x2a3a55, emissiveIntensity: .25 }),
   );
   disc.position.y = -.03; scene.add(disc);
   const ring = new THREE.Mesh(
-    new THREE.TorusGeometry(.55, .012, 6, 40),
+    new THREE.TorusGeometry(.45, .01, 6, 40),
     new THREE.MeshStandardMaterial({ color: 0xe8b04b, emissive: 0xe8b04b, emissiveIntensity: .9 }),
   );
   ring.rotation.x = Math.PI / 2; ring.position.y = .005; scene.add(ring);
 
   const camera = new THREE.PerspectiveCamera(30, W / H, .1, 20);
-  camera.position.set(0, .98, 2.85);
-  camera.lookAt(0, .8, 0);
+  camera.position.set(0, .92, 4.15);
+  camera.lookAt(0, .72, 0);
 
   let model: PlayerModel | null = null;
   let disposed = false;
@@ -58,6 +58,8 @@ export function mountCreatorPreview(stage: HTMLElement, getApp: () => Appearance
   void createPlayerModel(false).then((next) => {
     if (disposed) { disposePlayerModel(next); return; }
     model = next;
+    next.group.scale.setScalar(.72);
+    next.group.position.set(0, .03, 0);
     scene.add(next.group);
   });
 
