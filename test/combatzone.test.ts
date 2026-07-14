@@ -17,7 +17,8 @@ vi.mock("../src/ui/walk3d", () => ({
 import { loadScenario } from "../src/debug/scenarios";
 import * as walk from "../src/ui/walk";
 import type { WalkScene, WalkCombat } from "../src/ui/walk";
-import { startZone, buildZoneScene, zoneActive } from "../src/ui/zonewalk";
+import { startZone, buildZoneScene, zoneActive, zoneMods } from "../src/ui/zonewalk";
+import { defaultMods } from "../src/ui/walk";
 import { generateRun } from "../src/systems/zonegen";
 import { derelictBoard } from "../src/systems/events";
 import { S } from "../src/state";
@@ -204,6 +205,28 @@ function runIncursionToExtract() {
     open[0].action();
   }
 }
+
+describe("run boons (Phase D)", () => {
+  beforeEach(() => { loadScenario("fresh"); walk.teardown(); });
+
+  it("a boon door grows the gun beyond the default", () => {
+    S.rngState = 42;
+    startZone({ biome: "derelict", chambers: 3, vitality: 100, returnScreen: "ship" });
+    const base = JSON.stringify(defaultMods());
+    expect(JSON.stringify(zoneMods())).toBe(base);   // starts at the default gun
+
+    // Clear chamber 0 and take its boon door (label carries the "name — desc").
+    let scene = buildZoneScene();
+    walk.start(scene);
+    clearChamber();
+    scene = buildZoneScene();
+    const boon = scene.doors.find((d) => !d.locked && /—/.test(d.label));
+    expect(boon).toBeTruthy();
+    boon!.action();
+
+    expect(JSON.stringify(zoneMods())).not.toBe(base); // the gun changed
+  });
+});
 
 describe("world integration: derelict boarding (Phase E)", () => {
   beforeEach(() => { loadScenario("trader"); walk.teardown(); });

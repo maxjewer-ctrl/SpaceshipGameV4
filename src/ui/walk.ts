@@ -5,6 +5,10 @@
 // string-template render() cycle — so walking around isn't interrupted every
 // time an unrelated state change calls requestRender() elsewhere in the game.
 import { hasModal } from "../modal";
+import * as sfx from "../audio";
+// Audio is pure polish and browser-only (no AudioContext under jsdom/headless):
+// never let a sound failure interrupt the sim.
+function sfxSafe(fn: () => void) { try { fn(); } catch { /* no audio here */ } }
 
 export interface WalkRect { x: number; y: number; w: number; h: number; }
 export interface WalkDoor extends WalkRect { label: string; locked?: boolean; lockedHint?: string; action: () => void; }
@@ -44,9 +48,20 @@ export interface WalkCombatSpawn {
   speed?: number; fireGap?: number; shotDmg?: number; touchDmg?: number;
   range?: number; size?: number; color?: string;
 }
+// The player's gun, mutated by run boons (zonewalk.ts). Defaults = a single
+// straight cyan shot; boons stack pellets, pierce, ricochet, damage, lifesteal.
+export interface WalkMods {
+  damage: number; fireRateMul: number; count: number; spreadArc: number;
+  pierce: boolean; ricochet: boolean; lifesteal: number;
+  projSpeed: number; projLife: number; color: string;
+}
+export function defaultMods(): WalkMods {
+  return { damage: 1, fireRateMul: 1, count: 1, spreadArc: 0, pierce: false, ricochet: false, lifesteal: 0, projSpeed: 720, projLife: 1.1, color: "#70d7ff" };
+}
 export interface WalkCombat {
   vitality?: number;          // player's on-foot health pool for the zone (default 100)
   enemies: WalkCombatSpawn[];
+  mods?: WalkMods;            // the player's gun for this chamber (accumulated boons)
   onClear?: () => void;       // fired once when the last hostile drops
   onDowned?: () => void;      // fired once when vitality hits zero
 }
@@ -119,7 +134,11 @@ const ACTION = { moveSpeed:320, rollSpeed:620, rollDuration:.24, rollCooldown:.7
 const inAction = () => !!scene?.action;
 let aim={x:0,y:1}, rollDir={x:0,y:1};
 let rollTime=0, rollCooldown=0, fireCooldown=0;
-let projectiles:Array<{x:number;y:number;vx:number;vy:number;life:number}>=[];
+// Player shots carry their boon payload: damage, whether they pierce, how many
+// wall bounces remain, and which enemies they've already hit (so a piercing
+// shot damages each foe once).
+interface PlayerShot { x:number; y:number; vx:number; vy:number; life:number; dmg:number; pierce:boolean; bounces:number; hit:Set<FootEnemy>; }
+let projectiles:PlayerShot[]=[];
 let dummy:{x:number;y:number;hp:number;hit:number}|null=null;
 // ---- foot combat: enemies that chase + shoot, a player vitality pool, and
 // clear/downed resolution. Driven by scene.combat; all live state is here (not
@@ -134,6 +153,10 @@ let foeShots:Array<{x:number;y:number;vx:number;vy:number;life:number}>=[];
 let vitality=0, vitalityMax=0, playerHit=0, playerInvuln=0;
 let combatActive=false, combatResolved=false;
 let onClear:(()=>void)|null=null, onDowned:(()=>void)|null=null;
+// ---- combat juice: the gun, screen shake, muzzle flash, death debris, kills.
+let playerMods:WalkMods=defaultMods();
+let debris:Array<{x:number;y:number;vx:number;vy:number;life:number;color:string}>=[];
+let shakeAmt=0, muzzle=0, killCount=0, rollTrail=0;
 type Walk3D = typeof import("./walk3d");
 let walk3d: Walk3D | null = null;
 let walk3dLoading: Promise<Walk3D> | null = null;
@@ -234,7 +257,9 @@ export function start(s: WalkScene) {
   projectiles=[]; foeShots=[]; rollTime=rollCooldown=fireCooldown=0;
   enemies=[]; combatActive=false; combatResolved=false; onClear=onDowned=null;
   vitality=vitalityMax=0; playerHit=playerInvuln=0;
+  debris=[]; shakeAmt=muzzle=killCount=rollTrail=0; playerMods=defaultMods();
   if (s.combat) {
+    playerMods = s.combat.mods ?? defaultMods();
     // A real battle zone: spawn the roster, seed the vitality pool, stagger the
     // opening volley so three drones don't fire on the same frame.
     vitalityMax = s.combat.vitality ?? 100; vitality = vitalityMax;
@@ -303,7 +328,18 @@ function startRoll(){
   if(x||y){const d=Math.hypot(x,y);rollDir={x:x/d,y:y/d};}else rollDir={...aim};
   rollTime=ACTION.rollDuration;rollCooldown=ACTION.rollCooldown;
 }
-function fire(){if(!inAction()||fireCooldown>0||hasModal())return;projectiles.push({x:pos.x+aim.x*16,y:pos.y+aim.y*16,vx:aim.x*ACTION.projectileSpeed,vy:aim.y*ACTION.projectileSpeed,life:1.1});fireCooldown=ACTION.fireCooldown;}
+function fire(){
+  if(!inAction()||fireCooldown>0||hasModal())return;
+  const m=playerMods, n=Math.max(1,m.count), base=Math.atan2(aim.y,aim.x);
+  for(let i=0;i<n;i++){
+    const t=n===1?0:(i/(n-1)-0.5);          // spread pellets across the arc
+    const a=base+t*m.spreadArc;
+    projectiles.push({x:pos.x+Math.cos(a)*16,y:pos.y+Math.sin(a)*16,vx:Math.cos(a)*m.projSpeed,vy:Math.sin(a)*m.projSpeed,life:m.projLife,dmg:m.damage,pierce:m.pierce,bounces:m.ricochet?3:0,hit:new Set()});
+  }
+  fireCooldown=ACTION.fireCooldown*m.fireRateMul;
+  muzzle=.06;
+  sfxSafe(()=>sfx.weaponFire('laser'));
+}
 
 // ---- gamepad (Xbox/standard-mapping USB controllers) ----
 // Polled once per frame in simulate() rather than event-driven — the Gamepad
@@ -436,7 +472,7 @@ export function debugRenderCount() { return renderCount; }
 function drawFrame() {
   if (!scene) return;
   renderCount++;
-  walk3d?.render({ pos, facing, moving, phase: walkPhase, nearDoor, nearActor, time: last, aim, rolling: rollTime > 0, rollCooldown, projectiles, dummy, highlightKey, enemies, foeShots, playerHit });
+  walk3d?.render({ pos, facing, moving, phase: walkPhase, nearDoor, nearActor, time: last, aim, rolling: rollTime > 0, rollCooldown, projectiles, dummy, highlightKey, enemies, foeShots, playerHit, debris, shake: shakeAmt, muzzle, shotColor: playerMods.color, rollTrail });
   updateHud();
 }
 
@@ -526,8 +562,29 @@ function simulate(dt: number) {
       else if (vy !== 0) facing = vy > 0 ? "down" : "up";
       walkPhase += dt * 9;
     }
-    for(const p of projectiles){p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;if(!insideFloors(p.x,p.y))p.life=0;if(dummy&&dummy.hp>0&&Math.hypot(p.x-dummy.x,p.y-dummy.y)<22){dummy.hp--;dummy.hit=.12;p.life=0;}for(const e of enemies){if(e.hp>0&&Math.hypot(p.x-e.x,p.y-e.y)<20){e.hp--;e.hit=.12;p.life=0;break;}}}
-    projectiles=projectiles.filter(p=>p.life>0);
+    // juice decay + debris drift (every frame, cheap when empty)
+    if(muzzle>0)muzzle=Math.max(0,muzzle-dt);
+    if(shakeAmt>0)shakeAmt=Math.max(0,shakeAmt-dt*2.2);
+    if(rollTime>0)rollTrail=Math.max(rollTrail,.12); if(rollTrail>0)rollTrail=Math.max(0,rollTrail-dt);
+    for(const d of debris){d.x+=d.vx*dt;d.y+=d.vy*dt;d.vx*=.88;d.vy*=.88;d.life-=dt;}
+    if(debris.length)debris=debris.filter(d=>d.life>0);
+    for(const p of projectiles){
+      p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;
+      if(!insideFloors(p.x,p.y)){
+        if(p.bounces>0){p.bounces--;p.x-=p.vx*dt;p.y-=p.vy*dt;
+          if(insideFloors(p.x-p.vx*dt,p.y))p.vx=-p.vx; else if(insideFloors(p.x,p.y-p.vy*dt))p.vy=-p.vy; else {p.vx=-p.vx;p.vy=-p.vy;}}
+        else p.life=0;
+      }
+      if(dummy&&dummy.hp>0&&Math.hypot(p.x-dummy.x,p.y-dummy.y)<22){dummy.hp-=p.dmg;dummy.hit=.14;if(!p.pierce)p.life=0;}
+      for(const e of enemies){
+        if(e.hp>0&&!p.hit.has(e)&&Math.hypot(p.x-e.x,p.y-e.y)<20*(e.size||1)){
+          p.hit.add(e); e.hp-=p.dmg; e.hit=.14;
+          if(e.hp<=0)onEnemyKilled(e);
+          if(!p.pierce){p.life=0;break;}
+        }
+      }
+    }
+    if(projectiles.length)projectiles=projectiles.filter(p=>p.life>0);
     if (combatActive || enemies.length) updateCombat(dt);
     nearDoor = null;
     let bestD = 46;
@@ -583,7 +640,25 @@ function updateCombat(dt: number) {
     else if (enemies.every((e) => e.hp <= 0)) { combatResolved = true; combatActive = false; onClear?.(); }
   }
 }
-function hurtPlayer(n: number) { vitality = Math.max(0, vitality - n); playerHit = .18; playerInvuln = COMBAT.hitInvuln; }
+function hurtPlayer(n: number) {
+  vitality = Math.max(0, vitality - n); playerHit = .18; playerInvuln = COMBAT.hitInvuln;
+  shakeAmt = Math.min(1.3, shakeAmt + .55); sfxSafe(()=>sfx.hullHit());
+}
+// A satisfying death: a burst of coloured debris, a kick of screen shake, a pop,
+// and any lifesteal boon paying out.
+function onEnemyKilled(e: FootEnemy) {
+  killCount++;
+  const n = 10;
+  for (let i = 0; i < n; i++) {
+    const a = (i / n) * Math.PI * 2 + e.x * .013;
+    const sp = 70 + ((i * 53) % 130);
+    debris.push({ x: e.x, y: e.y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: .45 + ((i * 7) % 5) * .05, color: e.color });
+  }
+  shakeAmt = Math.min(1.3, shakeAmt + .3);
+  if (playerMods.lifesteal > 0) vitality = Math.min(vitalityMax, vitality + playerMods.lifesteal);
+  sfxSafe(()=>sfx.systemDamage());
+}
+export function debugKills() { return killCount; }
 
 // Debug-only (window.__walkCombat / __walkFireAt): read fight state and drive a
 // shot toward a world point, so the headless playtest can clear a zone.
@@ -614,7 +689,7 @@ function updateHud() {
       }
       const host = document.getElementById("wk-hostiles");
       const n = enemies.filter((e) => e.hp > 0).length;
-      if (host) host.textContent = combatActive ? `HOSTILES ${n}` : "PAD CLEAR";
+      if (host) host.textContent = combatActive ? `HOSTILES ${n}${killCount ? ` · ${killCount} DOWN` : ""}` : "CLEAR";
     } else combatEl.style.display = "none";
   }
   const descEl = document.getElementById("wk-desc");

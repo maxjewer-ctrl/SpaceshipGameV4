@@ -12,17 +12,30 @@
 import { S, log, whisper } from "../state";
 import { modal, closeModal } from "../modal";
 import { requestRender } from "../bus";
-import { ri, pick } from "../rng";
-import { combatVitality, teardown as walkTeardown } from "./walk";
-import type { WalkScene, WalkDoor, WalkRoom, WalkRect, WalkCombatSpawn } from "./walk";
+import { rand, ri, pick } from "../rng";
+import { combatVitality, teardown as walkTeardown, defaultMods } from "./walk";
+import type { WalkScene, WalkDoor, WalkRoom, WalkRect, WalkCombatSpawn, WalkMods } from "./walk";
 import { generateRun } from "../systems/zonegen";
 import type { GenChamber } from "../systems/zonegen";
 
 interface Chamber { enemies: WalkCombatSpawn[]; warden: boolean; }
 type RewardRanges = { credits: [number, number]; heal: [number, number] };
-type ExitKind = "credits" | "heal" | "extract";
-interface ZoneExit { id: string; kind: ExitKind; icon: string; label: string; amount: number; }
+type ExitKind = "credits" | "heal" | "extract" | "boon";
+interface ZoneExit { id: string; kind: ExitKind; icon: string; label: string; amount: number; boonId?: string; }
 export interface ZoneResult { won: boolean; chambersCleared: number; payout: number; }
+
+// Boons — the run-only upgrade layer that makes each incursion a different gun.
+// `once` boons (pierce/ricochet) can't stack; the rest do.
+interface Boon { id: string; icon: string; name: string; desc: string; once?: boolean; apply: (m: WalkMods) => void; }
+const BOONS: Boon[] = [
+  { id: "spread", icon: "⋔", name: "Scattershot", desc: "+1 pellet, wider arc", apply: (m) => { m.count += 1; m.spreadArc = Math.max(m.spreadArc, .28) + .06; } },
+  { id: "rapid", icon: "⚡", name: "Overclock", desc: "fire noticeably faster", apply: (m) => { m.fireRateMul *= .68; } },
+  { id: "power", icon: "✷", name: "Heavy Rounds", desc: "+2 damage per hit", apply: (m) => { m.damage += 2; } },
+  { id: "pierce", icon: "➹", name: "Railshot", desc: "shots punch through foes", once: true, apply: (m) => { m.pierce = true; m.color = "#ffd66b"; } },
+  { id: "ricochet", icon: "⟲", name: "Ricochet", desc: "shots bounce off the walls", once: true, apply: (m) => { m.ricochet = true; m.color = "#8fe36b"; } },
+  { id: "vamp", icon: "❤", name: "Leech Rounds", desc: "+3 vitality on every kill", apply: (m) => { m.lifesteal += 3; m.color = "#ff6bb0"; } },
+  { id: "long", icon: "➸", name: "High-Velocity", desc: "faster, longer-range shots", apply: (m) => { m.projSpeed += 220; m.projLife += .5; } },
+];
 
 interface ZoneRun {
   biome: string;
@@ -35,6 +48,8 @@ interface ZoneRun {
   vitality: number;       // carried across chambers
   vitalityMax: number;
   payout: number;         // salvage banked so far this run
+  mods: WalkMods;         // the player's gun, grown by boons across the run
+  boons: string[];        // icons of boons taken, for the HUD readout
   returnScreen: string;
   onExit?: (r: ZoneResult) => void;
   ended: boolean;
@@ -72,6 +87,7 @@ export function startZone(cfg: { biome?: string; chambers?: number; vitality?: n
     biome: run.biome, title: run.title, chambers: run.chambers.map(stage), rewards: run.rewards,
     index: 0, cleared: false, exits: null,
     vitality: vitMax, vitalityMax: vitMax, payout: 0,
+    mods: defaultMods(), boons: [],
     returnScreen: cfg.returnScreen ?? "map", onExit: cfg.onExit, ended: false,
   };
   S.screen = "zone";
@@ -105,14 +121,16 @@ export function buildZoneScene(): WalkScene {
   const combat = z.cleared ? undefined : {
     vitality: z.vitality,
     enemies: chamber.enemies,
+    mods: z.mods,
     onClear: onChamberClear,
     onDowned: onDowned,
   };
 
+  const boonTag = z.boons.length ? ` · ${z.boons.join("")}` : "";
   return {
     id: `zone:${z.biome}:${z.index}`,   // stable per chamber; advancing remounts
     title: `Incursion — ${z.title}`,
-    status: z.cleared ? "CHAMBER CLEAR · CHOOSE A HATCH" : `HOSTILES INBOUND · CHAMBER ${z.index + 1}/${z.chambers.length}`,
+    status: (z.cleared ? "CHAMBER CLEAR · CHOOSE A HATCH" : `HOSTILES INBOUND · CHAMBER ${z.index + 1}/${z.chambers.length}`) + boonTag,
     width: ARENA.w, height: ARENA.h,
     floors, rooms, doors, actors: [],
     roomDesc: { chamber: z.cleared ? "The chamber is still. Ahead, hatches cycle — each one gives up something different." : "Contacts on the scope. Nowhere to be but through them." },
@@ -132,21 +150,30 @@ function onChamberClear() {
     z.exits = [{ id: "extract", kind: "extract", icon: "⏏", label: "Extract", amount: 0 }];
     whisper("The warden goes dark. The extraction hatch blows its bolts ahead of you.");
   } else {
-    z.exits = rollExits(z.rewards);
+    z.exits = rollExits(z);
     whisper("The last contact drops. Two hatches cycle open — you can only take one.");
   }
   requestRender();
 }
 
-// Two boon doors: bank salvage, or patch up. You only get one.
-function rollExits(r: RewardRanges): ZoneExit[] {
-  const credits = ri(r.credits[0], r.credits[1]);
-  const heal = ri(r.heal[0], r.heal[1]);
-  const salvageWord = pick(["salvage", "scrap", "a cracked cache", "a stripped panel"]);
-  return [
-    { id: "credits", kind: "credits", icon: "💰", label: `${salvageWord} +${credits}cr`, amount: credits },
-    { id: "heal", kind: "heal", icon: "✚", label: `field repair +${heal}`, amount: heal },
-  ];
+// Each clear offers a real choice: a BOON (grow your gun) vs. a safe reward
+// (salvage credits, or patch up). The boon door is what makes runs escalate.
+function rollExits(z: ZoneRun): ZoneExit[] {
+  const b = pickBoon(z);
+  const boonExit: ZoneExit = b
+    ? { id: "boon", kind: "boon", icon: b.icon, label: `${b.name} — ${b.desc}`, amount: 0, boonId: b.id }
+    : { id: "heal", kind: "heal", icon: "✚", label: `field repair +${ri(z.rewards.heal[0], z.rewards.heal[1])}`, amount: ri(z.rewards.heal[0], z.rewards.heal[1]) };
+  // The alternative: half the time cold cash, half the time a patch-up.
+  const alt: ZoneExit = rand() < 0.5
+    ? { id: "credits", kind: "credits", icon: "💰", label: `${pick(["salvage", "scrap", "a cracked cache", "a stripped panel"])} +${ri(z.rewards.credits[0], z.rewards.credits[1])}cr`, amount: ri(z.rewards.credits[0], z.rewards.credits[1]) }
+    : { id: "heal", kind: "heal", icon: "✚", label: `field repair +${ri(z.rewards.heal[0], z.rewards.heal[1])}`, amount: ri(z.rewards.heal[0], z.rewards.heal[1]) };
+  return [boonExit, alt];
+}
+
+// Pick an offered boon, excluding one-shot boons already taken.
+function pickBoon(z: ZoneRun): Boon | null {
+  const avail = BOONS.filter((b) => !(b.once && ((b.id === "pierce" && z.mods.pierce) || (b.id === "ricochet" && z.mods.ricochet))));
+  return avail.length ? pick(avail) : null;
 }
 
 function pickExit(id: string) {
@@ -154,6 +181,10 @@ function pickExit(id: string) {
   const ex = z.exits.find((e) => e.id === id);
   if (!ex) return;
   if (ex.kind === "extract") { endZone(true); return; }
+  if (ex.kind === "boon") {
+    const b = BOONS.find((x) => x.id === ex.boonId);
+    if (b) { b.apply(z.mods); z.boons.push(b.icon); log(`Boon: ${b.name} — ${b.desc}.`); }
+  }
   if (ex.kind === "credits") { z.payout += ex.amount; log(`You strip the chamber for salvage (+${ex.amount}cr banked).`); }
   if (ex.kind === "heal") { z.vitality = Math.min(z.vitalityMax, z.vitality + ex.amount); log(`You patch up in the lull (+${ex.amount} vitality).`); }
   z.index++;
@@ -195,3 +226,6 @@ function endZone(won: boolean) {
 
 // Modal button for the downed bail-out.
 export function zoneBail() { closeModal(); endZone(false); }
+
+// Debug/test: the current run's accumulated gun mods (null when no run is live).
+export function zoneMods(): WalkMods | null { return Z ? Z.mods : null; }

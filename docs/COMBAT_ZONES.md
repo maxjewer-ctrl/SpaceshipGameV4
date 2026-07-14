@@ -149,9 +149,23 @@ is transient module state, not persisted. `__zoneTest(biome, chambers)` starts
 any biome; verified in `test/combatzone.test.ts` (determinism, per-biome rosters,
 boss-last, unknown-biome fallback).
 
-### Phase D — Rewards, boons, meta
-Door-reward previews, the field-boon pool, end-of-zone payout to credits/cargo/
-parts + ledger, downed/injury handling, crew perks + one gambit.
+### Phase D — Rewards, boons, meta 🚧 CORE SHIPPED
+The fun layer. Landed:
+- **Field boons** (`zonewalk.ts` `BOONS`) — each chamber clear offers a real
+  choice: a boon that grows your gun (Scattershot +pellets, Overclock fire-rate,
+  Heavy Rounds +dmg, Railshot pierce, Ricochet, Leech heal-on-kill,
+  High-Velocity) vs. a safe reward (salvage cr / field-repair). Boons stack
+  across the run and carry as `WalkMods` into each chamber's `combat.mods`; the
+  active set shows in the HUD. This is what makes each incursion a different gun.
+- **Combat juice** (`walk.ts` + `walk3d.ts`) — the gun reads the mods (spread
+  pellets, piercing shots that hit each foe once, wall-bouncing ricochet,
+  per-hit damage, lifesteal); kills burst into coloured debris with a screen-
+  shake kick; muzzle flash + brighter bloom-catching tracers; a dodge-roll
+  after-image; hit/kill/fire SFX (audio-safe under headless). Kill counter in
+  the HUD.
+
+Still to wire: end-of-zone payout to cargo/parts + ledger, crew perks + one
+gambit, injury-on-downed.
 - **Deliverable:** runs that escalate and pay out.
 
 ### Phase E — World integration 🚧 IN PROGRESS

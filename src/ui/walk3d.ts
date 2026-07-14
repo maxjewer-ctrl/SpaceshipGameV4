@@ -578,7 +578,7 @@ export function mount(container: HTMLElement | null, s: WalkScene, actions: {mov
 }
 function resize(){if(!renderer||!camera||!host)return;const r=host.getBoundingClientRect();const w=Math.max(1,r.width),h=Math.max(1,r.height);renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();composer?.setSize(w,h);const pr=Math.min(devicePixelRatio,1.5);crtPass?.uniforms.resolution.value.set(w*pr,h*pr);}
 export function setScene(s: WalkScene){current=s;const sig=s.id+"|"+s.rooms.map(r=>`${r.id}:${r.moduleType}:${r.moduleIndex}`).join()+"|"+s.doors.map(d=>d.label+d.locked).join()+"|"+s.actors.map(a=>a.key).join()+"|"+(s.ship?`${s.ship.x},${s.ship.y},${s.ship.facing}`:"")+"|"+S.modules.map(m=>`${m.t}${m.on}${m.dmg}${wearTier(m)}`).join();if(sig!==signature){signature=sig;rebuild();}}
-export function render(v:{pos:{x:number;y:number};facing:string;moving:boolean;phase:number;nearDoor:WalkDoor|null;nearActor:WalkActor|null;time:number;aim:{x:number;y:number};rolling:boolean;rollCooldown:number;projectiles:Array<{x:number;y:number}>;dummy:{x:number;y:number;hp:number;hit:number}|null;highlightKey:string|null;enemies?:Array<{x:number;y:number;hp:number;maxhp:number;hit:number;kind:string;size?:number;color?:string}>;foeShots?:Array<{x:number;y:number}>;playerHit?:number}){
+export function render(v:{pos:{x:number;y:number};facing:string;moving:boolean;phase:number;nearDoor:WalkDoor|null;nearActor:WalkActor|null;time:number;aim:{x:number;y:number};rolling:boolean;rollCooldown:number;projectiles:Array<{x:number;y:number}>;dummy:{x:number;y:number;hp:number;hit:number}|null;highlightKey:string|null;enemies?:Array<{x:number;y:number;hp:number;maxhp:number;hit:number;kind:string;size?:number;color?:string}>;foeShots?:Array<{x:number;y:number}>;playerHit?:number;debris?:Array<{x:number;y:number;color:string;life:number}>;shake?:number;muzzle?:number;shotColor?:string;rollTrail?:number}){
   if(!renderer||!root||!camera||!current)return; const x=wx(v.pos.x),z=wz(v.pos.y);avatar.position.set(x,0,z);
   if(!avatar.children.length){captainRig=buildCharacter(S.appearance||undefined);avatar.add(captainRig.group);}
   // procedural walk cycle: limbs swing from their joint pivots, driven by the
@@ -588,7 +588,11 @@ export function render(v:{pos:{x:number;y:number};facing:string;moving:boolean;p
   avatar.rotation.z=v.rolling?-.45:0;avatar.scale.setScalar(v.rolling?.82:1);
   const ang=v.facing==="right"?Math.PI/2:v.facing==="left"?-Math.PI/2:v.facing==="up"?Math.PI:0;avatar.rotation.y=ang;
   const room=current.rooms.find(r=>v.pos.x>=r.x&&v.pos.x<=r.x+r.w&&v.pos.y>=r.y&&v.pos.y<=r.y+r.h);const shake=room?.kind==="engine"?Math.sin(v.time*.045)*.025:0;
-  const target=new THREE.Vector3(x+shake,CAM_HEIGHT,z+CAM_OFFSET_Z);camera.position.lerp(target,.09);camera.lookAt(x,.45,z);
+  const target=new THREE.Vector3(x+shake,CAM_HEIGHT,z+CAM_OFFSET_Z);camera.position.lerp(target,.09);
+  // Combat screen-shake: jitter the eye (not the look target) so a kill or a hit
+  // gives the whole viewport a satisfying kick that settles fast.
+  if(v.shake&&v.shake>0){const s=Math.min(1.3,v.shake);camera.position.x+=Math.sin(v.time*.13)*s*.14;camera.position.z+=Math.cos(v.time*.19)*s*.14;camera.position.y+=Math.sin(v.time*.23)*s*.06;}
+  camera.lookAt(x,.45,z);
   if(flashlight){flashlight.position.set(x,1.25,z);flashlight.target.position.set(x+Math.sin(ang)*4,.45,z+Math.cos(ang)*4);}
   for(const a of current.actors){const g=actorMeshes.get(a.key);if(!g)continue;g.position.set(wx(a.x+a.w/2),0,wz(a.y+a.h/2));if(a.bubble&&!g.getObjectByName("bubble")){const b=sprite(a.bubble,"#fff",.65);b.name="bubble";b.position.y=2.55;g.add(b);}else if(!a.bubble){const b=g.getObjectByName("bubble");if(b){g.remove(b);disposeObject(b);}}}
   // A room full of nametags/door labels reads as a wall of overlapping text;
@@ -600,14 +604,21 @@ export function render(v:{pos:{x:number;y:number};facing:string;moving:boolean;p
   for(const [a,l] of actorLabels){const hl=a.key===v.highlightKey;(l.material as THREE.SpriteMaterial).opacity=a===v.nearActor||hl?1:LABEL_DIM;const g=actorMeshes.get(a.key);if(g)g.scale.setScalar(hl?1+Math.sin(v.time/140)*.06:1);}
   actionFx.clear();
   if(current.action){const aimLine=new THREE.Mesh(new THREE.BoxGeometry(.035,.025,1.15),mat("#70d7ff",.9));aimLine.position.set(x+v.aim.x*.55,.04,z+v.aim.y*.55);aimLine.rotation.y=Math.atan2(v.aim.x,v.aim.y);actionFx.add(aimLine);}
-  for(const p of v.projectiles){const m=new THREE.Mesh(new THREE.SphereGeometry(.075,7,5),mat("#70d7ff",2));m.position.set(wx(p.x),.55,wz(p.y));actionFx.add(m);}
+  // Muzzle flash: a bright bloom-catching pop just ahead of the barrel.
+  if(v.muzzle&&v.muzzle>0){const f=box(.34,.06,.34,mat("#fff6c0",2.4));f.position.set(x+v.aim.x*.62,.5,z+v.aim.y*.62);actionFx.add(f);}
+  const shotCol=v.shotColor||"#70d7ff";
+  for(const p of v.projectiles){const m=new THREE.Mesh(new THREE.SphereGeometry(.11,8,6),mat(shotCol,3));m.position.set(wx(p.x),.55,wz(p.y));actionFx.add(m);}
   if(v.dummy){const dm=box(.48,1,.48,mat(v.dummy.hp<=0?"#333842":v.dummy.hit>0?"#ffffff":"#d95b5b",v.dummy.hp>0?.5:0));dm.position.set(wx(v.dummy.x),.5,wz(v.dummy.y));actionFx.add(dm);const dl=sprite(v.dummy.hp>0?`TARGET ${v.dummy.hp}/5`:"TARGET DOWN",v.dummy.hp>0?"#ff9b9b":"#7d8294",.45);dl.position.set(wx(v.dummy.x),1.45,wz(v.dummy.y));actionFx.add(dl);}
   // Foot-combat hostiles: a squat drone body that flashes white on hit and reds
   // out as its hull drops, with a floating hp tag. Enemy shots are red tracers.
   if(v.enemies)for(const e of v.enemies){if(e.hp<=0)continue;const frac=Math.max(0,e.hp/e.maxhp);const sz=e.size||1;const base=e.color||"#c23b5a";const col=e.hit>0?"#ffffff":frac<.34?"#ff6a4d":base;const dm=box(.5*sz,.9*sz,.5*sz,mat(col,e.hit>0?1.4:.4));dm.position.set(wx(e.x),.45*sz,wz(e.y));actionFx.add(dm);const el=sprite(`${(e.kind||"drone").toUpperCase()} ${Math.max(0,e.hp)}/${e.maxhp}`,"#ff9b9b",.4);el.position.set(wx(e.x),1.4*sz+.2,wz(e.y));actionFx.add(el);}
   if(v.foeShots)for(const s of v.foeShots){const m=new THREE.Mesh(new THREE.SphereGeometry(.08,7,5),mat("#ff5d4d",2));m.position.set(wx(s.x),.55,wz(s.y));actionFx.add(m);}
+  // Death debris: coloured shards flung from a killed hostile, fading as they go.
+  if(v.debris)for(const d of v.debris){const s=.06+d.life*.12;const m=box(s,s,s,mat(d.color,1.4));m.position.set(wx(d.x),.35+d.life*.3,wz(d.y));actionFx.add(m);}
   // Player hit feedback: a quick red flash under the captain when vitality drops.
   if(v.playerHit&&v.playerHit>0){const ring=box(.7,.05,.7,mat("#ff5d4d",1.6));ring.position.set(x,.03,z);actionFx.add(ring);}
+  // Dodge-roll after-image: a translucent ghost trailing the roll for weight.
+  if(v.rollTrail&&v.rollTrail>0){const g=box(.34,.9,.34,mat(shotCol,.5));g.position.set(x-v.aim.x*.3,.45,z-v.aim.y*.3);(g.material as THREE.MeshStandardMaterial).transparent=true;(g.material as THREE.MeshStandardMaterial).opacity=v.rollTrail*3;actionFx.add(g);}
   world.traverse((o:any)=>{if(o.userData.spark!==undefined){o.visible=Math.sin(v.time*.025+o.userData.spark)>0;o.position.y=1+(o.userData.spark*.12+v.time*.0004)%1;}if(o.userData.starfield&&S.travel)o.rotation.y=v.time*.00002;});
   if(composer){if(crtPass)crtPass.uniforms.time.value=v.time*.001;composer.render();}else renderer.render(root,camera);
 }
