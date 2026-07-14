@@ -54,7 +54,7 @@
       "color": "#b08bc9",
       "sound": "market",
       "link": "market",
-      "desc": "A corridor of stalls selling what captains left behind: modules with old registry burns, sea-chests, a framed master's license, a child's drawing of a ship that isn't docked here anymore. Everything on the Row was somebody's plan A."
+      "desc": "A corridor of stalls selling what captains left behind: modules with old registry burns, sea-chests, a framed master's license, a child's drawing of a ship that isn't docked here anymore. Everything on the Row was somebody's plan A. The salvage worth bolting to a hull goes through the shipyard rack."
     }
   },
 
@@ -97,7 +97,7 @@
       "color": "#e07a5f",
       "sound": "market",
       "link": "market",
-      "desc": "Unclaimed cargo, salvage lots, dead men's holds sold sealed. The auctioneer's gavel is a torque wrench, and the house takes ten percent and no responsibility whatsoever."
+      "desc": "Unclaimed cargo, salvage lots, dead men's holds sold sealed. The auctioneer's gavel is a torque wrench, and the house takes ten percent and no responsibility whatsoever. Salvaged modules go straight to the shipyard rack, as-is."
     }
   },
 

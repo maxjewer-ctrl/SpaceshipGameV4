@@ -64,6 +64,7 @@ import { ctVibe, ctAbout, ctShip, ctQuest, ctWorld, ctClose, ctQuestHelp, ctQues
 import { crewDialogueChoose, crewDialogueContinue } from "./systems/crewdialogue";
 import { dcValve, dcVector, dcCare } from "./systems/damagecontrol";
 import { refitShip } from "./systems/wear";
+import { buyUsed } from "./systems/usedmarket";
 import {
   abVexPay, abVexRefuse, abVexReport,
   abCorbinConfront, abCorbinCut, abCorbinIgnore,
@@ -94,7 +95,7 @@ const ACTIONS: Record<string, (...args: any[]) => void> = {
   introStart, introAct,
   // planet actions
   acceptMission, hire, fireCrew, buyGood, sellGood, buyFuel, buyFood,
-  repairShip, repairSystems, buyMod, sellMod, upgradeMod, toggleMod, upgradeEngine, buySlots, refitShip, moveModTo,
+  repairShip, repairSystems, buyMod, sellMod, upgradeMod, toggleMod, upgradeEngine, buySlots, refitShip, moveModTo, buyUsed,
   // travel
   depart, waitDay, advanceDay, abandonJob,
   // combat

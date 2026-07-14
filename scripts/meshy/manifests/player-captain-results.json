@@ -1,0 +1,38 @@
+[
+  {
+    "name": "player-captain-torso",
+    "status": "ok",
+    "path": "src/assets/models/player-captain-torso.glb",
+    "taskId": "019f5d2e-7141-7aaf-8d54-8d085614eb31"
+  },
+  {
+    "name": "player-captain-head",
+    "status": "ok",
+    "path": "src/assets/models/player-captain-head.glb",
+    "taskId": "019f5d2e-efab-7acf-95ab-9712895e6880"
+  },
+  {
+    "name": "player-captain-hands",
+    "status": "ok",
+    "path": "src/assets/models/player-captain-hands.glb",
+    "taskId": "019f5d2e-d81c-7f9c-8515-2e2571230d2a"
+  },
+  {
+    "name": "player-captain-legs",
+    "status": "ok",
+    "path": "src/assets/models/player-captain-legs.glb",
+    "taskId": "019f5d31-5194-71a3-ace3-2f5098d85760"
+  },
+  {
+    "name": "player-captain-overclothes",
+    "status": "ok",
+    "path": "src/assets/models/player-captain-overclothes.glb",
+    "taskId": "019f5d32-6096-70ac-ada7-5bd333a90f21"
+  },
+  {
+    "name": "player-captain-shoes",
+    "status": "ok",
+    "path": "src/assets/models/player-captain-shoes.glb",
+    "taskId": "019f5d32-b3e9-70c1-94c0-6e62eebb1d62"
+  }
+]

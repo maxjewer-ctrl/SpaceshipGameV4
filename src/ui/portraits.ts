@@ -1,20 +1,20 @@
-import dez from "../assets/portraits/dez.png";
-import vex from "../assets/portraits/vex.png";
-import brix from "../assets/portraits/brix.png";
-import tomas from "../assets/portraits/tomas.png";
-import ada from "../assets/portraits/ada.png";
-import rook from "../assets/portraits/rook.png";
-import imogen from "../assets/portraits/imogen.png";
-import corbin from "../assets/portraits/corbin.png";
-import bapu from "../assets/portraits/bapu.png";
-import nyla from "../assets/portraits/nyla.png";
-import elias from "../assets/portraits/elias.png";
-import miri from "../assets/portraits/miri.png";
-import juno from "../assets/portraits/juno.png";
-import junoWorried from "../assets/portraits/juno-worried.png";
-import junoAngry from "../assets/portraits/juno-angry.png";
-import pip7 from "../assets/portraits/pip7.png";
-import storeOwner from "../assets/portraits/store-owner.png";
+import dez from "../assets/portraits/dez.webp";
+import vex from "../assets/portraits/vex.webp";
+import brix from "../assets/portraits/brix.webp";
+import tomas from "../assets/portraits/tomas.webp";
+import ada from "../assets/portraits/ada.webp";
+import rook from "../assets/portraits/rook.webp";
+import imogen from "../assets/portraits/imogen.webp";
+import corbin from "../assets/portraits/corbin.webp";
+import bapu from "../assets/portraits/bapu.webp";
+import nyla from "../assets/portraits/nyla.webp";
+import elias from "../assets/portraits/elias.webp";
+import miri from "../assets/portraits/miri.webp";
+import juno from "../assets/portraits/juno.webp";
+import junoWorried from "../assets/portraits/juno-worried.webp";
+import junoAngry from "../assets/portraits/juno-angry.webp";
+import pip7 from "../assets/portraits/pip7.webp";
+import storeOwner from "../assets/portraits/store-owner.webp";
 import type { CrewMember } from "../types";
 
 const CREW_PORTRAITS: Record<string, string> = {

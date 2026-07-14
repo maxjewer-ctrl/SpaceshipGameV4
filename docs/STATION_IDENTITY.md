@@ -81,13 +81,12 @@ what's left; secondhand modules with provenance (feeds parts-with-stories).
 Mission flavor: the generalist board (correct — it's the tutorial port), plus
 debt-collection/repo contracts with mercy choices.
 Cast to create:
-- [ ] **The Row Broker** — sells dead captains' gear and tells you, if asked,
-      who each piece belonged to. The Legacy-Loop feel, single-player, cheap.
-      BLOCKED: needs a used-module marketplace mechanic first (rotating
-      inventory of installed modules at a discount, each with a provenance
-      string; a buy path). That's a real system — the effects DSL can't grant
-      modules today. Build the mechanic, THEN she's the face of it. Until
-      then she'd be flavor that undersells Debtor's Row. See "Engine work" #6.
+- [ ] **The Row Broker** — the in-room face of the rack. NOW UNBLOCKED: the
+      used-module marketplace shipped (`systems/usedmarket.ts`), stocking
+      Debtor's Row (Solace), Ferro's rack (Foundry), and the Auction Floor
+      (Havens). The mechanic works headless via the Shipyard tab; the Broker
+      would be the NPC who stands in Debtor's Row and, if asked, tells you
+      whose ship each piece came off. Optional polish now, not a blocker.
 - [ ] **Bev** (promote from prose to full NPC) — she already has a stall
       port-mark; give her dialogue and a cheap-fuel loop.
 
@@ -188,10 +187,20 @@ around out there should be an event, not a resident.
 5. New cast, in priority order: ~~Red Sky Factor~~ ✅ → ~~Yard Mistress~~ ✅
        → ~~Grange Matriarch~~ ✅ → the rest as their ports come up. Row Broker
        jumped the queue's tail — see #6.
-6. [ ] **Used-module marketplace** (unblocks the Row Broker + realizes
-       Debtor's Row + CORE_LOOP.md pillar 1 "parts with provenance"): a
-       rotating shop of second-hand installed modules at a discount, each
-       carrying a provenance line ("off the Vesper"). Needs a `grantModule`/
-       buy path the current effects DSL lacks. This is the next *system* (vs.
-       character) worth building, and Ferro's `ferro_provenance_interest`
-       flag is already seeded to feed it.
+6. [x] **Used-module marketplace** (`systems/usedmarket.ts`) — realizes
+       Debtor's Row + CORE_LOOP.md pillar 1 "parts with provenance". A
+       per-port rack of second-hand modules, each cheaper than yard-new but
+       carrying pre-existing wear (the honest catch: cheap now, refit sooner)
+       and a provenance line. Stocks Solace (dead captains'), Foundry
+       (Ferro's salvage — cleaner if `yard_favor`), Havens (auction, roughest).
+       Stable for a 3-day restock window (no wait-scumming). Surfaced in the
+       Shipyard tab; Debtor's Row / Auction Floor prose point to it. Save
+       migrated to v11. Verified: per-port stock, restock timing, purchase
+       installs a worn module for the discounted price, slot/credit guards,
+       provenance in the log.
+7. [ ] **Row Broker NPC** (optional) — the human face for the now-live rack;
+       stands in Debtor's Row, names the previous owner of each piece.
+8. [ ] Remaining cheap dialogue faces as ports come up: Labor Steward
+       (Foundry Union Hall), Verge Stationmaster + Array Operator, Dustwell
+       Water Baron + Roadhouse Keeper, Meridian Customs Assessor + Lighthouse
+       Keeper, the Havens Auctioneer + fence.

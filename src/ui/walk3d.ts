@@ -15,6 +15,7 @@ import { wearTier } from "../systems/wear";
 import type { WalkActor, WalkDoor, WalkScene, ShipBerth } from "./walk";
 import { spawnProp } from "./props3d";
 import { buildCharacter, poseCharacter, type CharacterRig } from "./character3d";
+import { createPlayerModel, disposePlayerModel, type PlayerModel } from "./playerModel3d";
 import bulkheadWallUrl from "../assets/ship/bulkhead-wall.webp";
 import corridorWallUrl from "../assets/ship/corridor-wall.webp";
 import corridorFloorUrl from "../assets/ship/corridor-floor.webp";
@@ -41,7 +42,10 @@ let world = new THREE.Group();
 let avatar = new THREE.Group();
 let actorMeshes = new Map<string, THREE.Group>();
 let actorRigs = new Map<string, CharacterRig>();
-let captainRig: CharacterRig | null = null;
+let captainModel: PlayerModel | null = null;
+let captainModelPending: Promise<PlayerModel> | null = null;
+let captainModelToken = 0;
+let lastCaptainModelTime = 0;
 let flashlight: THREE.SpotLight | null = null;
 let composer: EffectComposer | null = null;
 let bloomPass: UnrealBloomPass | null = null;
@@ -746,10 +750,22 @@ function resize(){if(!renderer||!camera||!host)return;const r=host.getBoundingCl
 export function setScene(s: WalkScene){current=s;const sig=s.id+"|"+s.rooms.map(r=>`${r.id}:${r.moduleType}:${r.moduleIndex}`).join()+"|"+s.doors.map(d=>d.label+d.locked).join()+"|"+s.actors.map(a=>a.key).join()+"|"+(s.ship?`${s.ship.x},${s.ship.y},${s.ship.facing}`:"")+"|"+S.modules.map(m=>`${m.t}${m.on}${m.dmg}${wearTier(m)}`).join();if(sig!==signature){signature=sig;rebuild();}}
 export function render(v:{pos:{x:number;y:number};facing:string;moving:boolean;phase:number;nearDoor:WalkDoor|null;nearActor:WalkActor|null;time:number;aim:{x:number;y:number};rolling:boolean;rollCooldown:number;projectiles:Array<{x:number;y:number}>;dummy:{x:number;y:number;hp:number;hit:number}|null;highlightKey:string|null;enemies?:Array<{x:number;y:number;hp:number;maxhp:number;hit:number;kind:string;size?:number;color?:string;telegraph?:number}>;foeShots?:Array<{x:number;y:number}>;playerHit?:number;debris?:Array<{x:number;y:number;color:string;life:number}>;shake?:number;muzzle?:number;shotColor?:string;rollTrail?:number;melee?:number}){
   if(!renderer||!root||!camera||!current)return; const x=wx(v.pos.x),z=wz(v.pos.y);avatar.position.set(x,0,z);
-  if(!avatar.children.length){captainRig=buildCharacter(S.appearance||undefined);avatar.add(captainRig.group);}
-  // procedural walk cycle: limbs swing from their joint pivots, driven by the
-  // 2D sim's phase so animation speed always matches actual ground speed
-  if(captainRig)poseCharacter(captainRig,{moving:v.moving,phase:v.phase*1.6,t:v.time});
+  if(!captainModel&&!captainModelPending){
+    const token=++captainModelToken;
+    captainModelPending=createPlayerModel(true).then((model)=>{
+      captainModelPending=null;
+      if(token!==captainModelToken||!avatar.parent){disposePlayerModel(model);return model;}
+      captainModel=model;
+      avatar.add(model.group);
+      return model;
+    });
+  }
+  if(captainModel){
+    const dt=Math.min(.05,Math.max(0,(v.time-lastCaptainModelTime)/1000||.016));
+    lastCaptainModelTime=v.time;
+    if(captainModel.walk) captainModel.walk.timeScale=v.moving?1:0;
+    captainModel.mixer?.update(dt);
+  }
   for(const a of current.actors){const r=actorRigs.get(a.key);if(r)poseCharacter(r,{t:v.time+(a.x*131)%997});}
   avatar.rotation.z=v.rolling?-.45:0;avatar.scale.setScalar(v.rolling?.82:1);
   const ang=v.facing==="right"?Math.PI/2:v.facing==="left"?-Math.PI/2:v.facing==="up"?Math.PI:0;avatar.rotation.y=ang;
@@ -796,4 +812,4 @@ export function render(v:{pos:{x:number;y:number};facing:string;moving:boolean;p
   // ever-larger numbers for no visual benefit.
   if(composer){if(crtPass)crtPass.uniforms.time.value=(v.time*.001)%1000;composer.render();}else renderer.render(root,camera);
 }
-export function teardown(){resizeObserver?.disconnect();resizeObserver=null;if(renderer&&clickHandler)renderer.domElement.removeEventListener("pointerdown",clickHandler);clickHandler=null;if(root)disposeObject(root);composer?.dispose();bloomPass?.dispose();composer=null;bloomPass=null;crtPass=null;renderer?.dispose();renderer?.domElement.remove();renderer=null;root=null;camera=null;flashlight=null;current=null;host=null;signature="";world=new THREE.Group();avatar=new THREE.Group();actionFx=new THREE.Group();actorMeshes.clear();actorRigs.clear();captainRig=null;doorLabels=new Map();actorLabels=new Map();aimCallback=null;fireCallback=null;}
+export function teardown(){resizeObserver?.disconnect();resizeObserver=null;if(renderer&&clickHandler)renderer.domElement.removeEventListener("pointerdown",clickHandler);clickHandler=null;captainModelToken++;disposePlayerModel(captainModel);captainModel=null;captainModelPending=null;lastCaptainModelTime=0;if(root)disposeObject(root);composer?.dispose();bloomPass?.dispose();composer=null;bloomPass=null;crtPass=null;renderer?.dispose();renderer?.domElement.remove();renderer=null;root=null;camera=null;flashlight=null;current=null;host=null;signature="";world=new THREE.Group();avatar=new THREE.Group();actionFx=new THREE.Group();actorMeshes.clear();actorRigs.clear();doorLabels=new Map();actorLabels=new Map();aimCallback=null;fireCallback=null;}

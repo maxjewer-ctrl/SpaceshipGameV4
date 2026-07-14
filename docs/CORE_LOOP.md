@@ -221,3 +221,35 @@ docs/BETA_PLAN.md Phase B for the live tracking of what's still open.
    and the DOM map panel.
 
 Each lands as one playtested, committed cycle per ITERATION_PLAN.md rules.
+
+## After the loop is locked: THE LONG BURN campaign
+
+Once items 1–6 above ship and the core loop holds a player on its own
+(the test at the top of this doc — "would this hold a player for thirty
+hours *without* the campaigns?" — finally answers yes), the next major
+priority is a fourth campaign: **The Long Burn** — *The Stars My
+Destination* / *Count of Monte Cristo* revenge arc, designed to sit on
+top of the locked loop as its knife-in-the-cover-identity. It is
+sequenced deliberately AFTER the loop work because it *depends* on it:
+the campaign's targets are ruined through the wear/provenance economy
+(pillar 1), station moods (pillar 3, item 6), survey/ranging terrain
+(pillar 4), and crew loyalty (pillar 2) — build those first and the
+campaign is content on a proven frame; build it first and it papers
+over the ceiling all over again.
+
+Full spec across three docs:
+- `CAMPAIGN_LONG_BURN.md` — design (why/what).
+- `CAMPAIGN_LONG_BURN_MANIFEST.md` — build sheet (~33k words of content,
+  full cast/art/data lists).
+- `CAMPAIGN_LONG_BURN_IMPLEMENTATION.md` — engineering plan (state
+  slice, 7 milestones, first commit).
+
+Dependency map (campaign track → loop item it needs):
+- Target 1 (Kale, detective) → parts-with-provenance (item 2).
+- Target 3 (Ashe, economic ruin) → station moods (item 6); has a
+  written interim if moods slip.
+- Act III (the race) → survey/ranging + deep band (item 4).
+- The Mark / talk-down endings → veterancy + loyalty (items 3, 5).
+Do NOT start the campaign's Act II content until its loop dependency
+has shipped; Act I (the prologue) depends on none of them and can be
+prototyped anytime as a vertical slice.

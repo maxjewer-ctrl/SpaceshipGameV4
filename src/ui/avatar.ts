@@ -8,6 +8,7 @@ import { uiRand } from "../rng";
 import { modal } from "../modal";
 import { HEADS, GARBS, AVATAR_LOOKS, SKINS, SUITS, TRIMS, DEFAULT_APPEARANCE, drawAvatar } from "./avatarDraw";
 import { mountCreatorPreview, type CreatorPreview } from "./creatorPreview3d";
+import { PLAYER_MODEL_LABEL } from "./playerModel3d";
 import { ROLES } from "../content";
 import { startGame } from "./help";
 import { introStart } from "../systems/intro";
@@ -41,12 +42,6 @@ export function openCreator() {
     <div class="cc-wrap">
       <div class="cc-stage">
         <canvas id="avatarpreview" width="200" height="230"></canvas>
-        <div class="cc-turn">
-          <button ${actionAttr("avFace", "left")} title="Face left">◀</button>
-          <button ${actionAttr("avFace", "down")} title="Face forward">●</button>
-          <button ${actionAttr("avFace", "up")} title="Face away">▲</button>
-          <button ${actionAttr("avFace", "right")} title="Face right">▶</button>
-        </div>
       </div>
       <div class="cc-controls">
         <label class="cc-lbl">Captain's name <button class="cc-dice" ${actionAttr("avRandomName")} title="Random name">⟳</button></label>
@@ -55,15 +50,7 @@ export function openCreator() {
         <input id="shipnamein" value="Kestrel" maxlength="18" class="cc-input">
         <label class="cc-lbl">Former specialty</label>
         <select id="captainrolein" class="cc-input">${roleOpts}</select>
-        <div class="cc-cyc"><span>Look</span>
-          <button ${actionAttr("avLook", -1)}>◀</button><b id="cc-look">${AVATAR_LOOKS[lookIndex][0]}</b><button ${actionAttr("avLook", 1)}>▶</button></div>
-        <div class="cc-cyc"><span>Species</span>
-          <button ${actionAttr("avHead", -1)}>◀</button><b id="cc-head">${HEADS[idx(HEADS, draft.app.head)].name}</b><button ${actionAttr("avHead", 1)}>▶</button></div>
-        <div class="cc-cyc"><span>Attire</span>
-          <button ${actionAttr("avGarb", -1)}>◀</button><b id="cc-garb">${GARBS[idx(GARBS, draft.app.garb)].name}</b><button ${actionAttr("avGarb", 1)}>▶</button></div>
-        <div class="cc-sw-lbl">Skin</div><div class="cc-swatches" id="cc-skin">${swatches(SKINS, draft.app.skin, "avSkin")}</div>
-        <div class="cc-sw-lbl">Clothing</div><div class="cc-swatches" id="cc-suit">${swatches(SUITS, draft.app.suit, "avSuit")}</div>
-        <div class="cc-sw-lbl">Trim</div><div class="cc-swatches" id="cc-trim">${swatches(TRIMS, draft.app.trim, "avTrim")}</div>
+        <div class="cc-cyc cc-locked"><span>Character</span><b>${PLAYER_MODEL_LABEL}</b></div>
       </div>
     </div>
     <p class="dim" style="margin:10px 0 0; font-size:11px">A captain covers their old station until they hire a replacement — but a captain below decks isn't captaining.</p>

@@ -1,0 +1,32 @@
+[
+  {
+    "name": "player-captain-head",
+    "pbr": true,
+    "prompt": "Stylized low-poly 3D game character part, isolated head and neck stub ONLY of a generic male space captain, square jaw, short neat dark hair, calm confident authoritative expression, weathered but proud, neck cleanly cut flat at the collar line for attachment to a separate torso piece, no shoulders, no torso, no hat, upright neutral pose facing forward, readable silhouette from isometric camera, no base, no text, no logo, bright hand-painted PBR texture, optimized for small Three.js modular game character."
+  },
+  {
+    "name": "player-captain-torso",
+    "pbr": true,
+    "prompt": "Stylized low-poly 3D game character part, isolated torso ONLY of a generic male space captain wearing a fitted navy captain's undershirt, broad steady stance, neck opening cut cleanly flat at the collar for a separate head piece, shoulders cut cleanly flat for separate arm/hand pieces, waist cut cleanly flat at the hips for separate legs, no head, no arms below shoulder, no legs, upright neutral T-pose facing forward, readable silhouette from isometric camera, no base, no text, no logo, bright hand-painted PBR texture, optimized for small Three.js modular game character."
+  },
+  {
+    "name": "player-captain-hands",
+    "pbr": true,
+    "prompt": "Stylized low-poly 3D game character part, isolated pair of arms and hands ONLY of a generic male space captain, fitted navy uniform sleeves with small rank cuffs, bare hands relaxed at sides, shoulder ends cut cleanly flat for attachment to a separate torso piece, no torso, no head, no legs, upright neutral T-pose, readable silhouette from isometric camera, no base, no text, no logo, bright hand-painted PBR texture, optimized for small Three.js modular game character."
+  },
+  {
+    "name": "player-captain-legs",
+    "pbr": true,
+    "prompt": "Stylized low-poly 3D game character part, isolated pair of legs ONLY of a generic male space captain, fitted navy uniform trousers, sturdy stance, waist cut cleanly flat at the hips for attachment to a separate torso piece, ankle ends cut cleanly flat for separate shoe pieces, no torso, no head, no arms, no feet, upright neutral standing pose, readable silhouette from isometric camera, no base, no text, no logo, bright hand-painted PBR texture, optimized for small Three.js modular game character."
+  },
+  {
+    "name": "player-captain-shoes",
+    "pbr": true,
+    "prompt": "Stylized low-poly 3D game character part, isolated pair of boots ONLY worn by a generic male space captain, sturdy black polished captain's boots with small buckle trim, ankle tops cut cleanly flat for attachment to separate leg pieces, no legs, no torso, no head, standing neutral pose, readable silhouette from isometric camera, no base, no text, no logo, bright hand-painted PBR texture, optimized for small Three.js modular game character."
+  },
+  {
+    "name": "player-captain-overclothes",
+    "pbr": true,
+    "prompt": "Stylized low-poly 3D game character part, isolated long captain's overcoat ONLY, worn open over a generic male space captain's frame, structured double-breasted navy and gunmetal coat with small insignia epaulettes, collar cut cleanly flat at the neckline, sleeve ends cut cleanly flat at the wrists, hem falling to mid-thigh, designed as an outer layer shell to fit over a separate torso and legs piece, no head, no hands, no legs visible, upright neutral T-pose, readable silhouette from isometric camera, no base, no text, no logo, bright hand-painted PBR texture, optimized for small Three.js modular game character."
+  }
+]
