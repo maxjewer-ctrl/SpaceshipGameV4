@@ -131,12 +131,18 @@ const ground = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
 // walls are opaque), shallow enough that people still read as figures, not
 // dots. There is deliberately no orbit: one authored angle, everywhere — the
 // whole camera-relative-movement bug class (see a56feda) dies with it.
-// Long-lens setup: narrow FOV from far away keeps the deck plan reading
-// near-orthographic (walls stay near-vertical on screen) instead of the
-// keystone splay a wide lens gives at this tilt.
-const CAM_OFFSET_Z = 6.5;
-const CAM_HEIGHT = 15.5;
-const CAM_FOV = 30;
+// Three-quarter action-RPG angle (~33° down from horizontal) with a normal
+// lens: the original long-lens near-top-down setup (15.5 height / 6.5 offset
+// / 30° FOV) kept walls perfectly vertical on screen, but read as too narrow,
+// too zoomed out, and too top-down to place rooms or read the avatar against.
+// Movement has no camera-relative transform (screen axes ARE world axes —
+// see a56feda), so the camera must stay directly behind the avatar in Z with
+// no diagonal/X offset, or WASD would stop matching what's on screen; all the
+// tuning room is in height, distance, and FOV. CAM_HEIGHT still comfortably
+// clears Dustwell's opaque waist-high walls.
+const CAM_OFFSET_Z = 6.2;
+const CAM_HEIGHT = 4.5;
+const CAM_FOV = 56;
 
 const wx = (x: number) => (x - (current?.width || 0) / 2) * SCALE;
 const wz = (y: number) => (y - (current?.height || 0) / 2) * SCALE;
