@@ -36,12 +36,14 @@ import {
 import { depart, waitDay, advanceDay, abandonJob } from "./systems/travel";
 import { startCombat, cAct, endCombat } from "./systems/combat";
 import {
-  pirateWin, pirateLoseFlee, pirateFlee, pirateBribe, pirateSurrender,
+  pirateWin, pirateLoseFlee, pirateFlee, pirateBribe, pirateSurrender, pirateEngage,
   patrolBribe, patrolRun, patrolSubmit,
   distressHelp, distressIgnore, traderBuy, traderSell, paxMerchantSell, adriftTow,
+  closeThenLog,
 } from "./systems/events";
 import {
   arcMeet, arcAcceptCrate, arcAcceptVoss, arcStartRun,
+  arcCrateDecline, evHunterEngage, evPicketEngage, arcInterceptEngage, arcVictoryContinue,
   ambushHandOver, ambushFight, ambushRun,
   hunterWin, hunterFled, hunterRun, interceptWin, interceptFled,
   runPicketAround, runPicketThread, runNetDecoy, runNetSilent, runNetPush,
@@ -51,12 +53,13 @@ import { sceneChoose, sceneContinue } from "./systems/scene";
 import {
   silDescend, silBearing, silAnswer, silStill, silSell,
   silBoardReturned, silScanReturned, silLearnNumbers, silLearnReturned,
+  silCloseLog, silCloseLearnNumbers, silCloseLearnReturned,
 } from "./systems/silence";
 import { pressStart, pressEnd, interact } from "./ui/walk";
 import { crewTalk, crewHighlight, wkInspect, walkDeck, sitChair, toggleModAndInspect } from "./ui/shipwalk";
 import { wkPay, wkTalk, wkFight } from "./systems/walkEncounters";
-import { ctVibe, ctAbout, ctShip, ctQuest, ctWorld, ctClose, ctQuestHelp, ctQuestSkip, ctJuno } from "./systems/crewtalk";
-import { junoChoose, junoContinue } from "./systems/junodialogue";
+import { ctVibe, ctAbout, ctShip, ctQuest, ctWorld, ctClose, ctQuestHelp, ctQuestSkip, ctDeepTalk } from "./systems/crewtalk";
+import { crewDialogueChoose, crewDialogueContinue } from "./systems/crewdialogue";
 import { dcValve, dcVector, dcCare } from "./systems/damagecontrol";
 import { refitShip } from "./systems/wear";
 import {
@@ -95,11 +98,13 @@ const ACTIONS: Record<string, (...args: any[]) => void> = {
   // combat
   startCombat, cAct, endCombat,
   // events
-  pirateWin, pirateLoseFlee, pirateFlee, pirateBribe, pirateSurrender,
+  pirateWin, pirateLoseFlee, pirateFlee, pirateBribe, pirateSurrender, pirateEngage,
   patrolBribe, patrolRun, patrolSubmit,
   distressHelp, distressIgnore, traderBuy, traderSell, paxMerchantSell, adriftTow,
+  closeThenLog,
   // story arc
   arcMeet, arcAcceptCrate, arcAcceptVoss, arcStartRun,
+  arcCrateDecline, evHunterEngage, evPicketEngage, arcInterceptEngage, arcVictoryContinue,
   ambushHandOver, ambushFight, ambushRun,
   hunterWin, hunterFled, hunterRun, interceptWin, interceptFled,
   runPicketAround, runPicketThread, runNetDecoy, runNetSilent, runNetPush,
@@ -110,14 +115,15 @@ const ACTIONS: Record<string, (...args: any[]) => void> = {
   // the Long Silence
   silDescend, silBearing, silAnswer, silStill, silSell,
   silBoardReturned, silScanReturned, silLearnNumbers, silLearnReturned,
+  silCloseLog, silCloseLearnNumbers, silCloseLearnReturned,
   // free-roam walking: D-pad/keyboard fallback buttons, crew chat, foot encounters
   walkPressStart: pressStart, walkPressEnd: pressEnd, walkInteract: interact,
   crewTalk, crewHighlight, wkInspect, walkDeck, sitChair, wkPay, wkTalk, wkFight,
   toggleModAndInspect,
   // crew dialogue — trust-gated topics, personal quests
   ctVibe, ctAbout, ctShip, ctQuest, ctWorld, ctClose, ctQuestHelp, ctQuestSkip,
-  // Juno Vale — the large branching conversation tree (trust + faction rep + events)
-  ctJuno, junoChoose, junoContinue,
+  // named crew's deep conversation trees (trust + faction rep + events) — Juno, Bapu, ...
+  ctDeepTalk, crewDialogueChoose, crewDialogueContinue,
   // damage control — crew-gap minigames (no mechanic/pilot/med bay aboard)
   dcValve, dcVector, dcCare,
   // agenda beats — the named twelve's honest/dishonest objectives billing due

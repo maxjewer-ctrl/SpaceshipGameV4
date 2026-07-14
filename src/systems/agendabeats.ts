@@ -7,6 +7,7 @@ import { S, log } from "../state";
 import { CHARACTERS } from "../content";
 import { modal, closeModal } from "../modal";
 import { requestRender } from "../bus";
+import { actionAttr } from "../dispatch";
 import { rand, ri } from "../rng";
 import { clamp } from "../util";
 import { remember, crewKey } from "./ledger";
@@ -46,9 +47,9 @@ function beatVex() {
     <p>The open channel crackles mid-refuel: <i>"Callum. It's been a season. The book doesn't forget."</i> Vex goes white and mutes it from his own station before you can hear the number. "Captain — it's handled. It's — give me a minute."</p>
     <p class="dim">It is not handled. Red Sky collectors want a cut, or they want your route logs. Vex is asking you, silently, to choose which.</p>
     <div class="choices">
-      <button onclick="abVexPay()">Cover his debt from ship funds <span class="dim">— 300cr, he owes you now</span></button>
-      <button onclick="abVexRefuse()">Tell him it's his mess to clean up</button>
-      <button onclick="abVexReport()">Report the contact to the Union — burn him to burn the debt</button>
+      <button ${actionAttr("abVexPay")}>Cover his debt from ship funds <span class="dim">— 300cr, he owes you now</span></button>
+      <button ${actionAttr("abVexRefuse")}>Tell him it's his mess to clean up</button>
+      <button ${actionAttr("abVexReport")}>Report the contact to the Union — burn him to burn the debt</button>
     </div></div>`);
 }
 export function abVexPay() {
@@ -86,9 +87,9 @@ function beatCorbin() {
     <p>A trader at the last port knew your cargo manifest before you told anyone — knew it down to the unit count. It traces back one place: Corbin, trading ship gossip to an information broker to keep his clinic stocked, same as always. You corner him about it.</p>
     <p>He doesn't deny it. "Words for credits, Captain. Never the stuff that gets anyone killed. I'm careful." You believe he believes that.</p>
     <div class="choices">
-      <button onclick="abCorbinConfront()">Make him stop, full stop — no more talk, no more broker</button>
-      <button onclick="abCorbinCut()">Cut him in on it instead <span class="dim">— split the information money</span></button>
-      <button onclick="abCorbinIgnore()">Let it go. He's the best hands on the frontier for a reason.</button>
+      <button ${actionAttr("abCorbinConfront")}>Make him stop, full stop — no more talk, no more broker</button>
+      <button ${actionAttr("abCorbinCut")}>Cut him in on it instead <span class="dim">— split the information money</span></button>
+      <button ${actionAttr("abCorbinIgnore")}>Let it go. He's the best hands on the frontier for a reason.</button>
     </div></div>`);
 }
 export function abCorbinConfront() {
@@ -121,9 +122,9 @@ function beatRook() {
     <p>A hail comes in using a name Rook hasn't answered to in years — his old black-flag call sign. <i>"Knife-Eight, this is Marrow. Long time. We're running the same lanes you are these days. Come say hello. Bring the ship."</i></p>
     <p>Rook's hand hovers over the comm, not touching it. "Captain. Your call. I can talk them down, or we can go dark and hope they lose interest."</p>
     <div class="choices">
-      <button onclick="abRookTalk()">Let him handle it — trust the man you hired</button>
-      <button onclick="abRookDark()">Cut comms and burn away — don't risk it</button>
-      <button onclick="abRookConfront()">Get on the channel yourself — make it your problem, not his</button>
+      <button ${actionAttr("abRookTalk")}>Let him handle it — trust the man you hired</button>
+      <button ${actionAttr("abRookDark")}>Cut comms and burn away — don't risk it</button>
+      <button ${actionAttr("abRookConfront")}>Get on the channel yourself — make it your problem, not his</button>
     </div></div>`);
 }
 export function abRookTalk() {
@@ -162,9 +163,9 @@ function beatNyla() {
     <h2>🍳 The Pantry Ledger</h2>
     <p>Doing your own accounting for once, you find it: small skims off the galley budget, going back weeks, careful and consistent. Nyla, out of old habit, or old fear. There's a specific number in a specific account — she's been saving, not stealing for herself.</p>
     <div class="choices">
-      <button onclick="abNylaConfront()">Confront her — dock the difference from her pay</button>
-      <button onclick="abNylaAsk()">Ask why, instead of accusing</button>
-      <button onclick="abNylaIgnore()">Say nothing. It's not hurting anyone.</button>
+      <button ${actionAttr("abNylaConfront")}>Confront her — dock the difference from her pay</button>
+      <button ${actionAttr("abNylaAsk")}>Ask why, instead of accusing</button>
+      <button ${actionAttr("abNylaIgnore")}>Say nothing. It's not hurting anyone.</button>
     </div></div>`);
 }
 export function abNylaConfront() {
@@ -195,8 +196,8 @@ function beatMiri() {
     <p>A Syndicate dockmaster waves your berth fees with a smile that knows your name before you give it. "Compliments of the house, Captain — Miri speaks well of you." You never told anyone your schedule. Miri's manifests, it turns out, have been doing quiet second duty.</p>
     <p>She doesn't flinch when you ask. "The margins are real. So's the arrangement. You can end one or the other, Captain. Not both."</p>
     <div class="choices">
-      <button onclick="abMiriEnd()">End it — margins or not, the leak stops today</button>
-      <button onclick="abMiriKeep()">Keep the arrangement — the money's real and so is the risk</button>
+      <button ${actionAttr("abMiriEnd")}>End it — margins or not, the leak stops today</button>
+      <button ${actionAttr("abMiriKeep")}>Keep the arrangement — the money's real and so is the risk</button>
     </div></div>`);
 }
 export function abMiriEnd() {

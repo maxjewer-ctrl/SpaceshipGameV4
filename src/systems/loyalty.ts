@@ -22,6 +22,7 @@ import { LOYALTY, PLANETS } from "../content";
 import { modal, closeModal, replaceModal } from "../modal";
 import { requestRender } from "../bus";
 import { crewPortraitKey, dialogueHeadHTML } from "../ui/portraits";
+import { actionAttr } from "../dispatch";
 import { trustTier } from "./trust";
 import { remember, crewKey, hasMemory } from "./ledger";
 import { shift, type Axis } from "./disposition";
@@ -91,8 +92,8 @@ function openOffer(key: string, c: CrewMember) {
     <h2>${def.icon} ${def.offerTitle}</h2>
     <p>${def.offerText}</p>
     <div class="choices">
-      <button class="primary" onclick="loyaltyAccept()">${def.acceptLabel}</button>
-      <button onclick="loyaltyDecline()">${def.declineLabel}</button>
+      <button class="primary" ${actionAttr("loyaltyAccept")}>${def.acceptLabel}</button>
+      <button ${actionAttr("loyaltyDecline")}>${def.declineLabel}</button>
     </div>
   </div>`);
   requestRender();
@@ -125,7 +126,7 @@ function openArrive(key: string, c: CrewMember) {
   const def = LOYALTY[key];
   pendingArrive = key;
   const buttons = def.choices
-    .map((ch, i) => `<button class="${i === 0 ? "primary" : ""}" onclick="loyaltyResolve(${i})">${ch.label}</button>`)
+    .map((ch, i) => `<button class="${i === 0 ? "primary" : ""}" ${actionAttr("loyaltyResolve", i)}>${ch.label}</button>`)
     .join("");
   modal(`<div class="scene">
     <div class="scene-loc">${PLANETS[def.dest].n}</div>
@@ -159,7 +160,7 @@ export function loyaltyResolve(idx: number) {
     <div class="scene-loc">${PLANETS[def.dest].n}</div>
     ${dialogueHeadHTML(crewPortraitKey(c!), def.icon, c?.name ?? "", def.offerSub)}
     <p>${ch.reply}</p>
-    <div class="choices"><button class="primary" onclick="closeModal()">Back to the ship.</button></div>
+    <div class="choices"><button class="primary" ${actionAttr("closeModal")}>Back to the ship.</button></div>
   </div>`);
   requestRender();
 }

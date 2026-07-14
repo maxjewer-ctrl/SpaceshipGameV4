@@ -6,14 +6,15 @@
 import { S, log } from "../state";
 import { modal, replaceModal, closeModal } from "../modal";
 import { requestRender } from "../bus";
-import { ROLES, PLANETS } from "../content";
+import { actionAttr } from "../dispatch";
+import { ROLES, PLANETS, CREW_TREES } from "../content";
 import { sentiment, crewKey, remember, strongestMemory, hasMemory } from "./ledger";
 import { trustTier, dispositionWord } from "./trust";
 import { dialogueHeadHTML, crewPortraitKey } from "../ui/portraits";
 import { stats } from "../derive";
 import { pick } from "../rng";
 import { fmt } from "../util";
-import { openJunoDialogue } from "./junodialogue";
+import { openCrewDialogue } from "./crewdialogue";
 import { rankOf, RANK_NAME } from "./veterancy";
 import { LOYALTY_KEYS } from "./loyalty";
 import type { CrewMember } from "../types";
@@ -43,7 +44,7 @@ function renderCrewTalk() {
   const rank = rankOf(c);
   const rankTag = rank > 1 ? ` · ${RANK_NAME[rank]}` : "";
   const rev = c.revealed || (c.revealed = {});
-  const questBtn = rev.want ? `<button onclick="ctQuest()">${questLabel(c)}</button>` : "";
+  const questBtn = rev.want ? `<button ${actionAttr("ctQuest")}>${questLabel(c)}</button>` : "";
   const where = S.docked && S.screen === "stationwalk"
     ? `${PLANETS[S.loc].n} · off duty`
     : `${S.shipName} · ${ROLES[c.role]?.n || c.role}`;
@@ -52,13 +53,13 @@ function renderCrewTalk() {
     ${dialogueHeadHTML(crewPortraitKey(c), "🧑‍🚀", c.name, `${TIER_LABEL[tier]}${rankTag} · <span class="ctword ${dw.cls}">${dw.word}</span>`)}
     ${lastLine ? `<p>${lastLine}</p>` : `<p class="dim">${c.name} looks up as you approach.</p>`}
     <div class="choices">
-      <button onclick="ctVibe()">How are you holding up?</button>
-      <button onclick="ctAbout()">Tell me about yourself</button>
-      <button onclick="ctShip()">About the ship</button>
-      <button onclick="ctWorld()">What do you make of all this?</button>
-      ${c.key === "juno" ? `<button onclick="ctJuno()">Talk it through — the long version</button>` : ""}
+      <button ${actionAttr("ctVibe")}>How are you holding up?</button>
+      <button ${actionAttr("ctAbout")}>Tell me about yourself</button>
+      <button ${actionAttr("ctShip")}>About the ship</button>
+      <button ${actionAttr("ctWorld")}>What do you make of all this?</button>
+      ${c.key && CREW_TREES[c.key] ? `<button ${actionAttr("ctDeepTalk")}>Talk it through — the long version</button>` : ""}
       ${questBtn}
-      <button class="primary" onclick="ctClose()">Nod and move on</button>
+      <button class="primary" ${actionAttr("ctClose")}>Nod and move on</button>
     </div>
   </div>`);
 }
@@ -251,8 +252,8 @@ export function checkCrewQuests() {
     <h2>${c.name}'s Moment</h2>
     <p>${c.name} stops you on the ramp. "This is it, Captain. What I've been chasing — ${c.bundle.want} — it's here, if it's anywhere."</p>
     <div class="choices">
-      <button class="primary" onclick="ctQuestHelp()">Help them see it through (${pendingQuestCost}cr)</button>
-      <button onclick="ctQuestSkip()">There's no time for this</button>
+      <button class="primary" ${actionAttr("ctQuestHelp")}>Help them see it through (${pendingQuestCost}cr)</button>
+      <button ${actionAttr("ctQuestSkip")}>There's no time for this</button>
     </div>
   </div>`);
   requestRender();
@@ -296,7 +297,7 @@ export function checkCrewDeparture() {
     <h2>${c.name} is leaving</h2>
     <p>${c.name} already has their duffel packed by the time you find them on the ramp. "I'm done, Captain."</p>
     <p class="dim" style="font-style:italic">${reason}</p>
-    <div class="choices"><button class="primary" onclick="closeModal()">Let them go.</button></div>
+    <div class="choices"><button class="primary" ${actionAttr("closeModal")}>Let them go.</button></div>
   </div>`);
   log(`${c.name} left the crew at ${PLANETS[S.loc].n}.`);
   requestRender();
@@ -341,10 +342,9 @@ export function ctClose() {
   lastLine = "";
   closeModal();
 }
-// Juno's deep conversation tree lives in systems/junodialogue.ts; this just
-// opens it from the crew-talk topic menu.
-export function ctJuno() {
-  const c = activeCrewId != null ? findCrew(activeCrewId) : undefined;
-  if (!c || c.key !== "juno") return;
-  openJunoDialogue();
+// Registered crew get a deep conversation tree (systems/crewdialogue.ts) on
+// top of the topic menu above; this just opens it for whoever's aboard.
+export function ctDeepTalk() {
+  if (activeCrewId == null) return;
+  openCrewDialogue(activeCrewId);
 }
