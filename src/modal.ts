@@ -3,13 +3,45 @@ import { requestRender } from "./bus";
 // Modal STATE is a plain in-memory string, deliberately independent of the DOM:
 // hasModal() (the guard every system gates on) is pure, so the whole sim runs
 // headlessly in Node — the renderer below simply no-ops when the DOM skeleton
-// isn't mounted. (This is the seed of the ModalQueue decoupling in BETA_PLAN.)
+// isn't mounted.
+//
+// QUEUE (BETA_PLAN §3.4, second half): modal() used to just clobber whatever
+// was showing, and every gameplay system independently re-checked hasModal()
+// before firing its own beat to avoid stomping the current one — fragile
+// discipline that caused a real bug (094fc96: advanceDay() checked hasModal()
+// before decrementing S.travel.left, so a modal open during a travel day
+// silently stalled the day counter forever). Now a modal() call while one is
+// already showing queues instead of clobbering, so callers don't need their
+// own hasModal() guard just to avoid stepping on each other — the queue does
+// that structurally. Session-only: nothing here needs to survive a
+// save/reload (MODAL_HTML itself never has), so this isn't persisted GameState.
 let MODAL_HTML: string | null = null;
+const QUEUE: string[] = [];
 
-export function modal(html: string) { MODAL_HTML = html; drawModal(); }
+export function modal(html: string) {
+  if (MODAL_HTML === null) { MODAL_HTML = html; drawModal(); }
+  else QUEUE.push(html);
+}
+// Navigating within an already-open conversation (a dialogue tree's next
+// node, a "reply" screen after a choice) isn't a new event competing for the
+// modal slot — it's the same modal, updated. Using modal() for that would
+// queue it behind itself. This bypasses the queue entirely.
+export function replaceModal(html: string) {
+  MODAL_HTML = html;
+  drawModal();
+  requestRender();
+}
 export function hasModal() { return MODAL_HTML !== null; }
-export function clearModal() { MODAL_HTML = null; drawModal(); }
-export function closeModal() { MODAL_HTML = null; drawModal(); requestRender(); }
+// A hard reset (new game, load/import a save, load a dev scenario, end
+// combat): whatever's queued belongs to the state that just got replaced, so
+// it's dropped, not shown — unlike closeModal(), which is the player
+// dismissing the CURRENT modal and should reveal whatever's next in line.
+export function clearModal() { MODAL_HTML = null; QUEUE.length = 0; drawModal(); }
+export function closeModal() {
+  MODAL_HTML = QUEUE.length ? QUEUE.shift()! : null;
+  drawModal();
+  requestRender();
+}
 
 // Read the current modal HTML (headless harness inspects/dismisses modals
 // without a DOM). Null when no modal is open.

@@ -7,6 +7,7 @@ import { requestRender } from "../bus";
 import { yardPrice } from "./market";
 import { markOf, markLabel, markPrice, markScaled, yardMaxMark } from "./modtier";
 import { portPriceMult, hasPortMark } from "./port";
+import { moodFuelMult } from "./moods";
 import { strongestMemory, sentiment, crewKey } from "./ledger";
 
 // ---------- power grid ----------
@@ -130,12 +131,13 @@ export function buyFuel(n: number) {
   // stall if you set her up here.
   const guild = typeof S.flags.guild_discount === "number" && S.flags.guild_discount > S.day;
   const bev = hasPortMark(S.loc, "bev_stall");
-  const mult = portPriceMult(S.loc) * (guild ? 0.85 : 1) * (bev ? 0.9 : 1);
+  const mult = portPriceMult(S.loc) * (guild ? 0.85 : 1) * (bev ? 0.9 : 1) * moodFuelMult(S.loc);
   const p = Math.max(1, Math.round(PLANETS[S.loc].fuelP * mult));
   n = Math.min(n, Math.floor(S.credits / p), Math.floor(stats().fuelCap - S.fuel));
   if (n <= 0) { log("Tanks full or pockets empty."); requestRender(); return; }
   S.credits -= n * p; S.fuel += n;
-  const tags = [guild ? "guild" : "", bev ? "Bev's stall" : "", portPriceMult(S.loc) < 1 ? "regular's rate" : portPriceMult(S.loc) > 1 ? "revised fees" : ""].filter(Boolean).join(", ");
+  const moodTag = moodFuelMult(S.loc) < 1 ? "festival rate" : moodFuelMult(S.loc) > 1 ? "shortage pricing" : "";
+  const tags = [guild ? "guild" : "", bev ? "Bev's stall" : "", moodTag, portPriceMult(S.loc) < 1 ? "regular's rate" : portPriceMult(S.loc) > 1 ? "revised fees" : ""].filter(Boolean).join(", ");
   log(`Refueled ${n} units @ ${p}cr${tags ? " (" + tags + ")" : ""}.`); requestRender();
 }
 
@@ -157,6 +159,42 @@ export function repairShip() {
   log(`Yard crew patched ${pts} hull for ${pts * 4}cr.`); requestRender();
 }
 
+// Bay slots persist the player's arrangement from the ship schematic; the
+// walkable deck is generated straight from them, empties included. Heals
+// pre-slot saves (and any duplicate or negative slots) by dealing first-free
+// bays in install order — idempotent, call before reading slots. Slots past
+// slotsMax are left alone: overfull ships (debug scenarios, legacy saves)
+// must keep every module visible, not silently drop the tail.
+export function ensureSlots() {
+  const used = new Set<number>();
+  for (const m of modInst()) {
+    if (m.slot == null || m.slot < 0 || used.has(m.slot)) m.slot = undefined;
+    else used.add(m.slot);
+  }
+  let next = 0;
+  for (const m of modInst()) {
+    if (m.slot == null) { while (used.has(next)) next++; m.slot = next; used.add(next); }
+  }
+}
+
+// Highest bay index the ship currently needs to display: at least every
+// unlockable slot, plus any overfull spill.
+export function bayCount(): number {
+  return Math.max(S.slotsMax, ...modInst().map((m) => (m.slot ?? 0) + 1));
+}
+
+// Rearrange the deck: move a module into a bay slot, swapping if occupied.
+// The walk deck mirrors these slots, so this is literally re-plumbing the ship.
+export function moveModTo(instIdx: number, slot: number) {
+  ensureSlots();
+  const m = modInst()[instIdx];
+  if (!m || slot < 0 || slot >= S.slotsMax || m.slot === slot) return;
+  const other = modInst().find((x) => x.slot === slot);
+  if (other) other.slot = m.slot;
+  m.slot = slot;
+  requestRender();
+}
+
 export function buyMod(t: string, mark = 1) {
   if (modInst().length >= S.slotsMax) { log("No free slot — buy a hull expansion."); requestRender(); return; }
   if (mark > yardMaxMark(S.loc)) { log(`This yard doesn't fit Mk-${markLabel(mark)} gear. Try Foundry.`); requestRender(); return; }
@@ -165,6 +203,7 @@ export function buyMod(t: string, mark = 1) {
   S.credits -= price;
   const m = mk(t, mark);
   S.modules.push(m);
+  ensureSlots(); // the new module takes the first open bay; rearrange on the Ship screen
   const st = stats();
   const label = `${MODS[t].n} Mk-${markLabel(mark)}`;
   if (MODS[t].pw && st.powerUse > st.powerOut) {

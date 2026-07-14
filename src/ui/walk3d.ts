@@ -66,14 +66,37 @@ const CRT_SHADER = {
     resolution: { value: new THREE.Vector2(1, 1) },
     time: { value: 0 },
     vignette: { value: 0.55 },
+    // Reported (twice, on real hardware — never reproduced against the
+    // SwiftShader software renderer used for local testing) as a loud,
+    // screen-covering, moving static/noise pattern, even after fixing a
+    // real sin()-precision bug in hash() and adding anisotropic filtering
+    // to the tiled textures it could've been aliasing with. Rather than
+    // keep guessing at a per-GPU rendering quirk we can't see locally,
+    // grain is off by default; the hash/mix code is left in place in case
+    // it's worth re-enabling at a much gentler value with real feedback.
+    grain: { value: 0 },
     aberration: { value: 0.0016 },
     scanline: { value: 0.032 },
   },
   vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`,
+  // hash() and the scanline phase both used to feed sin()/dot() a raw
+  // resolution*uv(+time) value — thousands, growing unboundedly with session
+  // time. Many real GPUs (this never showed up against SwiftShader in
+  // headless testing) lose range-reduction precision on sin() well before
+  // that point, so the intended subtle dither/scanline degenerated into
+  // incoherent full-contrast static that got worse — and visibly drifted, as
+  // `time` kept climbing — the longer a session ran. hash() is now a
+  // trig-free multiply/fract hash (bounded regardless of input magnitude),
+  // and the scanline phase is range-reduced into [0, 2π) before sin().
   fragmentShader: `
     uniform sampler2D tDiffuse; uniform vec2 resolution;
     uniform float vignette; uniform float aberration; uniform float scanline;
     varying vec2 vUv;
+    float hash(vec2 p){
+      vec3 p3 = fract(vec3(p.xyx) * 0.1031);
+      p3 += dot(p3, p3.yzx + 33.33);
+      return fract((p3.x + p3.y) * p3.z);
+    }
     void main(){
       vec2 center = vUv - 0.5;
       float dist = length(center);
@@ -82,7 +105,8 @@ const CRT_SHADER = {
       float g = texture2D(tDiffuse, vUv).g;
       float b = texture2D(tDiffuse, vUv - shift).b;
       vec3 col = vec3(r, g, b);
-      float sl = sin(vUv.y * resolution.y * 1.4) * 0.5 + 0.5;
+      float slTurns = vUv.y * resolution.y * 1.4 / 6.2831853;
+      float sl = sin(fract(slTurns) * 6.2831853) * 0.5 + 0.5;
       col *= 1.0 - scanline * (1.0 - sl);
       float vig = smoothstep(0.85, 0.15, dist);
       col *= mix(1.0, vig, vignette);
@@ -99,19 +123,25 @@ const ray = new THREE.Raycaster();
 const pointer = new THREE.Vector2();
 const ground = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
 
-// Fixed semi-top-down follow camera. It sits due "south" of the avatar
-// (+z, the direction game-y grows) and looks down at ~68°, so screen-up is
+// Fixed semi-top-down follow camera. It sits due "south" of the avatar (+z,
+// the direction game-y grows) at a ~33° three-quarter angle, so screen-up is
 // exactly world-up on the deck plan and input needs no camera transform.
-// Steep enough that room walls rarely sit between camera and avatar (Dustwell
-// walls are opaque), shallow enough that people still read as figures, not
-// dots. There is deliberately no orbit: one authored angle, everywhere — the
-// whole camera-relative-movement bug class (see a56feda) dies with it.
-// Long-lens setup: narrow FOV from far away keeps the deck plan reading
-// near-orthographic (walls stay near-vertical on screen) instead of the
-// keystone splay a wide lens gives at this tilt.
-const CAM_OFFSET_Z = 6.5;
-const CAM_HEIGHT = 15.5;
-const CAM_FOV = 30;
+// There is deliberately no orbit: one authored angle, everywhere — the whole
+// camera-relative-movement bug class (see a56feda) dies with it. Movement has
+// no camera-relative transform (screen axes ARE world axes), so the camera
+// must stay directly behind the avatar in Z with no diagonal/X offset, or
+// WASD would stop matching what's on screen; all the tuning room is in
+// height, distance, and FOV.
+// Wide "Mass Effect" lens: that series' console-native FOV is a well-known
+// too-narrow default that PC players immediately widen, commonly into the
+// 90s-100s (horizontal). three.js's `fov` is vertical, and the viewport's
+// effective aspect ratio is capped at 2.2 (see mountHTML's viewportRatio) —
+// at that aspect, 62° vertical works out to ~106° horizontal: wide and
+// cinematic without tipping into fisheye stretch at the frame edges.
+// CAM_HEIGHT still comfortably clears Dustwell's opaque waist-high walls.
+const CAM_OFFSET_Z = 6.2;
+const CAM_HEIGHT = 4.5;
+const CAM_FOV = 62;
 
 const wx = (x: number) => (x - (current?.width || 0) / 2) * SCALE;
 const wz = (y: number) => (y - (current?.height || 0) / 2) * SCALE;
@@ -166,20 +196,31 @@ function attachCrewModel(group: THREE.Group, modelKey: string | undefined, fallb
 function mat(color: THREE.ColorRepresentation, emissive = 0): THREE.MeshStandardMaterial {
   return new THREE.MeshStandardMaterial({ color, roughness: .72, metalness: .25, emissive: color, emissiveIntensity: emissive });
 }
+// Every fine repeating texture (deck grating, wall panels, floor grid) is
+// viewed at a steep grazing angle from the chase camera — a corridor floor
+// stretching into the distance is the textbook case where isotropic
+// mipmapping under-samples one axis of the minification footprint and the
+// fine pattern breaks into a shimmering, camera-motion-reactive diagonal
+// moiré (exactly what reads as "static that moves and covers everything").
+// Anisotropic filtering samples along the true elongated footprint instead
+// of approximating it as square, which is the standard fix. None of these
+// textures set it, so it silently defaulted to 1 (off) on every one of them.
+function maxAniso(): number { return renderer?.capabilities.getMaxAnisotropy() ?? 1; }
 function panelTexture(url: string, repeatX = 2.2, repeatY = 1.5): THREE.Texture {
   const t=new THREE.TextureLoader().load(url);
-  t.colorSpace=THREE.SRGBColorSpace;t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(repeatX,repeatY);return t;
+  t.colorSpace=THREE.SRGBColorSpace;t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(repeatX,repeatY);t.anisotropy=maxAniso();return t;
 }
 function floorPanelTexture(url: string, w: number, d: number): THREE.Texture {
   const t = new THREE.TextureLoader().load(url);
   t.colorSpace = THREE.SRGBColorSpace;
   t.wrapS = t.wrapT = THREE.RepeatWrapping;
   t.repeat.set(Math.max(1, w / 1.8), Math.max(1, d / 1.8));
+  t.anisotropy = maxAniso();
   return t;
 }
 function propTexture(url: string): THREE.Texture {
   const t=new THREE.TextureLoader().load(url);
-  t.colorSpace=THREE.SRGBColorSpace;t.wrapS=t.wrapT=THREE.ClampToEdgeWrapping;return t;
+  t.colorSpace=THREE.SRGBColorSpace;t.wrapS=t.wrapT=THREE.ClampToEdgeWrapping;t.anisotropy=maxAniso();return t;
 }
 function texturedMat(url: string, glow = 0.03): THREE.MeshStandardMaterial {
   return new THREE.MeshStandardMaterial({ color: "#ffffff", map: propTexture(url), roughness: .78, metalness: .16, emissive: "#ffffff", emissiveIntensity: glow });
@@ -189,7 +230,7 @@ function deckTexture(dark: boolean): THREE.CanvasTexture {
   x.fillStyle=dark?"#131923":"#26354a";x.fillRect(0,0,256,256);x.strokeStyle=dark?"#303b4c":"#57708c";x.lineWidth=3;
   for(let i=0;i<=256;i+=32){x.beginPath();x.moveTo(i,0);x.lineTo(i,256);x.stroke();x.beginPath();x.moveTo(0,i);x.lineTo(256,i);x.stroke();}
   x.strokeStyle=dark?"#222b38":"#3d526a";for(let i=0;i<256;i+=64)x.strokeRect(i+5,i%128+5,54,22);
-  const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(8,5);return t;
+  const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(8,5);t.anisotropy=maxAniso();return t;
 }
 // Dustwell-only re-skin textures (canvas-generated, same pattern as deckTexture)
 // — weathered planks instead of bulkhead panels, packed sand instead of deck grating.
@@ -200,7 +241,7 @@ function desertPlankTexture(): THREE.CanvasTexture {
   for (let i = 0; i <= 256; i += 26) { x.beginPath(); x.moveTo(i, 0); x.lineTo(i, 256); x.stroke(); }
   const r = fork("tex:plank");
   for (let i = 0; i < 500; i++) { x.fillStyle = `rgba(20,10,5,${r() * .12})`; x.fillRect(r() * 256, r() * 256, 2, 2); }
-  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(2.2, 1.5); return t;
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(2.2, 1.5); t.anisotropy = maxAniso(); return t;
 }
 function sandTexture(): THREE.CanvasTexture {
   const c = document.createElement("canvas"); c.width = 256; c.height = 256; const x = c.getContext("2d")!;
@@ -210,7 +251,7 @@ function sandTexture(): THREE.CanvasTexture {
   x.fillStyle = "#c19064"; x.fillRect(0, 0, 256, 256);
   const r = fork("tex:sand");
   for (let i = 0; i < 3000; i++) { x.fillStyle = r() < .5 ? "rgba(60,34,16,.09)" : "rgba(240,200,150,.12)"; x.fillRect(r() * 256, r() * 256, 2, 2); }
-  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(6, 4); return t;
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(6, 4); t.anisotropy = maxAniso(); return t;
 }
 // The Meshy-generated desert props, scattered across the open plaza (game-space
 // coords) clear of the buildings and the central ship pad, so the square reads
@@ -460,8 +501,37 @@ function rebuild() {
   };
   const deck=isDustwell?sandTexture():deckTexture(dark);
   if(current.id==="ship"){const hullMat=mat("#111b29");hullMat.emissiveIntensity=.08;const hull=box(current.width*SCALE,.08,current.height*SCALE,hullMat);hull.position.set(0,-.18,0);world.add(hull);}
+  // Placeholder exterior hull frame (scene.hull, built in shipwalk.ts): a keel
+  // rail and a roofline rail joined by corner struts, built from thin emissive
+  // beams rather than THREE.Line — hairline Line materials are capped at 1px
+  // with no glow, so at a low oblique angle they read as indistinguishable
+  // scribble against the room walls and door labels. Beams pick up real
+  // lighting and the bloom pass, and a warm amber keeps the hull visually
+  // distinct from the cool blue room dressing. Enough silhouette to judge
+  // room placement against the ship's outer shape; swapped for real hull
+  // geometry later.
+  if (current.hull && current.hull.length > 2) {
+    const hullMat = mat("#ffb463", .55);
+    const beam = (a: THREE.Vector3, b: THREE.Vector3, thick = .05) => {
+      const mid = a.clone().add(b).multiplyScalar(.5);
+      const len = a.distanceTo(b);
+      if (len < .001) return;
+      const m = new THREE.Mesh(new THREE.CylinderGeometry(thick, thick, len, 6), hullMat);
+      m.position.copy(mid);
+      m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), b.clone().sub(a).normalize());
+      world.add(m);
+    };
+    const keel = current.hull.map((p) => new THREE.Vector3(wx(p.x), -.1, wz(p.y)));
+    const roof = current.hull.map((p) => new THREE.Vector3(wx(p.x) * .94, 2.75, wz(p.y) * .94));
+    for (let i = 0; i < keel.length; i++) {
+      const j = (i + 1) % keel.length;
+      beam(keel[i], keel[j], .022);
+      beam(roof[i], roof[j], .022);
+      beam(keel[i], roof[i], .018);
+    }
+  }
   const corridorWallMat=isDustwell?mat("#6b4a30",.05):mat(dark?"#5f6671":"#aeb7c0",dark?.1:.18);
-  if(!isDustwell){corridorWallMat.map=roomTextures.corridor;corridorWallMat.transparent=true;corridorWallMat.opacity=dark?.72:.86;corridorWallMat.depthWrite=false;}
+  if(!isDustwell){corridorWallMat.map=roomTextures.corridor;corridorWallMat.transparent=true;corridorWallMat.opacity=dark?.85:.95;corridorWallMat.depthWrite=false;}
   for (const f of current.floors) {
     const w=f.w*SCALE,d=f.h*SCALE;
     // Open ground (a town plaza): the whole floor is packed sand — no room
@@ -486,17 +556,26 @@ function rebuild() {
       : r.moduleType === "shields" ? "shield"
       : r.moduleType === "fueltank" || r.moduleType === "workshop" || r.moduleType === "smuggler" || r.moduleType === "cabin" || r.moduleType === "luxcabin" ? "utility"
       : "general";
-    const wallMat=mat(isDustwell?"#d9b98a":dark?"#465365":"#8fa7bd",isDustwell?.04:dark?.08:.16);wallMat.map=roomTextures[wallKind];wallMat.transparent=true;wallMat.opacity=dark?.68:.84;wallMat.depthWrite=false;
+    // Solid-reading walls: ship/station opacity was low enough (.68-.84) that
+    // every room was see-through into whatever was behind it — a corridor's
+    // worth of rooms all bleeding into frame at once read as haze, not a
+    // ship. Nearly opaque still keeps the depthWrite:false blend safe at
+    // shared edges without the x-ray effect. Dustwell keeps its original,
+    // more transparent value — it's tuned separately for the open plaza.
+    const wallMat=mat(isDustwell?"#d9b98a":dark?"#465365":"#8fa7bd",isDustwell?.04:dark?.08:.16);wallMat.map=roomTextures[wallKind];wallMat.transparent=true;wallMat.opacity=isDustwell?(dark?.68:.84):(dark?.88:.96);wallMat.depthWrite=false;
     // Dustwell's plank walls stay waist-high — the fixed top-down camera must
     // see over an outdoor town's fences, where a station's bulkheads can rise.
     const wallH=isDustwell?1.05:1.85;
     [[w,.18,cx,cz-d/2],[w,.18,cx,cz+d/2],[.18,d,cx-w/2,cz],[.18,d,cx+w/2,cz]].forEach(([a,b,x,z])=>{const q=box(a as number,wallH,b as number,wallMat);q.position.set(x as number,wallH/2-.04,z as number);world.add(q);});
-    // Corner posts mark room boundaries. Ships get tall illuminated pylons;
-    // Dustwell gets squat weathered fence posts (no glow) that suit an outdoor
-    // frontier town and don't tower over the waist-high plank walls.
-    const pylonH=isDustwell?1.25:2.45, pylonMat=isDustwell?mat("#5a3d26",.04):mat(c,.32);
-    for(const [px,pz] of [[cx-w/2,cz-d/2],[cx+w/2,cz-d/2],[cx-w/2,cz+d/2],[cx+w/2,cz+d/2]]){const p=box(isDustwell?.13:.16,pylonH,isDustwell?.13:.16,pylonMat);p.position.set(px,pylonH/2,pz);world.add(p);}
-    const trim=box(Math.max(.5,w-.3),.04,.05,mat(c,.45)); trim.position.set(cx,.04,cz-d/2+.12); world.add(trim);
+    // Corner posts mark room boundaries. Ships get quiet illuminated pylons —
+    // toned down from the original pass, which ran four saturated neon rods
+    // per room at full room height; across several adjacent bays that read as
+    // a picket fence of clashing colour instead of quiet edge-lighting.
+    // Dustwell gets squat weathered fence posts (no glow) that suit an
+    // outdoor frontier town and don't tower over the waist-high plank walls.
+    const pylonH=isDustwell?1.25:1.9, pylonMat=isDustwell?mat("#5a3d26",.04):mat(c,.2), pylonW=isDustwell?.13:.1;
+    for(const [px,pz] of [[cx-w/2,cz-d/2],[cx+w/2,cz-d/2],[cx-w/2,cz+d/2],[cx+w/2,cz+d/2]]){const p=box(pylonW,pylonH,pylonW,pylonMat);p.position.set(px,pylonH/2,pz);world.add(p);}
+    const trim=box(Math.max(.5,w-.3),.04,.05,mat(c,isDustwell?.45:.35)); trim.position.set(cx,.04,cz-d/2+.12); world.add(trim);
     const label=sprite(`${r.icon||""} ${r.label}`.trim(),c,.62); label.position.set(cx,2.72,cz); world.add(label);
     if(r.kind==="cockpit"){
       const glass=box(Math.max(1,w*.7),1.15,.04,mat("#071323",.15));glass.position.set(cx,.78,cz-d/2+.1);world.add(glass);
@@ -511,6 +590,15 @@ function rebuild() {
   if (current.ship) renderShip(world, current.ship, dark);
   for (const d of current.doors) { const g=box(Math.max(.4,d.w*SCALE),.04,Math.max(.28,d.h*SCALE),mat(d.locked?"#8a3030":"#3d91df",d.locked?.15:.8));g.position.set(wx(d.x+d.w/2),.04,wz(d.y+d.h/2));world.add(g);const l=sprite(d.label,d.locked?"#d77":"#9fd7ff",.55);l.position.set(g.position.x,.75,g.position.z);world.add(l);doorLabels.set(d,l); }
   for (const a of current.actors) {
+    // Not every actor is a person. Ship module bays and the captain's chair
+    // are interact points standing in for furniture already drawn by
+    // addMachinery/the room itself (see the `if(r.moduleType)` block above) —
+    // rendering them as a wardrobe-dressed mannequin with the module's name
+    // floating over its head duplicated the room's own ceiling label and left
+    // every bay looking staffed by an invisible crew. They still work as
+    // interact targets (walk.ts's 2D sim owns proximity/prompts); they just
+    // get no 3D body of their own.
+    if (a.key.startsWith("module:") || a.key === "captains-chair") continue;
     // No explicit roster colour → deal one from the wardrobe by key hash, so a
     // station concourse is a crowd of strangers instead of identical clones.
     let hv=0; for(let i=0;i<a.key.length;i++) hv=(hv*31+a.key.charCodeAt(i))|0; hv>>>=0;
@@ -625,6 +713,9 @@ export function render(v:{pos:{x:number;y:number};facing:string;moving:boolean;p
   // Dodge-roll after-image: a translucent ghost trailing the roll for weight.
   if(v.rollTrail&&v.rollTrail>0){const g=box(.34,.9,.34,mat(shotCol,.5));g.position.set(x-v.aim.x*.3,.45,z-v.aim.y*.3);(g.material as THREE.MeshStandardMaterial).transparent=true;(g.material as THREE.MeshStandardMaterial).opacity=v.rollTrail*3;actionFx.add(g);}
   world.traverse((o:any)=>{if(o.userData.spark!==undefined){o.visible=Math.sin(v.time*.025+o.userData.spark)>0;o.position.y=1+(o.userData.spark*.12+v.time*.0004)%1;}if(o.userData.starfield&&S.travel)o.rotation.y=v.time*.00002;});
-  if(composer){if(crtPass)crtPass.uniforms.time.value=v.time*.001;composer.render();}else renderer.render(root,camera);
+  // Wrapped, not raw elapsed ms: grain only needs a value that changes every
+  // frame, and letting it climb for a whole session fed the hash below
+  // ever-larger numbers for no visual benefit.
+  if(composer){if(crtPass)crtPass.uniforms.time.value=(v.time*.001)%1000;composer.render();}else renderer.render(root,camera);
 }
 export function teardown(){resizeObserver?.disconnect();resizeObserver=null;if(renderer&&clickHandler)renderer.domElement.removeEventListener("pointerdown",clickHandler);clickHandler=null;if(root)disposeObject(root);composer?.dispose();bloomPass?.dispose();composer=null;bloomPass=null;crtPass=null;renderer?.dispose();renderer?.domElement.remove();renderer=null;root=null;camera=null;flashlight=null;current=null;host=null;signature="";world=new THREE.Group();avatar=new THREE.Group();actionFx=new THREE.Group();actorMeshes.clear();actorRigs.clear();captainRig=null;doorLabels=new Map();actorLabels=new Map();aimCallback=null;fireCallback=null;}

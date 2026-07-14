@@ -1,7 +1,9 @@
 import { S } from "../state";
 import { PLANETS, FACS } from "../content";
 import { daysTo, fuelTo, foodPerDay, planetVisible, isSilenced, crewGapWarnings } from "../derive";
+import { activeMood, MOOD_WORD, MOOD_ICON } from "../systems/moods";
 import { requestRender } from "../bus";
+import { actionAttr } from "../dispatch";
 
 export function selPlanet(k: string) { S.selPlanet = k; requestRender(); }
 
@@ -53,7 +55,7 @@ export function mapHTML(): string {
     const c = dark ? "#2c3140" : FACS[p.fac].c;
     const isGate = k === "gate";
     const isSource = k === "anechoic";
-    svg += `<g class="planet-dot" onclick="selPlanet('${k}')">
+    svg += `<g class="planet-dot" ${actionAttr("selPlanet", k)}>
       ${isSource ? `<circle cx="${p.x}" cy="${p.y}" r="20" fill="none" stroke="#a86bd9" stroke-width="1" stroke-dasharray="3 6" opacity="0.7"/>` : ""}
       <circle cx="${p.x}" cy="${p.y}" r="${isGate || isSource ? 13 : 11}" fill="${isSource ? "#0a0710" : c}" ${dark || isSource ? "" : 'filter="url(#nodeGlow)"'} opacity="0.9" ${isSource ? 'stroke="#a86bd9" stroke-width="1.5"' : ""}/>
       <circle cx="${p.x}" cy="${p.y}" r="${isGate || isSource ? 13 : 11}" fill="none" stroke="#05070d" stroke-width="1.5"/>
@@ -67,6 +69,16 @@ export function mapHTML(): string {
       ${dark ? `<text x="${p.x}" y="${p.y + 43}" fill="#5f6479" font-size="9" text-anchor="middle" font-family="monospace">· NO SIGNAL ·</text>` : ""}
       ${isGate ? `<text x="${p.x}" y="${p.y - 20}" fill="#e8b04b" font-size="11" text-anchor="middle" font-family="monospace">◆ THE RUN</text>` : ""}
       ${isSource ? `<text x="${p.x}" y="${p.y - 24}" fill="#a86bd9" font-size="11" text-anchor="middle" font-family="monospace">◇ THE SILENCE</text>` : ""}
+    </g>`;
+  }
+  // Charted points of interest — the player's own marks, the map-as-diary.
+  // Rendered under the ship/course so a live transit never hides behind them.
+  for (const poi of S.poi) {
+    const glyph = poi.kind === "seam" ? "◆" : poi.kind === "derelict" ? "✶" : "◇";
+    const col = poi.kind === "seam" ? "#6fbf73" : poi.kind === "derelict" ? "#d9a55b" : "#8fa0c4";
+    svg += `<g class="poi-mark">
+      <text x="${poi.x}" y="${poi.y + 4}" text-anchor="middle" font-size="12" fill="${col}" opacity="0.85">${glyph}</text>
+      <text x="${poi.x}" y="${poi.y - 8}" text-anchor="middle" font-family="monospace" font-size="7" fill="${col}" opacity="0.6" letter-spacing="0.3">${poi.name.toUpperCase()}</text>
     </g>`;
   }
   if (S.travel) {
@@ -91,8 +103,10 @@ export function mapHTML(): string {
   let info = "";
   if (S.selPlanet) {
     const p = PLANETS[S.selPlanet];
+    const mood = activeMood(S.selPlanet);
+    const moodBadge = mood ? ` <span class="badge" title="${mood.mood}">${MOOD_ICON[mood.mood]} ${MOOD_WORD[mood.mood]}</span>` : "";
     if (S.selPlanet === from) {
-      info = `<div class="panel"><h3>${p.n}</h3><p class="dim">${p.d}</p><p class="dim">You're here.</p></div>`;
+      info = `<div class="panel"><h3>${p.n}${moodBadge}</h3><p class="dim">${p.d}</p><p class="dim">You're here.</p></div>`;
     } else {
       const d = daysTo(from, S.selPlanet), f = fuelTo(from, S.selPlanet);
       const foodNeed = foodPerDay() * d;
@@ -103,7 +117,7 @@ export function mapHTML(): string {
       const gapWarn = gaps.length
         ? `<div class="card" style="border-color:var(--red); margin:8px 0"><div class="title" style="color:var(--red)">⚠ Before you cast off</div>
             ${gaps.map((g) => `<div class="dim" style="margin-top:3px">· ${g}</div>`).join("")}</div>` : "";
-      info = `<div class="panel"><h3>${p.n} <span class="badge fac">${FACS[p.fac].n}</span></h3>
+      info = `<div class="panel"><h3>${p.n}${moodBadge} <span class="badge fac">${FACS[p.fac].n}</span></h3>
         <p class="dim">${p.d}</p>${darkWarn}${gapWarn}
         <div class="statgrid" style="margin:8px 0">
           <span>Distance</span><b>${d} days</b>
@@ -111,7 +125,7 @@ export function mapHTML(): string {
           <span>Food needed (est.)</span><b class="${S.food >= foodNeed ? "" : "low"}">~${foodNeed} (have ${Math.floor(S.food)})</b>
           <span>Fuel price there</span><b>${p.fuelP || "—"}cr</b>
         </div>
-        ${S.docked ? `<button class="primary" ${ok ? "" : "disabled"} onclick="depart('${S.selPlanet}')">${ok ? "⛽ Depart (" + f + " fuel, " + d + " days)" : "Not enough fuel"}</button>` : `<span class="dim">Already in transit.</span>`}
+        ${S.docked ? `<button class="primary" ${ok ? "" : "disabled"} ${actionAttr("depart", S.selPlanet)}>${ok ? "⛽ Depart (" + f + " fuel, " + d + " days)" : "Not enough fuel"}</button>` : `<span class="dim">Already in transit.</span>`}
       </div>`;
     }
   } else {

@@ -43,6 +43,8 @@ describe("save migration", () => {
     expect(m.campaign?.silence).toBeTruthy();
     expect(m.appearance).toBeTruthy();
     expect(m.portStanding && typeof m.portStanding === "object").toBe(true);
+    expect(Array.isArray(m.poi)).toBe(true); // v12: charted POIs
+    expect(m.portMood && typeof m.portMood === "object").toBe(true); // v13: station moods
     setState(m);
     expect(checkInvariants("migrated-v1")).toEqual([]);
     // and it's actually usable: derive doesn't throw
@@ -60,6 +62,25 @@ describe("save migration", () => {
       setState(m);
       expect(checkInvariants(`chain-from-v${from}`), `from v${from}`).toEqual([]);
     }
+  });
+
+  it("v11 → v12 gives an old save an empty chart", () => {
+    const s: any = newState("Pre-Survey");
+    s.version = 11;
+    delete s.poi;
+    const m = migrate(s);
+    expect(m.version).toBe(SAVE_VERSION);
+    expect(Array.isArray(m.poi)).toBe(true);
+    expect(m.poi).toHaveLength(0);
+  });
+
+  it("v12 → v13 gives an old save every port in its ordinary condition", () => {
+    const s: any = newState("Pre-Moods");
+    s.version = 12;
+    delete s.portMood;
+    const m = migrate(s);
+    expect(m.version).toBe(SAVE_VERSION);
+    expect(m.portMood).toEqual({});
   });
 
   it("is idempotent on a current save", () => {

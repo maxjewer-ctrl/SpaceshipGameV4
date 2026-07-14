@@ -6,10 +6,11 @@ import { S } from "../state";
 import { NPCS, PLANETS } from "../content";
 import type { SceneChoice } from "../content";
 import { stats, paxJobs, vipJobs, cargoUsed, isSilenced } from "../derive";
-import { modal, closeModal } from "../modal";
+import { replaceModal, closeModal } from "../modal";
 import { requestRender } from "../bus";
 import { dialogueHeadHTML } from "../ui/portraits";
 import { applyEffects } from "./scheduler";
+import { actionAttr } from "../dispatch";
 
 // ---- requirement checks (shared by scene choices and NPC gates) ----
 export function checkReq(req?: Record<string, any>): [boolean, string] {
@@ -63,9 +64,9 @@ function renderNode(key: string, nodeKey: string) {
   if (!node) { closeModal(); requestRender(); return; }
   const choices = node.choices.map((c: SceneChoice, i: number) => {
     const [ok, why] = checkReq(c.requires);
-    return `<button ${ok ? "" : "disabled"} onclick="sceneChoose('${key}','${nodeKey}',${i})">${c.label}${ok ? "" : ` <span class="dim">— ${why}</span>`}</button>`;
+    return `<button ${ok ? "" : "disabled"} ${actionAttr("sceneChoose", key, nodeKey, i)}>${c.label}${ok ? "" : ` <span class="dim">— ${why}</span>`}</button>`;
   }).join("");
-  modal(`<div class="scene"><div class="scene-loc">${PLANETS[S.loc].n} · station</div>
+  replaceModal(`<div class="scene"><div class="scene-loc">${PLANETS[S.loc].n} · station</div>
     ${dialogueHeadHTML(null, npc.icon || "◆", npc.name, npc.blurb)}
     <p>${node.text}</p>
     <div class="choices">${choices}</div></div>`);
@@ -83,9 +84,9 @@ export function sceneChoose(key: string, nodeKey: string, idx: number) {
   };
   if (c.reply) {
     pendingAfter = after;
-    modal(`<div class="scene">${dialogueHeadHTML(null, npc.icon || "◆", npc.name)}
+    replaceModal(`<div class="scene">${dialogueHeadHTML(null, npc.icon || "◆", npc.name)}
       <p>${c.reply}</p>
-      <div class="choices"><button class="primary" onclick="sceneContinue()">Continue</button></div></div>`);
+      <div class="choices"><button class="primary" ${actionAttr("sceneContinue")}>Continue</button></div></div>`);
   } else {
     after();
   }

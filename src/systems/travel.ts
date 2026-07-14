@@ -4,7 +4,6 @@ import { stats, daysTo, fuelTo, foodPerDay, salaries, perkActive, captainDoubleH
 import { rand, pick } from "../rng";
 import { clamp } from "../util";
 import { requestRender } from "../bus";
-import { hasModal } from "../modal";
 import { rollEvent, evAdrift, evQuiet } from "./events";
 import { startCombat } from "./combat";
 import { powerRebalance } from "./actions";
@@ -21,8 +20,13 @@ import { introTravelBeat, introArrive } from "./intro";
 import { checkCrewQuests, checkCrewDeparture } from "./crewtalk";
 import { checkAgendaBeats } from "./agendabeats";
 import { checkImogenQuest } from "./imogenquest";
+import { checkCrewDialogueArcs } from "./crewdialogue";
 import { bumpStanding } from "./port";
 import { accrueWear } from "./wear";
+import { rankBoost, markVeteranEvent } from "./veterancy";
+import { checkSurvey, seamRoyalties } from "./survey";
+import { checkLoyaltyArrive, checkLoyaltyOffer } from "./loyalty";
+import { tickPortMoods, resolveOutbreakIfDue } from "./moods";
 import type { Job } from "../types";
 
 export function depart(destId: string) {
@@ -53,7 +57,7 @@ export function advanceDay() {
   dayTick(true);
   S.travel.left--;
   if (S.travel.left <= 0) { arrive(); requestRender(); return; }
-  if (S.over || hasModal()) { requestRender(); return; }
+  if (S.over) { requestRender(); return; }
   // The prologue scripts its own travel days — no random lane events on top.
   if (introTravelBeat()) { S.travel.evd = true; requestRender(); return; }
   // events
@@ -66,6 +70,9 @@ export function advanceDay() {
     requestRender();
     return;
   }
+  // A charting contract riding this journey takes its readings at the midpoint —
+  // a planted payoff the player chose, so it outranks a random lane event.
+  if (checkSurvey()) { S.travel.evd = true; requestRender(); return; }
   // Planted consequences take priority over fresh random noise.
   if (checkScheduler()) { S.travel.evd = true; requestRender(); return; }
   // No dead legs: if a hop has been pure silence, its last full day always
@@ -112,6 +119,12 @@ export function dayTick(traveling: boolean) {
     if (S.starve >= 2) log("⚠ STARVING — buy food, fast.");
   } else {
     S.starve = 0;
+    // A cook keeping the whole crew fed, week after week, is the job —
+    // credit it periodically rather than every single clean day.
+    if (st.has("cook") && S.day % 10 === 0) {
+      const cook = S.crew.find((c) => c.role === "cook");
+      if (cook) markVeteranEvent(cook);
+    }
   }
   // salaries
   const pay = salaries();
@@ -134,8 +147,9 @@ export function dayTick(traveling: boolean) {
   // mechanic works in flight: hull first, then jury-rigging broken modules
   if (traveling && st.has("mechanic")) {
     const mechPerk = perkActive("mechanic");
+    const mech = S.crew.find((c) => c.role === "mechanic");
     if (S.hull < S.hullMax) {
-      const amt = (st.active("workshop") > 0 ? 6 : 3) + (mechPerk ? 2 : 0);
+      const amt = ((st.active("workshop") > 0 ? 6 : 3) + (mechPerk ? 2 : 0)) * (mech ? rankBoost(S.crew, "mechanic") : 1);
       S.hull = Math.min(S.hullMax, S.hull + amt);
     }
     const dmgd = S.modules.filter((m) => m.dmg);
@@ -144,6 +158,7 @@ export function dayTick(traveling: boolean) {
       m.dmg = false;
       powerRebalance();
       log(`🔧 Your mechanic jury-rigs the ${MODS[m.t].n} back online. It sounds wrong, but it works.`);
+      if (mech) markVeteranEvent(mech);
     }
   }
   // deadlines
@@ -188,6 +203,7 @@ export function arrive() {
   S.loc = dest; S.docked = true; S.travel = null; S.screen = "shipwalk";
   resetStation();
   log(`Docked at ${PLANETS[dest].n}.`);
+  tickPortMoods();
   // victory check
   if (dest === "gate" && S.arc.stage === 5) { arcVictory(); return; }
   // a crew member from this world gets a moment
@@ -216,11 +232,22 @@ export function arrive() {
   }
   for (const j of arrivals) {
     if (j.kind === "bounty") continue;
+    // A charting contract only pays if you actually took the readings en route.
+    // Arriving with an un-surveyed one (you routed around the coordinate) voids
+    // the charting fee — the Circle pays for data, not for showing up.
+    if (j.kind === "survey" && !j.surveyed) {
+      S.jobs = S.jobs.filter((x) => x.id !== j.id);
+      S.prestige = Math.max(0, S.prestige - 1);
+      log(`Charting contract "${j.title}" voided — you never took the readings. The Circle doesn't pay for an empty logbook (−1 prestige).`);
+      continue;
+    }
     S.jobs = S.jobs.filter((x) => x.id !== j.id);
     completePay(j);
     if (j.arcCrate) arcVergeScene();
     if (j.arcVoss) arcHavensScene();
   }
+  // Staked seams pay their trickle every time you make port.
+  seamRoyalties();
   refreshMarket();
   // campaign beats own the arrival if one is due (the prologue's docking,
   // dark stations, the source)
@@ -232,16 +259,25 @@ export function arrive() {
   // a crew member's personal quest may resolve here, or a badly neglected one
   // may walk, or a named character's agenda may surface — at most one of
   // these opens a modal per docking
+  // A loyalty errand resolving here takes precedence — you flew all this way
+  // for it — and is checked before a new one can be offered.
+  checkLoyaltyArrive();
   checkCrewQuests();
   checkCrewDeparture();
   checkAgendaBeats();
   checkImogenQuest();
+  checkCrewDialogueArcs();
+  checkLoyaltyOffer();
 }
 
 export function completePay(j: Job) {
   const st = stats();
   let pay = j.pay;
-  if (st.has("quartermaster")) pay = Math.round(pay * (perkActive("quartermaster") ? 1.22 : 1.15));
+  const qm = S.crew.find((c) => c.role === "quartermaster");
+  if (st.has("quartermaster")) {
+    pay = Math.round(pay * (perkActive("quartermaster") ? 1.22 : 1.15) * (qm ? rankBoost(S.crew, "quartermaster") : 1));
+    if (qm) markVeteranEvent(qm);
+  }
   // A captain still moonlighting as their own pre-command specialty isn't
   // giving contracts full attention — a standing incentive to hire the role.
   if (captainDoubleHatting()) pay = Math.round(pay * 0.9);
@@ -251,6 +287,8 @@ export function completePay(j: Job) {
   }
   if (j.pax && j.pax.sick && st.has("medic") && perkActive("medic")) {
     log(`${j.pax.name} disembarks fighting fit — your medic wouldn't let it go any other way. Full pay.`);
+    const medic = S.crew.find((c) => c.role === "medic");
+    if (medic) markVeteranEvent(medic);
   } else if (j.pax && j.pax.sick) {
     pay = Math.round(pay * 0.5);
     S.prestige = Math.max(0, S.prestige - 1);
@@ -262,6 +300,8 @@ export function completePay(j: Job) {
   // Delivering here earns goodwill at THIS port — the surest way to become a
   // regular somewhere is to keep showing up with the goods.
   bumpStanding(S.loc, (j.prestige || 0) >= 3 ? 2 : 1);
+  // The named CORE_LOOP example: the serum you ran ends the outbreak.
+  if (j.kind === "medical") resolveOutbreakIfDue(S.loc);
   // campaign missions report completion via flags (scenes gate on job_<tag>)
   if (j.tag) S.flags["job_" + j.tag] = true;
   log(`✓ ${j.title} — paid ${Math.round(pay).toLocaleString()}cr${j.prestige ? ", +" + j.prestige + " prestige" : ""}.`);

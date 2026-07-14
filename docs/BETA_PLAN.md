@@ -133,14 +133,24 @@ combat gets *deeper* when resolution is a decision, not a reflex — and the
 whole system becomes headlessly testable.
 
 ### 3.4 The global-onclick UI surface — REPLACE
-One delegated listener + `data-action` attributes + a typed action table
-(`dispatch("buyFuel", 5)`). `main.ts` stops being a 150-export registry;
-handlers stop being globals; the playtest harness drives `dispatch` directly.
-Alongside it, a real **ModalQueue in GameState**: pending story beats,
-riders, and events become serialized queue entries — no more `hasModal()`
-guards scattered through systems, no more stale `#modal` HTML, no more
-travel-stall class of bug. This is the single highest-leverage engineering
-change in the plan.
+✅ **Shipped, both halves.** Dispatcher half: one delegated listener +
+`data-action` attributes + a typed action table (`dispatch("buyFuel", [5])`).
+`main.ts` stopped being a 150-export registry; handlers stopped being
+globals; the playtest harness drives `dispatch` directly.
+
+ModalQueue half: `modal()` now queues instead of clobbering when one's
+already showing (`src/modal.ts`), so the 10 gameplay systems that used to
+each re-check `hasModal()` before firing their own beat no longer need to —
+the queue makes overlap structurally impossible instead of a matter of
+per-call-site discipline. `travel.ts`'s `advanceDay()` had that guard on its
+gate too; removing it structurally closes the `094fc96` travel-stall bug
+class (a modal open during a travel day can no longer stall the day
+counter). A distinct `replaceModal()` was added for the case `hasModal()`
+never covered: navigating *within* an already-open conversation (a dialogue
+tree's next node, a reply screen) — using the queue there would've queued a
+screen behind itself. `clearModal()` (new game, load/import a save, load a
+dev scenario, end combat) drops the whole queue, since anything queued
+belonged to the state that just got replaced.
 
 ### 3.5 Dead surfaces — ARCHIVE
 `_v2design.html`, `legacy/game-v1.html`, the `spaceport.html` demo and
@@ -161,13 +171,13 @@ playtest gate met, committed, pushed — plus the new rule: **CI green**.
 ### Phase A — FOUNDATIONS & THE KNIFE (~2–3 weeks)
 Everything in §3, plus:
 
-**Progress (2026-07-13):** the knife has landed — action layer scoped to
+**Progress (2026-07-14):** the knife has landed — action layer scoped to
 hostile ground + fixed follow camera (§3.1); Rapier/three-pathfinding/yuka/
 quarks + the 2D walk fallback cut (§3.2); realtime aim minigame still pending
 its Phase C replacement (§3.3); dead HTML surfaces archived (§3.5); `Math.random`
 exterminated + lint-gated (§3.6). The **headless simulation harness and CI are
-in** (this section, below). Still open in Phase A: the typed dispatcher +
-ModalQueue (§3.4) and save-transient hardening + slots.
+in**, save hardening + slots shipped, and §3.4 is fully shipped (both the
+dispatcher and the ModalQueue — this section, below). **Phase A is complete.**
 
 - **Headless simulation harness.** ✅ Shipped. `hasModal()` was always pure
   in-memory state and `requestRender()` a no-op until wired, so the systems
@@ -199,25 +209,91 @@ ModalQueue (§3.4) and save-transient hardening + slots.
   cases cover transient stripping, slot isolation, legacy migration,
   delete, dead-run non-persistence, and export/import round-trips (incl.
   migrating an imported old-version save). Harness now 28 tests.
+- **Delegated dispatcher:** ✅ Shipped (§3.4, first half). All ~150
+  window-global onclick/onpointer* handlers replaced with one delegated
+  listener (`src/dispatch.ts`) + `data-action`/`data-args` attributes + a
+  typed `dispatch(action, args)` table — `main.ts` shrinks from a 150-entry
+  registry to a thin bootstrap. Pure invocation-mechanism refactor, zero
+  gameplay behavior change; the two skill docs (playtest-kestrel,
+  see-the-game) updated to `window.dispatch(...)` so the headless-testing
+  workflow keeps working.
+- **ModalQueue:** ✅ Shipped (§3.4, second half). `modal()` in `src/modal.ts`
+  queues instead of clobbering when a modal is already showing; `hasModal()`
+  guards removed from the 10 gameplay systems that used it purely to avoid
+  stomping another system's beat (`crewtalk`, `agendabeats`, `imogenquest`,
+  `junodialogue`, `scheduler`, `silence` ×3, `walkEncounters` ×2) — the queue
+  now does that structurally. `travel.ts`'s `advanceDay()` had the same guard
+  on its own gate; removing it structurally closes the `094fc96` travel-stall
+  bug class (a modal open mid-travel can no longer stall `S.travel.left`). A
+  new `replaceModal()` handles the case that was never `hasModal()`'s job:
+  navigating within an already-open conversation (dialogue-tree nodes, reply
+  screens) replaces in place instead of queueing behind itself — used in
+  `junodialogue.ts`, `crewtalk.ts`, and `silence.ts`'s chained scenes.
+  Real-time input-suppression call sites (`ui/walk.ts`, `gamepadNav.ts`) were
+  left untouched — a different concern (don't move/fire while any modal is
+  up), not content-gating. 53/53 vitest passing; verified live in a browser
+  via dynamic-imported `modal.ts` (queue/drain/clear semantics) and a direct
+  repro of the old stall scenario (`advanceDay()` with a modal open still
+  decrements `S.travel.left`).
 - Exit: game plays identically — action verbs now live only in action-mode
   scenes, camera is fixed follow everywhere; CI is the new gatekeeper.
-  **Phase A now has one item left: the typed dispatcher + ModalQueue (§3.4).**
+  **Phase A is complete.**
 
 ### Phase B — THE LOOP THAT NEVER ENDS (~3 weeks)
 CORE_LOOP.md's build order, finished — this is the beta's gameplay heart:
 
+**Progress (2026-07-14):** port standing + consequence set-dressing, module
+wear + the refit loop, and Mk-I/II/III quality tiers all landed ahead of
+this phase (CORE_LOOP.md build-order items 1, 2, 2b — done before Phase A
+even closed). **Veterancy ranks, survey/charting contracts, the loyalty-
+mission engine + first three missions, and station moods shipped this
+pass** (build-order items 3–6, below). **All six CORE_LOOP.md build-order
+systems items are now shipped — Phase B's systems work is done.** Scars
+(half of item 3), the past-Verge deep band (distinct from the survey
+*contracts*), the remaining nine loyalty missions, and the used-module
+marketplace are deliberately split off as content/follow-up work, tracked
+below per item.
+
 - **Mk-I/II/III quality tiers** per module; yard inventories always hold
-  something worth wanting.
+  something worth wanting. ✅ Shipped (`systems/modtier.ts`, ahead of this
+  phase — see CORE_LOOP.md item 2b).
 - **Used-module marketplace** with provenance lines — unblocks the Row
   Broker, realizes Debtor's Row, and makes the ship a biography. Needs the
-  `grantModule` DSL verb (STATION_IDENTITY engine item #6).
-- **Veterancy ranks + scars:** per-role ranks earned in-role; event-inflicted
-  traits (`steady_under_fire`, `flinches_at_static`) that gate barks and
-  mechanics.
-- **Survey/charting contracts + POI map marks:** the map becomes a diary;
-  the deep band past Verge becomes a place (fuel/hull-gated, portless).
-- **Station moods** (boom/shortage/lockdown/festival) reading and writing
-  port standing and prices.
+  `grantModule` DSL verb (STATION_IDENTITY engine item #6). Still open.
+- **Veterancy ranks:** ✅ Shipped (`systems/veterancy.ts`). Green → Seasoned
+  → Veteran, derived from days aboard + events survived in role (never
+  stored, mirrors `trustTier()`), wired into the same stats()/foodPerDay()/
+  bribeCost() slots the perk system already stacks onto, visible in the crew
+  roster and crew-talk header, announced by a bark on rank-up. **Scars +
+  learned traits** (`steady_under_fire`, `flinches_at_static` gating barks
+  and mechanics) remain open — a distinct event-triggered mechanism, not a
+  rank curve, scoped out of this pass on purpose.
+- **Survey/charting contracts + POI map marks:** ✅ Shipped
+  (`systems/survey.ts`). Charting contracts on the job board name a coordinate
+  out between worlds; you pass it mid-journey and take your readings (seam /
+  derelict / dead beacon), and the coordinate becomes a permanent named mark
+  on the chart (`S.poi`, persisted, v12 migration) — the map-as-diary. Built
+  as a scripted find-scene injected into ordinary port-to-port travel, so
+  `S.loc` stays a real port and no engine invariant moved. **The deep band**
+  (past-Verge soft-gated *region*, fuel/hull-gated, portless) is the deferred
+  half — it wants true non-port traversal, a separate lift.
+- **Loyalty missions:** ✅ Engine shipped + first three authored
+  (`systems/loyalty.ts`, `content/loyalty.json`). Bonded named crew ask for a
+  real errand in a real place (offer scene → travel → payoff scene → role
+  perk + permanent bond); data-driven so the rest are content. Ada (Meridian),
+  Brix (Foundry), Nyla (Kestrel's Rest, gated on her agenda beat — a true
+  second act). Decoupled from `rankOf()`'s pure derivation. The nine
+  remaining characters are follow-up content.
+- **Station moods:** ✅ Shipped (`systems/moods.ts`). A port's current
+  CONDITION (boom/shortage/lockdown/festival) — temporary, event-driven,
+  distinct from portStanding's "how it feels about you." Composes with the
+  existing pricing/prose chain rather than replacing it. The named example:
+  a generated medical contract sours its destination with a shortage
+  (`plantOutbreak`); delivering the serum lifts it into a festival
+  (`resolveOutbreakIfDue`) — an undelivered outbreak just lapses, never
+  punishing. A lighter autonomous roll on docking (10%, standing-weighted)
+  keeps the economy moving off-script too. `S.portMood`, persisted, v13
+  migration. Surfaces in station-deck prose/status and a sector-chart badge.
 - Exit gate: a tester who ignores every campaign reports wanting *something*
   at day 80.
 

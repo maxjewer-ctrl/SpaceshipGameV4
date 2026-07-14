@@ -218,5 +218,21 @@
       { "prestige": -1 },
       { "remember": { "who": "captain", "fact": "played_it_too_safe", "weight": 0, "note": "Careful keeps you alive. It also lets the bold ones eat first." } }
     ]
+  },
+
+  "juno_want_reminder": {
+    "class": "story",
+    "log": "You catch Juno rereading an old debt statement in the galley. She folds it away when she sees you, and doesn't mention it. She mentioned it once already — that was the mentioning.",
+    "effects": [
+      { "flag": "juno_want_reask" }
+    ]
+  },
+
+  "juno_patrol_followup": {
+    "class": "story",
+    "log": "◆ A Union relay pings the ship — routine registry re-verification, it says. Juno reads the notice twice and says nothing at all.",
+    "effects": [
+      { "flag": "juno_patrol_flagged" }
+    ]
   }
 }

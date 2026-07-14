@@ -1,133 +1,38 @@
 import "./style.css";
 import { setRender, requestRender } from "./bus";
-import { render, nav, masterCaution } from "./ui/render";
+import { render } from "./ui/render";
 import { loadSaved, setState, log } from "./state";
 import * as State from "./state";
-import { closeModal } from "./modal";
-import { selSlot, shipView } from "./ui/ship";
-import {
-  setThrottle, throttleLive, bayToggle, jettisonGood, ventGuard, ventFuel,
-  commsTune, engageBurn,
-} from "./ui/cockpit";
-import { selPlanet } from "./ui/map";
-import { ptab } from "./ui/planet";
-import {
-  showHelp, closeHelp, confirmNewGame, newGame, intro, startGame,
-  openSaves, saveHere, loadSaveSlot, deleteSaveSlot, exportSaveFile, importSaveFile,
-} from "./ui/help";
-import { introStart, introAct } from "./systems/intro";
-import {
-  openCreator, avName, avRandomName, avFace, avLook, avHead, avGarb, avSkin, avSuit, avTrim, avStart,
-} from "./ui/avatar";
-import { acceptMission, hire } from "./systems/market";
-import {
-  toggleMod, repairSystems, fireCrew, buyGood, sellGood, buyFuel, buyFood,
-  repairShip, buyMod, sellMod, upgradeMod, upgradeEngine, buySlots,
-} from "./systems/actions";
-import { depart, waitDay, advanceDay, abandonJob } from "./systems/travel";
-import { startCombat, cAct, endCombat } from "./systems/combat";
-import {
-  pirateWin, pirateLoseFlee, pirateFlee, pirateBribe, pirateSurrender,
-  patrolBribe, patrolRun, patrolSubmit,
-  distressHelp, distressIgnore, traderBuy, traderSell, paxMerchantSell, adriftTow,
-  derelictBoard, derelictStrip,
-} from "./systems/events";
-import {
-  arcMeet, arcAcceptCrate, arcAcceptVoss, arcStartRun,
-  ambushHandOver, ambushFight, ambushRun,
-  hunterWin, hunterFled, hunterRun, interceptWin, interceptFled,
-  runPicketAround, runPicketThread, runNetDecoy, runNetSilent, runNetPush,
-} from "./systems/arc";
-import { riderFight } from "./systems/scheduler";
-import { sceneChoose, sceneContinue } from "./systems/scene";
-import {
-  silDescend, silBearing, silAnswer, silStill, silSell,
-  silBoardReturned, silScanReturned, silLearnNumbers, silLearnReturned,
-} from "./systems/silence";
-import { pressStart, pressEnd, interact, debugStep, debugPos, debugGoto, debugActors, debugWalkTo, debugRooms, debugRenderCount, walkInsideFloors, debugCombat, debugFireAt, debugMelee } from "./ui/walk";
-import { wkRetreat } from "./ui/planetwalk";
-import { startZone, zoneBail, zoneActive } from "./ui/zonewalk";
-import { crewTalk, crewHighlight, wkInspect, walkDeck, sitChair } from "./ui/shipwalk";
-import { wkPay, wkTalk, wkFight } from "./systems/walkEncounters";
-import { ctVibe, ctAbout, ctShip, ctQuest, ctWorld, ctClose, ctQuestHelp, ctQuestSkip } from "./systems/crewtalk";
-import { dcValve, dcVector, dcCare } from "./systems/damagecontrol";
-import { refitShip } from "./systems/wear";
-import {
-  abVexPay, abVexRefuse, abVexReport,
-  abCorbinConfront, abCorbinCut, abCorbinIgnore,
-  abRookTalk, abRookDark, abRookConfront,
-  abNylaConfront, abNylaAsk, abNylaIgnore,
-  abMiriEnd, abMiriKeep,
-} from "./systems/agendabeats";
-import { imogenTreatUnion, imogenTreatSyndicate, imogenDecline } from "./systems/imogenquest";
+import { setThrottle, throttleLive } from "./ui/cockpit";
+import { avName } from "./ui/avatar";
+import { intro } from "./ui/help";
+import { debugStep, debugPos, debugActors, debugRooms, debugWalkTo, debugGoto, debugRenderCount, walkInsideFloors, debugCombat, debugFireAt, debugMelee } from "./ui/walk";
+import { startZone, zoneActive } from "./ui/zonewalk";
 import { loadScenario } from "./debug/scenarios";
 import { evPirates, evPatrol, evBreakdown, evMeteor, evSalvage, evDistress, evTrader, evPax, evDerelict } from "./systems/events";
 import { loadRemoteContent } from "./supabase/content";
 import { startGamepadNav } from "./systems/gamepadNav";
+import { dispatch, installDispatch } from "./dispatch";
 
 setRender(render);
 startGamepadNav();
+installDispatch();
 // Dev-only self-screenshot helper (window.__shot) — see src/debug/shot.ts.
 if (import.meta.env.DEV) import("./debug/shot").then((m) => m.installShot());
 
-// The UI is string-templated with inline onclick handlers (transitional from
-// the single-file prototype), so every handler reachable from HTML must be a
-// global. This is the single registry of that surface.
+// The UI's onclick-driven action surface now goes through dispatch.ts's
+// data-action/data-args mechanism (BETA_PLAN §3.4) — see installDispatch()
+// above. What's left on window is: `dispatch` itself (so headless test
+// scripts have one stable way to invoke a former-onclick handler, e.g.
+// `window.dispatch('depart', ['verge'])`), two controls that pass a live
+// DOM element through an inline event handler (`oninput="throttleLive(this)"`
+// / `onchange="setThrottle(this.value)"` for the throttle slider,
+// `oninput="avName(this.value)"` for the name field) which the JSON-based
+// data-args scheme can't carry, and the dev/debug accessors below — none of
+// these were ever part of the onclick surface.
 Object.assign(window as any, {
-  // navigation & screens
-  nav, ptab, selSlot, selPlanet, closeModal, log, shipView, masterCaution,
-  // cockpit pedestal — physical controls
-  setThrottle, throttleLive, bayToggle, jettisonGood, ventGuard, ventFuel,
-  commsTune, engageBurn,
-  // meta
-  showHelp, closeHelp, confirmNewGame, newGame, intro, startGame,
-  // save slots + backup
-  openSaves, saveHere, loadSaveSlot, deleteSaveSlot, exportSaveFile, importSaveFile,
-  // character creator
-  openCreator, avName, avRandomName, avFace, avLook, avHead, avGarb, avSkin, avSuit, avTrim, avStart,
-  // prologue campaign (DEAD RECKONING)
-  introStart, introAct,
-  // planet actions
-  acceptMission, hire, fireCrew, buyGood, sellGood, buyFuel, buyFood,
-  repairShip, repairSystems, buyMod, sellMod, upgradeMod, toggleMod, upgradeEngine, buySlots, refitShip,
-  // travel
-  depart, waitDay, advanceDay, abandonJob,
-  // combat
-  startCombat, cAct, endCombat,
-  // events
-  pirateWin, pirateLoseFlee, pirateFlee, pirateBribe, pirateSurrender,
-  patrolBribe, patrolRun, patrolSubmit,
-  distressHelp, distressIgnore, traderBuy, traderSell, paxMerchantSell, adriftTow,
-  derelictBoard, derelictStrip,
-  // story arc
-  arcMeet, arcAcceptCrate, arcAcceptVoss, arcStartRun,
-  ambushHandOver, ambushFight, ambushRun,
-  hunterWin, hunterFled, hunterRun, interceptWin, interceptFled,
-  runPicketAround, runPicketThread, runNetDecoy, runNetSilent, runNetPush,
-  // consequence scheduler
-  riderFight,
-  // station scenes (dialogue-tree modal choices)
-  sceneChoose, sceneContinue,
-  // the Long Silence
-  silDescend, silBearing, silAnswer, silStill, silSell,
-  silBoardReturned, silScanReturned, silLearnNumbers, silLearnReturned,
-  // free-roam walking: D-pad/keyboard fallback buttons, crew chat, foot encounters
-  walkPressStart: pressStart, walkPressEnd: pressEnd, walkInteract: interact,
-  crewTalk, crewHighlight, wkInspect, walkDeck, sitChair, wkPay, wkTalk, wkFight, wkRetreat,
-  // combat zones — Hades-style incursions (docs/COMBAT_ZONES.md)
-  zoneBail,
-  // crew dialogue — trust-gated topics, personal quests
-  ctVibe, ctAbout, ctShip, ctQuest, ctWorld, ctClose, ctQuestHelp, ctQuestSkip,
-  // damage control — crew-gap minigames (no mechanic/pilot/med bay aboard)
-  dcValve, dcVector, dcCare,
-  // agenda beats — the named twelve's honest/dishonest objectives billing due
-  abVexPay, abVexRefuse, abVexReport,
-  abCorbinConfront, abCorbinCut, abCorbinIgnore,
-  abRookTalk, abRookDark, abRookConfront,
-  abNylaConfront, abNylaAsk, abNylaIgnore,
-  abMiriEnd, abMiriKeep,
-  // Dr. Imogen Hale — bonded-trust quest (her illness, kept secret until earned)
-  imogenTreatUnion, imogenTreatSyndicate, imogenDecline,
+  dispatch,
+  setThrottle, throttleLive, avName,
   // dev/debug: live state accessor + manual walk-frame stepper (harmless — behind underscores)
   __S: () => State.S,
   __walkStep: debugStep,

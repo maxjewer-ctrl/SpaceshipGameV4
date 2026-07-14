@@ -151,6 +151,85 @@ for (const [bk, b] of Object.entries(zones.biomes || {})) {
   if (!b.pool || !b.pool.length) err(`zones.${bk}`, `empty pool`);
 }
 
+// ---- 8b. loyalty missions: crew key, role, dest, act-one memory hook ----
+for (const [k, m] of Object.entries(load("loyalty.json"))) {
+  const where = `loyalty.${k}`;
+  if (!characters.has(k)) err(where, `not a known character key`);
+  if (!m.role || !roles.has(m.role)) err(where, `unknown role '${m.role}'`);
+  if (!m.dest || !planetKeys.has(m.dest)) err(where, `unknown dest '${m.dest}'`);
+  if (!m.gate || typeof m.gate.daysMin !== "number") err(where, `gate.daysMin must be a number`);
+  if (!Array.isArray(m.choices) || m.choices.length < 1) err(where, `needs at least one choice`);
+  for (const [i, ch] of (m.choices || []).entries()) {
+    if (ch.rep) factionRef(`${where}.choices[${i}].rep`, ch.rep);
+    if (!ch.label || !ch.reply) err(`${where}.choices[${i}]`, `missing 'label' or 'reply'`);
+  }
+  for (const f of ["offerTitle", "offerText", "arriveTitle", "arriveText", "acceptLog", "bondFact", "log"]) {
+    if (!m[f]) err(where, `missing '${f}'`);
+  }
+}
+
+// ---- 9. crew dialogue trees (systems/crewdialogue.ts): every *.dialogue.json ----
+// Node graphs authored by hand are exactly where a typo'd goto or a mission
+// tag that's marked but never paid off hides — validate structure, not just
+// the shared effects vocabulary scanEffects already covers.
+const dialogueFiles = readdirSync(CONTENT).filter((f) => f.endsWith(".dialogue.json"));
+for (const file of dialogueFiles) {
+  const tree = load(file);
+  const nodeKeys = new Set(Object.keys(tree.nodes || {}));
+  const missionTagsMarked = new Set();
+  const missionTagsGranted = new Set();
+  const jobFlagsAwaited = new Set();
+
+  const scanRequires = (where, req) => {
+    if (!req) return;
+    for (const f of Array.isArray(req.flag) ? req.flag : req.flag ? [req.flag] : []) {
+      if (typeof f === "string" && f.startsWith("job_")) jobFlagsAwaited.add(f.slice(4));
+    }
+  };
+
+  for (const [nk, node] of Object.entries(tree.nodes || {})) {
+    if (!Array.isArray(node.choices) || !node.choices.length) err(`${file}.${nk}`, `node has no choices`);
+    for (const [i, c] of (node.choices || []).entries()) {
+      const where = `${file}.${nk}[${i}]`;
+      if (c.goto && !nodeKeys.has(c.goto)) err(where, `goto -> unknown node '${c.goto}'`);
+      scanRequires(where, c.requires);
+      scanEffects(where, c.effects || []);
+      for (const e of c.effects || []) {
+        if (e.mission?.tag) missionTagsGranted.add(e.mission.tag);
+      }
+      if (c.missionTag) missionTagsMarked.add(c.missionTag);
+    }
+  }
+  for (const [i, b] of (tree.beats || []).entries()) {
+    const where = `${file}.beats[${i}]`;
+    if (!nodeKeys.has(b.node)) err(where, `node -> unknown node '${b.node}'`);
+    scanRequires(where, b.requires);
+  }
+
+  // reachability from hub + every beat's entry node — an unreachable node is
+  // authored content nobody can ever see.
+  const roots = new Set(["hub", ...(tree.beats || []).map((b) => b.node)].filter((k) => nodeKeys.has(k)));
+  const seen = new Set();
+  const stack = [...roots];
+  while (stack.length) {
+    const k = stack.pop();
+    if (seen.has(k) || !tree.nodes[k]) continue;
+    seen.add(k);
+    for (const c of tree.nodes[k].choices || []) {
+      if (c.goto) stack.push(c.goto);
+      else if (!c.end) stack.push("hub");
+    }
+  }
+  for (const nk of nodeKeys) if (!seen.has(nk)) err(`${file}.${nk}`, `unreachable node`);
+
+  // every marked mission must actually grant a mission AND have a payoff scene
+  // waiting on its completion flag — a tag that's only half-wired is a dead end.
+  for (const tag of missionTagsMarked) {
+    if (!missionTagsGranted.has(tag)) err(`${file}`, `missionTag '${tag}' has no matching effects[].mission.tag`);
+    if (!jobFlagsAwaited.has(tag)) err(`${file}`, `missionTag '${tag}' is granted but nothing gates on flag 'job_${tag}' (no payoff scene)`);
+  }
+}
+
 // ---- report ----
 if (errors.length) {
   console.error(`content check: ${errors.length} unresolved reference(s):`);

@@ -4,15 +4,19 @@
 // payoff — a stacking bonus on their role perk. Neglect them badly enough and
 // they leave, citing the specific memory that broke it.
 import { S, log } from "../state";
-import { modal, closeModal, hasModal } from "../modal";
+import { modal, replaceModal, closeModal } from "../modal";
 import { requestRender } from "../bus";
-import { ROLES, PLANETS } from "../content";
+import { actionAttr } from "../dispatch";
+import { ROLES, PLANETS, CREW_TREES } from "../content";
 import { sentiment, crewKey, remember, strongestMemory, hasMemory } from "./ledger";
 import { trustTier, dispositionWord } from "./trust";
 import { dialogueHeadHTML, crewPortraitKey } from "../ui/portraits";
 import { stats } from "../derive";
 import { pick } from "../rng";
 import { fmt } from "../util";
+import { openCrewDialogue } from "./crewdialogue";
+import { rankOf, RANK_NAME } from "./veterancy";
+import { LOYALTY_KEYS } from "./loyalty";
 import type { CrewMember } from "../types";
 
 function findCrew(id: number): CrewMember | undefined {
@@ -37,22 +41,25 @@ function renderCrewTalk() {
   if (!c) { activeCrewId = null; closeModal(); return; }
   const tier = trustTier(c);
   const dw = dispositionWord(c);
+  const rank = rankOf(c);
+  const rankTag = rank > 1 ? ` · ${RANK_NAME[rank]}` : "";
   const rev = c.revealed || (c.revealed = {});
-  const questBtn = rev.want ? `<button onclick="ctQuest()">${questLabel(c)}</button>` : "";
+  const questBtn = rev.want ? `<button ${actionAttr("ctQuest")}>${questLabel(c)}</button>` : "";
   const where = S.docked && S.screen === "stationwalk"
     ? `${PLANETS[S.loc].n} · off duty`
     : `${S.shipName} · ${ROLES[c.role]?.n || c.role}`;
-  modal(`<div class="scene">
+  replaceModal(`<div class="scene">
     <div class="scene-loc">${where}</div>
-    ${dialogueHeadHTML(crewPortraitKey(c), "🧑‍🚀", c.name, `${TIER_LABEL[tier]} · <span class="ctword ${dw.cls}">${dw.word}</span>`)}
+    ${dialogueHeadHTML(crewPortraitKey(c), "🧑‍🚀", c.name, `${TIER_LABEL[tier]}${rankTag} · <span class="ctword ${dw.cls}">${dw.word}</span>`)}
     ${lastLine ? `<p>${lastLine}</p>` : `<p class="dim">${c.name} looks up as you approach.</p>`}
     <div class="choices">
-      <button onclick="ctVibe()">How are you holding up?</button>
-      <button onclick="ctAbout()">Tell me about yourself</button>
-      <button onclick="ctShip()">About the ship</button>
-      <button onclick="ctWorld()">What do you make of all this?</button>
+      <button ${actionAttr("ctVibe")}>How are you holding up?</button>
+      <button ${actionAttr("ctAbout")}>Tell me about yourself</button>
+      <button ${actionAttr("ctShip")}>About the ship</button>
+      <button ${actionAttr("ctWorld")}>What do you make of all this?</button>
+      ${c.key && CREW_TREES[c.key] ? `<button ${actionAttr("ctDeepTalk")}>Talk it through — the long version</button>` : ""}
       ${questBtn}
-      <button class="primary" onclick="ctClose()">Nod and move on</button>
+      <button class="primary" ${actionAttr("ctClose")}>Nod and move on</button>
     </div>
   </div>`);
 }
@@ -201,6 +208,13 @@ function pickQuestDest(c: CrewMember): string {
 
 function questLine(c: CrewMember): string {
   const tier = trustTier(c);
+  // A named character with an authored loyalty mission doesn't run the generic
+  // want→random-world quest — their errand is hand-written and offered on
+  // docking once the bond is deep (see systems/loyalty.ts). Keep the topic warm
+  // without ever advancing the generic quest to a random destination.
+  if (c.key && LOYALTY_KEYS.has(c.key)) {
+    return `${c.name} holds something back — not from mistrust. There's a thing they'll ask of you, when they're ready. Not yet.`;
+  }
   if (c.questStage === 1) {
     if (tier === "bonded" && (c.daysAboard || 0) >= 15) {
       c.questStage = 2;
@@ -229,8 +243,7 @@ let pendingQuestCost = 0;
 // Called on docking (see systems/travel.ts). Opens the resolution scene the
 // moment you make port at the world their want pointed to.
 export function checkCrewQuests() {
-  if (hasModal()) return;
-  const c = S.crew.find((cm) => cm.questStage === 2 && cm.questDest === S.loc);
+  const c = S.crew.find((cm) => cm.questStage === 2 && cm.questDest === S.loc && !(cm.key && LOYALTY_KEYS.has(cm.key)));
   if (!c || !c.bundle) return;
   pendingQuestCrewId = c.id;
   pendingQuestCost = 60 + c.daysAboard! * 2;
@@ -239,8 +252,8 @@ export function checkCrewQuests() {
     <h2>${c.name}'s Moment</h2>
     <p>${c.name} stops you on the ramp. "This is it, Captain. What I've been chasing — ${c.bundle.want} — it's here, if it's anywhere."</p>
     <div class="choices">
-      <button class="primary" onclick="ctQuestHelp()">Help them see it through (${pendingQuestCost}cr)</button>
-      <button onclick="ctQuestSkip()">There's no time for this</button>
+      <button class="primary" ${actionAttr("ctQuestHelp")}>Help them see it through (${pendingQuestCost}cr)</button>
+      <button ${actionAttr("ctQuestSkip")}>There's no time for this</button>
     </div>
   </div>`);
   requestRender();
@@ -273,7 +286,7 @@ export function ctQuestSkip() {
 // Called on docking. Deeply neglected crew quit at the next port, citing the
 // exact memory that broke them.
 export function checkCrewDeparture() {
-  if (hasModal() || !S.docked) return;
+  if (!S.docked) return;
   const c = S.crew.find((cm) => sentiment(crewKey(cm)) <= -6);
   if (!c) return;
   S.crew = S.crew.filter((x) => x.id !== c.id);
@@ -284,7 +297,7 @@ export function checkCrewDeparture() {
     <h2>${c.name} is leaving</h2>
     <p>${c.name} already has their duffel packed by the time you find them on the ramp. "I'm done, Captain."</p>
     <p class="dim" style="font-style:italic">${reason}</p>
-    <div class="choices"><button class="primary" onclick="closeModal()">Let them go.</button></div>
+    <div class="choices"><button class="primary" ${actionAttr("closeModal")}>Let them go.</button></div>
   </div>`);
   log(`${c.name} left the crew at ${PLANETS[S.loc].n}.`);
   requestRender();
@@ -328,4 +341,10 @@ export function ctClose() {
   activeCrewId = null;
   lastLine = "";
   closeModal();
+}
+// Registered crew get a deep conversation tree (systems/crewdialogue.ts) on
+// top of the topic menu above; this just opens it for whoever's aboard.
+export function ctDeepTalk() {
+  if (activeCrewId == null) return;
+  openCrewDialogue(activeCrewId);
 }

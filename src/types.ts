@@ -10,9 +10,12 @@ export interface ModuleDef {
 // wear 0-100: accrues in flight, drives RELIABILITY (worn modules break first,
 // failing ones quit on their own schedule). Reset by a dry-dock refit — the
 // ship is never finished, only currently holding together.
+// `slot` is the module's bay position on the deck (0..slotsMax-1), set when
+// installed and rearranged from the ship schematic; missing on old saves
+// until ensureSlots() deals one out.
 // mk: quality mark 1/2/3 (Mk-I default). Higher marks scale the module's
 // output; see systems/modtier.ts. Absent = Mk-I (pre-tiers saves).
-export interface ModuleInstance { t: string; on: boolean; dmg: boolean; wear?: number; mk?: number; }
+export interface ModuleInstance { t: string; on: boolean; dmg: boolean; wear?: number; slot?: number; mk?: number; }
 
 // The captain's chosen look — set in the character creator, drawn by the shared
 // avatar renderer (ui/avatarDraw.ts) for both the preview and the walking sprite.
@@ -65,6 +68,7 @@ export interface CrewMember {
   revealed?: CrewRevealed;
   questDest?: string | null;  // world their personal quest points to, once stage 2
   perk?: boolean;              // resolved their quest well — grants a small stacking bonus on their role
+  eventsInRole?: number;       // times they've done their job under real pressure — see systems/veterancy.ts
 }
 
 export interface Passenger { name: string; motive: string; sick: boolean; arc?: boolean; }
@@ -77,7 +81,27 @@ export interface Job {
   arcCrate?: boolean; arcVoss?: boolean;
   // On completion, sets flags["job_<tag>"] — how campaign missions report back.
   tag?: string;
+  // Survey/charting contract (kind:"survey"): a coordinate to take readings at,
+  // reached en route to `dest` (the deliverable port). `surveyed` flips true the
+  // moment the find-scene fires mid-journey; the charting fee pays on docking.
+  sx?: number; sy?: number; surveyed?: boolean;
 }
+
+// A charted point of interest — the player's own mark on the sector map. Found
+// by running a survey contract; persists forever, turning the chart into a
+// diary. A "seam" pays passive royalties each time you make port.
+export interface PoiMark {
+  id: number; x: number; y: number;
+  kind: "seam" | "derelict" | "beacon";
+  name: string; day: number; note?: string;
+}
+
+// A station's current condition — distinct from portStanding (how a port
+// feels about YOU). Mood is what condition the port itself is in right now,
+// driven by events and deliveries, not accumulated reputation. Temporary:
+// expires on `until` (a day number), same convention as riderEffect flags.
+export type PortMood = "boom" | "shortage" | "lockdown" | "festival";
+export interface PortMoodState { mood: PortMood; until: number; cause?: string; }
 
 export interface Market {
   loc: string; day: number;
@@ -186,6 +210,12 @@ export interface GameState {
   // Clamped -10..10. Absent key = neutral (0).
   portStanding: Record<string, number>;
   campaign: CampaignState;
+  // Charted points of interest — the player's marks, discovered via survey
+  // contracts. The map reads this to render the "diary"; seams pay royalties.
+  poi: PoiMark[];
+  // Current condition of visited ports (boom/shortage/lockdown/festival),
+  // keyed by planet id. Absent = ordinary. See systems/moods.ts.
+  portMood: Record<string, PortMoodState>;
   starve: number; unpaid: number; uid: number;
   over: boolean; won: boolean; dead: boolean;
 }

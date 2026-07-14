@@ -133,5 +133,18 @@
   { "when": "refit", "text": "{name} walks the ship after the yard crew leaves, touching each trued-up panel. \"Now she's got no excuses.\"" },
   { "when": "refit", "role": "mechanic", "text": "{name} inspects the yard's refit work with narrowed eyes, finds nothing wrong, and is visibly annoyed about it." },
   { "when": "worn_ship", "role": "mechanic", "text": "{name}: \"She's held together with habit and my personal stubbornness, Captain. A refit. I'm begging.\"" },
-  { "when": "worn_ship", "traits": ["superstitious"], "text": "{name}: \"Ship's whistling in her sleep. That's not an omen, that's a WORN SEAL, which is worse, because omens are free.\"" }
+  { "when": "worn_ship", "traits": ["superstitious"], "text": "{name}: \"Ship's whistling in her sleep. That's not an omen, that's a WORN SEAL, which is worse, because omens are free.\"" },
+
+  { "when": "rank_seasoned", "role": "pilot", "text": "{name} threads gaps that shouldn't fit anymore. \"Getting the feel for her,\" they say, quieter than the first year." },
+  { "when": "rank_seasoned", "role": "gunner", "text": "{name}'s aim has stopped looking like luck." },
+  { "when": "rank_seasoned", "role": "mechanic", "text": "{name} fixes things before you notice they're breaking." },
+  { "when": "rank_seasoned", "role": "medic", "text": "{name}'s bedside manner has sharpened into something patients trust without being told to." },
+  { "when": "rank_seasoned", "role": "cook", "text": "{name} can stretch a thin larder further than the math says is possible." },
+  { "when": "rank_seasoned", "role": "quartermaster", "text": "{name} reads a contract's fine print faster than the broker who wrote it." },
+  { "when": "rank_veteran", "role": "pilot", "text": "{name} can read a debris field like a paragraph now. Nobody in the cockpit doubts the line anymore." },
+  { "when": "rank_veteran", "role": "gunner", "text": "{name} calls shots before they land. Some captains never fly with a gunner this steady." },
+  { "when": "rank_veteran", "role": "mechanic", "text": "{name} can jury-rig this ship half-blind. Half the crew think it's a party trick. It isn't." },
+  { "when": "rank_veteran", "role": "medic", "text": "{name} hasn't lost anyone they got to in time, this many trips in. That's not luck anymore." },
+  { "when": "rank_veteran", "role": "cook", "text": "Nobody complains about rations anymore. {name} made sure of that, one careful week at a time." },
+  { "when": "rank_veteran", "role": "quartermaster", "text": "{name} hasn't been out-negotiated in longer than anyone aboard can remember." }
 ]

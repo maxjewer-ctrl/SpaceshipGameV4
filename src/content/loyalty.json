@@ -1,0 +1,68 @@
+{
+  "ada": {
+    "role": "gunner",
+    "dest": "meridian",
+    "icon": "🎯",
+    "gate": { "daysMin": 14 },
+    "offerSub": "your gunner, off the guns for once",
+    "offerTitle": "What Ada Carries",
+    "offerText": "Ada finds you when the guns are cold, a small sealed case in her hands she's clearly carried a long way. \"My sister. Mara. The Union took her in a sweep on Meridian eleven years ago and buried her in a numbered trench with four hundred others.\" Her voice doesn't shake — that's the tell. \"I got her out. What's left of her. I've been carrying her from ship to ship because I never had a captain I'd ask.\" A pause. \"Meridian has a garden now, where the trench was. I want to put her in it properly. I'm asking.\"",
+    "acceptLabel": "Set course for Meridian. We'll see her home.",
+    "declineLabel": "Not now — the ship can't spare the detour.",
+    "acceptLog": "Ada nods once, the way she does at a target solved. \"Meridian, then. Thank you, Captain.\" She goes back to the guns, but something in her stands different now.",
+    "declineReply": "Ada closes the case without a word and stows it. \"Understood, Captain.\" She doesn't ask again for a while — but she notices you didn't.",
+    "arriveTitle": "The Garden on Meridian",
+    "arriveText": "The trench is a memorial garden now — Union-funded, all clean gravel and small brass plaques and no names older than the scandal that forced it. Ada walks it like a minefield until she finds the corner she wants, under a window-glass tree that throws no shade. She kneels with the case. \"Eleven years,\" she says. \"Sorry it took a war and a stranger's ship, Mara.\"",
+    "choices": [
+      { "label": "Stand with her while she does it.", "reply": "You stay at her shoulder while she sets the case in the earth. She lets you. When it's done she stands, dry-eyed and lighter, and grips your forearm hard enough to bruise. \"I won't forget this. Whatever comes — I'm your gun.\"", "dispo": { "axis": "mercy", "n": 1 } },
+      { "label": "Give her the moment alone.", "reply": "You step back to the garden's edge and let her have it — the burial, the silence, the eleven years of it. She takes a long time. When she comes back her eyes are clear and her jaw is set. \"Thank you for knowing to walk away, Captain. Not everyone would. I'm your gun, for as long as you'll have me.\"", "dispo": { "axis": "mercy", "n": 1 } }
+    ],
+    "bondFact": "buried_her_sister",
+    "bondNote": "The captain diverted the whole ship to Meridian so Ada could finally bury her sister Mara properly. She will not forget it.",
+    "log": "⭐ Ada laid her sister to rest on Meridian. Whatever else this ship is, it's the one that got Mara home. (Ada's loyalty earned — her gunnery sharpens for good.)"
+  },
+  "brix": {
+    "role": "mechanic",
+    "dest": "foundry",
+    "icon": "🔧",
+    "gate": { "daysMin": 14 },
+    "offerSub": "your mechanic, wiping down a wrench she doesn't need to",
+    "offerTitle": "Brix's Standing Debt",
+    "offerText": "Brix corners you by the drive housing with the air of someone confessing. \"When I walked out of the Foundry yards, I took a prototype calibration kit with me. Told myself it was owed — they'd worked me two years past my contract for academy scrip.\" She sets the wrench down. \"The yard boss, Haziq, doesn't see it that way. He's got a marker out on the ship's registry — nothing legal, just the kind of grudge that turns a routine dock into a shakedown. It'll follow us until I face him. I'd rather face him with a captain at my back than alone.\"",
+    "acceptLabel": "We'll settle it at Foundry. Together.",
+    "declineLabel": "Keep your head down and we'll avoid Foundry for now.",
+    "acceptLog": "Brix exhales like she's been holding it for a year. \"Foundry, then. Thanks, Captain. I mean it.\"",
+    "declineReply": "Brix nods, tight. \"Sure. We'll just never dock at the biggest yard in the sector. Fine.\" She goes back to the wrench and doesn't push it — yet.",
+    "arriveTitle": "Haziq's Yard, Foundry",
+    "arriveText": "Haziq is exactly the mountain of a man Brix described, and he recognizes her across the drydock floor before you've cleared the ramp. He doesn't shout. He just walks over, wiping his hands, and looks at the kit she's holding out — because of course she brought it back. \"Two years of my best apprentice,\" he says, \"and a kit worth more than her contract. Which of those am I supposed to be angrier about, Brix?\"",
+    "choices": [
+      { "label": "Pay Haziq for the kit. Clear the ledger clean.", "reply": "You cover the kit's value out of ship funds before Brix can argue. Haziq counts it, grunts, and pockets it — and the marker comes off the registry on the spot. \"You've got a captain who pays your debts,\" he tells Brix. \"Don't waste them.\" Outside, Brix is furious and grateful in equal measure. \"You didn't have to do that.\" \"I know.\" She flies like a demon for the next month.", "credits": -180 },
+      { "label": "Back Brix — the yard owed her those two years.", "reply": "You stand with Brix while she says it to his face: the unpaid overtime, the academy scrip that wasn't money, the two years. Haziq listens, jaw working, and something in him gives — because it's true and he knows it. \"Keep the damned kit,\" he says finally. \"We're square. Get off my floor.\" The marker's gone. Brix doesn't speak until you're back aboard, then: \"Nobody's ever taken my side to that man's face. Nobody.\"", "dispo": { "axis": "daring", "n": 1 } }
+    ],
+    "bondFact": "faced_haziq_with_her",
+    "bondNote": "The captain flew to Foundry and stood with Brix when she faced the yard boss she'd been running from. She stopped running that day.",
+    "log": "⭐ Brix squared her debt at Foundry with you at her back. The marker's off the registry and she stopped flinching at the word 'yard'. (Brix's loyalty earned — her repairs hold like never before.)"
+  },
+  "nyla": {
+    "role": "cook",
+    "dest": "kestrel",
+    "icon": "🍳",
+    "gate": { "daysMin": 12, "memory": "captain_asked_instead" },
+    "offerSub": "your cook, hands still for once",
+    "offerTitle": "Nyla's Stone",
+    "offerText": "Since you asked her instead of accusing her, Nyla's been different — and now she comes to you holding a flat river stone with a name scratched into it. \"Teller's Claim,\" she says. \"The outfit I ran the pantry for. When it collapsed, the company scraped the graves for the metal in the markers and left the rest. There's a woman buried there under nothing at all.\" Her thumb worries the stone. \"The survivors resettled at Kestrel's Rest. There's a memorial wall there now. I want to set her stone in it — give her a name somewhere that keeps them. I've been saving from the galley budget to buy the passage. I don't have to anymore, do I.\"",
+    "acceptLabel": "Put the ladle down. We're going to Kestrel's Rest.",
+    "declineLabel": "Soon — but the ship can't turn for it yet.",
+    "acceptLog": "Nyla presses the stone flat to her chest and just nods, twice. \"Kestrel's Rest. Okay. Okay.\" Dinner that night is the best the crew's had in weeks.",
+    "declineReply": "Nyla wraps the stone back in its cloth. \"'Course. There's always a reason it's not the day.\" She goes back to the galley, quieter than before.",
+    "arriveTitle": "The Memorial Wall, Kestrel's Rest",
+    "arriveText": "The wall is fieldstone and homestead-plain, studded with the small markers of a frontier that buries its own — and a hundred names from Teller's Claim, carried here by the people who got out. Nyla finds the gap she's been picturing for years and fits her stone into it like it was cut for the place. \"There,\" she says. \"You've got a name and you've got neighbors, Del. That's more than the company left you.\"",
+    "choices": [
+      { "label": "Help her set it in the mortar.", "reply": "You hold the stone level while she works the mortar around it with a cook's steady hands. When it sets, she steps back and looks at the whole wall — all those carried names — for a long time. \"I used to think leaving was the same as running,\" she says. \"It's not. It's carrying people with you until you find them a place to rest.\" She looks at you. \"Thanks for being the ship that had room.\"", "dispo": { "axis": "mercy", "n": 1 } },
+      { "label": "Let her set it herself; keep watch at her back.", "reply": "You hang back and let her fit the stone alone — this is hers. She takes her time, says something to the wall too quiet to carry, and stands there until the light goes amber. When she turns around her face is wet and calm at once. \"Every galley I ever ran, I was really just feeding people I couldn't save. This one I got to bring home. Thank you, Captain.\"", "dispo": { "axis": "mercy", "n": 1 } }
+    ],
+    "bondFact": "carried_her_stone",
+    "bondNote": "The captain took Nyla to Kestrel's Rest to lay a stone for someone the company at Teller's Claim left in an unmarked grave. She stopped running that day, too.",
+    "log": "⭐ Nyla set her stone in the memorial wall at Kestrel's Rest. Del has a name and neighbors now, and Nyla has a ship with room. (Nyla's loyalty earned — nobody goes hungry on her watch again.)"
+  }
+}

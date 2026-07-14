@@ -12,6 +12,7 @@ import { isSilenced } from "../derive";
 import { stationWalkTick } from "../systems/walkEncounters";
 import { modal, closeModal } from "../modal";
 import { requestRender } from "../bus";
+import { actionAttr } from "../dispatch";
 import * as sfx from "../audio";
 import { boardShip, departureBoard, stationEnter } from "./stationwalk";
 import { shipHatch } from "./walk";
@@ -169,7 +170,7 @@ export function buildDesertTownScene(): WalkScene {
     onDowned: () => {
       modal(`<h2>⚠ Overwhelmed</h2>
         <p>Too many, too close. A hit rings your helmet and the square tilts — you break for the ship on instinct, the hatch slamming behind you. You'll carry the bruises off this rock.</p>
-        <div class="choices"><button class="primary" onclick="wkRetreat()">Fall back aboard</button></div>`);
+        <div class="choices"><button class="primary" ${actionAttr("wkRetreat")}>Fall back aboard</button></div>`);
     },
   } : undefined;
 

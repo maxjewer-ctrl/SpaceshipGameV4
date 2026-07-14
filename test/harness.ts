@@ -47,6 +47,12 @@ export function checkInvariants(where: string): Violation[] {
   for (const r of Object.entries(S.rep)) {
     if (typeof r[1] !== "number" || Number.isNaN(r[1])) bad(`rep.${r[0]}`, r[1], "not a number");
   }
+  const MOODS = new Set(["boom", "shortage", "lockdown", "festival"]);
+  for (const [loc, m] of Object.entries(S.portMood || {})) {
+    if (!PLANETS[loc]) bad(`portMood.${loc}`, loc, "not a known planet");
+    if (!MOODS.has(m.mood)) bad(`portMood.${loc}.mood`, m.mood, "not a known mood");
+    if (typeof m.until !== "number" || Number.isNaN(m.until)) bad(`portMood.${loc}.until`, m.until, "not a finite number");
+  }
   return v;
 }
 

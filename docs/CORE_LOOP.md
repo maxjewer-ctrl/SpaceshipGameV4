@@ -124,6 +124,13 @@ The rule: **campaigns knock; they never enter uninvited.**
 
 ## Build order (post-this-pass)
 
+**All six systems items shipped as of 2026-07-14** — the loop now has all
+four pillars' core mechanics in place. What's left is content depth, not new
+systems: parts-with-provenance (the used-module marketplace), scars/learned
+traits (veterancy's other half), the deep band as a traversable region, and
+nine more loyalty missions against the engine already built. See
+docs/BETA_PLAN.md Phase B for the live tracking of what's still open.
+
 1. ✅ **Port standing + consequence set-dressing** (pillar 3) — shipped.
    `S.portStanding` per station; delivering/helping raises it, betrayals sink
    it; drives fuel/berth pricing, the station-deck greeting, and a ship-screen
@@ -141,9 +148,76 @@ The rule: **campaigns knock; they never enter uninvited.**
    want, which is the economy-ceiling fix. Save v11 grandfathers old modules
    to Mk-I. 13 tests. Still open: parts-with-provenance / used-module market
    (the "salvaged, runs hot but never lies" flavor layer on top of this).
-3. **Veterancy ranks + scars** (pillar 2) — data model first, barks read it.
-4. **Survey contracts + POI map marks** (pillar 4).
-5. **Loyalty missions** (pillar 2, biggest content lift, best payoff).
-6. **Station moods** (pillar 3, after standing works).
+3. ✅ **Veterancy ranks** (pillar 2) — shipped (systems/veterancy.ts). Rank is
+   fully derived (mirrors trustTier's pattern — never stored, never migrated):
+   Green → Seasoned (10 days aboard + 3 events survived in role) → Veteran (25
+   days + 8 events). `eventsInRole` increments at real per-role pressure
+   moments — a gunner's combat win, a pilot's meteor-swarm dodge, a mechanic's
+   jury-rig, a medic's sick-passenger save, a quartermaster's contract closed,
+   a cook's ten-day stretch with nobody going hungry — each wired at its
+   existing resolution point in combat.ts/events.ts/travel.ts. Rank feeds
+   directly into the same stats()/foodPerDay()/bribeCost() slots
+   perkActive() already stacks onto (a Veteran gunner deals more damage than
+   perk alone, a Veteran pilot burns less fuel), and a bark fires the instant
+   a crew member crosses a threshold. Rank shows in the crew roster sidebar
+   and the crew-talk header. Scars/learned traits (steady_under_fire,
+   flinches_at_static) — the other half of this bullet — deliberately scoped
+   out as separate follow-up work: they're event-triggered rather than a rank
+   curve, and gate barks/mechanics through a different mechanism (extending
+   `gateOk()` beyond generated `bundle.traits`). 11 new vitest cases.
+4. ✅ **Survey contracts + POI map marks** (pillar 4) — shipped
+   (systems/survey.ts). Charting contracts appear on the job board past the
+   prologue: each names a deliverable port and a coordinate out between worlds.
+   Flying to the port, you pass the coordinate at the journey's midpoint and
+   take your readings — a mineral seam (recurring dockside royalties), a
+   derelict (a board / scan / log salvage choice), or a dead beacon (lore,
+   with a faint Silence whisper while that campaign is live — never a
+   summons). Whatever you find becomes a permanent, named mark on the sector
+   chart (`S.poi`, persisted, v12 migration), color-coded by kind — the
+   map-as-diary. **Deliberately never leaves port-to-port travel**: the survey
+   is a scripted find-scene injected mid-journey (the intro-beat / planted-
+   rider machinery), so `S.loc` stays a real port and no engine invariant
+   changes — the coordinate is only ever a mark, never a destination. The
+   charting fee pays on delivery; skipping the readings voids it. 11 new
+   vitest cases. The deep-band (past-Verge soft-gated *region*) from pillar 4
+   is deferred: it wants true non-port traversal, a separate lift.
+5. ✅ **Loyalty missions** (pillar 2) — engine shipped + first three authored
+   (systems/loyalty.ts, content/loyalty.json). The Mass Effect move: once a
+   named crew member is bonded, they ask for a real thing in a real place — an
+   offer scene aboard ship → a course to an authored world → a payoff scene
+   there → their role perk unlocks for good, plus a permanent bond memory.
+   Data-driven so every further mission is pure content against a tested
+   engine. Shipped: **Ada** (bury her sister on Meridian), **Brix** (settle
+   the stolen-kit debt with the Foundry yard boss), **Nyla** (lay a stone at
+   Kestrel's Rest — gated on her agenda beat's empathetic resolution, so it's
+   a true "second act"). Decoupled from veterancy: rankOf() stays a pure
+   day+event derivation; loyalty grants the perk (CORE_LOOP's "rank-3 gate")
+   and the bond, both feeding role effectiveness independently. The generic
+   want→random-world quest (crewtalk.ts) is suppressed for characters who have
+   an authored mission. 8 vitest cases. Remaining nine characters are content
+   adds against this engine.
+6. ✅ **Station moods** (pillar 3) — shipped (systems/moods.ts). A port's
+   CURRENT CONDITION — boom/shortage/lockdown/festival — distinct from
+   portStanding (how a port feels about *you*): temporary, event-driven, and
+   independent of reputation. Composes with the existing pricing/prose chain
+   rather than replacing it (`portPriceMult`, `standingGreeting`, `PORT_MARKS`
+   all keep working; mood multiplies alongside them). The named example:
+   generating a medical "Serum run" contract sours its destination with a
+   shortage (`plantOutbreak`) — an event outside the player's making;
+   delivering that serum lifts it into a grateful festival
+   (`resolveOutbreakIfDue`). An undelivered outbreak just lapses on its own —
+   this never punishes skipping a contract, only rewards taking one. A
+   lighter autonomous tick also rolls a mood on docking (10% chance, weighted
+   by standing — warm ports lean boom/festival, cold ones lean
+   shortage/lockdown; never stacks over a live mood), so the economy moves
+   even off the back of scripted content. Effects: fuel/goods prices
+   scale with mood, a lockdown blocks hidden/smuggle contracts and thins
+   hiring, a festival draws an extra recruit, a boom pays contracts better.
+   Surfaces in the station-deck status line and room prose, and as a badge on
+   the sector-chart info panel. `S.portMood`, persisted, v13 migration. 20
+   vitest cases. Verified live: outbreak → serum delivered → festival, with
+   fuel price actually swinging at the pump (4cr → 5cr shortage → 3cr
+   festival), and the mood visible in both the WebGL station-deck status line
+   and the DOM map panel.
 
 Each lands as one playtested, committed cycle per ITERATION_PLAN.md rules.

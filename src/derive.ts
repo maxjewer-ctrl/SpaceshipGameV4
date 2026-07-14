@@ -3,6 +3,8 @@ import { S } from "./state";
 import { MODS, PLANETS, ROLES } from "./content";
 import { portPriceMult } from "./systems/port";
 import { markScaled } from "./systems/modtier";
+import { rankBoost, rankDiscount } from "./systems/veterancy";
+import { moodFuelMult } from "./systems/moods";
 import type { ModuleInstance, ShipStats, Job } from "./types";
 
 export function modInst(): ModuleInstance[] {
@@ -53,11 +55,11 @@ export function stats(): ShipStats {
     paxCap: sumIntact("cabin", "pax"),
     vipCap: sumIntact("luxcabin", "vip"),
     crewCap: sumIntact("quarters", "crew"),
-    dmg: Math.round((wDmg > 0 ? wDmg : 2) * (has("gunner") ? (perkActive("gunner") ? 1.65 : 1.5) : 1)),
+    dmg: Math.round((wDmg > 0 ? wDmg : 2) * (has("gunner") ? (perkActive("gunner") ? 1.65 : 1.5) * rankBoost(S.crew, "gunner") : 1)),
     shield: sumActive("shields", "shield"),
     foodGen: sumActive("hydro", "food"),
     speed: [0, 70, 85, 100][S.engineLvl],
-    fuelDay: +(4 * (has("pilot") ? (perkActive("pilot") ? 0.78 : 0.85) : 1)).toFixed(1),
+    fuelDay: +(4 * (has("pilot") ? (perkActive("pilot") ? 0.78 : 0.85) * rankDiscount(S.crew, "pilot") : 1)).toFixed(1),
   };
 }
 
@@ -66,7 +68,7 @@ export function vipJobs(): Job[] { return S.jobs.filter((j) => j.pax && j.vip); 
 export function people(): number { return 1 + S.crew.length + S.jobs.filter((j) => j.pax).length; }
 
 export function foodPerDay(): number {
-  const raw = people() * (stats().has("cook") ? 0.75 : 1);
+  const raw = people() * (stats().has("cook") ? 0.75 * rankDiscount(S.crew, "cook") : 1);
   return Math.ceil(raw);
 }
 
@@ -108,9 +110,12 @@ export function fuelTo(from: string, to: string): number {
 
 // Rough pump price at a port — used for "can you even afford to leave"
 // warnings. Ignores temporary discounts (guild echo, Bev's stall), which is
-// fine since those only make leaving cheaper than this estimate.
+// fine since those only make leaving cheaper than this estimate — but a
+// station mood is included, since a shortage/lockdown can make the estimate
+// wrong in the EXPENSIVE direction, which is exactly what this warning exists
+// to catch.
 export function fuelPriceAt(loc: string): number {
-  return Math.max(1, Math.round(PLANETS[loc].fuelP * portPriceMult(loc)));
+  return Math.max(1, Math.round(PLANETS[loc].fuelP * portPriceMult(loc) * moodFuelMult(loc)));
 }
 
 // Credits needed, right now, to buy enough fuel at the current port to reach
@@ -151,5 +156,5 @@ export function crewGapWarnings(): string[] {
 
 export function bribeCost(base: number): number {
   const has = stats().has("quartermaster");
-  return Math.round(base * (has ? (perkActive("quartermaster") ? 0.55 : 0.65) : 1));
+  return Math.round(base * (has ? (perkActive("quartermaster") ? 0.55 : 0.65) * rankDiscount(S.crew, "quartermaster") : 1));
 }

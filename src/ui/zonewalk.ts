@@ -15,6 +15,7 @@ import { stats, cargoUsed } from "../derive";
 import { modal, closeModal } from "../modal";
 import { requestRender } from "../bus";
 import { rand, ri, pick } from "../rng";
+import { actionAttr } from "../dispatch";
 import { combatVitality, teardown as walkTeardown, defaultMods } from "./walk";
 import type { WalkScene, WalkDoor, WalkRoom, WalkRect, WalkCombatSpawn, WalkMods } from "./walk";
 import { generateRun } from "../systems/zonegen";
@@ -231,7 +232,7 @@ function onRevived() {
 function onDowned() {
   modal(`<h2>⚠ Downed in the Incursion</h2>
     <p>Your vitality's gone and the chamber's still hot. You claw back to the last cycled hatch and blow the emergency seals — out, but empty-handed but for whatever you'd already banked.</p>
-    <div class="choices"><button class="primary" onclick="zoneBail()">Pull out</button></div>`);
+    <div class="choices"><button class="primary" ${actionAttr("zoneBail")}>Pull out</button></div>`);
 }
 
 function endZone(won: boolean) {

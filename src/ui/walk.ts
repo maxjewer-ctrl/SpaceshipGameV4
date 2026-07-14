@@ -5,6 +5,7 @@
 // string-template render() cycle — so walking around isn't interrupted every
 // time an unrelated state change calls requestRender() elsewhere in the game.
 import { hasModal } from "../modal";
+import { actionAttr, holdActionAttr } from "../dispatch";
 import * as sfx from "../audio";
 // Audio is pure polish and browser-only (no AudioContext under jsdom/headless):
 // never let a sound failure interrupt the sim.
@@ -83,6 +84,9 @@ export interface WalkScene {
   // The player's ship, on display in this port (see ShipBerth / the RULE).
   ship?: ShipBerth;
   spawn: { x: number; y: number };
+  // Placeholder exterior silhouette (closed polygon, scene coordinates) drawn
+  // around the interior so room placement can be judged against the hull shape.
+  hull?: Array<{ x: number; y: number }>;
   dark?: boolean;
   // Action mode: the Hades-style kit (aim/fire/roll, quicker stride) is live.
   // Only planet surfaces and hostile (silenced) stations set this — your own
@@ -224,13 +228,21 @@ export function needsMount(id: string): boolean { return mountedId !== id; }
 
 export function mountHTML(s: WalkScene): string {
   const dpad = (dir: string, glyph: string, cls: string) =>
-    `<button class="wk-dbtn ${cls}" onpointerdown="walkPressStart('${dir}')" onpointerup="walkPressEnd('${dir}')" onpointerleave="walkPressEnd('${dir}')" onpointercancel="walkPressEnd('${dir}')">${glyph}</button>`;
+    `<button class="wk-dbtn ${cls}" ${holdActionAttr("walkPressStart", "walkPressEnd", dir)}>${glyph}</button>`;
+  // The inline aspect-ratio derives the viewport's height from its width with
+  // no min-height (see .walk-viewport's CSS comment — a fixed min-height
+  // fights that on narrow/mobile viewports). Left unclamped it tracks the
+  // scene's own logical footprint, which for a long multi-bay ship is a
+  // strip several times wider than tall — a razor-thin letterbox no camera
+  // FOV can make read as a normal 3rd-person view. Capped to a wide but
+  // sane cinematic-widescreen ratio instead.
+  const viewportRatio = Math.min(s.width / s.height, 2.2);
   return `<div class="panel"><h3>${s.title}</h3>
     <div class="cockpit">
     <div class="console con-table">
       <div class="walkscope${s.dark ? " walk-dark" : ""}">
         <div class="scope-head"><span>◄ FREE MOVEMENT ▬ WASD / ARROWS ►</span><span class="sh-r" id="wk-room"></span></div>
-        <div class="walk-viewport" id="walk-viewport" style="aspect-ratio:${s.width}/${s.height}">
+        <div class="walk-viewport" id="walk-viewport" style="aspect-ratio:${viewportRatio}">
           <div class="walk-prompt" id="wk-prompt"></div>
           <div class="wk-combat" id="wk-combat" style="display:none">
             <span class="wk-vit-label">VITALITY</span>
@@ -245,7 +257,7 @@ export function mountHTML(s: WalkScene): string {
     <div class="walk-controls">
       <div class="walk-dpad">
         ${dpad("up", "▲", "wk-up")}
-        <div class="wk-dpad-mid">${dpad("left", "◀", "wk-left")}<button class="wk-dbtn wk-interact" onclick="walkInteract()">E</button>${dpad("right", "▶", "wk-right")}</div>
+        <div class="wk-dpad-mid">${dpad("left", "◀", "wk-left")}<button class="wk-dbtn wk-interact" ${actionAttr("walkInteract")}>E</button>${dpad("right", "▶", "wk-right")}</div>
         ${dpad("down", "▼", "wk-down")}
       </div>
       <div class="walk-fallback" id="wk-fallback"></div>
@@ -803,8 +815,8 @@ function updateHud() {
     const key = nearDoor ? (nearDoor.locked ? "" : "d:" + nearDoor.label) : nearActor ? "a:" + nearActor.key : "";
     if (fbEl.dataset.key !== key) {
       fbEl.dataset.key = key;
-      if (nearDoor && !nearDoor.locked) fbEl.innerHTML = `<button class="primary" onclick="walkInteract()">${nearDoor.label}</button>`;
-      else if (nearActor) fbEl.innerHTML = `<button class="primary" onclick="walkInteract()">${nearActor.verb || "Talk to"} ${nearActor.label}</button>`;
+      if (nearDoor && !nearDoor.locked) fbEl.innerHTML = `<button class="primary" ${actionAttr("walkInteract")}>${nearDoor.label}</button>`;
+      else if (nearActor) fbEl.innerHTML = `<button class="primary" ${actionAttr("walkInteract")}>${nearActor.verb || "Talk to"} ${nearActor.label}</button>`;
       else fbEl.innerHTML = "";
     }
   }

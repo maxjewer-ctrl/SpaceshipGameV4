@@ -1,0 +1,209 @@
+{
+  "nodes": {
+    "hub": {
+      "sub": "your cook — a battered pot always going, a rag over one shoulder",
+      "text": "Bapu straightens from the stove, wooden spoon still turning circles out of habit. “Captain! Sit, sit. There is always enough, even on the days there shouldn’t be.” He means it, the way he means most things — completely, and without proof.",
+      "choices": [
+        { "label": "How's the galley holding up?", "goto": "banter" },
+        { "label": "What was it like, growing up out there?", "requires": { "trust": "shipmate" }, "goto": "flotilla_1", "hidden": true },
+        { "label": "You said 'before the fall' once. Before what fell?", "requires": { "trust": "trusted" }, "goto": "secret_1", "hidden": true },
+        { "label": "That tune you hum — where's it from?", "requires": { "trust": "trusted" }, "goto": "hymn_1", "hidden": true },
+        { "label": "You mentioned a harvest dish once. Let's make it happen.", "requires": { "trust": "shipmate", "flagNot": "bapu_taste_offered" }, "goto": "taste_ask", "hidden": true },
+        { "label": "About the Church of the Open Door.", "requires": { "trust": "trusted", "flag": "bapu_recognized_hymn", "flagNot": "bapu_church_offered" }, "goto": "church_ask", "hidden": true },
+        { "label": "You never fly past the Verge without going quiet. Let's talk about that.", "requires": { "trust": "bonded", "flagNot": "bapu_edge_offered" }, "goto": "edge_ask", "hidden": true },
+        { "label": "Is Elysium really out there, Bapu?", "requires": { "trust": "bonded", "flagNot": ["arc_broadcast", "bapu_want_asked"] }, "goto": "want_ask", "hidden": true, "tone": "primary" },
+        { "label": "What do you make of the Silence?", "requires": { "sil": 1 }, "goto": "silence_take", "hidden": true },
+        { "label": "You've been quiet since the last dock. Talk to me.", "requires": { "flag": "bapu_recognized_hymn", "flagNot": "bapu_hymn_settled" }, "goto": "hymn_after", "hidden": true },
+        { "label": "Go easy on the stew tonight.", "tone": "primary", "end": true }
+      ]
+    },
+
+    "banter": {
+      "text": "“Holding fine, Captain, holding fine.” He taps the pot with the spoon, two notes, a private little rhythm. “A ship runs on fuel. A crew runs on knowing somebody remembered them at dinner. I only manage the second one, but I manage it well.”",
+      "choices": [
+        { "label": "Can't argue with that.", "effects": [{ "remember": { "who": "@self", "fact": "asked_after_the_galley", "weight": 1, "note": "The captain asked after the galley like the second kind of fuel mattered just as much." } }], "goto": "hub" }
+      ]
+    },
+
+    "flotilla_1": {
+      "text": "“Out there.” He says it fondly, like a name. “I was born on the *Verity's Reach* — third generation, though by then 'ship' was generous. Her drive died before my grandmother's time and we never fixed it. Just... kept living in her, and in the little fleet that grew up around her, going nowhere very slowly together. We called it the flotilla. I called it home.”",
+      "choices": [
+        { "label": "A ship that never arrives anywhere — what's that like?", "goto": "flotilla_2" },
+        { "label": "Do you miss it?", "goto": "flotilla_2" }
+      ]
+    },
+    "flotilla_2": {
+      "text": "“Strange, to you. Ordinary, to us.” He shrugs, easy. “You measure a life in ports. We measured it in festivals — the Long Drift, the Counting, the Harvest Trade with whatever frontier world would have us that season. Nobody was ever *arriving*. Everybody was always *home*, because home was the people, not the coordinates.” A small, real smile. “I miss it the way you'd miss a song you used to know all the words to.”",
+      "choices": [
+        { "label": "That's not a small thing to miss.", "effects": [{ "flag": "bapu_origin_told" }, { "remember": { "who": "@self", "fact": "heard_the_flotilla", "weight": 2, "note": "The captain understood that home, for Bapu, was never a place — and didn't try to fix that into something smaller." } }], "goto": "hub" }
+      ]
+    },
+
+    "secret_1": {
+      "expr": "worried",
+      "sub": "the spoon stops turning for the first time all conversation",
+      "text": "The spoon stops. “Before the fall.” He says it like he's surprised you remembered. “I was raised to be Cantor, Captain — the one who keeps the hymn right, generation to generation, note for note, forever. It's not a small post. The Cantor settles disputes. Eats first at the Harvest Trade. When my teacher died, the flotilla looked at me to take the seat.” He stirs, slower now. “I took a berth on a passing trader instead. Never went back to be asked twice.”",
+      "choices": [
+        { "label": "You chose your own life. That's not a fall.", "requires": { "dispo": ["mercy", 4] }, "hidden": true, "reply": "Something in him loosens, just slightly. “You're kind to say so, Captain. They didn't see it that way — I left the hymn in hands half-trained for it, because I wanted to see something past our own wake for once.” A breath. “I've never once regretted the wanting. I've never once stopped feeling the leaving.”", "effects": [{ "flag": "bapu_secret_told" }, { "remember": { "who": "@self", "fact": "captain_absolved_the_leaving", "weight": 3, "note": "The captain heard why he left his people and refused to call it a betrayal. He needed someone to say that out loud." } }], "goto": "hub" },
+        { "label": "Frontier folk understand leaving what's too small for you.", "requires": { "rep": ["frontier", 5] }, "hidden": true, "reply": "He nods slowly. “Frontier folk leave things behind for good reasons more often than the Union ever admits.” A pause. “Maybe that's why I fit out here better than I ever expected to. You people don't ask a man to justify his own life quite so often.”", "effects": [{ "flag": "bapu_secret_told" }, { "flag": "bapu_frontier_kinship" }, { "remember": { "who": "@self", "fact": "found_frontier_kinship", "weight": 3, "note": "Bapu found in the frontier the same forgiveness for leaving that his own flotilla never offered him." } }], "goto": "hub" },
+        { "label": "Somebody's singing it now, though — the hymn doesn't just vanish.", "reply": "“No,” he agrees, quiet. “Somebody's singing it. Worse for wear, probably. Everything is, once you're not there to mind it.” He goes back to stirring, a little too carefully. “I tell myself that's not my failure to carry. I'm not sure I believe myself yet.”", "effects": [{ "flag": "bapu_secret_told" }, { "remember": { "who": "@self", "fact": "worries_for_the_hymn", "weight": 0, "note": "Bapu worries, quietly, about whoever inherited the Cantor's seat without his blessing." } }], "goto": "hub" },
+        { "label": "That's a lot to carry over a bowl of stew.", "reply": "He laughs, surprised into it. “Everything's a lot to carry over a bowl of stew, Captain. That's what the stew is *for*.” But he says it gently back to you, and the spoon starts turning again.", "effects": [{ "flag": "bapu_secret_told" }, { "remember": { "who": "@self", "fact": "deflected_with_stew", "weight": 1, "note": "The captain let him deflect a heavy thing with a joke, and he was grateful for the room to." } }], "goto": "hub" }
+      ]
+    },
+
+    "hymn_1": {
+      "text": "“Ah. You noticed.” He looks almost bashful. “Four seconds, give or take — the Arrival Hymn. Every Cantor before me sang it the same way, taught mouth to mouth since the drive still worked and 'arrival' meant something. I hum it without meaning to. Old habit outlives old meaning, out here.”",
+      "choices": [
+        { "label": "What do the words mean?", "goto": "hymn_2" },
+        { "label": "You said 'arrival' doesn't mean anything anymore.", "goto": "hymn_2" }
+      ]
+    },
+    "hymn_2": {
+      "text": "“Depends who you ask. Officially: gratitude, for safe landing.” He taps the pot again, that private rhythm — and for a half-second you realize it's the same four beats. “Unofficially, I've always thought it was a lullaby somebody dressed up as a hymn so grown men would be allowed to sing it too. Grief and thanks, wearing the same four notes. We never did stop needing both.”",
+      "choices": [
+        { "label": "It's a good tune to carry a whole life on.", "effects": [{ "flag": "bapu_hymn_told" }, { "remember": { "who": "@self", "fact": "asked_about_the_hymn", "weight": 2, "note": "The captain asked what the hymn meant instead of just noticing it, and Bapu told them something true." } }], "goto": "hub" }
+      ]
+    },
+
+    "taste_ask": {
+      "text": "His whole face changes — this is a happier subject and he knows it. “The Harvest Trade dish! Yes! We need proper *dulun* grain, Captain, the real frontier kind, not the pressed cardboard Solace sells as a substitute. Kestrel's Rest grows it honest, if the price hasn't gone criminal.” He's already counting spice tins in his head. “Get me there and I'll cook you something that isn't just food.”",
+      "choices": [
+        { "label": "Kestrel's Rest it is. Cook whatever you like.", "missionTag": "bapu_taste", "tone": "primary", "reply": "“You won't regret it.” He's humming before you've even turned to leave — the Arrival Hymn, of course, though neither of you remarks on it. “Tell the pilot: fastest safe burn. Grain doesn't keep its honesty long once it's cut.”", "effects": [{ "flag": "bapu_taste_offered" }, { "mission": { "kind": "personal", "title": "A Taste of Home", "dest": "kestrel", "pay": 0, "tag": "bapu_taste", "desc": "Pick up proper dulun grain at Kestrel's Rest so Bapu can cook the Harvest Trade dish for the whole crew." } }, { "remember": { "who": "@self", "fact": "captain_backed_the_dish", "weight": 1, "note": "The captain flew a detour for a bag of grain because it mattered to him more than it cost the ship." } }], "goto": "hub" },
+        { "label": "Maybe once we're passing that way anyway.", "reply": "“Of course, of course.” He's already back to the pot, unbothered. “The grain will still be honest whenever we get there. Grain's patient. I'm patient. You're the one keeping a schedule, Captain.”", "effects": [{ "remember": { "who": "@self", "fact": "taste_deferred", "weight": 0, "note": "The captain put off a small, cheap thing that would have made him happy. He didn't hold it against them." } }], "goto": "hub" }
+      ]
+    },
+
+    "church_ask": {
+      "expr": "worried",
+      "text": "He's slower to answer than usual, wiping the same spot on the counter. “Brother Calis, at the Folly. His people hear the Silence and call it a door opening.” A careful breath. “I've always thought they just heard the same old note as me and gave it grander words than 'lullaby.' I'd like to know if I'm right, Captain. I'd also like it very much if I'm wrong.”",
+      "choices": [
+        { "label": "Let's go hear what he's heard.", "missionTag": "bapu_church", "tone": "primary", "reply": "“Thank you.” He says it like it costs him something to ask for. “I'd rather know beside someone than alone in this galley at three in the morning, which is where I've been doing the knowing so far.”", "effects": [{ "flag": "bapu_church_offered" }, { "mission": { "kind": "personal", "title": "The Church of the Open Door", "dest": "havens", "pay": 0, "tag": "bapu_church", "desc": "Take Bapu to Brother Calis's chapel at Haven's Folly. He wants to hear the Open Door's listening logs for himself." } }, { "remember": { "who": "@self", "fact": "captain_would_not_let_him_wonder_alone", "weight": 2, "note": "The captain agreed to stand with him while he found out something he was afraid to find out alone." } }], "goto": "hub" },
+        { "label": "Some questions are better left alone, Bapu.", "tone": "danger", "reply": "He nods, too quickly. “Maybe. Maybe you're right.” The counter gets another unnecessary wipe. He doesn't bring it up again, but you notice — now that you're looking — that the humming's gotten quieter.", "effects": [{ "remember": { "who": "@self", "fact": "left_him_wondering", "weight": -2, "note": "He asked to be walked toward a frightening answer instead of alone. The captain said some questions are better left alone." } }], "goto": "hub" }
+      ]
+    },
+
+    "edge_ask": {
+      "expr": "worried",
+      "text": "You've seen it a dozen times by now: the moment the nav plot swings out past charted space, Bapu finds a reason to be somewhere without a viewport. “You noticed that too.” He sighs, and for once doesn't reach for the spoon. “The deep frightens me, Captain. Not pirates, not the cold — the *size* of it. Flotilla children are raised to fear drifting off the convoy more than almost anything. I never unlearned it. I'm not sure I want to. But I'm tired of flinching every time we pass the Verge.”",
+      "choices": [
+        { "label": "Then let's stand at the edge together and stop flinching.", "missionTag": "bapu_edge", "tone": "primary", "reply": "He looks almost frightened by the offer, and takes it anyway. “Alright.” A long breath. “Alright, Captain. Take me to the last light before the black. Let's see if I'm still afraid of it with somebody else standing there.”", "effects": [{ "flag": "bapu_edge_offered" }, { "mission": { "kind": "personal", "title": "The Edge of the Dark", "dest": "verge", "pay": 0, "tag": "bapu_edge", "desc": "Fly Bapu out to Verge Station — the edge of the charted map — so he can finally face the deep he's feared his whole life." } }, { "remember": { "who": "@self", "fact": "captain_offered_to_stand_with_him", "weight": 2, "note": "The captain offered to stand at the edge of the map with him instead of letting him carry the fear alone." } }], "goto": "hub" },
+        { "label": "No shame in the fear, Bapu. It can wait.", "reply": "“No shame,” he agrees, relieved and a little disappointed in himself for being relieved. “Just — tiring, is all. Being afraid of the same thing your whole life. But it'll keep. Everything out here keeps, one way or another.”", "effects": [{ "remember": { "who": "@self", "fact": "edge_deferred", "weight": 0, "note": "The captain let him keep carrying an old fear rather than push him toward it before he was ready." } }], "goto": "hub" }
+      ]
+    },
+
+    "want_ask": {
+      "text": "You ask if Elysium's real. He goes quiet the way he does before something true. “It's the oldest story the flotilla ever told itself, Captain. A moon past every chart, where the dead of some old massacre supposedly washed up alive and safe. My grandmother swore by it on her deathbed, which is either the strongest evidence or the weakest, depending how sentimental you're feeling.” He smiles, sad and hopeful in the same breath. “I'd like to see it before I die. I'd settle for believing it's out there.”",
+      "choices": [
+        { "label": "If it's out there, I'll find it. That's a promise.", "tone": "primary", "reply": "He looks at you a long moment, weighing whether you mean it. “Careful making promises about moons, Captain.” But he's smiling when he says it, and the smile stays. “I'll hold you to it gently. That's the only way I know how to hold anybody to anything.”", "effects": [{ "flag": "bapu_want_asked" }, { "flag": "bapu_elysium_promised" }, { "remember": { "who": "@self", "fact": "captain_promised_elysium", "weight": 3, "note": "The captain promised to find Elysium if it's real. He's chosen to believe them, gently, the way he believes most things." } }], "goto": "hub" },
+        { "label": "It's probably just a story, Bapu.", "reply": "“Probably,” he agrees, easy, no wound in it that you can see. “Most of the best things I believe in are probably just stories. Doesn't stop me setting a place at the table for them.” He goes back to the pot, unhurried.", "effects": [{ "flag": "bapu_want_asked" }, { "remember": { "who": "@self", "fact": "captain_doubted_elysium", "weight": -1, "note": "The captain called his grandmother's dying story 'probably just a story.' He didn't argue. He noticed." } }], "goto": "hub" }
+      ]
+    },
+
+    "silence_take": {
+      "expr": "worried",
+      "text": "He wipes his hands slower than the job needs. “The Silence.” He tries the word out like it might taste different than he expects. “Flotilla folk have a saying: the deep doesn't take you, it *invites* you, and manners say you ought to answer an invitation.” He shakes his head, like he can shake the saying loose. “I never believed that one. I'm starting to wish I had better reasons not to.”",
+      "choices": [
+        { "label": "We'll answer it on our terms, not its own.", "requires": { "silMax": 1 }, "hidden": true, "reply": "“Our terms.” He tests the phrase, likes it better than his grandmother's saying. “Yes. Let's do it that way, Captain. I'll hold onto 'our terms.'”", "effects": [{ "remember": { "who": "@self", "fact": "faced_the_broadcast_together", "weight": 1, "note": "The captain and Bapu agreed to meet the Silence on their own terms, not its." } }], "goto": "hub" },
+        { "label": "Stations going dark — does that match the old stories?", "requires": { "sil": 2, "silMax": 2 }, "hidden": true, "reply": "“Too well.” He says it so quietly you almost miss it. “The flotilla always said the deep took people gently, and gently is the worst word in that sentence. I keep the galley loud, Captain. Pots, pans, bad singing. Just in case gentle is listening for quiet ones first.”", "effects": [{ "remember": { "who": "@self", "fact": "keeps_the_galley_loud", "weight": 2, "note": "Since the Dimming began, Bapu keeps the galley deliberately loud — his own small defense against something that likes the quiet ones." } }], "goto": "hub" },
+        { "label": "We answered it. Every world woke up because of this crew.", "requires": { "flag": "silence_answered" }, "hidden": true, "reply": "He puts the rag down entirely, which he almost never does. “We answered it.” Wonder, plain on his face. “My grandmother would have set a place at the table for you specifically, Captain. I'm setting one now. Sit. Eat. You earned it more than anyone I've ever fed.”", "effects": [{ "remember": { "who": "@self", "fact": "witnessed_the_answer", "weight": 3, "note": "Bapu watched this crew answer the Silence and every world wake up. He's never been prouder to be aboard anything." } }], "goto": "hub" },
+        { "label": "It's done. We stilled it, out past the Verge.", "requires": { "flag": "silence_stilled" }, "hidden": true, "reply": "He's quiet a long while, stirring nothing in particular. “Stilled it.” He nods slowly. “Then whatever it was, it's had its last invitation. I think I can let the galley go quiet again, some nights. Not every night. Some.”", "effects": [{ "remember": { "who": "@self", "fact": "carried_the_stilling", "weight": 2, "note": "The thing in the deep was stilled. Bapu can finally let a quiet night be just a quiet night, sometimes." } }], "goto": "hub" },
+        { "label": "Whatever it is, the galley stays loud. That's the plan.", "reply": "That gets a real laugh out of him. “That's a plan I can cook to, Captain. Best one I've heard all week.”", "goto": "hub" }
+      ]
+    },
+
+    "hymn_after": {
+      "expr": "worried",
+      "sub": "the pot's gone quiet — no humming, for once",
+      "text": "You ask if he's alright. He doesn't pretend not to know why you're asking. “I keep running it back, Captain. Ondine's bunkmate — four seconds, on a loop, right before. And I've hummed that same four seconds every single day since before I could tell you my own age.” His hands are still. “I don't know if that means something happened to me a very long time ago, or if it means nothing at all and I'm frightening myself over a coincidence and a sad woman's memory. I don't know which answer I want less.”",
+      "choices": [
+        { "label": "It's your hymn, Bapu. Yours before any of this. Nobody gets to take that from you.", "tone": "primary", "reply": "Something in his shoulders comes down, a little. “I like that framing, Captain. I'm going to borrow it, if you don't mind — 'mine before any of this.'” He picks the spoon back up. It doesn't come with humming yet. It will. You can see him deciding it will.", "effects": [{ "flag": "bapu_hymn_settled" }, { "remember": { "who": "@self", "fact": "captain_gave_the_hymn_back", "weight": 4, "note": "When the hymn started to frighten him, the captain insisted it was his, first, before it was anything else. He chose to believe that." } }], "end": true },
+        { "label": "We should learn more before you decide what it means.", "requires": { "flagNot": "bapu_church_offered" }, "hidden": true, "reply": "He nods, steadier for having a next step. “Yes. I think I'd rather know than wonder. Ask me about the Church again sometime soon, Captain — I think I'm ready to go looking.”", "effects": [{ "remember": { "who": "@self", "fact": "chose_to_investigate", "weight": 2, "note": "Rather than sit with the fear, he chose to go find out — the captain's steadiness made that possible." } }], "end": true },
+        { "label": "Maybe it means nothing. Maybe it's just yours.", "reply": "“Maybe.” He doesn't sound convinced, but he sounds willing to try believing it, which from Bapu is most of the way there. “I'll sit with 'maybe' for a while, Captain. It's more comfortable than the other options.”", "effects": [{ "remember": { "who": "@self", "fact": "sat_with_maybe", "weight": 1, "note": "The captain offered him an easier story to believe. He took it, carefully, the way he takes most comfort." } }], "end": true }
+      ]
+    },
+
+    "beat_flotilla": {
+      "sub": "off duty, watching the stars go by a viewport nobody else uses",
+      "text": "You find Bapu at the one viewport on the ship he actually likes, humming low. “Harvest Trade would be soon, back home.” He doesn't turn around. “Whoever's Cantor now is probably burning the good spice tonight and getting the proportions wrong — they always get the proportions wrong the first few years.” A small, real laugh. “Funny, the things you miss. Not the people, exactly — I miss the *proportions*.”",
+      "choices": [
+        { "label": "Sounds like you miss the people plenty too.", "effects": [{ "remember": { "who": "@self", "fact": "let_him_miss_them", "weight": 1, "note": "The captain let him talk about the flotilla's harvest festival without trying to fix the missing." } }], "end": true }
+      ]
+    },
+
+    "beat_taste": {
+      "sub": "the whole crew deck smells like somewhere none of them have ever been",
+      "text": "Bapu doesn't just cook the Harvest Trade dish — he *performs* it, narrating the grain's honesty to anyone who'll listen, humming the Arrival Hymn over the pot without a flicker of the unease it might carry someday. Whoever's off duty ends up in the galley eating with their hands like he insists is correct. For one evening, the ship feels less like a ship and more like the thing he described: not a place. A crew that remembered each other at dinner.",
+      "choices": [
+        { "label": "Best meal this crew's had in months.", "tone": "primary", "effects": [{ "flag": "bapu_taste_done" }, { "food": 3 }, { "remember": { "who": "@self", "fact": "cooked_the_harvest_dish", "weight": 2, "note": "The captain flew him to Kestrel's Rest for proper grain, and for one evening the whole crew ate like the flotilla used to." } }], "end": true }
+      ]
+    },
+
+    "beat_church": {
+      "expr": "worried",
+      "sub": "the chapel-cargo-bay smells like candle wax and old radio static",
+      "text": "Brother Calis walks him through eleven years of listening logs without a word wasted, and Bapu listens the way a man listens to his own voice on a recording he doesn't remember making. At the fourth-second mark of the pattern, his humming — quiet, unconscious, constant — simply stops, mid-note, for the first time you've ever heard. “That's...” He doesn't finish it. Calis doesn't press him to. Whatever the Open Door calls a door, it and Bapu's grandmother's hymn are standing entirely too close together in the dark.",
+      "choices": [
+        { "label": "Get him back to the ship. He needs the galley, not more logs.", "tone": "primary", "effects": [{ "flag": "bapu_church_done" }, { "remember": { "who": "@self", "fact": "stood_with_him_at_the_door", "weight": 3, "note": "The captain stood beside him while he heard his own hymn echoed back out of eleven years of a stranger's dread. Neither of them has an answer. He wasn't alone hearing the question." } }], "end": true }
+      ]
+    },
+
+    "beat_edge": {
+      "expr": "worried",
+      "sub": "Verge Station's outer promenade — glass, and past it, nothing charted",
+      "text": "You stand with him at the last window before the black starts in earnest. His hands are shaking, and he doesn't hide it, which you suspect is its own kind of courage. For a long minute neither of you says anything. Then, quietly: “My whole life I was taught the size of that is the enemy. Nobody ever taught me it could just be... big. Not hungry. Not reaching. Just big.” He exhales, long. “I think I needed a witness for that thought more than I needed the thought itself.”",
+      "choices": [
+        { "label": "I'm not going anywhere. Look as long as you need to.", "tone": "primary", "effects": [{ "flag": "bapu_edge_done" }, { "perk": true }, { "remember": { "who": "@self", "fact": "faced_the_deep_together", "weight": 4, "note": "The captain stood with him at the edge of the charted map while he unlearned a lifetime of fearing the size of the dark. He cooks lighter now, somehow — like some of the old weight came off in that minute." } }, { "log": "Bapu stood at the edge of the chart and, for the first time in his life, wasn't alone doing it. Something in him settled for good." }], "end": true }
+      ]
+    },
+
+    "beat_hymn": {
+      "expr": "worried",
+      "sub": "he's stopped humming without noticing he's stopped",
+      "text": "You tell him what Ondine said — the bunkmate, the four seconds on a loop, the walking down into the dark that followed. You watch it land. Bapu doesn't answer right away. When he does, his voice has gone very careful, the way a man talks when he's afraid a wrong word might make something true. “That's my hymn, Captain.” Not a question. “Four seconds. On a loop. I have hummed it every day of my life without once being asked to stop.”",
+      "choices": [
+        { "label": "It's a coincidence until we know otherwise. I'm not leaving you alone with this.", "tone": "primary", "effects": [{ "flag": "bapu_recognized_hymn" }, { "remember": { "who": "@self", "fact": "captain_stayed_for_the_fear", "weight": 3, "note": "The captain heard him recognize his own hymn in a dying woman's testimony and didn't flinch away from what that might mean." } }, { "log": "Bapu has gone quiet — really quiet, for the first time anyone aboard has heard. He's stopped humming." } ], "end": true }
+      ]
+    },
+
+    "beat_dimming": {
+      "expr": "worried",
+      "sub": "the galley is louder than usual, on purpose",
+      "text": "Every pot on the stove is going at once, none of them strictly necessary. “Keeps my hands busy,” Bapu says, before you ask. “Idle hands go quiet. Quiet's when it listens, or so the old saying goes, and I'd rather not test which sayings are just sayings right now.” He tries a smile. It's not his best work. “Tell me the tanks are full, Captain. Give an old cook something honest to hold onto.”",
+      "choices": [
+        { "label": "Tanks are full. Nobody's going anywhere but where we choose.", "tone": "primary", "effects": [{ "remember": { "who": "@self", "fact": "gave_him_something_honest", "weight": 2, "note": "In the worst of the Dimming, the captain gave him a plain, true thing to hold onto instead of comfort he wouldn't have believed." } }], "end": true }
+      ]
+    },
+
+    "beat_elysium_kept": {
+      "text": "You bring him the news gently, the way you'd hoped to. Elysium — his grandmother's deathbed story, the flotilla's oldest hope — was real the whole time: a moon past every chart, and this ship carried the truth of it into the light. Bapu sits down hard on the nearest crate, and for a long moment doesn't say anything at all. “You promised,” he finally manages. “I believed you gently, Captain. I don't think I believed *this* gently. I think I believed it all the way.”",
+      "choices": [
+        { "label": "Your grandmother was right. Somebody should tell the flotilla.", "tone": "primary", "effects": [{ "remember": { "who": "@self", "fact": "elysium_was_real", "weight": 6, "note": "The captain kept a promise about a moon nobody was supposed to be able to find. His grandmother's oldest story turned out true, and he was aboard for it." } }, { "log": "Bapu Okafor's oldest inherited hope — that Elysium is real — came true, carried there by this ship and this crew." }], "end": true }
+      ]
+    },
+    "beat_elysium_surprise": {
+      "text": "Nobody had to tell him gently, because nobody had promised him anything to soften. Elysium — the story his grandmother swore by, the one he'd settled for just believing — turns out to have been a real moon the whole time, and this ship carried the proof of it home. Bapu sets down whatever he's holding, very carefully, like the news might spill. “I never once asked you to go looking, Captain.” His voice isn't quite steady. “You went and found it anyway. I don't — “ He stops, and just breathes for a while, and that's answer enough.",
+      "choices": [
+        { "label": "Some things are worth finding whether anyone asks or not.", "tone": "primary", "effects": [{ "remember": { "who": "@self", "fact": "elysium_found_unasked", "weight": 5, "note": "Nobody asked the captain to prove his grandmother's dying story true. They did it anyway, and he watched it happen." } }, { "log": "Bapu Okafor watched a story he'd only ever dared to half-believe turn out to be a real place, found by a captain he never asked to look." }], "end": true }
+      ]
+    }
+  },
+
+  "beats": [
+    { "id": "taste", "node": "beat_taste", "priority": true,
+      "requires": { "flag": "job_bapu_taste", "loc": "kestrel" } },
+    { "id": "church", "node": "beat_church", "priority": true,
+      "requires": { "flag": "job_bapu_church", "loc": "havens" } },
+    { "id": "edge", "node": "beat_edge", "priority": true,
+      "requires": { "flag": "job_bapu_edge", "loc": "verge" } },
+    { "id": "hymn", "node": "beat_hymn", "priority": true,
+      "requires": { "flag": "sk_survivor", "flagNot": "bapu_recognized_hymn" } },
+    { "id": "elysium_kept", "node": "beat_elysium_kept", "priority": true,
+      "requires": { "flag": ["arc_broadcast", "bapu_elysium_promised"] } },
+    { "id": "elysium_surprise", "node": "beat_elysium_surprise", "priority": true,
+      "requires": { "flag": "arc_broadcast", "flagNot": "bapu_elysium_promised" } },
+    { "id": "flotilla", "node": "beat_flotilla",
+      "requires": { "trust": "shipmate" } },
+    { "id": "dimming", "node": "beat_dimming",
+      "requires": { "sil": 2 } }
+  ]
+}

@@ -4,12 +4,13 @@
 // transit and can reuse the full travel pool, including real combat.
 import { S, log, whisper } from "../state";
 import { rand, ri, pick } from "../rng";
-import { modal, closeModal, hasModal } from "../modal";
+import { modal, closeModal } from "../modal";
 import { requestRender } from "../bus";
 import { isSilenced } from "../derive";
 import { rollEvent } from "./events";
 import { shift } from "./disposition";
 import { bark } from "./barks";
+import { actionAttr } from "../dispatch";
 
 const ROOM_DANGER: Record<string, number> = {
   harbor: 0.03, concourse: 0.08, market: 0.10, cantina: 0.10,
@@ -21,7 +22,7 @@ let stationAcc = 0;
 const STATION_THRESHOLD = 8; // seconds of continuous walking between roll opportunities
 
 export function stationWalkTick(moving: boolean, dt: number, roomId: string | null) {
-  if (!moving || hasModal() || isSilenced(S.loc)) return;
+  if (!moving || isSilenced(S.loc)) return;
   stationAcc += dt;
   if (stationAcc < STATION_THRESHOLD) return;
   stationAcc = 0;
@@ -63,9 +64,9 @@ function shakedown() {
   modal(`<h2>⚠ The Undercity</h2>
     <p>Two figures peel off the wall ahead, unhurried, blocking the corridor the way people do when they've done this before. "Toll for walking through," one says. "Standard rate. Nobody needs to know you paid it."</p>
     <div class="choices">
-      <button onclick="wkPay()">Pay the toll (60cr)</button>
-      <button onclick="wkTalk()">Talk your way past</button>
-      <button onclick="wkFight()">Push through</button>
+      <button ${actionAttr("wkPay")}>Pay the toll (60cr)</button>
+      <button ${actionAttr("wkTalk")}>Talk your way past</button>
+      <button ${actionAttr("wkFight")}>Push through</button>
     </div>`);
 }
 export function wkPay() {
@@ -106,7 +107,7 @@ let shipAcc = 0;
 const SHIP_THRESHOLD = 13;
 
 export function shipWalkTick(moving: boolean, dt: number) {
-  if (!moving || hasModal() || !S.travel) return;
+  if (!moving || !S.travel) return;
   shipAcc += dt;
   if (shipAcc < SHIP_THRESHOLD) return;
   shipAcc = 0;

@@ -15,6 +15,9 @@ import charactersJson from "./characters.json";
 import stationsJson from "./stations.json";
 import portjobsJson from "./portjobs.json";
 import zonesJson from "./zones.json";
+import junoDialogueJson from "./juno.dialogue.json";
+import loyaltyJson from "./loyalty.json";
+import bapuDialogueJson from "./bapu.dialogue.json";
 
 export const MODS = modulesJson as Record<string, ModuleDef>;
 export const PLANETS = planetsJson as Record<string, PlanetDef>;
@@ -97,6 +100,45 @@ export interface NpcDef {
   blurb?: string;                   // one-liner shown on the station map / room list
   nodes: Record<string, SceneNode>;
 }
+// ---- Named crew's deep conversation trees (data-driven; see systems/crewdialogue.ts) ----
+// A node graph gated on a combined vocabulary: trust tier, faction standing
+// (rep), playstyle (dispo), campaign stage (sil/arc), and prior-choice flags.
+// One tree per crew `key`, registered in CREW_TREES below.
+export interface CrewDialogueChoice {
+  label: string;
+  requires?: Record<string, any>;   // trust, rep, dispo, sil, arc, flag, flagNot, loc, credits...
+  effects?: any[];                  // RiderEffect[] plus crew verbs ({perk:true}, remember.who "@self")
+  reply?: string;                   // their response line before moving on
+  log?: string;                     // dropped into the captain's log
+  goto?: string;                    // next node key (omit → return to hub)
+  end?: boolean;                    // close the conversation
+  once?: boolean;                   // hide this choice once taken
+  hidden?: boolean;                 // when requires fail, omit entirely instead of showing it locked
+  tone?: "primary" | "danger";      // button styling
+  expr?: string;                    // portrait expression for the reply line
+  missionTag?: string;              // marks this choice as granting/paying off a
+                                     // mission (matches the effect's mission.tag /
+                                     // job tag) — documentation only, read by
+                                     // scripts/check-content.mjs for a sanity pass,
+                                     // not by the dialogue engine itself.
+}
+export interface CrewDialogueNode {
+  text: string;
+  sub?: string;                     // subline under their name
+  expr?: string;                    // portrait expression (neutral | crew-specific variants)
+  choices: CrewDialogueChoice[];
+}
+export interface CrewDialogueBeat {
+  id: string;                       // fired-once key → flags["<crewKey>_beat_<id>"]
+  node: string;                     // node to open
+  requires?: Record<string, any>;   // same gate vocabulary
+  priority?: boolean;               // mission completions etc. — bypass the ambient-beat cooldown
+}
+export interface CrewDialogueTree {
+  nodes: Record<string, CrewDialogueNode>;
+  beats?: CrewDialogueBeat[];
+}
+
 export interface RiderDef {
   class: string; title?: string; text?: string; log?: string;
   effects?: RiderEffect[];
@@ -123,6 +165,41 @@ export const CREWGEN = crewgenJson as CrewGen;
 export const REPUTATION = reputationJson as ReputationContent;
 export let NPCS = npcsJson as Record<string, NpcDef>;
 export const CHARACTERS = charactersJson as Record<string, CharacterDef>;
+// Registered crew conversation trees, keyed by CrewMember.key. Adding a new
+// character's tree is: author content/<key>.dialogue.json, import it, add one
+// entry here — systems/crewdialogue.ts and crewtalk.ts need no changes.
+export const CREW_TREES: Record<string, CrewDialogueTree> = {
+  juno: junoDialogueJson as CrewDialogueTree,
+  bapu: bapuDialogueJson as CrewDialogueTree,
+};
+
+// ---- Loyalty missions (docs/CORE_LOOP.md Pillar 2 — the "Mass Effect move") ----
+// One authored errand per named character: an offer scene aboard ship (gated on
+// a deep bond), a real place to fly to, and a payoff scene there. Completing one
+// grants the crew member's role perk and a permanent bond memory. See
+// systems/loyalty.ts. The "second act" of an agenda beat when gate.memory keys
+// off that beat's resolution (e.g. Nyla's "captain_asked_instead").
+export interface LoyaltyChoice {
+  label: string; reply: string;
+  dispo?: { axis: string; n: number };
+  credits?: number; prestige?: number; rep?: [string, number];
+}
+export interface LoyaltyDef {
+  role: string;               // the crew role whose perk this unlocks
+  dest: string;               // planet where the errand resolves
+  icon: string;
+  gate: { daysMin: number; memory?: string }; // memory = a ledger fact that must exist (act-1 hook)
+  offerSub: string;
+  offerTitle: string;
+  offerText: string;
+  acceptLabel: string; declineLabel: string;
+  acceptLog: string; declineReply: string;
+  arriveTitle: string; arriveText: string;
+  choices: LoyaltyChoice[];   // 1–2, all completing — the choice only shades the ending
+  bondFact: string; bondNote: string;
+  log: string;
+}
+export const LOYALTY = loyaltyJson as Record<string, LoyaltyDef>;
 
 // ---- Per-port station identity (docs/STATION_IDENTITY.md) ----
 // Shared walk engine, unique content: each port filters the common room set,

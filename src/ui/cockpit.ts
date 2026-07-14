@@ -7,6 +7,7 @@ import { cautions } from "./render";
 import { radarBlips } from "./ship";
 import * as sfx from "../audio";
 import engineCoreUrl from "../assets/ship/engine-core.webp";
+import { actionAttr } from "../dispatch";
 
 // Physical control positions — switch/lever state, session-only. Losing your
 // throttle setting on reload is realistic enough; none of this is save data.
@@ -178,7 +179,7 @@ export function pedestalHTML(): string {
   const armed = S.travel && CTL.throttle > 0;
   const burn = `<div class="ped-mod ped-burn">
     <span class="ped-lbl">MAIN DRIVE</span>
-    <button class="burnbtn${armed ? " armed" : ""}" onclick="engageBurn()">
+    <button class="burnbtn${armed ? " armed" : ""}" ${actionAttr("engageBurn")}>
       ${S.travel ? "ENGAGE BURN<small>advance one day</small>" : "HOLD STATION<small>wait one day in port</small>"}
     </button>
     <span class="ped-foot">${S.travel ? `${st.speed} u/day · ${S.travel.left}d remaining` : "moored · meter running"}</span>
@@ -190,7 +191,7 @@ export function pedestalHTML(): string {
   const bay = `<div class="ped-mod ped-bay">
     <span class="ped-lbl">CARGO BAY ${CTL.bayMoving ? "· CYCLING" : CTL.bay === "open" ? "· OPEN TO VACUUM" : "· SEALED"}</span>
     <div class="bay-row">
-      <div class="bayswitch${CTL.bay === "open" && !CTL.bayMoving ? " on" : ""}${CTL.bayMoving ? " busy" : ""}" onclick="bayToggle()"
+      <div class="bayswitch${CTL.bay === "open" && !CTL.bayMoving ? " on" : ""}${CTL.bayMoving ? " busy" : ""}" ${actionAttr("bayToggle")}
         title="${CTL.bayMoving ? "Doors cycling…" : CTL.bay === "open" ? "Close bay doors" : "Open bay doors"}">
         <div class="bk-well"><div class="bk-handle"></div></div>
       </div>
@@ -201,7 +202,7 @@ export function pedestalHTML(): string {
     </div>
     <div class="jet-row">
       ${goods.map((g) => `<button class="jet" ${CTL.bay === "open" && !CTL.bayMoving && (S.cargo[g] || 0) > 0 ? "" : "disabled"}
-        onclick="jettisonGood('${g}')" title="${CTL.bay !== "open" ? "Open the bay doors first" : "Dump all " + g + " overboard"}">DUMP ${g.toUpperCase()} <b>${S.cargo[g] || 0}</b></button>`).join("")}
+        ${actionAttr("jettisonGood", g)} title="${CTL.bay !== "open" ? "Open the bay doors first" : "Dump all " + g + " overboard"}">DUMP ${g.toUpperCase()} <b>${S.cargo[g] || 0}</b></button>`).join("")}
     </div>
   </div>`;
 
@@ -209,8 +210,8 @@ export function pedestalHTML(): string {
   const vent = `<div class="ped-mod ped-vent">
     <span class="ped-lbl">FUEL VENT</span>
     <div class="ventwell">
-      <button class="ventbtn" ${CTL.guard ? "" : "disabled"} onclick="ventFuel()">VENT<small>−5 FUEL</small></button>
-      <div class="guard${CTL.guard ? " up" : ""}" onclick="ventGuard()">GUARD</div>
+      <button class="ventbtn" ${CTL.guard ? "" : "disabled"} ${actionAttr("ventFuel")}>VENT<small>−5 FUEL</small></button>
+      <div class="guard${CTL.guard ? " up" : ""}" ${actionAttr("ventGuard")}>GUARD</div>
     </div>
     <span class="ped-foot">${CTL.guard ? '<b class="low">ARMED</b> — cover open' : "cover closed · " + Math.floor(S.fuel) + " aboard"}</span>
   </div>`;
@@ -225,7 +226,7 @@ export function pedestalHTML(): string {
   const comms = `<div class="ped-mod ped-comms">
     <span class="ped-lbl">COMMS — TRANSCEIVER</span>
     <div class="comms-row">
-      <div class="knob" onclick="commsTune()" title="Tune to next channel" style="--deg:${CTL.chan * 64 - 96}deg">
+      <div class="knob" ${actionAttr("commsTune")} title="Tune to next channel" style="--deg:${CTL.chan * 64 - 96}deg">
         <div class="ptr"><i></i></div><div class="cap"></div>
       </div>
       <div class="comms-read">
@@ -338,7 +339,7 @@ export function commsFullHTML(): string {
     <div class="v2-head"><span>COMMS — TRANSCEIVER</span></div>
     <div class="v2-comms-row">
       <div class="v2-knob-group">
-        <div class="v2-knob xl" onclick="commsTune()" title="Tune to next channel" style="--deg:${CTL.chan * 64 - 96}deg">
+        <div class="v2-knob xl" ${actionAttr("commsTune")} title="Tune to next channel" style="--deg:${CTL.chan * 64 - 96}deg">
           <div class="v2-knurl"></div>
           <div class="v2-kptr blue"><i></i></div>
           <div class="v2-kcap"></div>

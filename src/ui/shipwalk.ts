@@ -1,23 +1,26 @@
 // The walkable ship interior: a corridor spine from cockpit to drive core,
-// module bays branching off alternating sides — generated fresh from whatever
-// is actually installed, so buying or losing a module changes the deck you walk.
+// module bays branching off alternating sides — one per hull slot, in the
+// arrangement set on the ship schematic, so moving, buying, or losing a
+// module changes the deck you walk. Unoccupied slots are empty rooms.
 import { S } from "../state";
 import { MODS, ROLES } from "../content";
 import { requestRender } from "../bus";
 import { modal } from "../modal";
 import { modCategory } from "./ship";
-import { toggleMod } from "../systems/actions";
+import { toggleMod, ensureSlots, bayCount } from "../systems/actions";
 import { wearTier, wearOf } from "../systems/wear";
 import { BARKS } from "../content";
 import { fork } from "../rng";
 import { openCrewTalk } from "../systems/crewtalk";
 import { trustTier, dispositionWord } from "../systems/trust";
+import { rankOf, RANK_NAME } from "../systems/veterancy";
 import { shipWalkTick } from "../systems/walkEncounters";
 import { introShipDoors, introRoomDesc, introSpawnEngine, introAirlockHint } from "../systems/intro";
 import { teardown, setHighlight, walkInsideFloors } from "./walk";
 import * as sfx from "../audio";
 import type { WalkScene, WalkRoom, WalkRect, WalkDoor, WalkActor } from "./walk";
 import { steerAgent } from "../systems/walkRuntime";
+import { actionAttr } from "../dispatch";
 
 const CAT_COLOR: Record<string, string> = {
   "cat-combat": "#d96b6b", "cat-flow": "#e8b04b", "cat-life": "#57b6c9",
@@ -50,8 +53,13 @@ export function wkInspect(i: number) {
   const status = m.dmg ? "DAMAGED" : md.pw ? (m.on ? `ONLINE · drawing ${md.pw}⚡` : "POWERED DOWN") : "OPERATIONAL";
   modal(`<h2>${md.icon} ${md.n}</h2><p><b>${status}</b></p>
     <p class="dim">${md.d}</p><p>Wear: <b>${wt.toUpperCase()}</b> · ${Math.round(wearOf(m))}%</p>
-    <div class="choices">${md.pw && !m.dmg ? `<button onclick="toggleMod(${i});wkInspect(${i})">${m.on ? "⏻ Power down" : "⏻ Power up"}</button>` : ""}<button class="primary" onclick="closeModal()">Done</button></div>`);
+    <div class="choices">${md.pw && !m.dmg ? `<button ${actionAttr("toggleModAndInspect", i)}>${m.on ? "⏻ Power down" : "⏻ Power up"}</button>` : ""}<button class="primary" ${actionAttr("closeModal")}>Done</button></div>`);
 }
+
+// The inspect modal's power-toggle button used to chain two calls in one
+// onclick string (`toggleMod(i);wkInspect(i)`) — the dispatcher's data-action
+// only carries one action name, so this composite stands in for that pair.
+export function toggleModAndInspect(i: number) { toggleMod(i); wkInspect(i); }
 function toStation() { S.screen = "stationwalk"; requestRender(); }
 
 const ROOM_KIND: Record<string, string> = {
@@ -70,10 +78,46 @@ export const ROLE_POSTS: Record<string, string[]> = {
   quartermaster: ["cargohold"],
 };
 
-export function buildShipScene(): WalkScene {
-  const bays = S.modules.map((m, index) => ({ m, index })).filter(({m}) => !MODS[m.t].core);
+// Placeholder exterior wireframe: a hull silhouette wrapped around whatever
+// rooms are installed — pointed nose forward of the cockpit, engine nozzle
+// aft, shoulders flaring over the module bays. Purely a design aid so room
+// placement can be locked down against the ship's outer shape before real
+// hull art exists; it grows with the bay count like the deck itself does.
+function hullOutline(
+  cockpit: WalkRect, engine: WalkRect, rooms: WalkRoom[], width: number, spineY: number,
+): Array<{ x: number; y: number }> {
+  const top = Math.min(...rooms.map((r) => r.y)) - 26;
+  const bottom = Math.max(...rooms.map((r) => r.y + r.h)) + 26;
+  const shoulderFwd = cockpit.x + cockpit.w + 50;
+  const shoulderAft = engine.x - 50;
+  return [
+    { x: 6, y: spineY },                                          // nose tip
+    { x: cockpit.x - 6, y: cockpit.y - 14 },                      // canopy, top
+    { x: shoulderFwd, y: top },                                   // forward shoulder
+    { x: shoulderAft, y: top },                                   // aft shoulder
+    { x: engine.x + 10, y: engine.y - 14 },                       // engine cowl
+    { x: width - 44, y: engine.y - 14 },
+    { x: width - 8, y: spineY - 34 },                             // nozzle, top lip
+    { x: width - 8, y: spineY + 34 },                             // nozzle, bottom lip
+    { x: width - 44, y: engine.y + engine.h + 14 },
+    { x: engine.x + 10, y: engine.y + engine.h + 14 },            // mirrored belly run
+    { x: shoulderAft, y: bottom },
+    { x: shoulderFwd, y: bottom },
+    { x: cockpit.x - 6, y: cockpit.y + cockpit.h + 14 },          // canopy, bottom
+  ];
+}
 
-  const spineY = 320, spineH = 90, roomW = 210, roomH = 150;
+export function buildShipScene(): WalkScene {
+  // One walkable bay per hull SLOT, in the arrangement the player set on the
+  // ship schematic — unoccupied slots become empty rooms (bare plating you
+  // can stand in), so the deck plan and the module selector are literally
+  // the same map, and a hull expansion visibly lengthens the ship.
+  ensureSlots();
+  const inst = S.modules.map((m, index) => ({ m, index })).filter(({m}) => !MODS[m.t].core);
+  const bays = Array.from({ length: bayCount() }, (_, slot) => inst.find(({m}) => m.slot === slot) || null);
+
+  const spineY = 320, spineH = 140, roomW = 210, roomH = 150;
+  const connW = 74; // bay-to-spine connector width — kept wide alongside the spine
   const cockpit: WalkRect & { id: string } = { id: "cockpit", x: 30, y: spineY - spineH / 2 - (roomH - spineH) / 2, w: roomW, h: roomH };
   const gap = 230;
   const engineX = cockpit.x + cockpit.w + gap + bays.length * gap;
@@ -119,7 +163,7 @@ export function buildShipScene(): WalkScene {
   let quartersRoom: (WalkRect & { id: string }) | null = null;
   const bayRoomByType: Record<string, WalkRect & { id: string }> = {};
 
-  bays.forEach(({m, index}, i) => {
+  bays.forEach((bay, i) => {
     const up = i % 2 === 0;
     const rx = cockpit.x + cockpit.w + gap / 2 + i * gap;
     const ry = up ? spineY - spineH / 2 - roomH - 30 : spineY + spineH / 2 + 30;
@@ -127,10 +171,16 @@ export function buildShipScene(): WalkScene {
     const rect = { id, x: rx, y: ry, w: roomW, h: roomH };
     floors.push({ x: rect.x, y: rect.y, w: rect.w, h: rect.h });
     // connector linking the bay to the spine
-    const connX = rect.x + rect.w / 2 - 23;
+    const connX = rect.x + rect.w / 2 - connW / 2;
     floors.push(up
-      ? { x: connX, y: rect.y + rect.h, w: 46, h: (spineY - spineH / 2) - (rect.y + rect.h) }
-      : { x: connX, y: spineY + spineH / 2, w: 46, h: rect.y - (spineY + spineH / 2) });
+      ? { x: connX, y: rect.y + rect.h, w: connW, h: (spineY - spineH / 2) - (rect.y + rect.h) }
+      : { x: connX, y: spineY + spineH / 2, w: connW, h: rect.y - (spineY + spineH / 2) });
+    if (!bay) {
+      rooms.push({ id, x: rect.x, y: rect.y, w: rect.w, h: rect.h, label: "Empty Bay", icon: "▢", color: "#3a3f48" });
+      roomDesc[id] = "Bare deck plating and capped conduit stubs — room for a module. Shipyards sell them planetside.";
+      return;
+    }
+    const { m, index } = bay;
     const md = MODS[m.t];
     rooms.push({ id, x: rect.x, y: rect.y, w: rect.w, h: rect.h, label: md.n, icon: md.icon, color: CAT_COLOR[modCategory(m.t)], kind: ROOM_KIND[m.t], moduleIndex: index, moduleType: m.t });
     roomDesc[id] = `${md.n} — ${moduleStatus(m)}. ${md.d}`;
@@ -180,6 +230,7 @@ export function buildShipScene(): WalkScene {
     status: S.travel ? "◇ IN TRANSIT" : S.docked ? "● DOCKED" : "◇ ADRIFT",
     width, height,
     floors, rooms, roomDesc, doors, actors,
+    hull: hullOutline(cockpit, engine, rooms, width, spineY),
     spawn,
     onTick: (moving, dt, roomId) => {
       const room = rooms.find((r) => r.id === roomId);
@@ -220,12 +271,14 @@ export function crewRosterHTML(): string {
   const rows = S.crew.map((c) => {
     const tier = trustTier(c);
     const dw = dispositionWord(c);
+    const rank = rankOf(c);
+    const rankTag = rank > 1 ? ` · <span class="dim">${RANK_NAME[rank]}</span>` : "";
     const quest = c.questStage === 2 ? " · on a quiet errand" : c.questStage === 3 && c.perk ? " · settled, and grateful" : "";
-    return `<div class="cr-row" onclick="crewHighlight(${c.id})" title="Click to find them on deck">
+    return `<div class="cr-row" ${actionAttr("crewHighlight", c.id)} title="Click to find them on deck">
       <span class="cr-dot" style="background:${TIER_DOT[tier]}"></span>
       <div class="cr-info">
         <div class="cr-name">${c.name}</div>
-        <div class="cr-meta"><span class="ctword ${dw.cls}">${dw.word}</span> · ${ROLES[c.role]?.n || c.role} · ${c.daysAboard || 0}d aboard${quest}</div>
+        <div class="cr-meta"><span class="ctword ${dw.cls}">${dw.word}</span> · ${ROLES[c.role]?.n || c.role}${rankTag} · ${c.daysAboard || 0}d aboard${quest}</div>
       </div>
     </div>`;
   }).join("");

@@ -1,6 +1,7 @@
 import { S } from "../state";
 import { PLANETS, MODS } from "../content";
 import { stats, foodPerDay, people } from "../derive";
+import { actionAttr } from "../dispatch";
 
 export function travelHTML(): string {
   if (!S.travel) return `<div class="panel"><p class="dim">You're docked.</p></div>`;
@@ -30,7 +31,7 @@ export function travelHTML(): string {
         <span class="v2-nav-lbl">NAV — COURSE LOCKED</span>
         <div class="v2-nav-dest active"><span>${PLANETS[t.dest].n.toUpperCase()}</span><span class="v2-nav-dist">${t.left}d ETA</span></div>
         <div class="v2-nav-dest" style="opacity:.5"><span>${PLANETS[t.from].n.toUpperCase()}</span><span class="v2-nav-dist">ORIGIN</span></div>
-        <button class="v2-ap-btn on" onclick="advanceDay()">▸ ENGAGE BURN — ADVANCE DAY</button>
+        <button class="v2-ap-btn on" ${actionAttr("advanceDay")}>▸ ENGAGE BURN — ADVANCE DAY</button>
       </div>
     </div>
     <div class="statgrid" style="margin:14px 0">
