@@ -17,11 +17,13 @@
     "meshy:list": "node --env-file=.env scripts/meshy/list.mjs",
     "meshy:generate": "node --env-file=.env scripts/meshy/generate.mjs",
     "meshy:download": "node --env-file=.env scripts/meshy/download.mjs",
-    "meshy:batch": "node --env-file=.env scripts/meshy/generate-batch.mjs"
+    "meshy:batch": "node --env-file=.env scripts/meshy/generate-batch.mjs",
+    "meshy:shrink": "node scripts/meshy/shrink-models.mjs"
   },
   "devDependencies": {
     "@types/three": "^0.185.1",
     "jsdom": "^29.1.1",
+    "sharp": "^0.35.3",
     "typescript": "^5.5.0",
     "vite": "^5.4.0",
     "vitest": "^4.1.10"

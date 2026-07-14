@@ -5,3 +5,9 @@ dist/
 *.local
 .DS_Store
 .shots/
+
+# Raw Meshy exports. These are the untouched source dumps (4096px textures,
+# hundreds of MB each); only the shrunk GLBs in src/assets/models/ ship.
+src/assets/Downloaded Assets/
+src/assets/Meshy_AI_*/
+src/assets/Meshy_AI_*.zip
