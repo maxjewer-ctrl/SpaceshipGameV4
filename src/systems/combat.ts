@@ -9,6 +9,7 @@ import { bark, tellBark } from "./barks";
 import { shift } from "./disposition";
 import type { Enemy } from "../types";
 import * as sfx from "../audio";
+import { markVeteranEvent } from "./veterancy";
 
 type MoveId = "laser" | "torpedo" | "ion" | "evasive" | "flee" | "bribe" | "decoy" | "gambit";
 type CombatPhase = "command" | "target" | "aim" | "over";
@@ -520,7 +521,11 @@ export function endCombat() {
   C = null;
   clearModal();
   if (r === "dead") { gameOver("Your ship broke apart under enemy fire. The black keeps what it takes."); return; }
-  if (r === "win" && onWin) onWin();
+  if (r === "win") {
+    const gunner = S.crew.find((c) => c.role === "gunner");
+    if (gunner) markVeteranEvent(gunner);
+    if (onWin) onWin();
+  }
   if (r === "fled" && onEscape) onEscape();
   requestRender();
 }

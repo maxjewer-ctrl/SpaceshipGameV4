@@ -68,6 +68,7 @@ export interface CrewMember {
   revealed?: CrewRevealed;
   questDest?: string | null;  // world their personal quest points to, once stage 2
   perk?: boolean;              // resolved their quest well — grants a small stacking bonus on their role
+  eventsInRole?: number;       // times they've done their job under real pressure — see systems/veterancy.ts
 }
 
 export interface Passenger { name: string; motive: string; sick: boolean; arc?: boolean; }

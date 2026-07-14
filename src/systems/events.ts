@@ -15,6 +15,7 @@ import { shift } from "./disposition";
 import { evNumbersStation, evReturnedShip } from "./silence";
 import { dcBreakdown, dcMeteor, dcSickPassenger } from "./damagecontrol";
 import { planetVisible, isSilenced } from "../derive";
+import { markVeteranEvent } from "./veterancy";
 
 // ---------- daily event roll ----------
 export function rollEvent() {
@@ -232,7 +233,12 @@ export function evBreakdown() {
 }
 export function evMeteor() {
   const st = stats();
-  if (st.has("pilot")) { log("Micro-meteor swarm ahead — your pilot threads the ship through it like a needle. Not a scratch."); return; }
+  if (st.has("pilot")) {
+    log("Micro-meteor swarm ahead — your pilot threads the ship through it like a needle. Not a scratch.");
+    const pilot = S.crew.find((c) => c.role === "pilot");
+    if (pilot) markVeteranEvent(pilot);
+    return;
+  }
   // No pilot: gamble the hull on a hunch at the manual helm.
   bark("meteor", { chance: 0.6 });
   dcMeteor();

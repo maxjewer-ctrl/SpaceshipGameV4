@@ -14,6 +14,7 @@ import { stats } from "../derive";
 import { pick } from "../rng";
 import { fmt } from "../util";
 import { openJunoDialogue } from "./junodialogue";
+import { rankOf, RANK_NAME } from "./veterancy";
 import type { CrewMember } from "../types";
 
 function findCrew(id: number): CrewMember | undefined {
@@ -38,6 +39,8 @@ function renderCrewTalk() {
   if (!c) { activeCrewId = null; closeModal(); return; }
   const tier = trustTier(c);
   const dw = dispositionWord(c);
+  const rank = rankOf(c);
+  const rankTag = rank > 1 ? ` · ${RANK_NAME[rank]}` : "";
   const rev = c.revealed || (c.revealed = {});
   const questBtn = rev.want ? `<button onclick="ctQuest()">${questLabel(c)}</button>` : "";
   const where = S.docked && S.screen === "stationwalk"
@@ -45,7 +48,7 @@ function renderCrewTalk() {
     : `${S.shipName} · ${ROLES[c.role]?.n || c.role}`;
   replaceModal(`<div class="scene">
     <div class="scene-loc">${where}</div>
-    ${dialogueHeadHTML(crewPortraitKey(c), "🧑‍🚀", c.name, `${TIER_LABEL[tier]} · <span class="ctword ${dw.cls}">${dw.word}</span>`)}
+    ${dialogueHeadHTML(crewPortraitKey(c), "🧑‍🚀", c.name, `${TIER_LABEL[tier]}${rankTag} · <span class="ctword ${dw.cls}">${dw.word}</span>`)}
     ${lastLine ? `<p>${lastLine}</p>` : `<p class="dim">${c.name} looks up as you approach.</p>`}
     <div class="choices">
       <button onclick="ctVibe()">How are you holding up?</button>

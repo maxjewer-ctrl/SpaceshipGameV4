@@ -242,18 +242,31 @@ dispatcher and the ModalQueue — this section, below). **Phase A is complete.**
 ### Phase B — THE LOOP THAT NEVER ENDS (~3 weeks)
 CORE_LOOP.md's build order, finished — this is the beta's gameplay heart:
 
+**Progress (2026-07-14):** port standing + consequence set-dressing, module
+wear + the refit loop, and Mk-I/II/III quality tiers all landed ahead of
+this phase (CORE_LOOP.md build-order items 1, 2, 2b — done before Phase A
+even closed). **Veterancy ranks shipped this pass** (build-order item 3,
+below). Scars are deliberately split off as separate follow-up. Still open:
+survey/charting contracts, loyalty missions, station moods.
+
 - **Mk-I/II/III quality tiers** per module; yard inventories always hold
-  something worth wanting.
+  something worth wanting. ✅ Shipped (`systems/modtier.ts`, ahead of this
+  phase — see CORE_LOOP.md item 2b).
 - **Used-module marketplace** with provenance lines — unblocks the Row
   Broker, realizes Debtor's Row, and makes the ship a biography. Needs the
-  `grantModule` DSL verb (STATION_IDENTITY engine item #6).
-- **Veterancy ranks + scars:** per-role ranks earned in-role; event-inflicted
-  traits (`steady_under_fire`, `flinches_at_static`) that gate barks and
-  mechanics.
+  `grantModule` DSL verb (STATION_IDENTITY engine item #6). Still open.
+- **Veterancy ranks:** ✅ Shipped (`systems/veterancy.ts`). Green → Seasoned
+  → Veteran, derived from days aboard + events survived in role (never
+  stored, mirrors `trustTier()`), wired into the same stats()/foodPerDay()/
+  bribeCost() slots the perk system already stacks onto, visible in the crew
+  roster and crew-talk header, announced by a bark on rank-up. **Scars +
+  learned traits** (`steady_under_fire`, `flinches_at_static` gating barks
+  and mechanics) remain open — a distinct event-triggered mechanism, not a
+  rank curve, scoped out of this pass on purpose.
 - **Survey/charting contracts + POI map marks:** the map becomes a diary;
-  the deep band past Verge becomes a place (fuel/hull-gated, portless).
-- **Station moods** (boom/shortage/lockdown/festival) reading and writing
-  port standing and prices.
+  the deep band past Verge becomes a place (fuel/hull-gated, portless). Still
+  open — next up per CORE_LOOP.md's build order.
+- **Loyalty missions** and **station moods**: still open.
 - Exit gate: a tester who ignores every campaign reports wanting *something*
   at day 80.
 

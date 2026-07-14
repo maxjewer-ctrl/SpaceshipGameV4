@@ -141,7 +141,23 @@ The rule: **campaigns knock; they never enter uninvited.**
    want, which is the economy-ceiling fix. Save v11 grandfathers old modules
    to Mk-I. 13 tests. Still open: parts-with-provenance / used-module market
    (the "salvaged, runs hot but never lies" flavor layer on top of this).
-3. **Veterancy ranks + scars** (pillar 2) — data model first, barks read it.
+3. ✅ **Veterancy ranks** (pillar 2) — shipped (systems/veterancy.ts). Rank is
+   fully derived (mirrors trustTier's pattern — never stored, never migrated):
+   Green → Seasoned (10 days aboard + 3 events survived in role) → Veteran (25
+   days + 8 events). `eventsInRole` increments at real per-role pressure
+   moments — a gunner's combat win, a pilot's meteor-swarm dodge, a mechanic's
+   jury-rig, a medic's sick-passenger save, a quartermaster's contract closed,
+   a cook's ten-day stretch with nobody going hungry — each wired at its
+   existing resolution point in combat.ts/events.ts/travel.ts. Rank feeds
+   directly into the same stats()/foodPerDay()/bribeCost() slots
+   perkActive() already stacks onto (a Veteran gunner deals more damage than
+   perk alone, a Veteran pilot burns less fuel), and a bark fires the instant
+   a crew member crosses a threshold. Rank shows in the crew roster sidebar
+   and the crew-talk header. Scars/learned traits (steady_under_fire,
+   flinches_at_static) — the other half of this bullet — deliberately scoped
+   out as separate follow-up work: they're event-triggered rather than a rank
+   curve, and gate barks/mechanics through a different mechanism (extending
+   `gateOk()` beyond generated `bundle.traits`). 11 new vitest cases.
 4. **Survey contracts + POI map marks** (pillar 4).
 5. **Loyalty missions** (pillar 2, biggest content lift, best payoff).
 6. **Station moods** (pillar 3, after standing works).

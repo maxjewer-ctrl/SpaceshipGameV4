@@ -23,6 +23,7 @@ import { checkImogenQuest } from "./imogenquest";
 import { checkJunoArc } from "./junodialogue";
 import { bumpStanding } from "./port";
 import { accrueWear } from "./wear";
+import { rankBoost, markVeteranEvent } from "./veterancy";
 import type { Job } from "../types";
 
 export function depart(destId: string) {
@@ -112,6 +113,12 @@ export function dayTick(traveling: boolean) {
     if (S.starve >= 2) log("⚠ STARVING — buy food, fast.");
   } else {
     S.starve = 0;
+    // A cook keeping the whole crew fed, week after week, is the job —
+    // credit it periodically rather than every single clean day.
+    if (st.has("cook") && S.day % 10 === 0) {
+      const cook = S.crew.find((c) => c.role === "cook");
+      if (cook) markVeteranEvent(cook);
+    }
   }
   // salaries
   const pay = salaries();
@@ -134,8 +141,9 @@ export function dayTick(traveling: boolean) {
   // mechanic works in flight: hull first, then jury-rigging broken modules
   if (traveling && st.has("mechanic")) {
     const mechPerk = perkActive("mechanic");
+    const mech = S.crew.find((c) => c.role === "mechanic");
     if (S.hull < S.hullMax) {
-      const amt = (st.active("workshop") > 0 ? 6 : 3) + (mechPerk ? 2 : 0);
+      const amt = ((st.active("workshop") > 0 ? 6 : 3) + (mechPerk ? 2 : 0)) * (mech ? rankBoost(S.crew, "mechanic") : 1);
       S.hull = Math.min(S.hullMax, S.hull + amt);
     }
     const dmgd = S.modules.filter((m) => m.dmg);
@@ -144,6 +152,7 @@ export function dayTick(traveling: boolean) {
       m.dmg = false;
       powerRebalance();
       log(`🔧 Your mechanic jury-rigs the ${MODS[m.t].n} back online. It sounds wrong, but it works.`);
+      if (mech) markVeteranEvent(mech);
     }
   }
   // deadlines
@@ -242,7 +251,11 @@ export function arrive() {
 export function completePay(j: Job) {
   const st = stats();
   let pay = j.pay;
-  if (st.has("quartermaster")) pay = Math.round(pay * (perkActive("quartermaster") ? 1.22 : 1.15));
+  const qm = S.crew.find((c) => c.role === "quartermaster");
+  if (st.has("quartermaster")) {
+    pay = Math.round(pay * (perkActive("quartermaster") ? 1.22 : 1.15) * (qm ? rankBoost(S.crew, "quartermaster") : 1));
+    if (qm) markVeteranEvent(qm);
+  }
   // A captain still moonlighting as their own pre-command specialty isn't
   // giving contracts full attention — a standing incentive to hire the role.
   if (captainDoubleHatting()) pay = Math.round(pay * 0.9);
@@ -252,6 +265,8 @@ export function completePay(j: Job) {
   }
   if (j.pax && j.pax.sick && st.has("medic") && perkActive("medic")) {
     log(`${j.pax.name} disembarks fighting fit — your medic wouldn't let it go any other way. Full pay.`);
+    const medic = S.crew.find((c) => c.role === "medic");
+    if (medic) markVeteranEvent(medic);
   } else if (j.pax && j.pax.sick) {
     pay = Math.round(pay * 0.5);
     S.prestige = Math.max(0, S.prestige - 1);
