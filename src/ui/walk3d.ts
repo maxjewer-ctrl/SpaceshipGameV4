@@ -12,7 +12,7 @@ import { fork } from "../rng";
 import { MODS } from "../content";
 import { cargoUsed } from "../derive";
 import { wearTier } from "../systems/wear";
-import type { WalkActor, WalkDoor, WalkScene, ShipBerth } from "./walk";
+import type { WalkActor, WalkDoor, WalkScene, WalkRect, ShipBerth } from "./walk";
 import { spawnProp } from "./props3d";
 import { buildCharacter, poseCharacter, type CharacterRig } from "./character3d";
 import { createPlayerModel, disposePlayerModel, MODEL_HEIGHT, type PlayerModel } from "./playerModel3d";
@@ -45,7 +45,13 @@ let actorRigs = new Map<string, CharacterRig>();
 let captainModel: PlayerModel | null = null;
 let captainModelPending: Promise<PlayerModel> | null = null;
 let captainModelToken = 0;
-let lastCaptainModelTime = 0;
+let lastFrameTime = 0;
+// The avatar's eased yaw, in radians. Chases the sim's movement heading rather
+// than tracking it exactly, so the captain banks through a turn.
+let avatarYaw = 0;
+// rad/s of turn authority: a 180 reverse settles in ~0.25s — quick enough to
+// feel responsive, slow enough that the turn is legible.
+const TURN_RATE = 12;
 let flashlight: THREE.SpotLight | null = null;
 let composer: EffectComposer | null = null;
 let bloomPass: UnrealBloomPass | null = null;
@@ -57,6 +63,14 @@ let signature = "";
 // only what's actually interactable competes for the player's eye.
 let doorLabels = new Map<WalkDoor, THREE.Sprite>();
 let actorLabels = new Map<WalkActor, THREE.Sprite>();
+// Camera-side (south) room walls, each carrying its own material clone so the
+// room the player is standing in can dissolve its near wall and let him be seen.
+let fadeWalls: THREE.Mesh[] = [];
+// Room ceiling labels, by room id — faded out for the room you're standing in.
+let roomLabels = new Map<string, THREE.Sprite>();
+// What a faded-out near wall drops to — not 0, so the room still reads as
+// bounded and you can see where the bulkhead is.
+const WALL_FADE = 0.06;
 const LABEL_DIM = 0.32;
 // Match the crew (fitCrewModel's 1.28 default) -- the captain was half their
 // height, and the combat FX already assume an adult: muzzle flashes and tracers
@@ -490,6 +504,55 @@ function addModelProp(
   });
 }
 
+// --- doorways -------------------------------------------------------------
+// A room's walls were four solid slabs, but the floor plan always had a gap
+// where you come in: every module bay reaches the spine down a connector rect,
+// and the cockpit/engine sit astride the spine itself. Nothing cut that gap out
+// of the geometry, so the way in read as a bulkhead you phased straight
+// through. These find, per edge, the spans where another floor meets this room
+// from OUTSIDE, and the wall gets built around them.
+type Span = [number, number];
+
+function mergeSpans(spans: Span[]): Span[] {
+  if (!spans.length) return [];
+  const s = spans.map((x) => [...x] as Span).sort((a, b) => a[0] - b[0]);
+  const out: Span[] = [s[0]];
+  for (const [a, b] of s.slice(1)) {
+    const last = out[out.length - 1];
+    if (a <= last[1] + 1) last[1] = Math.max(last[1], b);
+    else out.push([a, b]);
+  }
+  return out;
+}
+
+// Openings along one edge of `r`, in game units. A floor only counts if it
+// REACHES the edge and carries on past it — a rect that merely starts flush
+// with the edge on the inside (the spine begins exactly at the cockpit's west
+// wall) is not a way out and must not punch a hole.
+function doorSpans(r: WalkRect, floors: WalkRect[], side: "n" | "s" | "w" | "e"): Span[] {
+  const EPS = 3, MIN_W = 14;
+  const spans: Span[] = [];
+  for (const f of floors) {
+    if (matchesRect(f, r)) continue; // the room's own floor
+    if (side === "n" || side === "s") {
+      const ey = side === "n" ? r.y : r.y + r.h;
+      const reaches = side === "n" ? f.y + f.h >= ey - EPS : f.y <= ey + EPS;
+      const beyond = side === "n" ? f.y < ey - EPS : f.y + f.h > ey + EPS;
+      if (!reaches || !beyond) continue;
+      const a = Math.max(f.x, r.x), b = Math.min(f.x + f.w, r.x + r.w);
+      if (b - a >= MIN_W) spans.push([a, b]);
+    } else {
+      const ex = side === "w" ? r.x : r.x + r.w;
+      const reaches = side === "w" ? f.x + f.w >= ex - EPS : f.x <= ex + EPS;
+      const beyond = side === "w" ? f.x < ex - EPS : f.x + f.w > ex + EPS;
+      if (!reaches || !beyond) continue;
+      const a = Math.max(f.y, r.y), b = Math.min(f.y + f.h, r.y + r.h);
+      if (b - a >= MIN_W) spans.push([a, b]);
+    }
+  }
+  return mergeSpans(spans);
+}
+
 function sprite(text: string, color = "#d7e6ff", scale = 1): THREE.Sprite {
   const c = document.createElement("canvas"); c.width = 512; c.height = 96;
   const x = c.getContext("2d")!; x.font = "600 30px Consolas, monospace"; x.textAlign = "center";
@@ -567,7 +630,7 @@ function addMachinery(g: THREE.Group, type: string, color: string, online: boole
 function rebuild() {
   if (!root || !current) return;
   root.remove(world); disposeObject(world); world = new THREE.Group(); root.add(world); actorMeshes.clear(); actorRigs.clear();
-  doorLabels = new Map(); actorLabels = new Map();
+  doorLabels = new Map(); actorLabels = new Map(); fadeWalls = []; roomLabels = new Map();
   const dark = !!current.dark;
   const isDustwell = current.id === "station:dustwell";
   const roomTextures: Record<string, THREE.Texture> = {
@@ -650,7 +713,48 @@ function rebuild() {
     // Dustwell's plank walls stay waist-high — the fixed top-down camera must
     // see over an outdoor town's fences, where a station's bulkheads can rise.
     const wallH=isDustwell?1.05:1.85;
-    [[w,.18,cx,cz-d/2],[w,.18,cx,cz+d/2],[.18,d,cx-w/2,cz],[.18,d,cx+w/2,cz]].forEach(([a,b,x,z])=>{const q=box(a as number,wallH,b as number,wallMat);q.position.set(x as number,wallH/2-.04,z as number);world.add(q);});
+    const T=.18;
+    // Clear height of a doorway. The captain stands 1.28, so 1.5 gives him
+    // headroom; Dustwell's waist-high fences can't carry a header at all, so
+    // their openings just run full height.
+    const doorH=Math.min(wallH,1.5);
+    const headerH=wallH-doorH;
+    // The camera sits south of and above the player (CAM_OFFSET_Z/+z), so it is
+    // the SOUTH wall that stands between it and him — from inside a bay its top
+    // edge cuts the captain off at the knees. Those get their own material so
+    // render() can fade them out without ghosting the other three.
+    const addWall=(side:"n"|"s"|"w"|"e",a:number,b:number,y:number,h:number)=>{
+      const horiz=side==="n"||side==="s";
+      const len=(b-a)*SCALE; if(len<.02||h<=.02) return;
+      const mid=(a+b)/2;
+      const fixed=side==="n"?r.y:side==="s"?r.y+r.h:side==="w"?r.x:r.x+r.w;
+      const m=side==="s"?wallMat.clone():wallMat;
+      const q=horiz?box(len,h,T,m):box(T,h,len,m);
+      q.position.set(horiz?wx(mid):wx(fixed),y+h/2,horiz?wz(fixed):wz(mid));
+      if(side==="s"){q.userData.roomId=r.id;q.userData.baseOpacity=m.opacity;fadeWalls.push(q);}
+      world.add(q);
+    };
+    for(const side of ["n","s","w","e"] as const){
+      const horiz=side==="n"||side==="s";
+      const lo=horiz?r.x:r.y, hi=horiz?r.x+r.w:r.y+r.h;
+      const gaps=doorSpans(r,current.floors,side);
+      // solid runs = the edge minus the openings
+      let cur=lo;
+      for(const [ga,gb] of gaps){ if(ga>cur) addWall(side,cur,Math.min(ga,hi),-.04,wallH); cur=Math.max(cur,gb); }
+      if(cur<hi) addWall(side,cur,hi,-.04,wallH);
+      // header beam over each opening, so the gap reads as a doorway cut through
+      // a bulkhead rather than a wall someone forgot to build
+      for(const [ga,gb] of gaps) addWall(side,ga,gb,doorH-.04,headerH);
+      // Jambs framing the opening. Kept thin and only faintly lit: at four per
+      // room across a whole concourse, anything chunkier reads as a colonnade of
+      // glowing pillars rather than a door frame.
+      if(!isDustwell) for(const [ga,gb] of gaps) for(const e of [ga,gb]){
+        const j=box(horiz?.05:.07,doorH,horiz?.07:.05,mat(c,.22));
+        const fixed=side==="n"?r.y:side==="s"?r.y+r.h:side==="w"?r.x:r.x+r.w;
+        j.position.set(horiz?wx(e):wx(fixed),doorH/2-.04,horiz?wz(fixed):wz(e));
+        world.add(j);
+      }
+    }
     // Corner posts mark room boundaries. Ships get quiet illuminated pylons —
     // toned down from the original pass, which ran four saturated neon rods
     // per room at full room height; across several adjacent bays that read as
@@ -660,7 +764,7 @@ function rebuild() {
     const pylonH=isDustwell?1.25:1.9, pylonMat=isDustwell?mat("#5a3d26",.04):mat(c,.2), pylonW=isDustwell?.13:.1;
     for(const [px,pz] of [[cx-w/2,cz-d/2],[cx+w/2,cz-d/2],[cx-w/2,cz+d/2],[cx+w/2,cz+d/2]]){const p=box(pylonW,pylonH,pylonW,pylonMat);p.position.set(px,pylonH/2,pz);world.add(p);}
     const trim=box(Math.max(.5,w-.3),.04,.05,mat(c,isDustwell?.45:.35)); trim.position.set(cx,.04,cz-d/2+.12); world.add(trim);
-    const label=sprite(`${r.icon||""} ${r.label}`.trim(),c,.62); label.position.set(cx,2.72,cz); world.add(label);
+    const label=sprite(`${r.icon||""} ${r.label}`.trim(),c,.62); label.position.set(cx,2.72,cz); world.add(label); roomLabels.set(r.id,label);
     if(r.kind==="cockpit"){
       const glass=box(Math.max(1,w*.7),1.15,.04,mat("#071323",.15));glass.position.set(cx,.78,cz-d/2+.1);world.add(glass);
       const stars=new THREE.BufferGeometry(),pts:number[]=[];for(let i=0;i<45;i++)pts.push(cx-w*.3+((i*37)%97)/97*w*.6,.35+((i*53)%83)/83,.01+cz-d/2);
@@ -752,8 +856,9 @@ export function mount(container: HTMLElement | null, s: WalkScene, actions: {mov
 }
 function resize(){if(!renderer||!camera||!host)return;const r=host.getBoundingClientRect();const w=Math.max(1,r.width),h=Math.max(1,r.height);renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();composer?.setSize(w,h);const pr=Math.min(devicePixelRatio,1.5);crtPass?.uniforms.resolution.value.set(w*pr,h*pr);}
 export function setScene(s: WalkScene){current=s;const sig=s.id+"|"+s.rooms.map(r=>`${r.id}:${r.moduleType}:${r.moduleIndex}`).join()+"|"+s.doors.map(d=>d.label+d.locked).join()+"|"+s.actors.map(a=>a.key).join()+"|"+(s.ship?`${s.ship.x},${s.ship.y},${s.ship.facing}`:"")+"|"+S.modules.map(m=>`${m.t}${m.on}${m.dmg}${wearTier(m)}`).join();if(sig!==signature){signature=sig;rebuild();}}
-export function render(v:{pos:{x:number;y:number};facing:string;moving:boolean;phase:number;nearDoor:WalkDoor|null;nearActor:WalkActor|null;time:number;aim:{x:number;y:number};rolling:boolean;rollCooldown:number;projectiles:Array<{x:number;y:number}>;dummy:{x:number;y:number;hp:number;hit:number}|null;highlightKey:string|null;enemies?:Array<{x:number;y:number;hp:number;maxhp:number;hit:number;kind:string;size?:number;color?:string;telegraph?:number}>;foeShots?:Array<{x:number;y:number}>;playerHit?:number;debris?:Array<{x:number;y:number;color:string;life:number}>;shake?:number;muzzle?:number;shotColor?:string;rollTrail?:number;melee?:number}){
+export function render(v:{pos:{x:number;y:number};facing:string;heading?:number;moving:boolean;phase:number;nearDoor:WalkDoor|null;nearActor:WalkActor|null;time:number;aim:{x:number;y:number};rolling:boolean;rollCooldown:number;projectiles:Array<{x:number;y:number}>;dummy:{x:number;y:number;hp:number;hit:number}|null;highlightKey:string|null;enemies?:Array<{x:number;y:number;hp:number;maxhp:number;hit:number;kind:string;size?:number;color?:string;telegraph?:number}>;foeShots?:Array<{x:number;y:number}>;playerHit?:number;debris?:Array<{x:number;y:number;color:string;life:number}>;shake?:number;muzzle?:number;shotColor?:string;rollTrail?:number;melee?:number}){
   if(!renderer||!root||!camera||!current)return; const x=wx(v.pos.x),z=wz(v.pos.y);avatar.position.set(x,0,z);
+  const dt=Math.min(.05,Math.max(0,(v.time-lastFrameTime)/1000||.016)); lastFrameTime=v.time;
   if(!captainModel&&!captainModelPending){
     const token=++captainModelToken;
     captainModelPending=createPlayerModel(true).then((model)=>{
@@ -768,21 +873,47 @@ export function render(v:{pos:{x:number;y:number};facing:string;moving:boolean;p
     });
   }
   if(captainModel){
-    const dt=Math.min(.05,Math.max(0,(v.time-lastCaptainModelTime)/1000||.016));
-    lastCaptainModelTime=v.time;
     if(captainModel.walk) captainModel.walk.timeScale=v.moving?1:0;
     captainModel.mixer?.update(dt);
   }
   for(const a of current.actors){const r=actorRigs.get(a.key);if(r)poseCharacter(r,{t:v.time+(a.x*131)%997});}
   avatar.rotation.z=v.rolling?-.45:0;avatar.scale.setScalar(v.rolling?.82:1);
-  const ang=v.facing==="right"?Math.PI/2:v.facing==="left"?-Math.PI/2:v.facing==="up"?Math.PI:0;avatar.rotation.y=ang;
+  // Turn toward the true movement heading rather than snapping to one of four
+  // cardinals: diagonals and click-to-move now read as a real turn. Only the
+  // target angle comes from the sim -- the easing lives here, so a 45-degree
+  // course change sweeps through the intermediate angles instead of popping.
+  // Shortest-arc so crossing the +/-PI seam doesn't spin the model the long way.
+  const targetYaw=v.heading??(v.facing==="right"?Math.PI/2:v.facing==="left"?-Math.PI/2:v.facing==="up"?Math.PI:0);
+  let dy=targetYaw-avatarYaw;
+  dy=Math.atan2(Math.sin(dy),Math.cos(dy));
+  avatarYaw+=dy*Math.min(1,dt*TURN_RATE);
+  avatar.rotation.y=avatarYaw;
   const room=current.rooms.find(r=>v.pos.x>=r.x&&v.pos.x<=r.x+r.w&&v.pos.y>=r.y&&v.pos.y<=r.y+r.h);const shake=room?.kind==="engine"?Math.sin(v.time*.045)*.025:0;
+  // Dissolve the near wall of the room you're standing in. Without this the
+  // south bulkhead's top edge sits between the camera and the captain and slices
+  // him off at the knees the moment he steps into a bay.
+  for(const wmesh of fadeWalls){
+    const m=wmesh.material as THREE.MeshStandardMaterial;
+    const base=wmesh.userData.baseOpacity as number;
+    const want=wmesh.userData.roomId===room?.id?WALL_FADE:base;
+    m.opacity+=(want-m.opacity)*Math.min(1,dt*8);
+  }
+  // Same story for the room's ceiling label: it hangs above the room's centre,
+  // which from an overhead camera projects straight onto the captain's chest.
+  // You know which room you walked into — fade the one you're in.
+  for(const r of current.rooms){
+    const l=roomLabels.get(r.id); if(!l) continue;
+    const want=r.id===room?.id?0:1;
+    const m=l.material as THREE.SpriteMaterial;
+    m.opacity+=(want-m.opacity)*Math.min(1,dt*8);
+    l.visible=m.opacity>.02;
+  }
   const target=new THREE.Vector3(x+shake,CAM_HEIGHT,z+CAM_OFFSET_Z);camera.position.lerp(target,.09);
   // Combat screen-shake: jitter the eye (not the look target) so a kill or a hit
   // gives the whole viewport a satisfying kick that settles fast.
   if(v.shake&&v.shake>0){const s=Math.min(1.3,v.shake);camera.position.x+=Math.sin(v.time*.13)*s*.14;camera.position.z+=Math.cos(v.time*.19)*s*.14;camera.position.y+=Math.sin(v.time*.23)*s*.06;}
   camera.lookAt(x,.45,z);
-  if(flashlight){flashlight.position.set(x,1.25,z);flashlight.target.position.set(x+Math.sin(ang)*4,.45,z+Math.cos(ang)*4);}
+  if(flashlight){flashlight.position.set(x,1.25,z);flashlight.target.position.set(x+Math.sin(avatarYaw)*4,.45,z+Math.cos(avatarYaw)*4);}
   for(const a of current.actors){const g=actorMeshes.get(a.key);if(!g)continue;g.position.set(wx(a.x+a.w/2),0,wz(a.y+a.h/2));if(a.bubble&&!g.getObjectByName("bubble")){const b=sprite(a.bubble,"#fff",.65);b.name="bubble";b.position.y=2.55;g.add(b);}else if(!a.bubble){const b=g.getObjectByName("bubble");if(b){g.remove(b);disposeObject(b);}}}
   // A room full of nametags/door labels reads as a wall of overlapping text;
   // fade everything but whatever's actually interactable right now so the
@@ -819,4 +950,4 @@ export function render(v:{pos:{x:number;y:number};facing:string;moving:boolean;p
   // ever-larger numbers for no visual benefit.
   if(composer){if(crtPass)crtPass.uniforms.time.value=(v.time*.001)%1000;composer.render();}else renderer.render(root,camera);
 }
-export function teardown(){resizeObserver?.disconnect();resizeObserver=null;if(renderer&&clickHandler)renderer.domElement.removeEventListener("pointerdown",clickHandler);clickHandler=null;captainModelToken++;disposePlayerModel(captainModel);captainModel=null;captainModelPending=null;lastCaptainModelTime=0;if(root)disposeObject(root);composer?.dispose();bloomPass?.dispose();composer=null;bloomPass=null;crtPass=null;renderer?.dispose();renderer?.domElement.remove();renderer=null;root=null;camera=null;flashlight=null;current=null;host=null;signature="";world=new THREE.Group();avatar=new THREE.Group();actionFx=new THREE.Group();actorMeshes.clear();actorRigs.clear();doorLabels=new Map();actorLabels=new Map();aimCallback=null;fireCallback=null;}
+export function teardown(){resizeObserver?.disconnect();resizeObserver=null;if(renderer&&clickHandler)renderer.domElement.removeEventListener("pointerdown",clickHandler);clickHandler=null;captainModelToken++;disposePlayerModel(captainModel);captainModel=null;captainModelPending=null;lastFrameTime=0;avatarYaw=0;if(root)disposeObject(root);composer?.dispose();bloomPass?.dispose();composer=null;bloomPass=null;crtPass=null;renderer?.dispose();renderer?.domElement.remove();renderer=null;root=null;camera=null;flashlight=null;current=null;host=null;signature="";world=new THREE.Group();avatar=new THREE.Group();actionFx=new THREE.Group();actorMeshes.clear();actorRigs.clear();doorLabels=new Map();actorLabels=new Map();fadeWalls=[];roomLabels=new Map();aimCallback=null;fireCallback=null;}

@@ -106,9 +106,15 @@ export function evPirates() {
 // "Battle stations" used to chain "closeModal(); startCombat(...)" in one
 // onclick string — same reason as closeThenLog above, hardcoded to this
 // call site's exact callbacks (matches the original inline args).
-export function pirateEngage(e: Enemy) { closeModal(); startCombat(e, pirateWin, pirateLoseFlee); }
-export function pirateWin() {
-  const loot = ri(100, 300);
+export function pirateEngage(e: Enemy) { closeModal(); startCombat(e, () => pirateWin(e), pirateLoseFlee); }
+// The wreck pays out what the ship was worth. This used to roll a flat
+// ri(100,300) and never look at the enemy, so every hostile's authored loot
+// (drone 60 ... lane-wolf 340) was dead and a 16-hull scav drone paid the same
+// average as a 62-hull gunship -- the safest fight in the game was also the
+// best-value one. Keep a little spread so the number isn't a constant.
+export function pirateWin(e?: Enemy) {
+  const base = e?.loot ?? 200;
+  const loot = ri(Math.round(base * 0.85), Math.round(base * 1.15));
   S.credits += loot; S.prestige += 2;
   log(`Pirates destroyed. Salvaged ${loot}cr from the wreck. (+2 prestige)`);
 }
@@ -138,8 +144,10 @@ export function pirateBribe(base: number) {
   log(`Paid ${cost}cr in "docking fees." The pirates wave politely and burn away.`);
 }
 function evPiratesForce(base: number) {
-  const e = base > 200 ? { name: "Pirate Corsair", hull: 55, dmg: 12 } : { name: "Pirate Skiff", hull: 32, dmg: 8 };
-  startCombat(e, pirateWin, pirateLoseFlee);
+  const e: Enemy = base > 200
+    ? { name: "Pirate Corsair", hull: 55, dmg: 12, loot: 250 }
+    : { name: "Pirate Skiff", hull: 32, dmg: 8, loot: 130 };
+  startCombat(e, () => pirateWin(e), pirateLoseFlee);
 }
 export function pirateSurrender() {
   const lost = S.cargo.ore + S.cargo.med + S.cargo.lux;

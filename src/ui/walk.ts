@@ -108,6 +108,12 @@ let mountedId: string | null = null;
 const savedPos: Record<string, { x: number; y: number }> = {};
 let pos = { x: 0, y: 0 };
 let facing: "up" | "down" | "left" | "right" = "down";
+// The continuous movement heading, in the same convention walk3d wants for
+// avatar.rotation.y: atan2(vx, vy), so +y (screen-down) is 0 and +x is PI/2.
+// `facing` stays a 4-way enum because the 2D fallback sprite and the combat aim
+// code are built on it; the 3D presenter turns the model to `heading` instead,
+// so diagonal and click-to-move travel no longer snaps to a cardinal.
+let heading = 0;
 let walkPhase = 0;
 let moving = false;
 const keys = new Set<string>();
@@ -274,7 +280,7 @@ export function start(s: WalkScene) {
   scene = s;
   mountedId = s.id;
   pos = savedPos[s.id] ? { ...savedPos[s.id] } : { ...s.spawn };
-  facing = "down"; walkPhase = 0; moving = false; keys.clear();
+  facing = "down"; heading = 0; walkPhase = 0; moving = false; keys.clear();
   nearDoor = null; nearActor = null;
   lastRenderAt = 0; wasModal = false; // force an immediate first render on mount
   viewport = document.getElementById("walk-viewport");
@@ -527,7 +533,7 @@ export function debugRenderCount() { return renderCount; }
 function drawFrame() {
   if (!scene) return;
   renderCount++;
-  walk3d?.render({ pos, facing, moving, phase: walkPhase, nearDoor, nearActor, time: last, aim, rolling: rollTime > 0, rollCooldown, projectiles, dummy, highlightKey, enemies, foeShots, playerHit, debris, shake: shakeAmt, muzzle, shotColor: playerMods.color, rollTrail, melee: meleeTime });
+  walk3d?.render({ pos, facing, heading, moving, phase: walkPhase, nearDoor, nearActor, time: last, aim, rolling: rollTime > 0, rollCooldown, projectiles, dummy, highlightKey, enemies, foeShots, playerHit, debris, shake: shakeAmt, muzzle, shotColor: playerMods.color, rollTrail, melee: meleeTime });
   updateHud();
 }
 
@@ -617,6 +623,7 @@ function simulate(dt: number) {
       } else { clickStuck = 0; }
       if (Math.abs(vx) > Math.abs(vy)) facing = vx > 0 ? "right" : "left";
       else if (vy !== 0) facing = vy > 0 ? "down" : "up";
+      heading = Math.atan2(vx, vy);
       walkPhase += dt * 9;
     }
     // juice decay + debris drift (every frame, cheap when empty)
@@ -649,6 +656,14 @@ function simulate(dt: number) {
     nearActor = null;
     let bestA = 40;
     for (const a of scene.actors) { const dd = Math.hypot(pos.x - (a.x + a.w / 2), pos.y - (a.y + a.h / 2)); if (dd < bestA) { bestA = dd; nearActor = a; } }
+    // When a door pad and an actor overlap, whichever you're actually standing
+    // on wins. interact() runs doors first, so without this the cockpit's
+    // "Ship's console" pad — which lies directly over the captain's chair —
+    // shadowed the chair permanently and sitChair could never fire.
+    if (nearDoor && nearActor) {
+      if (rectDist(pos.x, pos.y, nearActor) < rectDist(pos.x, pos.y, nearDoor)) nearDoor = null;
+      else nearActor = null;
+    }
     scene.onTick?.(moving, dt, roomAt(pos.x, pos.y)?.id ?? null);
   } else {
     moving = false;

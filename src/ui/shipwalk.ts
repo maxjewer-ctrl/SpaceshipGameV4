@@ -190,7 +190,10 @@ export function buildShipScene(): WalkScene {
       key: `module:${index}`, label: md.n, icon: md.icon, color: CAT_COLOR[modCategory(m.t)], verb: "Inspect", onInteract: () => wkInspect(index) });
   });
 
-  actors.push({ x: cockpit.x + cockpit.w / 2 - 14, y: cockpit.y + cockpit.h - 52, w: 28, h: 28,
+  // Centred on the chair model itself (walk3d's spawnCockpitProps puts it .48
+  // world-units aft of room centre = 24 game units), so the prompt appears when
+  // you're standing at the chair you can see, not a stride behind it.
+  actors.push({ x: cockpit.x + cockpit.w / 2 - 14, y: cockpit.y + cockpit.h - 65, w: 28, h: 28,
     key: "captains-chair", label: "captain's chair", icon: "🪑", color: "#e8b04b", verb: "Sit in", onInteract: sitChair });
 
   // Crew stand at a post that matches their job, falling back to quarters
