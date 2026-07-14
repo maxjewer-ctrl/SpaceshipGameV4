@@ -10,6 +10,8 @@
 // render. walk.ts owns the moment-to-moment fight (enemies, projectiles, the
 // vitality pool); this file owns the run around it.
 import { S, log, whisper } from "../state";
+import { GOODS } from "../content";
+import { stats, cargoUsed } from "../derive";
 import { modal, closeModal } from "../modal";
 import { requestRender } from "../bus";
 import { rand, ri, pick } from "../rng";
@@ -62,6 +64,10 @@ const SPAWN = { x: 450, y: 585 };  // bottom-centre entrance
 
 export function zoneActive() { return !!Z && !Z.ended; }
 
+// An injury from a downed run nags for days: it caps your on-foot vitality until
+// it heals (faster with a med bay aboard). Read by startZone and the caution bar.
+export function captainInjured() { return (S.flags.injuredUntil ?? 0) > S.day; }
+
 // Assign arena positions to a generated chamber's enemies. The boss holds the
 // centre-high ground; the rest fan out across the upper arena, away from the
 // entrance. Placement is seeded (done once at startZone), never per-render.
@@ -82,7 +88,9 @@ function stage(gc: GenChamber): Chamber {
 // Assemble a seeded run from a biome's data (content/zones.json).
 export function startZone(cfg: { biome?: string; chambers?: number; vitality?: number; returnScreen?: string; onExit?: (r: ZoneResult) => void } = {}) {
   const run = generateRun(cfg.biome ?? "derelict", cfg.chambers);
-  const vitMax = cfg.vitality ?? 100;
+  const hurt = captainInjured();
+  const vitMax = Math.round((cfg.vitality ?? 100) * (hurt ? .72 : 1));
+  if (hurt) whisper("You go in still carrying the last one's injury — you can't take as many hits.");
   Z = {
     biome: run.biome, title: run.title, chambers: run.chambers.map(stage), rewards: run.rewards,
     index: 0, cleared: false, exits: null,
@@ -206,11 +214,23 @@ function endZone(won: boolean) {
     const bonus = 100 + z.chambers.length * 40;
     z.payout += bonus;
     S.credits += z.payout;
+    S.flags.incursionsCleared = (S.flags.incursionsCleared ?? 0) + 1;
     log(`Incursion complete — ${z.chambers.length} chambers cleared, extracted with ${z.payout}cr in salvage.`);
+    // Tangible salvage: fill the hold with what you hauled out, scaled by depth.
+    const space = stats().cargoCap - cargoUsed();
+    if (space >= 1) {
+      const g = pick(["ore", "med", "lux"]);
+      const n = Math.min(space, ri(1, 1 + z.chambers.length));
+      if (n > 0) { S.cargo[g] += n; log(`You haul ${n} ${GOODS[g].n} of salvage out of the wreck with you.`); }
+    }
   } else {
     const kept = Math.floor(z.payout * 0.3);
     if (kept > 0) S.credits += kept;
-    log(`You bail out of the incursion at chamber ${z.index + 1}. ${kept > 0 ? `Kept ${kept}cr of what you'd banked.` : "Nothing to show for it."}`);
+    // A downed run leaves a mark: an injury that caps vitality for days. A med
+    // bay aboard means you're patched up sooner.
+    const heals = stats().active("medbay") > 0;
+    S.flags.injuredUntil = S.day + (heals ? 3 : 6);
+    log(`You bail out of the incursion at chamber ${z.index + 1}, hurt. ${kept > 0 ? `Kept ${kept}cr. ` : ""}The injury will nag until day ${S.flags.injuredUntil}.`);
   }
   const result: ZoneResult = { won, chambersCleared: won ? z.chambers.length : z.index, payout: won ? z.payout : Math.floor(z.payout * 0.3) };
   const cb = z.onExit;

@@ -17,7 +17,7 @@ vi.mock("../src/ui/walk3d", () => ({
 import { loadScenario } from "../src/debug/scenarios";
 import * as walk from "../src/ui/walk";
 import type { WalkScene, WalkCombat } from "../src/ui/walk";
-import { startZone, buildZoneScene, zoneActive, zoneMods } from "../src/ui/zonewalk";
+import { startZone, buildZoneScene, zoneActive, zoneMods, zoneBail, captainInjured } from "../src/ui/zonewalk";
 import { defaultMods } from "../src/ui/walk";
 import { generateRun } from "../src/systems/zonegen";
 import { derelictBoard } from "../src/systems/events";
@@ -228,6 +228,39 @@ describe("run boons (Phase D)", () => {
     boon!.action();
 
     expect(JSON.stringify(zoneMods())).not.toBe(base); // the gun changed
+  });
+});
+
+describe("stakes: injury + salvage loot (Phase D)", () => {
+  it("an injury caps the next run's starting vitality", () => {
+    loadScenario("fresh"); walk.teardown();
+    S.flags.injuredUntil = S.day + 5;
+    expect(captainInjured()).toBe(true);
+    startZone({ biome: "derelict", chambers: 2, vitality: 100, returnScreen: "ship" });
+    expect(buildZoneScene().combat?.vitality).toBe(72);   // 100 × .72
+  });
+
+  it("a cleared run banks salvage cargo and counts the clear", () => {
+    loadScenario("trader"); walk.teardown();
+    delete S.flags.injuredUntil;
+    S.cargo = { ore: 0, med: 0, lux: 0 };                  // make hold room for salvage
+    const cleared0 = S.flags.incursionsCleared ?? 0;
+    S.rngState = 5;
+    startZone({ biome: "derelict", chambers: 2, vitality: 100, returnScreen: "ship" });
+    runIncursionToExtract();
+    expect(zoneActive()).toBe(false);
+    expect(S.flags.incursionsCleared).toBe(cleared0 + 1);
+    expect(S.cargo.ore + S.cargo.med + S.cargo.lux).toBeGreaterThan(0);
+  });
+
+  it("a downed run leaves the captain injured for days", () => {
+    loadScenario("fresh"); walk.teardown();
+    delete S.flags.injuredUntil;
+    startZone({ biome: "derelict", chambers: 2, returnScreen: "ship" });
+    zoneBail();                                            // the downed bail-out
+    expect(zoneActive()).toBe(false);
+    expect(S.flags.injuredUntil).toBeGreaterThan(S.day);
+    expect(captainInjured()).toBe(true);
   });
 });
 

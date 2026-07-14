@@ -172,9 +172,15 @@ The fun layer. Landed:
   a pulsing warning ring and locks its aim — so hits are dodgeable if you read
   the tell. Behaviour is data (`ZoneEnemyDef.behavior`), validated by the lint.
 
-Still to wire: end-of-zone payout to cargo/parts + ledger, crew perks + one
-gambit, injury-on-downed.
-- **Deliverable:** runs that escalate and pay out.
+- **Stakes — injury + salvage** (`zonewalk.ts`) — a win now hauls tangible
+  salvage cargo out of the wreck (scaled by depth) on top of the credit payout,
+  and counts the clear (`S.flags.incursionsCleared`). A downed run leaves the
+  captain **injured**: on-foot vitality is capped (×0.72) for several days
+  (fewer with a med bay aboard), surfaced on the master-caution bar. Runs now
+  cost something when they go wrong and give something real when they go right.
+
+Still to wire: crew perks + one gambit, a survey-POI map entrance.
+- **Deliverable:** runs that escalate and pay out. ✅ (payout, salvage, stakes)
 
 ### Phase E — World integration 🚧 IN PROGRESS
 Launch zones from real play, not a debug command. Landed so far:

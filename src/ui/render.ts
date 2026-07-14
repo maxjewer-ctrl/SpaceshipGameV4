@@ -75,6 +75,7 @@ export function cautions(): Caution[] {
   if (S.fuel < st.fuelDay * 2) out.push({ t: `FUEL RESERVE LOW — ${Math.floor(S.fuel)} UNITS`, crit: S.fuel < st.fuelDay });
   if (S.food < foodPerDay() * 2) out.push({ t: `PROVISIONS LOW — ${Math.floor(S.food)} RATIONS`, crit: S.food < foodPerDay() });
   if (S.arc.stage === 5 && S.arc.deadline) out.push({ t: `RUN DEADLINE — DAY ${S.arc.deadline}`, crit: S.arc.deadline - S.day <= 2 });
+  if ((S.flags.injuredUntil ?? 0) > S.day) out.push({ t: `CAPTAIN INJURED — REDUCED VITALITY TIL DAY ${S.flags.injuredUntil}`, crit: false });
   return out.sort((a, b) => +b.crit - +a.crit);
 }
 
