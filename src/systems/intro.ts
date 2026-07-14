@@ -11,7 +11,7 @@
 // All of it writes to the real systems — ledger, disposition, riders — so the
 // choices you make before you've learned the controls still follow you.
 import { S, setState, newState, log } from "../state";
-import { modal, closeModal } from "../modal";
+import { modal, closeModal, clearModal } from "../modal";
 import { actionAttr } from "../dispatch";
 import { requestRender } from "../bus";
 import { clearSave } from "../state";
@@ -39,6 +39,7 @@ export function introStart() {
   const input = document.getElementById("shipnamein") as HTMLInputElement | null;
   const name = (input && input.value.trim()) || "Kestrel";
   const role = readCaptainRole();
+  clearModal();
   clearSave();
   setState(newState(name));
   S.captainName = getCaptainName();
