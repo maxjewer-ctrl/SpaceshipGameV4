@@ -19,22 +19,51 @@ export interface PropPlacement {
 }
 
 const loader = new GLTFLoader();
-const propModelUrls = import.meta.glob<string>(
-  [
-    "../assets/models/barrel-stack.glb",
-    "../assets/models/beacon-lamp.glb",
-    "../assets/models/cargo-crate.glb",
-    "../assets/models/cargo-hauler.glb",
-    "../assets/models/cargo-shuttle.glb",
-    "../assets/models/fuel-tank.glb",
-    "../assets/models/mooring-post.glb",
-    "../assets/models/satellite-dish.glb",
-    "../assets/models/water-tower.glb",
-    "../assets/models/windmill-turbine.glb",
-    "../assets/models/ship-*.glb",
-  ],
-  { query: "?url", import: "default" },
-);
+const propModelUrls: Record<string, string> = {
+  "barrel-stack": new URL("../assets/models/barrel-stack.glb", import.meta.url).href,
+  "beacon-lamp": new URL("../assets/models/beacon-lamp.glb", import.meta.url).href,
+  "cargo-crate": new URL("../assets/models/cargo-crate.glb", import.meta.url).href,
+  "cargo-hauler": new URL("../assets/models/cargo-hauler.glb", import.meta.url).href,
+  "cargo-shuttle": new URL("../assets/models/cargo-shuttle.glb", import.meta.url).href,
+  "cockpit-breaker-panel": new URL("../assets/models/cockpit-breaker-panel.glb", import.meta.url).href,
+  "cockpit-cable-tray": new URL("../assets/models/cockpit-cable-tray.glb", import.meta.url).href,
+  "cockpit-captains-chair": new URL("../assets/models/cockpit-captains-chair.glb", import.meta.url).href,
+  "cockpit-command-console": new URL("../assets/models/cockpit-command-console.glb", import.meta.url).href,
+  "cockpit-comms-radar-stack": new URL("../assets/models/cockpit-comms-radar-stack.glb", import.meta.url).href,
+  "cockpit-flight-recorder": new URL("../assets/models/cockpit-flight-recorder.glb", import.meta.url).href,
+  "cockpit-navigation-holo": new URL("../assets/models/cockpit-navigation-holo.glb", import.meta.url).href,
+  "cockpit-overhead-lockers": new URL("../assets/models/cockpit-overhead-lockers.glb", import.meta.url).href,
+  "fuel-tank": new URL("../assets/models/fuel-tank.glb", import.meta.url).href,
+  "mooring-post": new URL("../assets/models/mooring-post.glb", import.meta.url).href,
+  "satellite-dish": new URL("../assets/models/satellite-dish.glb", import.meta.url).href,
+  "water-tower": new URL("../assets/models/water-tower.glb", import.meta.url).href,
+  "windmill-turbine": new URL("../assets/models/windmill-turbine.glb", import.meta.url).href,
+  "ship-engine-core": new URL("../assets/models/ship-engine-core.glb", import.meta.url).href,
+  "ship-hydro-planter": new URL("../assets/models/ship-hydro-planter.glb", import.meta.url).href,
+  "ship-lux-berth": new URL("../assets/models/ship-lux-berth.glb", import.meta.url).href,
+  "ship-med-bed": new URL("../assets/models/ship-med-bed.glb", import.meta.url).href,
+  "ship-shield-generator": new URL("../assets/models/ship-shield-generator.glb", import.meta.url).href,
+  "ship-smuggler-hatch": new URL("../assets/models/ship-smuggler-hatch.glb", import.meta.url).href,
+  "ship-weapons-rack": new URL("../assets/models/ship-weapons-rack.glb", import.meta.url).href,
+  "ship-workbench": new URL("../assets/models/ship-workbench.glb", import.meta.url).href,
+  "station-auction-lot": new URL("../assets/models/station-auction-lot.glb", import.meta.url).href,
+  "station-cantina-booth": new URL("../assets/models/station-cantina-booth.glb", import.meta.url).href,
+  "station-customs-podium": new URL("../assets/models/station-customs-podium.glb", import.meta.url).href,
+  "station-drydock-toolcart": new URL("../assets/models/station-drydock-toolcart.glb", import.meta.url).href,
+  "station-listening-array": new URL("../assets/models/station-listening-array.glb", import.meta.url).href,
+  "station-market-kiosk": new URL("../assets/models/station-market-kiosk.glb", import.meta.url).href,
+  "station-memorial-lighthouse": new URL("../assets/models/station-memorial-lighthouse.glb", import.meta.url).href,
+  "station-recycler-line": new URL("../assets/models/station-recycler-line.glb", import.meta.url).href,
+  // Free CC0 clutter from Kenney's Space Kit (kenney.nl/assets/space-kit) —
+  // fills out common station rooms that don't have a bespoke Meshy prop.
+  "kenney-desk-computer": new URL("../assets/models/kenney-desk-computer.glb", import.meta.url).href,
+  "kenney-desk-chair": new URL("../assets/models/kenney-desk-chair.glb", import.meta.url).href,
+  "kenney-stool": new URL("../assets/models/kenney-stool.glb", import.meta.url).href,
+  "kenney-barrels": new URL("../assets/models/kenney-barrels.glb", import.meta.url).href,
+  "kenney-generator": new URL("../assets/models/kenney-generator.glb", import.meta.url).href,
+  "kenney-wireless": new URL("../assets/models/kenney-wireless.glb", import.meta.url).href,
+  "kenney-pipe-corner": new URL("../assets/models/kenney-pipe-corner.glb", import.meta.url).href,
+};
 const gltfCache = new Map<string, Promise<THREE.Group | null>>();
 
 function placeholderMesh(p: PropPlacement): THREE.Group {
@@ -54,11 +83,10 @@ function placeholderMesh(p: PropPlacement): THREE.Group {
 
 async function loadGltf(name: string): Promise<THREE.Group | null> {
   if (!gltfCache.has(name)) {
-    const urlLoader = propModelUrls[`../assets/models/${name}.glb`];
+    const url = propModelUrls[name];
     gltfCache.set(
       name,
-      (urlLoader ? urlLoader() : Promise.resolve(null))
-        .then((url) => url ? loader.loadAsync(url) : null)
+      (url ? loader.loadAsync(url) : Promise.resolve(null))
         .then((gltf) => {
           if (!gltf) return null;
           gltf.scene.traverse((o) => {

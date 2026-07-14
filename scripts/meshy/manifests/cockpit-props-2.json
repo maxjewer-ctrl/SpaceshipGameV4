@@ -1,0 +1,22 @@
+[
+  {
+    "name": "cockpit-overhead-lockers",
+    "pbr": true,
+    "prompt": "Stylized low-poly 3D game prop, compact spaceship cockpit overhead storage lockers, three shallow wall-mounted metal cabinets with latches, straps, worn blue-gray panels, tiny amber indicator lights, frontier ship interior style, readable from isometric camera, no readable text, no logo, no base, bright hand-painted PBR texture, optimized for Three.js."
+  },
+  {
+    "name": "cockpit-cable-tray",
+    "pbr": true,
+    "prompt": "Stylized low-poly 3D game prop, spaceship cockpit floor cable tray and conduit bundle, low rectangular grate with exposed colored cables, small junction box, scuffed dark metal, cyan maintenance light, readable from isometric camera, no readable text, no logo, no base, bright hand-painted PBR texture, optimized for Three.js."
+  },
+  {
+    "name": "cockpit-breaker-panel",
+    "pbr": true,
+    "prompt": "Stylized low-poly spaceship cockpit breaker panel, wall mounted switch box with guarded toggles, red and amber indicator lights, scratched gray metal, isometric game prop, no text, no logo, PBR texture."
+  },
+  {
+    "name": "cockpit-flight-recorder",
+    "pbr": true,
+    "prompt": "Stylized low-poly 3D game prop, rugged spaceship cockpit flight recorder case, small reinforced black box module with handle, shock mounts, orange data light, bolted bracket, worn frontier ship hardware, readable from isometric camera, no readable text, no logo, no base, bright hand-painted PBR texture, optimized for Three.js."
+  }
+]

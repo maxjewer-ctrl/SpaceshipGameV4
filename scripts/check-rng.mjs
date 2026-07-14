@@ -2,9 +2,10 @@
 // through the seeded stream (rand/ri/pick/fork); presentation/pre-game
 // randomness through uiRand. See BETA_PLAN.md §3.6.
 import { readdirSync, readFileSync, statSync } from "node:fs";
-import { join, relative } from "node:path";
+import { dirname, join, relative } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const ROOT = new URL("..", import.meta.url).pathname;
+const ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
 const SRC = join(ROOT, "src");
 const ALLOWED = new Set(["src/rng.ts"]);
 
@@ -14,7 +15,7 @@ const offenders = [];
     const p = join(dir, name);
     if (statSync(p).isDirectory()) { walk(p); continue; }
     if (!/\.(ts|tsx|js|mjs)$/.test(name)) continue;
-    const rel = relative(ROOT, p);
+    const rel = relative(ROOT, p).replaceAll("\\", "/");
     if (ALLOWED.has(rel)) continue;
     readFileSync(p, "utf8").split("\n").forEach((line, i) => {
       if (line.includes("Math.random") && !line.trimStart().startsWith("//")) {

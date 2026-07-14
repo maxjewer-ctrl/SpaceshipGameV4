@@ -15,6 +15,7 @@ import { wearTier } from "../systems/wear";
 import type { WalkActor, WalkDoor, WalkScene, ShipBerth } from "./walk";
 import { spawnProp } from "./props3d";
 import { buildCharacter, poseCharacter, type CharacterRig } from "./character3d";
+import { createPlayerModel, disposePlayerModel, type PlayerModel } from "./playerModel3d";
 import bulkheadWallUrl from "../assets/ship/bulkhead-wall.webp";
 import corridorWallUrl from "../assets/ship/corridor-wall.webp";
 import corridorFloorUrl from "../assets/ship/corridor-floor.webp";
@@ -41,7 +42,10 @@ let world = new THREE.Group();
 let avatar = new THREE.Group();
 let actorMeshes = new Map<string, THREE.Group>();
 let actorRigs = new Map<string, CharacterRig>();
-let captainRig: CharacterRig | null = null;
+let captainModel: PlayerModel | null = null;
+let captainModelPending: Promise<PlayerModel> | null = null;
+let captainModelToken = 0;
+let lastCaptainModelTime = 0;
 let flashlight: THREE.SpotLight | null = null;
 let composer: EffectComposer | null = null;
 let bloomPass: UnrealBloomPass | null = null;
@@ -150,16 +154,30 @@ const wz = (y: number) => (y - (current?.height || 0) / 2) * SCALE;
 const WARDROBE = ["#3a4a63", "#4f3a55", "#54402e", "#2f5240", "#5a3333", "#39505c", "#4a4436", "#333a52"];
 const SKIN3D = ["#c9977a", "#a8714f", "#8a5a3c", "#e0b490", "#6d4a33", "#b98a68"];
 const crewGltfLoader = new GLTFLoader();
-const crewModelUrls = import.meta.glob<string>("../assets/models/crew-*.glb", { query: "?url", import: "default" });
+const crewModelUrls: Record<string, string> = {
+  ada: new URL("../assets/models/crew-ada.glb", import.meta.url).href,
+  bapu: new URL("../assets/models/crew-bapu.glb", import.meta.url).href,
+  brix: new URL("../assets/models/crew-brix.glb", import.meta.url).href,
+  corbin: new URL("../assets/models/crew-corbin.glb", import.meta.url).href,
+  dez: new URL("../assets/models/crew-dez.glb", import.meta.url).href,
+  elias: new URL("../assets/models/crew-elias.glb", import.meta.url).href,
+  imogen: new URL("../assets/models/crew-imogen.glb", import.meta.url).href,
+  juno: new URL("../assets/models/crew-juno.glb", import.meta.url).href,
+  miri: new URL("../assets/models/crew-miri.glb", import.meta.url).href,
+  nyla: new URL("../assets/models/crew-nyla.glb", import.meta.url).href,
+  pip7: new URL("../assets/models/crew-pip7.glb", import.meta.url).href,
+  rook: new URL("../assets/models/crew-rook.glb", import.meta.url).href,
+  tomas: new URL("../assets/models/crew-tomas.glb", import.meta.url).href,
+  vex: new URL("../assets/models/crew-vex.glb", import.meta.url).href,
+};
 const crewModelCache = new Map<string, Promise<THREE.Object3D | null>>();
 
 function loadCrewModel(key: string): Promise<THREE.Object3D | null> {
-  const urlLoader = crewModelUrls[`../assets/models/crew-${key}.glb`];
-  if (!urlLoader) return Promise.resolve(null);
+  const url = crewModelUrls[key];
+  if (!url) return Promise.resolve(null);
   const cached = crewModelCache.get(key);
   if (cached) return cached;
-  const pending = urlLoader()
-    .then((url) => crewGltfLoader.loadAsync(url))
+  const pending = crewGltfLoader.loadAsync(url)
     .then((gltf) => gltf.scene)
     .catch(() => null);
   crewModelCache.set(key, pending);
@@ -351,6 +369,68 @@ function renderOpenGround(g: THREE.Group, scene: WalkScene, dark: boolean) {
     fill.position.set(fx, 5.5, fz); g.add(fill);
   }
 }
+
+function spawnStationProps(g: THREE.Group, scene: WalkScene) {
+  const room = (id: string) => scene.rooms.find((r) => r.id === id);
+  const place = (roomId: string, name: string, ox: number, oz: number, h: number, rotY = 0, color = 0x6d7580, scale = 1) => {
+    const r = room(roomId);
+    if (!r) return;
+    addModelProp(g, name, wx(r.x + r.w / 2) + ox, wz(r.y + r.h / 2) + oz, h, rotY, color, scale);
+  };
+
+  place("harbor", "station-customs-podium", -.75, -.45, .92, .05, 0x9fb9cf, .9);
+  place("market", "station-market-kiosk", -.85, -.35, 1.05, -.25, 0xe8b04b, .88);
+  place("cantina", "station-cantina-booth", .05, -.5, .82, Math.PI / 2, 0xd77c55, .95);
+  place("drydock", "station-drydock-toolcart", -.65, .45, .85, .35, 0xd96b6b, .86);
+  place("undercity", "station-recycler-line", .1, .35, .78, Math.PI / 2, 0x7b6a9f, .9);
+
+  place("lighthouse", "station-memorial-lighthouse", 0, -.25, 1.55, 0, 0x9fd8e8, .92);
+  place("auction", "station-auction-lot", 0, -.35, .95, -.2, 0xe07a5f, .9);
+  place("listening", "station-listening-array", .05, -.3, 1.05, .25, 0x7fb8a8, .9);
+  place("debtorsrow", "station-auction-lot", -.25, -.4, .9, .35, 0xb08bc9, .86);
+  place("unionhall", "station-recycler-line", .65, -.45, .82, -.55, 0xd8a04b, .78);
+  place("grange", "ship-hydro-planter", -.65, -.35, .72, .1, 0xc9b44b, .7);
+}
+
+function spawnCockpitProps(g: THREE.Group, scene: WalkScene) {
+  const r = scene.rooms.find((room) => room.kind === "cockpit");
+  if (!r) return;
+  const cx = wx(r.x + r.w / 2), cz = wz(r.y + r.h / 2);
+  const place = (name: string, ox: number, oz: number, h: number, rotY = 0, color = 0x5a83b7, scale = 1) =>
+    addModelProp(g, name, cx + ox, cz + oz, h, rotY, color, scale);
+
+  place("cockpit-command-console", 0, -1.08, .9, Math.PI, 0x5a83b7, .86);
+  place("cockpit-captains-chair", 0, .48, 1.0, Math.PI, 0xe8b04b, .86);
+  place("cockpit-navigation-holo", -.72, -.05, .72, .15, 0x70d7ff, .72);
+  place("cockpit-comms-radar-stack", .82, -.62, .95, -.38, 0x7d8294, .74);
+  place("cockpit-overhead-lockers", -.82, .95, .62, 0, 0x5a83b7, .72);
+  place("cockpit-breaker-panel", 1.08, .18, .66, -.62, 0xd96b6b, .7);
+  place("cockpit-cable-tray", -.58, .72, .24, .2, 0x3d526a, .72);
+  place("cockpit-flight-recorder", .65, .82, .38, -.35, 0xe8843b, .62);
+}
+
+// Free CC0 clutter from Kenney's Space Kit, layered on top of the bespoke
+// Meshy prop each room already has. Concourse and docks previously had no
+// ambient dressing at all — every other common room gets one extra piece.
+function spawnRoomClutter(g: THREE.Group, scene: WalkScene) {
+  const room = (id: string) => scene.rooms.find((r) => r.id === id);
+  const place = (roomId: string, name: string, ox: number, oz: number, h: number, rotY = 0, color = 0x6d7580, scale = 1) => {
+    const r = room(roomId);
+    if (!r) return;
+    addModelProp(g, name, wx(r.x + r.w / 2) + ox, wz(r.y + r.h / 2) + oz, h, rotY, color, scale);
+  };
+
+  place("concourse", "kenney-desk-computer", 1.7, 1.1, .55, -.4, 0x9aa6bd, .8);
+  place("concourse", "kenney-wireless", .4, 1.25, .7, .5, 0x9aa6bd, .8);
+  place("docks", "kenney-barrels", -1.6, -1.1, .55, .3, 0x5b8dd9, .8);
+  place("docks", "kenney-generator", -.5, -1.15, .65, -.2, 0x5b8dd9, .8);
+  place("harbor", "kenney-desk-chair", 1.3, .7, .5, .6, 0x74a7d8, .8);
+  place("market", "kenney-stool", 1.2, .6, .42, .2, 0xe8b04b, .8);
+  place("cantina", "kenney-desk-chair", -1.5, .7, .48, -.3, 0xd77c55, .8);
+  place("drydock", "kenney-pipe-corner", 1.3, -.6, .5, .4, 0xd96b6b, .8);
+  place("undercity", "kenney-generator", -1.5, -.6, .6, .5, 0x7b6a9f, .8);
+}
+
 function box(w: number, h: number, d: number, material: THREE.Material) {
   return new THREE.Mesh(new THREE.BoxGeometry(w, h, d), material);
 }
@@ -586,6 +666,8 @@ function rebuild() {
     const light=new THREE.PointLight(c,dark ? .55 : 1.05,7.2);light.position.set(cx,2.6,cz);world.add(light);
   }
   if (isDustwell) spawnDesertProps(world, current);
+  else if (current.id.startsWith("station:")) { spawnStationProps(world, current); spawnRoomClutter(world, current); }
+  if (current.id === "ship") spawnCockpitProps(world, current);
   // THE RULE: the player's ship is on display wherever it's berthed.
   if (current.ship) renderShip(world, current.ship, dark);
   for (const d of current.doors) { const g=box(Math.max(.4,d.w*SCALE),.04,Math.max(.28,d.h*SCALE),mat(d.locked?"#8a3030":"#3d91df",d.locked?.15:.8));g.position.set(wx(d.x+d.w/2),.04,wz(d.y+d.h/2));world.add(g);const l=sprite(d.label,d.locked?"#d77":"#9fd7ff",.55);l.position.set(g.position.x,.75,g.position.z);world.add(l);doorLabels.set(d,l); }
@@ -602,8 +684,8 @@ function rebuild() {
     // No explicit roster colour → deal one from the wardrobe by key hash, so a
     // station concourse is a crowd of strangers instead of identical clones.
     let hv=0; for(let i=0;i<a.key.length;i++) hv=(hv*31+a.key.charCodeAt(i))|0; hv>>>=0;
-    const suitC=a.color||WARDROBE[hv%WARDROBE.length], skinC=SKIN3D[(hv>>4)%SKIN3D.length];
     const g=new THREE.Group();
+    const suitC=a.color||WARDROBE[hv%WARDROBE.length], skinC=SKIN3D[(hv>>4)%SKIN3D.length];
     const rig=addPerson(suitC,skinC,a.color?"#e8d9b0":"#8fa8c9",hv);g.add(rig.group);attachCrewModel(g,a.modelKey,rig.group);
     actorRigs.set(a.key,rig);
     const l=sprite(a.label,a.color||"#c9d2e4",.55);l.position.y=1.9;g.add(l);world.add(g);actorMeshes.set(a.key,g);actorLabels.set(a,l);
@@ -668,10 +750,22 @@ function resize(){if(!renderer||!camera||!host)return;const r=host.getBoundingCl
 export function setScene(s: WalkScene){current=s;const sig=s.id+"|"+s.rooms.map(r=>`${r.id}:${r.moduleType}:${r.moduleIndex}`).join()+"|"+s.doors.map(d=>d.label+d.locked).join()+"|"+s.actors.map(a=>a.key).join()+"|"+(s.ship?`${s.ship.x},${s.ship.y},${s.ship.facing}`:"")+"|"+S.modules.map(m=>`${m.t}${m.on}${m.dmg}${wearTier(m)}`).join();if(sig!==signature){signature=sig;rebuild();}}
 export function render(v:{pos:{x:number;y:number};facing:string;moving:boolean;phase:number;nearDoor:WalkDoor|null;nearActor:WalkActor|null;time:number;aim:{x:number;y:number};rolling:boolean;rollCooldown:number;projectiles:Array<{x:number;y:number}>;dummy:{x:number;y:number;hp:number;hit:number}|null;highlightKey:string|null;enemies?:Array<{x:number;y:number;hp:number;maxhp:number;hit:number;kind:string;size?:number;color?:string;telegraph?:number}>;foeShots?:Array<{x:number;y:number}>;playerHit?:number;debris?:Array<{x:number;y:number;color:string;life:number}>;shake?:number;muzzle?:number;shotColor?:string;rollTrail?:number;melee?:number}){
   if(!renderer||!root||!camera||!current)return; const x=wx(v.pos.x),z=wz(v.pos.y);avatar.position.set(x,0,z);
-  if(!avatar.children.length){captainRig=buildCharacter(S.appearance||undefined);avatar.add(captainRig.group);}
-  // procedural walk cycle: limbs swing from their joint pivots, driven by the
-  // 2D sim's phase so animation speed always matches actual ground speed
-  if(captainRig)poseCharacter(captainRig,{moving:v.moving,phase:v.phase*1.6,t:v.time});
+  if(!captainModel&&!captainModelPending){
+    const token=++captainModelToken;
+    captainModelPending=createPlayerModel(true).then((model)=>{
+      captainModelPending=null;
+      if(token!==captainModelToken||!avatar.parent){disposePlayerModel(model);return model;}
+      captainModel=model;
+      avatar.add(model.group);
+      return model;
+    });
+  }
+  if(captainModel){
+    const dt=Math.min(.05,Math.max(0,(v.time-lastCaptainModelTime)/1000||.016));
+    lastCaptainModelTime=v.time;
+    if(captainModel.walk) captainModel.walk.timeScale=v.moving?1:0;
+    captainModel.mixer?.update(dt);
+  }
   for(const a of current.actors){const r=actorRigs.get(a.key);if(r)poseCharacter(r,{t:v.time+(a.x*131)%997});}
   avatar.rotation.z=v.rolling?-.45:0;avatar.scale.setScalar(v.rolling?.82:1);
   const ang=v.facing==="right"?Math.PI/2:v.facing==="left"?-Math.PI/2:v.facing==="up"?Math.PI:0;avatar.rotation.y=ang;
@@ -718,4 +812,4 @@ export function render(v:{pos:{x:number;y:number};facing:string;moving:boolean;p
   // ever-larger numbers for no visual benefit.
   if(composer){if(crtPass)crtPass.uniforms.time.value=(v.time*.001)%1000;composer.render();}else renderer.render(root,camera);
 }
-export function teardown(){resizeObserver?.disconnect();resizeObserver=null;if(renderer&&clickHandler)renderer.domElement.removeEventListener("pointerdown",clickHandler);clickHandler=null;if(root)disposeObject(root);composer?.dispose();bloomPass?.dispose();composer=null;bloomPass=null;crtPass=null;renderer?.dispose();renderer?.domElement.remove();renderer=null;root=null;camera=null;flashlight=null;current=null;host=null;signature="";world=new THREE.Group();avatar=new THREE.Group();actionFx=new THREE.Group();actorMeshes.clear();actorRigs.clear();captainRig=null;doorLabels=new Map();actorLabels=new Map();aimCallback=null;fireCallback=null;}
+export function teardown(){resizeObserver?.disconnect();resizeObserver=null;if(renderer&&clickHandler)renderer.domElement.removeEventListener("pointerdown",clickHandler);clickHandler=null;captainModelToken++;disposePlayerModel(captainModel);captainModel=null;captainModelPending=null;lastCaptainModelTime=0;if(root)disposeObject(root);composer?.dispose();bloomPass?.dispose();composer=null;bloomPass=null;crtPass=null;renderer?.dispose();renderer?.domElement.remove();renderer=null;root=null;camera=null;flashlight=null;current=null;host=null;signature="";world=new THREE.Group();avatar=new THREE.Group();actionFx=new THREE.Group();actorMeshes.clear();actorRigs.clear();doorLabels=new Map();actorLabels=new Map();aimCallback=null;fireCallback=null;}

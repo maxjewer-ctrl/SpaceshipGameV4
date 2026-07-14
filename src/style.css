@@ -986,6 +986,26 @@ button.gp-focus{border-color:var(--amber); color:var(--amber); box-shadow:0 0 0 
   position:absolute; left:10px; right:10px; top:8px; display:flex; justify-content:space-between; z-index:5;
   font-family:var(--mono); font-size:9px; letter-spacing:.12em; color:#8a8f99;
 }
+.combat-avatar{
+  position:absolute; left:12px; bottom:12px; width:132px; height:168px; z-index:5;
+  border:1px solid rgba(90,167,255,.34); border-radius:7px; overflow:hidden;
+  background:
+    radial-gradient(90% 80% at 50% 30%,rgba(90,167,255,.18),transparent 68%),
+    linear-gradient(180deg,rgba(8,12,20,.84),rgba(5,7,12,.94));
+  box-shadow:inset 0 0 24px rgba(0,0,0,.75),0 0 16px rgba(90,167,255,.12);
+}
+.combat-avatar::after{
+  content:""; position:absolute; inset:0; pointer-events:none;
+  background:repeating-linear-gradient(0deg,rgba(255,255,255,.035) 0 1px,transparent 1px 4px);
+}
+.combat-avatar-stage{ position:absolute; inset:0 0 20px; }
+.combat-avatar-canvas{ width:100%; height:100%; display:block; }
+.combat-avatar-tag{
+  position:absolute; left:0; right:0; bottom:0; height:20px; display:flex; align-items:center; justify-content:center;
+  background:rgba(5,8,14,.82); border-top:1px solid rgba(90,167,255,.24);
+  font-family:var(--mono); font-size:8px; letter-spacing:.12em; color:#9fd7ff;
+  text-transform:uppercase; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding:0 6px;
+}
 .space-target{
   position:absolute; z-index:4; width:86px; height:62px; margin:-31px -43px; padding:0;
   display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px;
@@ -1072,6 +1092,7 @@ button.gp-focus{border-color:var(--amber); color:var(--amber); box-shadow:0 0 0 
 @media (max-width:720px){
   #modal:has(.combat){ padding:12px; }
   .battle-window{ height:300px; }
+  .combat-avatar{ width:104px; height:136px; }
   .move-grid{ grid-template-columns:1fr 1fr; }
   .cbt-status{ grid-template-columns:1fr; }
   .cbt-command{ grid-template-columns:1fr; }

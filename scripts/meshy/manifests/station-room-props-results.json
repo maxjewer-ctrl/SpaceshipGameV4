@@ -1,0 +1,45 @@
+[
+  {
+    "name": "station-market-kiosk",
+    "status": "ok",
+    "path": "src/assets/models/station-market-kiosk.glb",
+    "taskId": "019f5d20-0da1-7a14-b165-3e7ad1218f3c"
+  },
+  {
+    "name": "station-customs-podium",
+    "status": "ok",
+    "path": "src/assets/models/station-customs-podium.glb",
+    "taskId": "019f5d21-c5ba-7690-8aa7-d2f6c04ed55b"
+  },
+  {
+    "name": "station-drydock-toolcart",
+    "status": "error",
+    "error": "Meshy API 402 Payment Required on /openapi/v2/text-to-3d: {\"message\":\"Insufficient funds\"}"
+  },
+  {
+    "name": "station-recycler-line",
+    "status": "error",
+    "error": "Meshy API 402 Payment Required on /openapi/v2/text-to-3d: {\"message\":\"Insufficient funds\"}"
+  },
+  {
+    "name": "station-memorial-lighthouse",
+    "status": "error",
+    "error": "Meshy API 402 Payment Required on /openapi/v2/text-to-3d: {\"message\":\"Insufficient funds\"}"
+  },
+  {
+    "name": "station-auction-lot",
+    "status": "error",
+    "error": "Meshy API 402 Payment Required on /openapi/v2/text-to-3d: {\"message\":\"Insufficient funds\"}"
+  },
+  {
+    "name": "station-listening-array",
+    "status": "error",
+    "error": "Meshy API 402 Payment Required on /openapi/v2/text-to-3d: {\"message\":\"Insufficient funds\"}"
+  },
+  {
+    "name": "station-cantina-booth",
+    "status": "ok",
+    "path": "src/assets/models/station-cantina-booth.glb",
+    "taskId": "019f5d24-7f80-7c2a-b21f-b1689e0c4cc7"
+  }
+]

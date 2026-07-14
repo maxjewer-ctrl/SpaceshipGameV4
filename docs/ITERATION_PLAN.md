@@ -74,6 +74,24 @@ Question: does the frame sell the fantasy yet?
 - Sound design pass (Web Audio: engine hum, radio static, the four seconds).
 - Save slots / run history.
 
+## NEXT MAJOR PRIORITY (after the loop is locked) — THE LONG BURN
+
+The top post-loop priority, gated on the CORE_LOOP build order (items
+1–6) shipping first. A fourth campaign — the *Stars My Destination* /
+*Monte Cristo* revenge arc — built to ride the locked loop, not prop it
+up. It is deliberately sequenced AFTER loop lockdown because each of its
+revenge tracks depends on a loop system (provenance economy, station
+moods, ranging terrain, crew loyalty); see the dependency map in
+`CORE_LOOP.md` → "After the loop is locked."
+
+Spec: `CAMPAIGN_LONG_BURN.md` (design) · `CAMPAIGN_LONG_BURN_MANIFEST.md`
+(build sheet) · `CAMPAIGN_LONG_BURN_IMPLEMENTATION.md` (7 milestones +
+first commit). Each milestone lands as a playtested, committed cycle
+under the standing rules below — the campaign obeys the same PLAY →
+ITERATE → PLAY loop as everything else. Act I (the prologue) has no loop
+dependency and may be prototyped as a vertical slice at any time to
+feel-test the opening before the rest of the loop finishes.
+
 ## Standing rules
 
 - Every cycle: `tsc --noEmit` clean, `read_console_messages` clean, playtest

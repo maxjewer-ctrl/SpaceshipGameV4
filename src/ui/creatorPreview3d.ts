@@ -5,7 +5,7 @@
 // keeps the legacy 2D canvas path.
 import * as THREE from "three";
 import type { Appearance } from "../types";
-import { buildCharacter, poseCharacter, disposeCharacter, type CharacterRig } from "./character3d";
+import { createPlayerModel, disposePlayerModel, type PlayerModel } from "./playerModel3d";
 
 export interface CreatorPreview {
   refresh(): void;       // rebuild model from the current draft
@@ -13,9 +13,8 @@ export interface CreatorPreview {
   teardown(): void;
 }
 
-const FACING: Record<string, number> = { down: 0, right: Math.PI / 2, up: Math.PI, left: -Math.PI / 2 };
-
 export function mountCreatorPreview(stage: HTMLElement, getApp: () => Appearance): CreatorPreview | null {
+  void getApp;
   let renderer: THREE.WebGLRenderer;
   try {
     // preserveDrawingBuffer so DOM-raster screenshots (__shot) can inline the bitmap
@@ -53,23 +52,30 @@ export function mountCreatorPreview(stage: HTMLElement, getApp: () => Appearance
   camera.position.set(0, .98, 2.85);
   camera.lookAt(0, .8, 0);
 
-  let rig: CharacterRig = buildCharacter(getApp());
-  scene.add(rig.group);
-  let targetYaw = 0;
+  let model: PlayerModel | null = null;
+  let disposed = false;
   let raf: number | null = null;
+  void createPlayerModel(false).then((next) => {
+    if (disposed) { disposePlayerModel(next); return; }
+    model = next;
+    scene.add(next.group);
+  });
 
   const loop = (t: number) => {
     if (!renderer.domElement.isConnected) { teardown(); return; } // modal closed
-    rig.group.rotation.y += (targetYaw - rig.group.rotation.y) * .14;
-    poseCharacter(rig, { t });
+    if (model) {
+      model.group.rotation.y = t * .00075;
+      model.mixer?.update(.016);
+    }
     renderer.render(scene, camera);
     raf = requestAnimationFrame(loop);
   };
   raf = requestAnimationFrame(loop);
 
   function teardown() {
+    disposed = true;
     if (raf) cancelAnimationFrame(raf); raf = null;
-    disposeCharacter(rig);
+    disposePlayerModel(model); model = null;
     disc.geometry.dispose(); (disc.material as THREE.Material).dispose();
     ring.geometry.dispose(); (ring.material as THREE.Material).dispose();
     renderer.dispose();
@@ -78,20 +84,11 @@ export function mountCreatorPreview(stage: HTMLElement, getApp: () => Appearance
 
   return {
     refresh() {
-      const yaw = rig.group.rotation.y;
-      scene.remove(rig.group); disposeCharacter(rig);
-      rig = buildCharacter(getApp());
-      rig.group.rotation.y = yaw;
-      scene.add(rig.group);
+      // Appearance controls are temporarily disabled while the Meshy explorer
+      // is the only selectable captain model.
     },
     setFacing(dir: string) {
-      const want = FACING[dir] ?? 0;
-      // rotate the short way around from wherever we are
-      const cur = rig.group.rotation.y;
-      let d = want - (cur % (Math.PI * 2));
-      while (d > Math.PI) d -= Math.PI * 2;
-      while (d < -Math.PI) d += Math.PI * 2;
-      targetYaw = cur + d;
+      void dir;
     },
     teardown,
   };

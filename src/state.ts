@@ -2,7 +2,7 @@ import type { GameState, ModuleInstance } from "./types";
 import { DEFAULT_APPEARANCE } from "./ui/avatarDraw";
 
 export const SAVE_KEY = "kestrelrun";
-export const SAVE_VERSION = 13;
+export const SAVE_VERSION = 14;
 
 // The single mutable game state. `export let` gives live bindings to importers;
 // replace it only through setState so everyone sees the new object.
@@ -35,7 +35,7 @@ export function newState(shipName: string): GameState {
     ],
     cargo: { ore: 0, med: 0, lux: 0 },
     crew: [], jobs: [], logLines: [],
-    market: null, travel: null,
+    market: null, usedMarket: null, travel: null,
     arc: { stage: 0, deadline: null, betrayed: false, ambushed: false, done: false },
     scheduled: [], ledger: [], npcs: [], flags: {},
     disposition: { mercy: 0, law: 0, daring: 0 },
@@ -242,9 +242,10 @@ export function migrate(s: any): GameState {
     (s.crew || []).forEach((c: any) => { if (c.name === "Juno Vale" && !c.key) c.key = "juno"; });
     s.version = 10;
   }
-  // v11: module quality marks. Every existing module is Mk-I.
+  // v11: module quality marks + the regenerated second-hand rack cache.
   if (s.version < 11) {
     (s.modules || []).forEach((m: any) => { if (m.mk === undefined) m.mk = 1; });
+    if (s.usedMarket === undefined) s.usedMarket = null;
     s.version = 11;
   }
   // v12: charted points of interest (survey contracts). Old saves have an empty
@@ -258,6 +259,12 @@ export function migrate(s: any): GameState {
   if (s.version < 13) {
     if (!s.portMood || typeof s.portMood !== "object") s.portMood = {};
     s.version = 13;
+  }
+  // v14: saves already migrated to station moods before the second-hand rack
+  // existed still need the regenerated used-market cache field.
+  if (s.version < 14) {
+    if (s.usedMarket === undefined) s.usedMarket = null;
+    s.version = 14;
   }
   return s as GameState;
 }

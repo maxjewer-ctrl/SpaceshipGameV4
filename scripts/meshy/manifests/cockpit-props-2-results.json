@@ -1,0 +1,27 @@
+[
+  {
+    "name": "cockpit-overhead-lockers",
+    "status": "ok",
+    "path": "src/assets/models/cockpit-overhead-lockers.glb",
+    "taskId": "019f6149-90fd-7148-b8e3-5ee235b07724"
+  },
+  {
+    "name": "cockpit-breaker-panel",
+    "status": "ok",
+    "path": "src/assets/models/cockpit-breaker-panel.glb",
+    "taskId": "019f615c-e87c-78a2-9ab2-55e34041d98b",
+    "note": "Initial batch task failed with a transient Meshy lookup error; simplified prompt retry succeeded."
+  },
+  {
+    "name": "cockpit-cable-tray",
+    "status": "ok",
+    "path": "src/assets/models/cockpit-cable-tray.glb",
+    "taskId": "019f614a-9bc6-782a-9ebd-fb048bc6a201"
+  },
+  {
+    "name": "cockpit-flight-recorder",
+    "status": "ok",
+    "path": "src/assets/models/cockpit-flight-recorder.glb",
+    "taskId": "019f6154-1616-75cc-8c17-0ea8c084c782"
+  }
+]

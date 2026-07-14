@@ -109,6 +109,13 @@ export interface Market {
   prices: Record<string, number>; rumors: string[];
 }
 
+// The second-hand rack (systems/usedmarket.ts): one salvaged module for sale,
+// cheaper than yard-new but carrying pre-existing wear and a provenance story.
+export interface UsedItem { id: number; t: string; wear: number; price: number; story: string; }
+// `day` = the day this stock was generated; it holds for a 3-day restock
+// window so it's stable across a dock visit and can't be wait-scummed cheaply.
+export interface UsedMarket { loc: string; day: number; label: string; items: UsedItem[]; }
+
 // evd: did anything happen this leg yet? Quiet short hops force one event on
 // their final day — dead air teaches players that travel is a loading screen.
 export interface Travel { from: string; dest: string; total: number; left: number; evd?: boolean; }
@@ -195,6 +202,7 @@ export interface GameState {
   jobs: Job[];
   logLines: LogLine[];
   market: Market | null;
+  usedMarket: UsedMarket | null;
   travel: Travel | null;
   arc: ArcState;
   // engine primitives

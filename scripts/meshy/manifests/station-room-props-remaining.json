@@ -1,0 +1,27 @@
+[
+  {
+    "name": "station-drydock-toolcart",
+    "pbr": true,
+    "prompt": "Stylized low-poly 3D game prop, rolling drydock mechanics tool cart, drawers, welding tank, coiled hose, folded repair arm, red safety paint over scratched steel, readable from isometric camera, no text, no logo, no base, bright hand-painted PBR texture, optimized for Three.js."
+  },
+  {
+    "name": "station-recycler-line",
+    "pbr": true,
+    "prompt": "Stylized low-poly 3D game prop, underdeck recycler line segment, low conveyor, sorting chute, pressure rollers, warning lights, grimy industrial sci-fi metal, bonded-labor station atmosphere, readable from isometric camera, no gore, no text, no logo, no base, bright hand-painted PBR texture, optimized for Three.js."
+  },
+  {
+    "name": "station-memorial-lighthouse",
+    "pbr": true,
+    "prompt": "Stylized low-poly sci-fi station memorial lighthouse prop, tall glowing glass cylinder on a compact polished base, soft blue-white vertical light strips, solemn Union memorial column, isometric game asset, no text, no logo, PBR texture."
+  },
+  {
+    "name": "station-auction-lot",
+    "pbr": true,
+    "prompt": "Stylized low-poly 3D game prop, free-port auction cargo lot display, strapped mystery crate on a small hover pallet, bid beacon, tagged salvage parts, neon magenta and amber lights, rust over dark metal, readable from isometric camera, no readable text, no logo, no base, bright hand-painted PBR texture, optimized for Three.js."
+  },
+  {
+    "name": "station-listening-array",
+    "pbr": true,
+    "prompt": "Stylized low-poly 3D game prop, station long-range listening array console, small parabolic receiver dish, waveform screen represented as abstract glowing cyan lines, headset hook, dark blue worn metal, eerie frontier survey station mood, readable from isometric camera, no readable text, no logo, no base, bright hand-painted PBR texture, optimized for Three.js."
+  }
+]

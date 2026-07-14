@@ -2,7 +2,7 @@ import { S } from "../state";
 import { stats, bribeCost } from "../derive";
 import { actionAttr } from "../dispatch";
 import { rand, ri, pick } from "../rng";
-import { modal, clearModal } from "../modal";
+import { modal, replaceModal, clearModal, modalHTML } from "../modal";
 import { requestRender } from "../bus";
 import { gameOver } from "./gameover";
 import { damageModule } from "./actions";
@@ -11,6 +11,7 @@ import { shift } from "./disposition";
 import type { Enemy } from "../types";
 import * as sfx from "../audio";
 import { markVeteranEvent } from "./veterancy";
+import { mountCombatAvatar, teardownCombatAvatar, updateCombatAvatar } from "../ui/combatAvatar3d";
 
 type MoveId = "laser" | "torpedo" | "ion" | "evasive" | "flee" | "bribe" | "decoy" | "gambit";
 type CombatPhase = "command" | "target" | "aim" | "over";
@@ -217,10 +218,14 @@ function drawCombat() {
   const fleeChance = Math.round(fleeOdds() * 100);
   const selectedMove = MOVES.find((m) => m.id === C!.move);
 
-  modal(`<div class="combat">
+  const html = `<div class="combat">
     <div class="cbt-band">ENGAGEMENT · ${esc(C.scenario.title)}</div>
     <div class="battle-window">
       <div class="battle-stars"></div>
+      <div class="combat-avatar">
+        <div class="combat-avatar-stage" data-combat-avatar></div>
+        <div class="combat-avatar-tag">${esc(S.captainName || "Captain")}</div>
+      </div>
       <div class="player-ship">
         <div class="engine-flare"></div>
         <div class="ship-hull"></div>
@@ -241,8 +246,19 @@ function drawCombat() {
     </div>
     ${phaseHTML(selectedMove, selectedTarget, fleeChance)}
     <div class="clog">${C.log.slice(-5).map((l) => "<div>› " + esc(l) + "</div>").join("")}</div>
-  </div>`);
+  </div>`;
+  if (modalHTML()?.includes("class=\"combat\"")) replaceModal(html);
+  else modal(html);
   flushFX();
+  mountCombatAvatarIfPresent();
+}
+
+function mountCombatAvatarIfPresent() {
+  if (!C) return;
+  const stage = typeof document !== "undefined" ? document.querySelector<HTMLElement>("[data-combat-avatar]") : null;
+  if (!stage) return;
+  mountCombatAvatar(stage, C.phase);
+  updateCombatAvatar(C.phase);
 }
 
 function targetHTML(t: CombatTarget) {
@@ -520,6 +536,7 @@ export function endCombat() {
   const r = C.result;
   const onWin = C.onWin, onEscape = C.onEscape;
   C = null;
+  teardownCombatAvatar();
   clearModal();
   if (r === "dead") { gameOver("Your ship broke apart under enemy fire. The black keeps what it takes."); return; }
   if (r === "win") {

@@ -8,6 +8,7 @@ import { marksAt, yardMaxMark, markLabel, markOf } from "../systems/modtier";
 import { arcCantinaCard } from "../systems/arc";
 import { reputation } from "../systems/disposition";
 import { refitCost, wearTier, anyWorn } from "../systems/wear";
+import { usedStockHere, usedRackLabel, condLabel } from "../systems/usedmarket";
 import { crewPortrait, portraitFigure, storeOwnerPortrait } from "./portraits";
 import { actionAttr } from "../dispatch";
 
@@ -158,7 +159,26 @@ function yardHTML(): string {
   }).join("");
   const engCost = S.engineLvl === 1 ? 500 : 1100;
   const slotCost = S.slotsMax === 6 ? 600 : 1200;
-  return `<div class="row">
+  // The second-hand rack — dead captains' modules, salvage, auction lots.
+  // Cheaper than new, but each already carries wear and a story (usedmarket.ts).
+  const used = usedStockHere();
+  const usedHtml = used.length ? `<div class="panel">
+    <h3>${usedRackLabel()} <span class="dim">— salvage, sold as-is</span></h3>
+    <p class="dim" style="margin-bottom:8px">Second-hand modules: cheaper than yard-new, but each comes with wear already on it and a history. Cheap now, refit sooner.</p>
+    ${used.map((u) => {
+      const m = MODS[u.t];
+      const tier = wearTier({ t: u.t, on: true, dmg: false, wear: u.wear });
+      const badge = tier === "failing" ? '<span class="badge no">well-worn</span>' : tier === "worn" ? '<span class="badge">worn</span>' : '<span class="badge ok">sound</span>';
+      const pwr = m.pw ? `<span class="badge">⚡ draws ${m.pw}</span>` : m.gen ? `<span class="badge ok">⚡ +${m.gen}</span>` : `<span class="badge">passive</span>`;
+      return `<div class="card"><div class="title">${m.icon} ${m.n} ${badge}</div>
+        <div class="dim">${u.story}</div>
+        <div style="margin-top:4px">${pwr} <span class="dim">list ${m.price}cr</span></div>
+        <div style="margin-top:6px; display:flex; justify-content:space-between; align-items:center">
+          <span class="pay">${u.price}cr</span>
+          <button ${S.credits >= u.price && nonCore < S.slotsMax ? "" : "disabled"} ${actionAttr("buyUsed", u.id)}>Take it on</button>
+        </div></div>`;
+    }).join("")}</div>` : "";
+  return usedHtml + `<div class="row">
     <div class="col"><div class="panel"><h3>Module Shop ${p.yard ? '<span class="badge ok">15% off</span>' : ""} <span class="badge${maxMark >= 3 ? " ok" : ""}">up to Mk-${markLabel(maxMark)}</span> <span class="dim">(slots ${nonCore}/${S.slotsMax})</span></h3>
       ${maxMark < 3 ? '<p class="dim" style="margin-bottom:8px">This yard fits up to Mk-II. The best gear — Mk-III — is only fitted at Foundry\'s shipyard.</p>' : ""}
       ${full ? '<p class="low" style="margin-bottom:8px">Ship is full — sell a module (Ship screen) or buy a hull expansion.</p>' : ""}

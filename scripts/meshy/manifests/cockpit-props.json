@@ -1,0 +1,22 @@
+[
+  {
+    "name": "cockpit-captains-chair",
+    "pbr": true,
+    "prompt": "Stylized low-poly 3D game prop, compact spaceship captain crash chair, worn padded pilot seat with high back, arm rests, harness straps, bolted swivel pedestal, frontier ship metal, warm amber accent lights, readable from isometric camera, no person, no text, no logo, no base, bright hand-painted PBR texture, optimized for Three.js."
+  },
+  {
+    "name": "cockpit-command-console",
+    "pbr": true,
+    "prompt": "Stylized low-poly 3D game prop, curved spaceship cockpit command console, angled control panels, small glowing screens, toggles, throttle levers, scuffed blue-gray metal, cyan and amber instrument lights, readable from isometric camera, no readable text, no logo, no base, bright hand-painted PBR texture, optimized for Three.js."
+  },
+  {
+    "name": "cockpit-navigation-holo",
+    "pbr": true,
+    "prompt": "Stylized low-poly 3D game prop, small spaceship navigation holotable, round pedestal projector with translucent cyan star map rings and waypoint dots, rugged frontier ship finish, readable from isometric camera, no readable text, no logo, no base, bright hand-painted PBR texture, optimized for Three.js."
+  },
+  {
+    "name": "cockpit-comms-radar-stack",
+    "pbr": true,
+    "prompt": "Stylized low-poly 3D game prop, wall-mounted spaceship communications and radar stack, compact receiver dish, stacked monitor boxes, cable bundles, blinking cyan and amber lights, scratched dark metal, readable from isometric camera, no readable text, no logo, no base, bright hand-painted PBR texture, optimized for Three.js."
+  }
+]
