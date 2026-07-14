@@ -124,25 +124,25 @@ const ray = new THREE.Raycaster();
 const pointer = new THREE.Vector2();
 const ground = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
 
-// Fixed semi-top-down follow camera. It sits due "south" of the avatar
-// (+z, the direction game-y grows) and looks down at ~68°, so screen-up is
+// Fixed semi-top-down follow camera. It sits due "south" of the avatar (+z,
+// the direction game-y grows) at a ~33° three-quarter angle, so screen-up is
 // exactly world-up on the deck plan and input needs no camera transform.
-// Steep enough that room walls rarely sit between camera and avatar (Dustwell
-// walls are opaque), shallow enough that people still read as figures, not
-// dots. There is deliberately no orbit: one authored angle, everywhere — the
-// whole camera-relative-movement bug class (see a56feda) dies with it.
-// Three-quarter action-RPG angle (~33° down from horizontal) with a normal
-// lens: the original long-lens near-top-down setup (15.5 height / 6.5 offset
-// / 30° FOV) kept walls perfectly vertical on screen, but read as too narrow,
-// too zoomed out, and too top-down to place rooms or read the avatar against.
-// Movement has no camera-relative transform (screen axes ARE world axes —
-// see a56feda), so the camera must stay directly behind the avatar in Z with
-// no diagonal/X offset, or WASD would stop matching what's on screen; all the
-// tuning room is in height, distance, and FOV. CAM_HEIGHT still comfortably
-// clears Dustwell's opaque waist-high walls.
+// There is deliberately no orbit: one authored angle, everywhere — the whole
+// camera-relative-movement bug class (see a56feda) dies with it. Movement has
+// no camera-relative transform (screen axes ARE world axes), so the camera
+// must stay directly behind the avatar in Z with no diagonal/X offset, or
+// WASD would stop matching what's on screen; all the tuning room is in
+// height, distance, and FOV.
+// Wide "Mass Effect" lens: that series' console-native FOV is a well-known
+// too-narrow default that PC players immediately widen, commonly into the
+// 90s-100s (horizontal). three.js's `fov` is vertical, and the viewport's
+// effective aspect ratio is capped at 2.2 (see mountHTML's viewportRatio) —
+// at that aspect, 62° vertical works out to ~106° horizontal: wide and
+// cinematic without tipping into fisheye stretch at the frame edges.
+// CAM_HEIGHT still comfortably clears Dustwell's opaque waist-high walls.
 const CAM_OFFSET_Z = 6.2;
 const CAM_HEIGHT = 4.5;
-const CAM_FOV = 56;
+const CAM_FOV = 62;
 
 const wx = (x: number) => (x - (current?.width || 0) / 2) * SCALE;
 const wz = (y: number) => (y - (current?.height || 0) / 2) * SCALE;

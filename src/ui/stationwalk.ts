@@ -66,11 +66,10 @@ interface LayoutDef {
   sigLinks?: [string, string][];     // override edge(s) into the signature room;
                                       // default is the single [stations.json signature.link, sig.id] edge
   // Links joining two rooms that share neither x nor y (a true diagonal L):
-  // in the gap between the rooms the corridor is the ONLY floor, and the
-  // default 46px thickness leaves just a 28px safe band once the player's
-  // collision margin is subtracted — thin enough that a path drifting off
-  // the centreline can clip the edge and wedge. List those pairs here (either
-  // order) to widen just that corridor instead of every one in the layout.
+  // in the gap between the rooms the corridor is the ONLY floor, so a path
+  // drifting off the centreline has less margin before it clips the edge and
+  // wedges. List those pairs here (either order) for an extra-wide corridor,
+  // beyond the default's already-generous width.
   wideLinks?: [string, string][];
 }
 function isWideLink(wide: [string, string][] | undefined, a: string, b: string): boolean {
@@ -210,11 +209,10 @@ function portLayout(): { defs: RoomDef[]; links: [string, string][]; sig?: RoomD
 // A diagonal link (rooms sharing neither x nor y) only has room-rect backup
 // at its two ends — in the gap BETWEEN the rooms, the corridor is the sole
 // source of floor, and the player's ~9px collision margin eats into both
-// edges, shrinking the safe band to thick-18px. At the default 46 that band
-// (28px) is thin enough that a path drifting off the dead centre can clip the
-// edge and wedge (found via the Havens ring's harbor-market link) — so
-// diagonal links in custom layouts pass a wider thick (see DIAGONAL_THICK).
-function corridor(a: RoomDef, b: RoomDef, thick = 46): WalkRect[] {
+// edges, shrinking the safe band. A particularly tight diagonal gap (the
+// Havens ring's harbor-market link) can still want more than the default —
+// see wideLinks.
+function corridor(a: RoomDef, b: RoomDef, thick = 76): WalkRect[] {
   const acx = a.x + a.w / 2, acy = a.y + a.h / 2;
   const bcx = b.x + b.w / 2, bcy = b.y + b.h / 2;
   const half = thick / 2;
@@ -275,7 +273,7 @@ export function buildStationScene(): WalkScene {
   const floors: WalkRect[] = defs.map((r) => ({ x: r.x, y: r.y, w: r.w, h: r.h }));
   for (const [a, b] of links) {
     const A = defs.find((r) => r.id === a)!, B = defs.find((r) => r.id === b)!;
-    floors.push(...corridor(A, B, isWideLink(wideLinks, a, b) ? 64 : undefined));
+    floors.push(...corridor(A, B, isWideLink(wideLinks, a, b) ? 110 : undefined));
   }
   // THE RULE: the ship is on display wherever it's berthed. Stations park it in
   // a berth apron off the bottom of the docks — nose to the wall, rear hatch

@@ -157,12 +157,20 @@ export function needsMount(id: string): boolean { return mountedId !== id; }
 export function mountHTML(s: WalkScene): string {
   const dpad = (dir: string, glyph: string, cls: string) =>
     `<button class="wk-dbtn ${cls}" onpointerdown="walkPressStart('${dir}')" onpointerup="walkPressEnd('${dir}')" onpointerleave="walkPressEnd('${dir}')" onpointercancel="walkPressEnd('${dir}')">${glyph}</button>`;
+  // The inline aspect-ratio derives the viewport's height from its width with
+  // no min-height (see .walk-viewport's CSS comment — a fixed min-height
+  // fights that on narrow/mobile viewports). Left unclamped it tracks the
+  // scene's own logical footprint, which for a long multi-bay ship is a
+  // strip several times wider than tall — a razor-thin letterbox no camera
+  // FOV can make read as a normal 3rd-person view. Capped to a wide but
+  // sane cinematic-widescreen ratio instead.
+  const viewportRatio = Math.min(s.width / s.height, 2.2);
   return `<div class="panel"><h3>${s.title}</h3>
     <div class="cockpit">
     <div class="console con-table">
       <div class="walkscope${s.dark ? " walk-dark" : ""}">
         <div class="scope-head"><span>◄ FREE MOVEMENT ▬ WASD / ARROWS ►</span><span class="sh-r" id="wk-room"></span></div>
-        <div class="walk-viewport" id="walk-viewport" style="aspect-ratio:${s.width}/${s.height}">
+        <div class="walk-viewport" id="walk-viewport" style="aspect-ratio:${viewportRatio}">
           <div class="walk-prompt" id="wk-prompt"></div>
         </div>
         <div class="scope-foot"><span id="wk-status"></span><span>[E] interact${s.action ? " · [SPACE] roll" : ""}</span></div>

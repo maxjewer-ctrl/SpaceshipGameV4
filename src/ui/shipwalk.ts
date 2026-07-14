@@ -109,7 +109,8 @@ export function buildShipScene(): WalkScene {
   const inst = S.modules.map((m, index) => ({ m, index })).filter(({m}) => !MODS[m.t].core);
   const bays = Array.from({ length: bayCount() }, (_, slot) => inst.find(({m}) => m.slot === slot) || null);
 
-  const spineY = 320, spineH = 90, roomW = 210, roomH = 150;
+  const spineY = 320, spineH = 140, roomW = 210, roomH = 150;
+  const connW = 74; // bay-to-spine connector width — kept wide alongside the spine
   const cockpit: WalkRect & { id: string } = { id: "cockpit", x: 30, y: spineY - spineH / 2 - (roomH - spineH) / 2, w: roomW, h: roomH };
   const gap = 230;
   const engineX = cockpit.x + cockpit.w + gap + bays.length * gap;
@@ -163,10 +164,10 @@ export function buildShipScene(): WalkScene {
     const rect = { id, x: rx, y: ry, w: roomW, h: roomH };
     floors.push({ x: rect.x, y: rect.y, w: rect.w, h: rect.h });
     // connector linking the bay to the spine
-    const connX = rect.x + rect.w / 2 - 23;
+    const connX = rect.x + rect.w / 2 - connW / 2;
     floors.push(up
-      ? { x: connX, y: rect.y + rect.h, w: 46, h: (spineY - spineH / 2) - (rect.y + rect.h) }
-      : { x: connX, y: spineY + spineH / 2, w: 46, h: rect.y - (spineY + spineH / 2) });
+      ? { x: connX, y: rect.y + rect.h, w: connW, h: (spineY - spineH / 2) - (rect.y + rect.h) }
+      : { x: connX, y: spineY + spineH / 2, w: connW, h: rect.y - (spineY + spineH / 2) });
     if (!bay) {
       rooms.push({ id, x: rect.x, y: rect.y, w: rect.w, h: rect.h, label: "Empty Bay", icon: "▢", color: "#3a3f48" });
       roomDesc[id] = "Bare deck plating and capped conduit stubs — room for a module. Shipyards sell them planetside.";
