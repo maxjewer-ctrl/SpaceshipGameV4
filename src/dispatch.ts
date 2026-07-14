@@ -36,12 +36,14 @@ import {
 import { depart, waitDay, advanceDay, abandonJob } from "./systems/travel";
 import { startCombat, cAct, endCombat } from "./systems/combat";
 import {
-  pirateWin, pirateLoseFlee, pirateFlee, pirateBribe, pirateSurrender,
+  pirateWin, pirateLoseFlee, pirateFlee, pirateBribe, pirateSurrender, pirateEngage,
   patrolBribe, patrolRun, patrolSubmit,
   distressHelp, distressIgnore, traderBuy, traderSell, paxMerchantSell, adriftTow,
+  closeThenLog,
 } from "./systems/events";
 import {
   arcMeet, arcAcceptCrate, arcAcceptVoss, arcStartRun,
+  arcCrateDecline, evHunterEngage, evPicketEngage, arcInterceptEngage, arcVictoryContinue,
   ambushHandOver, ambushFight, ambushRun,
   hunterWin, hunterFled, hunterRun, interceptWin, interceptFled,
   runPicketAround, runPicketThread, runNetDecoy, runNetSilent, runNetPush,
@@ -51,6 +53,7 @@ import { sceneChoose, sceneContinue } from "./systems/scene";
 import {
   silDescend, silBearing, silAnswer, silStill, silSell,
   silBoardReturned, silScanReturned, silLearnNumbers, silLearnReturned,
+  silCloseLog, silCloseLearnNumbers, silCloseLearnReturned,
 } from "./systems/silence";
 import { pressStart, pressEnd, interact } from "./ui/walk";
 import { crewTalk, crewHighlight, wkInspect, walkDeck, sitChair, toggleModAndInspect } from "./ui/shipwalk";
@@ -94,11 +97,13 @@ const ACTIONS: Record<string, (...args: any[]) => void> = {
   // combat
   startCombat, cAct, endCombat,
   // events
-  pirateWin, pirateLoseFlee, pirateFlee, pirateBribe, pirateSurrender,
+  pirateWin, pirateLoseFlee, pirateFlee, pirateBribe, pirateSurrender, pirateEngage,
   patrolBribe, patrolRun, patrolSubmit,
   distressHelp, distressIgnore, traderBuy, traderSell, paxMerchantSell, adriftTow,
+  closeThenLog,
   // story arc
   arcMeet, arcAcceptCrate, arcAcceptVoss, arcStartRun,
+  arcCrateDecline, evHunterEngage, evPicketEngage, arcInterceptEngage, arcVictoryContinue,
   ambushHandOver, ambushFight, ambushRun,
   hunterWin, hunterFled, hunterRun, interceptWin, interceptFled,
   runPicketAround, runPicketThread, runNetDecoy, runNetSilent, runNetPush,
@@ -109,6 +114,7 @@ const ACTIONS: Record<string, (...args: any[]) => void> = {
   // the Long Silence
   silDescend, silBearing, silAnswer, silStill, silSell,
   silBoardReturned, silScanReturned, silLearnNumbers, silLearnReturned,
+  silCloseLog, silCloseLearnNumbers, silCloseLearnReturned,
   // free-roam walking: D-pad/keyboard fallback buttons, crew chat, foot encounters
   walkPressStart: pressStart, walkPressEnd: pressEnd, walkInteract: interact,
   crewTalk, crewHighlight, wkInspect, walkDeck, sitChair, wkPay, wkTalk, wkFight,

@@ -1,5 +1,6 @@
 import { S } from "../state";
 import { stats, bribeCost } from "../derive";
+import { actionAttr } from "../dispatch";
 import { rand, ri, pick } from "../rng";
 import { modal, clearModal } from "../modal";
 import { requestRender } from "../bus";
@@ -250,7 +251,7 @@ function targetHTML(t: CombatTarget) {
   const selected = C && C.targetId === t.id;
   return `<button class="space-target ${dead ? "dead" : ""} ${selected ? "selected" : ""}"
       style="left:${t.x}%; top:${t.y}%"
-      ${dead || C?.phase === "aim" ? "disabled" : `onclick="cAct('target:${t.id}')"`}>
+      ${dead || C?.phase === "aim" ? "disabled" : actionAttr("cAct", `target:${t.id}`)}>
     ${foeShipSVG(t)}
     <span class="target-name">${esc(t.role)}</span>
     <span class="target-hp"><i style="width:${hp}%"></i></span>
@@ -268,15 +269,15 @@ function aimHTML(t: CombatTarget) {
 
 function phaseHTML(selectedMove: typeof MOVES[number] | undefined, selectedTarget: CombatTarget | undefined, fleeChance: number) {
   if (!C) return "";
-  if (C.phase === "over") return `<div class="choices"><button class="primary" onclick="endCombat()">Continue</button></div>`;
+  if (C.phase === "over") return `<div class="choices"><button class="primary" ${actionAttr("endCombat")}>Continue</button></div>`;
   if (C.phase === "aim") {
     return `<div class="cbt-command">
       <div class="command-readout">
         <b>${selectedMove ? esc(selectedMove.name) : "Weapon"}</b>
         <span>Targeting ${selectedTarget ? esc(selectedTarget.name) : "hostile"} · wait for the reticle to cross the box.</span>
       </div>
-      <button class="primary fire-button" onclick="cAct('release')">Fire</button>
-      <button onclick="cAct('back')">Back</button>
+      <button class="primary fire-button" ${actionAttr("cAct", "release")}>Fire</button>
+      <button ${actionAttr("cAct", "back")}>Back</button>
     </div>`;
   }
   if (C.phase === "target") {
@@ -285,15 +286,15 @@ function phaseHTML(selectedMove: typeof MOVES[number] | undefined, selectedTarge
         <b>${selectedMove ? esc(selectedMove.name) : "Choose Target"}</b>
         <span>Pick a hostile contact in the viewport.</span>
       </div>
-      <button ${selectedTarget ? "" : "disabled"} class="primary" onclick="cAct('aim')">Line Up Shot</button>
-      <button onclick="cAct('back')">Back</button>
+      <button ${selectedTarget ? "" : "disabled"} class="primary" ${actionAttr("cAct", "aim")}>Line Up Shot</button>
+      <button ${actionAttr("cAct", "back")}>Back</button>
     </div>`;
   }
   return `<div class="move-grid">
     ${availableMoves().map((m) => {
     const disabled = (m.id === "bribe" && !C!.targets[0].bribe) ? "disabled" : "";
     const extra = m.id === "flee" ? ` · ${fleeChance}%` : m.id === "bribe" ? ` · ${bribeCost(C!.targets[0].bribe || 0)}cr` : "";
-    return `<button ${disabled} onclick="cAct('move:${m.id}')"><b>${esc(m.name)}</b><span>${esc(m.desc)}${extra}</span></button>`;
+    return `<button ${disabled} ${actionAttr("cAct", `move:${m.id}`)}><b>${esc(m.name)}</b><span>${esc(m.desc)}${extra}</span></button>`;
   }).join("")}
   </div>`;
 }

@@ -12,6 +12,7 @@
 // choices you make before you've learned the controls still follow you.
 import { S, setState, newState, log } from "../state";
 import { modal, closeModal } from "../modal";
+import { actionAttr } from "../dispatch";
 import { requestRender } from "../bus";
 import { clearSave } from "../state";
 import { readCaptainRole } from "../ui/help";
@@ -83,7 +84,7 @@ export function introStart() {
     <p>Eight hours ago you were the first mate of a grain convoy out of Kestrel's Rest — four freighters, one escort, a milk run. Then the raiders came out of the sun, and the escort <b>Vesper</b> broke her back buying you the minutes that mattered, and Captain Rhea Osei flew this ugly, beautiful ship like a knife until the shooting stopped.</p>
     <p>The convoy scattered clear. The raiders didn't. You're alive. The board says the drive is down, the tanks are holed, and the bunkroom is crushed. And the captain hasn't answered the comm since the last hit.</p>
     <p class="dim">You were second in command. You know what that means now. Go forward.</p>
-    <div class="choices"><button class="primary" onclick="introAct('wake')">Get up.</button></div>`);
+    <div class="choices"><button class="primary" ${actionAttr("introAct", "wake")}>Get up.</button></div>`);
   requestRender();
 }
 
@@ -164,8 +165,8 @@ function stgCockpit() {
     <p>Rhea Osei looks like she's checking a gauge that's slightly out of reach. The last hit threw shrapnel through the port bulkhead, and she never made a sound about it, because she was busy saving everyone else on this ship.</p>
     <p>Her hand is still on the throttle. Second in command means there is no one to report this to. It's your throttle now.</p>
     <div class="choices">
-      <button onclick="introAct('goodbye')">Take a minute. Say goodbye properly.</button>
-      <button onclick="introAct('cover')">Cover her. Grieve later — the ship is dying too.</button>
+      <button ${actionAttr("introAct", "goodbye")}>Take a minute. Say goodbye properly.</button>
+      <button ${actionAttr("introAct", "cover")}>Cover her. Grieve later — the ship is dying too.</button>
     </div></div>`);
 }
 
@@ -185,7 +186,7 @@ function stgGoodbye(properly: boolean) {
     <p>The board tells it plain: <b>drive core down. 3 fuel in the tanks. Hull at 41%.</b> The crew quarters took the worst of the last hit — Juno's bunk is somewhere under a caved-in spar.</p>
     <p>${j ? "Juno's voice on the intercom, rough: \"Drive first, Captain. Everything else is a luxury.\"" : "Drive first. Everything else is a luxury."} The word <i>Captain</i> lands strangely. She means you.</p>
     <p class="dim">Tutorial: the <b>🚀 Ship</b> screen is your deck schematic — damaged systems glow red. The <b>Breaker Panel</b> toggles power. For now: walk aft.</p>
-    <div class="choices"><button class="primary" onclick="closeModal()">Aft, then.</button></div></div>`);
+    <div class="choices"><button class="primary" ${actionAttr("closeModal")}>Aft, then.</button></div></div>`);
 }
 
 // ---------- stage 2 → 3: DIY repairs ----------
@@ -196,9 +197,9 @@ function stgRig() {
     ${dialogueHeadHTML(j ? crewPortraitKey(j) : null, JUNO_ICON, "Juno Vale", "your mechanic — head-deep in the drive core")}
     <p>Juno already has the casing open. "Feed line's cooked and the regulator's shrapnel. I can bring her up, but I need patch stock — and there's three ways to get it, Captain, none of them free."</p>
     <div class="choices">
-      <button onclick="introAct('rig_plate')">Cannibalize hull plating for patch stock <span class="dim">— −6 hull</span></button>
-      <button ${can40 ? "" : "disabled"} onclick="introAct('rig_parts')">Burn the spare-parts fund <span class="dim">— 40cr${can40 ? "" : " (you don't have it)"}</span></button>
-      <button onclick="introAct('rig_juno')">Strip the galley heat-exchanger <span class="dim">— −3 food, Juno's call</span></button>
+      <button ${actionAttr("introAct", "rig_plate")}>Cannibalize hull plating for patch stock <span class="dim">— −6 hull</span></button>
+      <button ${can40 ? "" : "disabled"} ${actionAttr("introAct", "rig_parts")}>Burn the spare-parts fund <span class="dim">— 40cr${can40 ? "" : " (you don't have it)"}</span></button>
+      <button ${actionAttr("introAct", "rig_juno")}>Strip the galley heat-exchanger <span class="dim">— −3 food, Juno's call</span></button>
     </div></div>`);
 }
 
@@ -227,7 +228,7 @@ function stgRigDone(how: string) {
     <p>The core catches on the third try — a half-tone flat, like a hymn sung by somebody angry — and every gauge on the ship blinks awake. Juno wipes her hands and looks at you for orders.</p>
     <p>"We've got <b>3 fuel</b>, Captain. Port Solace is three days' burn. You can't math that into working." She nods at the glass, at the slow-tumbling dead outside. "But <i>they're</i> still holding fuel."</p>
     <p class="dim">Tutorial: fuel burns per day in flight (see the Ship Systems panel). No fuel, no thrust, no future.</p>
-    <div class="choices"><button class="primary" onclick="closeModal()">Suit up.</button></div></div>`);
+    <div class="choices"><button class="primary" ${actionAttr("closeModal")}>Suit up.</button></div></div>`);
 }
 
 // ---------- stage 3 → 4: the salvage sweep ----------
@@ -237,7 +238,7 @@ function stgEva() {
     ${dialogueHeadHTML(j ? crewPortraitKey(j) : null, JUNO_ICON, "Juno Vale", "your mechanic — suited up")}
     <p>Outside is very quiet and very full. The <b>Vesper</b> hangs in two pieces, her spine glowing faintly where it parted. Beyond her, the raider cutter that killed her — dark, holed, spinning slow. And further out, a drop-skiff, mostly intact, running lights stuttering.</p>
     <p>Juno takes the tether anchor. "Vesper first. She'd want it to be us and not some claim-jumper."</p>
-    <div class="choices"><button class="primary" onclick="introAct('vesper')">Cross to the Vesper</button></div></div>`);
+    <div class="choices"><button class="primary" ${actionAttr("introAct", "vesper")}>Cross to the Vesper</button></div></div>`);
 }
 
 function stgVesperModal() {
@@ -247,8 +248,8 @@ function stgVesperModal() {
     <p>Her tanks survived her. You rig the siphon and watch <b>+8 fuel</b> crawl across your gauge while Juno floats through the broken crew deck with her torch down, out of respect.</p>
     <p>Twelve escort crew flew her. Their tags are still aboard — and so is her armory cache, sealed, unclaimed, worth real money to the right buyer. There's time to carry one load before the tether swings back.</p>
     <div class="choices">
-      <button onclick="introAct('vesper_tags')">Recover the crew's tags for their families</button>
-      <button onclick="introAct('vesper_strip')">Strip the armory cache <span class="dim">— +120cr</span></button>
+      <button ${actionAttr("introAct", "vesper_tags")}>Recover the crew's tags for their families</button>
+      <button ${actionAttr("introAct", "vesper_strip")}>Strip the armory cache <span class="dim">— +120cr</span></button>
     </div></div>`);
 }
 
@@ -275,8 +276,8 @@ function stgCutterIntro() {
     <p>The ship that killed Osei is ugly up close — a stripped-down lane-wolf, no flag, no registry plate. Her tanks give up <b>+6 fuel</b>, and her hold has <b>160cr in bearer salvage bonds</b>, which raiders carry because banks ask questions.</p>
     <p>Then Juno's light finds the flight recorder. Intact. A raider's black box says who they were, where they've hit — and sometimes, who was <i>paying</i>. Boxes like this have started wars on the frontier. Ended some, too.</p>
     <div class="choices">
-      <button onclick="introAct('cutter_box')">Pull the black box</button>
-      <button onclick="introAct('cutter_leave')">Leave it — dead men's business</button>
+      <button ${actionAttr("introAct", "cutter_box")}>Pull the black box</button>
+      <button ${actionAttr("introAct", "cutter_leave")}>Leave it — dead men's business</button>
     </div></div>`);
 }
 
@@ -295,8 +296,8 @@ function stgCutter(tookBox: boolean) {
     <p>The last wreck isn't a wreck. The drop-skiff's cabin is holed, but her aft compartment is sealed — and something inside is <b>knocking</b>. Slow. Deliberate. The rhythm of someone who has been counting their own breaths for hours.</p>
     <p>Juno reads the panel. "One soul. Raider crew, has to be. Air's going amber in there, Captain — she has maybe an hour." A beat. "Your call. She shot at us this morning."</p>
     <div class="choices">
-      <button onclick="introAct('skiff_cut')">Cut her out</button>
-      <button onclick="introAct('skiff_leave')">Leave her for the Union sweepers <span class="dim">— they're days out</span></button>
+      <button ${actionAttr("introAct", "skiff_cut")}>Cut her out</button>
+      <button ${actionAttr("introAct", "skiff_leave")}>Leave her for the Union sweepers <span class="dim">— they're days out</span></button>
     </div></div>`);
 }
 
@@ -325,7 +326,7 @@ function stgSkiff(cut: boolean) {
     <p>You sit in the chair. It's warm from the sun through the glass and from nothing else, and it fits wrong, and you fly anyway, because that is the whole job.</p>
     <p><b>Port Solace, three days.</b> Fuel for maybe four. Food for maybe seven. A drive that sings flat and a crew of one, plus whatever you're carrying that knocks.</p>
     <p class="dim">Tutorial: each ▸ ENGAGE BURN advances one day — burning fuel, eating food, paying salaries, and rolling the dice on the lane. The pedestal throttle needs to be up for the drive to answer.</p>
-    <div class="choices"><button class="primary" onclick="introAct('burn')">Take her out.</button></div></div>`);
+    <div class="choices"><button class="primary" ${actionAttr("introAct", "burn")}>Take her out.</button></div></div>`);
 }
 
 function stgBurn() {
@@ -354,7 +355,7 @@ export function introTravelBeat(): boolean {
 
 function stgPatrolHail() {
   const survivorBtn = S.flags.intro_survivor && !S.flags.intro_survivor_union
-    ? `<button onclick="introAct('patrol_handover')">Transfer your raider survivor to their brig</button>` : "";
+    ? `<button ${actionAttr("introAct", "patrol_handover")}>Transfer your raider survivor to their brig</button>` : "";
   const boxLine = S.flags.intro_blackbox ? " You think about the black box under your bunk, and about who might be named in it." : "";
   modal(`<div class="scene"><div class="scene-loc">Kestrel lane · day 2</div>
     ${dialogueHeadHTML(null, "🛰", "TUV Lattice", "Union patrol corvette — hailing")}
@@ -362,8 +363,8 @@ function stgPatrolHail() {
     <p>Juno has gone very, very quiet at the engineering board.${boxLine}</p>
     <p class="dim">A dead captain is paperwork. Out here, paperwork is politics: the Union counts everything, and remembers what doesn't add up.</p>
     <div class="choices">
-      <button onclick="introAct('patrol_straight')">Report it straight — the raid, Osei, all of it</button>
-      <button onclick="introAct('patrol_short')">Give them the short version — "engine trouble, no assistance required"</button>
+      <button ${actionAttr("introAct", "patrol_straight")}>Report it straight — the raid, Osei, all of it</button>
+      <button ${actionAttr("introAct", "patrol_short")}>Give them the short version — "engine trouble, no assistance required"</button>
       ${survivorBtn}
     </div></div>`);
 }
@@ -382,14 +383,14 @@ function stgPatrol(how: string) {
     modal(`<div class="scene"><h2>🛰 Logged</h2>
       <p><i>"Handover recorded. The ship is yours pending probate, Captain."</i> The word again, official now, in a Union database forever.${extra}</p>
       <p>The Lattice burns off toward the debris field. Juno lets a long breath go at her board, and you make a note of that without knowing what it's a note about.</p>
-      <div class="choices"><button class="primary" onclick="closeModal()">Fly on.</button></div></div>`);
+      <div class="choices"><button class="primary" ${actionAttr("closeModal")}>Fly on.</button></div></div>`);
   } else if (how === "short") {
     shift("law", -1, "stonewalled a patrol");
     shift("daring", 1, "flew past the flag");
     log("\"Engine trouble. No assistance required.\" The Lattice holds the scan a beat longer than politeness, then lets you go. Some paperwork stays yours alone. So do some problems.");
     modal(`<div class="scene"><h2>🛰 The Short Version</h2>
       <p>The corvette drifts alongside for a slow minute — long enough to say <i>we both know that isn't all of it</i> — and then peels away. Juno's shoulders come down an inch. "Thank you," she says, to the board, not to you. Another note you file without a folder to put it in.</p>
-      <div class="choices"><button class="primary" onclick="closeModal()">Fly on.</button></div></div>`);
+      <div class="choices"><button class="primary" ${actionAttr("closeModal")}>Fly on.</button></div></div>`);
   } else {
     // hand the survivor over
     S.flags.intro_survivor_union = true;
@@ -400,7 +401,7 @@ function stgPatrol(how: string) {
     log("Ilsa Renn crosses to the Lattice in borrowed cuffs. Nineteen, raider, alive — the Union will decide what order those words go in. (+Union)");
     modal(`<div class="scene"><h2>🛰 Transfer</h2>
       <p>She doesn't fight it and doesn't thank you, which between raiders counts as good manners. At the airlock she stops. "You cut me out anyway," she says. "I'll remember the ship." Whether that's gratitude or a targeting note, she takes it with her.</p>
-      <div class="choices"><button class="primary" onclick="closeModal()">Fly on.</button></div></div>`);
+      <div class="choices"><button class="primary" ${actionAttr("closeModal")}>Fly on.</button></div></div>`);
   }
 }
 
@@ -412,8 +413,8 @@ function stgGalleyScene() {
     <p>You find her in the galley at ship's midnight, running a diagnostic she's already run, drinking Osei's terrible coffee ration because somebody should. She doesn't look up. "Fourteen years I kept that woman's ship alive. Fourteen years, and the one hit I couldn't patch was the one that mattered."</p>
     <p class="dim">Tutorial: crew are people, not stat blocks. Walk the decks and talk to them — trust opens slowly, and what they carry shapes what they'll do for you. What you do in front of them is remembered. All of it.</p>
     <div class="choices">
-      <button onclick="introAct('galley_toast')">Pour two of the terrible coffees. Toast her properly.</button>
-      <button onclick="introAct('galley_ship')">"The patch is holding. She'd call that a win."</button>
+      <button ${actionAttr("introAct", "galley_toast")}>Pour two of the terrible coffees. Toast her properly.</button>
+      <button ${actionAttr("introAct", "galley_ship")}>"The patch is holding. She'd call that a win."</button>
     </div></div>`);
 }
 
@@ -453,7 +454,7 @@ export function introArrive(): boolean {
     ${renn}
     <p>The music lasts until the dockmaster's runner finds you: a formal notice, Vance's seal. <b>Captain R. Osei: outstanding berth and bond, 220 credits.</b> Estates transfer. So do debts. The Harbormaster will see you at your earliest convenience, where <i>earliest</i> is underlined.</p>
     <p class="dim">Tutorial: stations are walked, not menued — the cantina hires, the exchange sells fuel and food, the dry dock repairs. Start with the Harbormaster's window. Everyone does, eventually.</p>
-    <div class="choices"><button class="primary" onclick="introAct('dock_ok')">Step off the ramp.</button></div></div>`);
+    <div class="choices"><button class="primary" ${actionAttr("introAct", "dock_ok")}>Step off the ramp.</button></div></div>`);
   requestRender();
   return true;
 }
@@ -471,16 +472,16 @@ export function introDebtScene() {
   const canPay = hasIt && !wouldStrand;
   const payNote = !hasIt ? " (you don't have it)" : wouldStrand ? " (would leave you stranded — no fuel money left)" : "";
   const boxBtn = S.flags.intro_blackbox && !S.flags.blackbox_gone
-    ? `<button onclick="introAct('debt_box')">Trade her the raider black box <span class="dim">— debt cleared, +100cr</span></button>` : "";
+    ? `<button ${actionAttr("introAct", "debt_box")}>Trade her the raider black box <span class="dim">— debt cleared, +100cr</span></button>` : "";
   modal(`<div class="scene"><div class="scene-loc">Port Solace · harbormaster</div>
     ${dialogueHeadHTML(null, "🛃", "Harbormaster Vance", "Port Solace harbormaster")}
     <p>Sela Vance reads the transfer notice like it's a menu she's already bored of. "Osei. Good captain. Paid late, paid always." She looks up, and her eyes do the arithmetic on your jacket, your ship, your day. "Two hundred twenty, plus my sympathy, which is free."</p>
     <p>"How would you like to settle the estate, <i>Captain</i>?"</p>
     <div class="choices">
-      <button ${canPay ? "" : "disabled"} onclick="introAct('debt_pay')">Pay it, in full <span class="dim">— 220cr${payNote}</span></button>
-      <button onclick="introAct('debt_claim')">Sign over the wreck-field salvage claim <span class="dim">— the Vesper families get nothing</span></button>
+      <button ${canPay ? "" : "disabled"} ${actionAttr("introAct", "debt_pay")}>Pay it, in full <span class="dim">— 220cr${payNote}</span></button>
+      <button ${actionAttr("introAct", "debt_claim")}>Sign over the wreck-field salvage claim <span class="dim">— the Vesper families get nothing</span></button>
       ${boxBtn}
-      <button onclick="introAct('debt_work')">Work it off — one unmarked crate, no questions</button>
+      <button ${actionAttr("introAct", "debt_work")}>Work it off — one unmarked crate, no questions</button>
     </div></div>`);
 }
 
@@ -535,7 +536,7 @@ export function introCheckDone() {
     <p>Contract on the books. Debts settled, or at least aimed. Fuel in the tank and a drive that sings flat and holds. Somewhere in the last four days you stopped being Osei's first mate and started being the captain — nobody can say exactly when, which is how it always happens.</p>
     <p>Out here the <b>Union</b> counts everything, the <b>Frontier Compact</b> grows everything, and the <b>Red Sky Syndicate</b> moves everything the other two won't touch. All three pay. All three remember. The lanes are already starting to tell stories about you — what kind of stories is the only thing you actually get to choose.</p>
     <p class="dim">Fly. Trade. Build the ship out. Talk to your crew. And when your name means something — <b>12★ prestige</b> — somebody with a very dangerous crate is going to come looking for a captain exactly like you.</p>
-    <div class="choices"><button class="primary" onclick="introAct('done_ok')">Keep flying.</button></div>`);
+    <div class="choices"><button class="primary" ${actionAttr("introAct", "done_ok")}>Keep flying.</button></div>`);
 }
 
 function stgDoneClose() {
