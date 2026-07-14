@@ -33,8 +33,12 @@ export interface CharacterRig {
 
 const TAU = Math.PI * 2;
 
-function mat(color: THREE.ColorRepresentation, emissive = 0, roughness = .72): THREE.MeshStandardMaterial {
-  return new THREE.MeshStandardMaterial({ color, roughness, metalness: .22, emissive: color, emissiveIntensity: emissive });
+// Falls back to a neutral slate if `color` ever comes through undefined —
+// THREE.Material otherwise logs a console warning for every undefined param,
+// which is what an incomplete crew appearance object used to produce here.
+function mat(color: THREE.ColorRepresentation | undefined, emissive = 0, roughness = .72): THREE.MeshStandardMaterial {
+  const c = color ?? "#7d8294";
+  return new THREE.MeshStandardMaterial({ color: c, roughness, metalness: .22, emissive: c, emissiveIntensity: emissive });
 }
 function mix(a: string, b: string, t: number): string {
   const h = (s: string) => [parseInt(s.slice(1, 3), 16), parseInt(s.slice(3, 5), 16), parseInt(s.slice(5, 7), 16)];

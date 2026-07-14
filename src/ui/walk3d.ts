@@ -194,8 +194,13 @@ function attachCrewModel(group: THREE.Group, modelKey: string | undefined, fallb
   });
 }
 
-function mat(color: THREE.ColorRepresentation, emissive = 0): THREE.MeshStandardMaterial {
-  return new THREE.MeshStandardMaterial({ color, roughness: .72, metalness: .25, emissive: color, emissiveIntensity: emissive });
+// Falls back to a neutral slate if `color` ever comes through undefined (e.g.
+// an incomplete appearance/room-color lookup) — THREE.Material logs a console
+// warning for every undefined param it's handed, so this keeps a missing
+// color a silent no-op instead of recurring console noise.
+function mat(color: THREE.ColorRepresentation | undefined, emissive = 0): THREE.MeshStandardMaterial {
+  const c = color ?? "#7d8294";
+  return new THREE.MeshStandardMaterial({ color: c, roughness: .72, metalness: .25, emissive: c, emissiveIntensity: emissive });
 }
 // Every fine repeating texture (deck grating, wall panels, floor grid) is
 // viewed at a steep grazing angle from the chase camera — a corridor floor

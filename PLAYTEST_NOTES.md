@@ -6,6 +6,59 @@ Playwright + `window.dispatch` (per the `playtest-kestrel` skill). Dev server:
 
 Legend: 🐛 bug · ✅ works · ⚠️ questionable/rough edge
 
+## Fix log (bug-fix pass, source-only — no browser driven)
+
+- **Bug #5 (new games own every module) — FIXED.** `src/state.ts`'s
+  `newState()` now starts a ship with just `cockpit`, `engine`, `fueltank`,
+  `cargohold`, `quarters` (2 core + 3 purchasable) and `slotsMax: 6` instead
+  of one of every module type at `slotsMax: 14`. `6` matches the slot-
+  expansion pricing `src/ui/planet.ts`/`src/systems/actions.ts` already
+  special-cased (`S.slotsMax === 6 ? 600 : 1200`, capped at 10), so hull
+  expansions now actually mean something. At 500cr starting credits, a
+  mid-tier module (workshop/cabin/armory, ~400–450cr) is affordable
+  immediately but Weapons Bay (600cr) / Shields (650cr) / Smuggler's Hold
+  (700cr) / Stateroom (800cr) are a stretch until after a delivery or two —
+  matches the prologue's own "Fly. Trade. Build the ship out." framing.
+  Updated `src/debug/scenarios.ts`'s `trader`/`silence` scenarios to set
+  `S.slotsMax = 8` explicitly (previously relied on the old default of 14);
+  `fighter`/`arc`/`run`/`reckoning` already set `slotsMax = 8` and, with the
+  smaller base, their pushed modules now land at exactly 8/8 slots instead
+  of wildly overfull. No existing test hardcoded the old 14-module baseline,
+  so no test changes were needed.
+- **Double-checked `arc.ts`/`survey.ts`/`silence.ts` for the same
+  modal()-vs-replaceModal() queueing bug as bugs #1/#3/#6 — confirmed
+  already correct, no fix needed.** Traced every `modal()` call site in all
+  three files: each is either a genuinely new event with nothing already
+  open (a random travel event, an arrival hook, a deadline tick — none of
+  these fire from a button click on an already-open modal) or is preceded
+  by an explicit `closeModal()` in the button handler that triggered it.
+  Every scene-to-scene continuation (`surveyBoard`→`replaceModal`,
+  `silDescend`→`replaceModal`, `silAnswer`/`silStill`/`silSell`→
+  `replaceModal`, etc.) already uses `replaceModal()` correctly.
+- **Minor: mismatched pronouns in crew bios — FIXED.** `src/content/
+  crewgen.json`'s `origins`/`wants` pools had ~4 gendered entries ("she
+  washed out of", "washing him out", "isn't paying her", etc.) alongside
+  otherwise pronoun-neutral text. Rewrote all of them to "they/them",
+  matching `wounds`/`secrets`/`tells`. `npm run lint:content` passes.
+- **Minor: THREE.Material console warnings — investigated, hardened,
+  root cause not actually reproducible.** Traced the full crew-rendering
+  pipeline (`genBundle()`/`genRecruit()`/`namedRecruitHere()` in
+  `src/systems/market.ts` → `CrewMember` has no `appearance` field at all,
+  only a flat render-time `color` string with `||` fallbacks in
+  `shipwalk.ts`/`stationwalk.ts`/`planetwalk.ts` → `addPerson()` in
+  `walk3d.ts` always builds a fully-populated `Appearance` object →
+  `buildCharacter()` in `character3d.ts` merges any partial input over
+  `DEFAULT_APPEARANCE` — a defensive merge present since the 3D character
+  system's original commit). No live call path was found that ever hands
+  an undefined color/emissive to `THREE.MeshStandardMaterial`. Given that,
+  hardened both `mat()` helpers (`character3d.ts`, `walk3d.ts`) to fall back
+  to a neutral slate (`#7d8294`) if `color` is ever `undefined` anyway, as
+  cheap defense-in-depth. If the playtest session still sees these console
+  warnings, the actual trigger is somewhere this static trace didn't catch
+  (possibly a specific named-character GLTF model via `attachCrewModel`,
+  which is a separate code path from the procedural materials above) and is
+  worth a fresh repro with the console open.
+
 ## TL;DR
 
 The writing, the world-state/consequence systems, and the base ship/station/
