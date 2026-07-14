@@ -128,7 +128,7 @@ function draw(vm: CombatVM): void {
 function mountAvatar(vm: CombatVM): void {
   const stage = typeof document !== "undefined" ? document.querySelector<HTMLElement>("[data-combat-avatar]") : null;
   if (!stage) return;
-  mountCombatAvatar(stage, vm.phase, S.appearance?.model);
+  mountCombatAvatar(stage, vm.phase);
   updateCombatAvatar(vm.phase);
 }
 

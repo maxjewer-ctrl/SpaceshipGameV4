@@ -11,7 +11,6 @@ import { mountCreatorPreview, type CreatorPreview } from "./creatorPreview3d";
 import { PLAYER_MODEL_LABEL } from "./playerModel3d";
 import { ROLES } from "../content";
 import { startGame } from "./help";
-import { introStart } from "../systems/intro";
 import { actionAttr } from "../dispatch";
 
 const NAME_POOL = [
@@ -55,7 +54,7 @@ export function openCreator() {
     </div>
     <p class="dim" style="margin:10px 0 0; font-size:11px">A captain covers their old station until they hire a replacement — but a captain below decks isn't captaining.</p>
     <div class="choices">
-      <button class="primary" ${actionAttr("avStart", "prologue")}>◆ Begin</button>
+      <button class="primary" ${actionAttr("avStart")}>◆ Begin</button>
     </div>
   </div>`);
   startPreview();
@@ -126,12 +125,16 @@ export function avSkin(hex: string) { draft.app.skin = hex; markSwatch("cc-skin"
 export function avSuit(hex: string) { draft.app.suit = hex; markSwatch("cc-suit", hex); preview3d?.refresh(); }
 export function avTrim(hex: string) { draft.app.trim = hex; markSwatch("cc-trim", hex); preview3d?.refresh(); }
 
-export function avStart(mode: string) {
+export function avStart() {
   const nameEl = document.getElementById("captainnamein") as HTMLInputElement | null;
   if (nameEl) draft.captainName = nameEl.value;
   if (previewRAF) { cancelAnimationFrame(previewRAF); previewRAF = null; }
   preview3d?.teardown(); preview3d = null;
-  if (mode === "prologue") introStart(); else startGame();
+  // Drop straight into the game at Port Solace. The DEAD RECKONING prologue
+  // (systems/intro.ts) used to play here as a scripted cold-open of dialogue
+  // popups; it's been taken out of the opening flow so a new game starts in the
+  // cockpit, not in a story sequence. The prologue code still exists, unwired.
+  startGame();
 }
 
 function setText(id: string, txt: string) {
