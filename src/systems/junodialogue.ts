@@ -47,6 +47,13 @@ export function checkJunoReq(req: Record<string, any> | undefined, c: CrewMember
   if (req.repMax && (S.rep[req.repMax[0]] || 0) > req.repMax[1]) return [false, ""];
   if (req.dispo && ((S.disposition as any)[req.dispo[0]] || 0) < req.dispo[1]) return [false, ""];
   if (req.dispoMax && ((S.disposition as any)[req.dispoMax[0]] || 0) > req.dispoMax[1]) return [false, ""];
+  // several ceilings at once — lets sibling choices carve exclusive regions of
+  // playstyle space so the same label never renders twice
+  if (req.dispoMaxAll) {
+    for (const [ax, mx] of req.dispoMaxAll as [string, number][]) {
+      if (((S.disposition as any)[ax] || 0) > mx) return [false, ""];
+    }
+  }
   // resources
   if (req.credits !== undefined && S.credits < req.credits) return [false, `need ${req.credits}cr`];
   // campaign / world events
@@ -54,9 +61,22 @@ export function checkJunoReq(req: Record<string, any> | undefined, c: CrewMember
   if (req.silMax !== undefined && (S.campaign.silence.stage || 0) > req.silMax) return [false, ""];
   if (req.arc !== undefined && (S.arc.stage || 0) < req.arc) return [false, "locked"];
   if (req.arcMax !== undefined && (S.arc.stage || 0) > req.arcMax) return [false, ""];
-  // prior-choice flags
-  if (req.flag && !S.flags[req.flag]) return [false, "locked"];
-  if (req.flagNot && S.flags[req.flagNot]) return [false, ""];
+  // where the ship is docked right now (beats that only make sense at a port)
+  if (req.loc) {
+    const locs = Array.isArray(req.loc) ? req.loc : [req.loc];
+    if (!locs.includes(S.loc)) return [false, ""];
+  }
+  // prior-choice flags — string or array (all must hold / none may hold)
+  if (req.flag) {
+    for (const f of Array.isArray(req.flag) ? req.flag : [req.flag]) {
+      if (!S.flags[f]) return [false, "locked"];
+    }
+  }
+  if (req.flagNot) {
+    for (const f of Array.isArray(req.flagNot) ? req.flagNot : [req.flagNot]) {
+      if (S.flags[f]) return [false, ""];
+    }
+  }
   return [true, ""];
 }
 
@@ -166,16 +186,24 @@ export function junoContinue() {
 // ---- docking beats — unprompted story pushes, gated + fired once each ----
 // Same slot as checkImogenQuest/checkAgendaBeats in travel.ts. Walks the ordered
 // beat list and opens the first one whose gate is satisfied and that hasn't
-// fired. One modal per docking, at most.
+// fired. One modal per docking, at most — and ambient beats keep a few days'
+// distance from each other so Juno doesn't ambush the captain at three ports
+// running. Beats marked priority (mission completions, planted payoffs) ignore
+// the cooldown: the player earned that scene by flying here.
+const BEAT_SPACING_DAYS = 4;
+
 export function checkJunoArc() {
   if (hasModal() || !S.docked) return;
   const c = juno();
   if (!c) return;
+  const cd = S.flags.juno_beat_cooldown;
   for (const beat of JUNO_DIALOGUE.beats || []) {
     if (S.flags["juno_beat_" + beat.id]) continue;
+    if (!beat.priority && typeof cd === "number" && S.day < cd) continue;
     if (!checkJunoReq(beat.requires, c)[0]) continue;
     if (!JUNO_DIALOGUE.nodes[beat.node]) continue;
     S.flags["juno_beat_" + beat.id] = true;
+    S.flags.juno_beat_cooldown = S.day + BEAT_SPACING_DAYS;
     renderJunoNode(beat.node);
     requestRender();
     return;

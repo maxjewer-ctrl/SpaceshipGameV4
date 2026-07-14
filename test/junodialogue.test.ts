@@ -87,7 +87,7 @@ describe("Juno dialogue — choices persist", () => {
     expect(S.ledger.some((m) => m.who === crewKey(juno()) && m.fact === "grieved_osei_together")).toBe(true);
   });
 
-  it("sets flags that unlock later branches, and spends credits on the manumission", () => {
+  it("turns the manumission into a mission to Foundry, resolved by the stamp beat", () => {
     seatJuno({ days: 40, bond: 10 });
     S.flags.juno_tell_asked = true;
     S.credits = 300;
@@ -96,12 +96,96 @@ describe("Juno dialogue — choices persist", () => {
     junoContinue();
     expect(S.flags.juno_secret_confessed).toBe(true);
     expect(S.flags.juno_secret_kept).toBe(true);
-    // want topic now unlocked → back her manumission
-    junoChoose("want_ask", idxOf("want_ask", "file it"));
+    // want topic now unlocked → backing her grants a mission, not an instant fix
+    junoChoose("want_ask", idxOf("want_ask", "Retain the advocate"));
     junoContinue();
-    expect(S.credits).toBe(210); // 300 - 90
+    expect(S.credits).toBe(150); // 300 - 150 advocate retainer
+    expect(S.flags.juno_manumission_filed).toBe(true);
+    expect(S.flags.juno_want_resolved).toBeFalsy(); // not free yet — she has to get there
+    expect(S.jobs.some((j) => j.tag === "juno_manumission" && j.dest === "foundry")).toBe(true);
+    // fly the mission: arrival at foundry completes the job (travel.ts sets job_<tag>)
+    clearModal();
+    S.flags.job_juno_manumission = true;
+    S.loc = "foundry";
+    checkJunoArc();
+    expect(modalHTML()).toContain("Manumitted"); // the stamp beat owns the payoff
+    junoChoose("stamp", 0);
+    junoContinue();
+    expect(juno().perk).toBe(true);
     expect(S.flags.juno_want_resolved).toBe(true);
-    expect(juno().perk).toBe(true); // perk granted via crew-verb effect
+    expect(S.rep.frontier).toBe(1);
+    expect(S.rep.union).toBe(-1); // the filing went through Union systems
+  });
+});
+
+describe("Juno dialogue — patrol beats", () => {
+  it("keeps the secret out of the pre-confession patrol scene", () => {
+    seatJuno({ days: 10, bond: 5 }); // trusted, not bonded
+    expect(trustTier(juno())).toBe("trusted");
+    S.loc = "meridian";
+    checkJunoArc();
+    const html = modalHTML() || "";
+    expect(html).toContain("not be on this deck"); // opaque pre-confession ask
+    expect(html).not.toContain("I’m the thing they find"); // the confession stays hers
+  });
+
+  it("plays the open version only after the confession, and only in Union space", () => {
+    seatJuno({ days: 40, bond: 10 });
+    S.flags.juno_secret_confessed = true;
+    S.loc = "solace"; // not Union-leaning → no patrol beat here
+    checkJunoArc();
+    expect(modalHTML() || "").not.toContain("cutter");
+    clearModal();
+    S.flags.juno_beat_cooldown = 0;
+    S.flags.juno_beat_grief = true; // quiet the ambient beats for this check
+    S.flags.juno_beat_foundry = true;
+    S.loc = "meridian";
+    checkJunoArc();
+    expect(modalHTML() || "").toContain("I’m the thing they find");
+  });
+
+  it("hiding from the patrol plants the follow-up inspection", () => {
+    seatJuno({ days: 40, bond: 10 });
+    S.flags.juno_secret_confessed = true;
+    S.loc = "meridian";
+    S.flags.juno_beat_grief = true;
+    S.flags.juno_beat_foundry = true;
+    checkJunoArc();
+    junoChoose("beat_patrol_post", idxOf("beat_patrol_post", "Get below"));
+    junoContinue();
+    expect(S.flags.juno_patrol_hidden).toBe(true);
+    expect(S.scheduled.some((e) => e.eventKey === "juno_patrol_followup")).toBe(true);
+  });
+});
+
+describe("Juno dialogue — beat pacing", () => {
+  it("spaces ambient beats by cooldown, but mission payoffs bypass it", () => {
+    seatJuno({ days: 10, bond: 5 }); // trusted
+    S.loc = "solace"; // out of patrol space
+    checkJunoArc(); // grief fires, arms the cooldown
+    expect(modalHTML()).toContain("Osei");
+    clearModal();
+    checkJunoArc(); // foundry beat is eligible but the cooldown holds it
+    expect(hasModal()).toBe(false);
+    S.flags.juno_patrol_flagged = true; // planted payoff arrives → priority beat
+    checkJunoArc();
+    expect(modalHTML() || "").toContain("re-verification");
+    clearModal();
+    S.day = 20; // cooldown expired → ambient beats resume
+    checkJunoArc();
+    expect(modalHTML() || "").toContain("smelter-glow");
+  });
+});
+
+describe("Juno dialogue — choice exclusivity", () => {
+  it("renders exactly one 'Which week is this?' even with both dispositions loud", () => {
+    seatJuno({ days: 40, bond: 10 });
+    S.disposition.law = 7;
+    S.disposition.daring = 7;
+    openJunoDialogue();
+    junoChoose("hub", JUNO_DIALOGUE.nodes.hub.choices.findIndex((c) => c.label.includes("regrets")));
+    const html = modalHTML() || "";
+    expect((html.match(/Which week is this\?/g) || []).length).toBe(1);
   });
 });
 

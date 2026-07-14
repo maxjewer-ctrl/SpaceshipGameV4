@@ -123,6 +123,7 @@ export interface JunoBeat {
   id: string;                       // fired-once key → flags["juno_beat_<id>"]
   node: string;                     // node to open
   requires?: Record<string, any>;   // same gate vocabulary
+  priority?: boolean;               // mission completions etc. — bypass the ambient-beat cooldown
 }
 export interface JunoTree {
   nodes: Record<string, JunoNode>;
