@@ -7,6 +7,7 @@ import { gameOver } from "./gameover";
 import { damageModule } from "./actions";
 import { bark, tellBark } from "./barks";
 import { shift } from "./disposition";
+import { gainRoleXp, addScar } from "./veterancy";
 import type { Enemy } from "../types";
 import * as sfx from "../audio";
 
@@ -520,6 +521,19 @@ export function endCombat() {
   C = null;
   clearModal();
   if (r === "dead") { gameOver("Your ship broke apart under enemy fire. The black keeps what it takes."); return; }
+  // Surviving a fight bloods the crew who fought it — gunners on the guns,
+  // pilots on the vector, mechanics keeping her together under fire. A win is
+  // worth more than a getaway. A near thing (hull under a third) leaves a mark:
+  // the ones who held the deck stop flinching at the klaxon.
+  if (r === "win" || r === "fled") {
+    const w = r === "win" ? 2 : 1;
+    gainRoleXp("gunner", w);
+    gainRoleXp("pilot", w);
+    gainRoleXp("mechanic", 1);
+    if (S.hull <= S.hullMax / 3) {
+      for (const c of S.crew) if (c.role === "gunner" || c.role === "pilot" || c.role === "mechanic") addScar(c, "steady_under_fire");
+    }
+  }
   if (r === "win" && onWin) onWin();
   if (r === "fled" && onEscape) onEscape();
   requestRender();

@@ -12,6 +12,7 @@ import { bark, tellBark } from "./barks";
 import { plantDelay, flagActive } from "./scheduler";
 import { remember, crewKey, witnessAll } from "./ledger";
 import { shift } from "./disposition";
+import { addScar } from "./veterancy";
 import { evNumbersStation, evReturnedShip } from "./silence";
 import { dcBreakdown, dcMeteor, dcSickPassenger } from "./damagecontrol";
 import { planetVisible, isSilenced } from "../derive";
@@ -396,6 +397,9 @@ export function adriftTow() {
   }
   S.prestige = Math.max(0, S.prestige - 3);
   S.fuel = 8;
+  // A dead drive in the deep black marks whoever tends it — the mechanic (or
+  // the captain-mechanic's crewmates) never fully trusts the drive again.
+  for (const c of S.crew) if (c.role === "mechanic") addScar(c, "lane_scarred");
   S.travel = null; S.docked = true; S.loc = nearest!; S.screen = "ship";
   refreshMarket();
 }

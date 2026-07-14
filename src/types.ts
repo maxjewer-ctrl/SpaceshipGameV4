@@ -61,6 +61,8 @@ export interface CrewMember {
   key?: string;          // named roster character (content/characters.json)
   bundle?: CrewBundle;
   daysAboard?: number;   // veterancy tick, drives loyalty & quest timing
+  roleXp?: number;       // events survived IN role — the other half of a rank (see systems/veterancy)
+  scars?: string[];      // learned traits stamped by events (steady_under_fire, flinches_at_static…)
   questStage?: number;   // personal-quest progress: 0 dormant, 1 opened, 2 pointed at a world, 3 resolved
   revealed?: CrewRevealed;
   questDest?: string | null;  // world their personal quest points to, once stage 2

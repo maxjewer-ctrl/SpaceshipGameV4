@@ -710,6 +710,9 @@ th{color:var(--dim); font-weight:500; text-transform:uppercase; font-size:11px; 
 .cr-info{ min-width:0; flex:1; }
 .cr-name{ font-weight:600; font-size:13px; color:#fff; }
 .cr-meta{ font-size:11px; color:var(--dim); }
+.cr-rank{ color:var(--amber); font-weight:600; }
+.cr-scars{ margin-top:3px; display:flex; flex-wrap:wrap; gap:4px; }
+.cr-scar{ font-size:10px; padding:1px 6px; border:1px solid var(--line); border-radius:8px; color:#9fb0c8; background:#12161f; white-space:nowrap; }
 /* travel */
 .progress{height:16px; background:#0d0f17; border:1px solid var(--line); border-radius:8px; overflow:hidden; margin:10px 0;}
 .progress .fill{height:100%; background:linear-gradient(90deg,#7a5c1e,var(--amber)); transition:width .3s;}

@@ -12,6 +12,7 @@ import { BARKS } from "../content";
 import { fork } from "../rng";
 import { openCrewTalk } from "../systems/crewtalk";
 import { trustTier, dispositionWord } from "../systems/trust";
+import { rankTitle, rankOf, SCARS } from "../systems/veterancy";
 import { shipWalkTick } from "../systems/walkEncounters";
 import { introShipDoors, introRoomDesc, introSpawnEngine, introAirlockHint } from "../systems/intro";
 import { teardown, setHighlight, walkInsideFloors } from "./walk";
@@ -221,11 +222,19 @@ export function crewRosterHTML(): string {
     const tier = trustTier(c);
     const dw = dispositionWord(c);
     const quest = c.questStage === 2 ? " · on a quiet errand" : c.questStage === 3 && c.perk ? " · settled, and grateful" : "";
+    // A ranked hand wears their title in place of the bare role; unranked shows the role.
+    const rank = rankOf(c);
+    const roleLabel = rank > 0
+      ? `<span class="cr-rank" title="${"★".repeat(rank)} veteran">${rankTitle(c)}</span>`
+      : (ROLES[c.role]?.n || c.role);
+    const scars = (c.scars || []).map((t) => SCARS[t]
+      ? `<span class="cr-scar" title="${SCARS[t].note}">${SCARS[t].label}</span>` : "").join("");
     return `<div class="cr-row" onclick="crewHighlight(${c.id})" title="Click to find them on deck">
       <span class="cr-dot" style="background:${TIER_DOT[tier]}"></span>
       <div class="cr-info">
         <div class="cr-name">${c.name}</div>
-        <div class="cr-meta"><span class="ctword ${dw.cls}">${dw.word}</span> · ${ROLES[c.role]?.n || c.role} · ${c.daysAboard || 0}d aboard${quest}</div>
+        <div class="cr-meta"><span class="ctword ${dw.cls}">${dw.word}</span> · ${roleLabel} · ${c.daysAboard || 0}d aboard${quest}</div>
+        ${scars ? `<div class="cr-scars">${scars}</div>` : ""}
       </div>
     </div>`;
   }).join("");

@@ -14,6 +14,7 @@ import { requestRender } from "../bus";
 import { ri, rand, pick } from "../rng";
 import { remember, witnessAll, crewKey } from "./ledger";
 import { shift } from "./disposition";
+import { addScar } from "./veterancy";
 import { clamp } from "../util";
 
 const sil = () => S.campaign.silence;
@@ -66,6 +67,8 @@ export function silenceTick() {
       <p class="dim">The Union is calling it correlated equipment failure. The pilgrims are calling it the Quiet. Fragments of the truth are out there — in the deep lanes, in the cults, in what the Union isn't saying. A listening captain could piece it together.</p>
       <div class="choices"><button class="primary" onclick="closeModal()">Log it. Keep flying.</button></div>`);
     log("◇ THE BROADCAST — every radio in the sector played the same four seconds. The band has holes in it now.");
+    // Everyone who stood a watch for it carries it quiet from here on.
+    for (const c of S.crew) addScar(c, "seen_the_silence");
     return;
   }
   // Scheduled silencings.

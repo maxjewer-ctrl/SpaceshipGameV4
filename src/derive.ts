@@ -3,6 +3,7 @@ import { S } from "./state";
 import { MODS, PLANETS, ROLES } from "./content";
 import { portPriceMult } from "./systems/port";
 import { markScaled } from "./systems/modtier";
+import { roleEdge } from "./systems/veterancy";
 import type { ModuleInstance, ShipStats, Job } from "./types";
 
 export function modInst(): ModuleInstance[] {
@@ -53,11 +54,13 @@ export function stats(): ShipStats {
     paxCap: sumIntact("cabin", "pax"),
     vipCap: sumIntact("luxcabin", "vip"),
     crewCap: sumIntact("quarters", "crew"),
-    dmg: Math.round((wDmg > 0 ? wDmg : 2) * (has("gunner") ? (perkActive("gunner") ? 1.65 : 1.5) : 1)),
+    // Gunner damage: flat coverage, +10% perk, then a veterancy edge (+6%/rank).
+    dmg: Math.round((wDmg > 0 ? wDmg : 2) * (has("gunner") ? (perkActive("gunner") ? 1.65 : 1.5) * roleEdge("gunner") : 1)),
     shield: sumActive("shields", "shield"),
     foodGen: sumActive("hydro", "food"),
     speed: [0, 70, 85, 100][S.engineLvl],
-    fuelDay: +(4 * (has("pilot") ? (perkActive("pilot") ? 0.78 : 0.85) : 1)).toFixed(1),
+    // Pilot burn: a ranked pilot flies leaner (roleEdge shaves the fuel factor).
+    fuelDay: +(4 * (has("pilot") ? (perkActive("pilot") ? 0.78 : 0.85) / roleEdge("pilot") : 1)).toFixed(1),
   };
 }
 

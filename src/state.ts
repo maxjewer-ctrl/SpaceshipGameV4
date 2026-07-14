@@ -2,7 +2,7 @@ import type { GameState, ModuleInstance } from "./types";
 import { DEFAULT_APPEARANCE } from "./ui/avatarDraw";
 
 export const SAVE_KEY = "kestrelrun";
-export const SAVE_VERSION = 11;
+export const SAVE_VERSION = 12;
 
 // The single mutable game state. `export let` gives live bindings to importers;
 // replace it only through setState so everyone sees the new object.
@@ -244,6 +244,13 @@ export function migrate(s: any): GameState {
   if (s.version < 11) {
     (s.modules || []).forEach((m: any) => { if (m.mk === undefined) m.mk = 1; });
     s.version = 11;
+  }
+  // v12: crew veterancy. Existing crew start unblooded (rank derives from
+  // daysAboard + roleXp, so a long-serving hand is still rank 0 until they
+  // survive events in role) with no scars.
+  if (s.version < 12) {
+    (s.crew || []).forEach((c: any) => { if (c.roleXp === undefined) c.roleXp = 0; if (!Array.isArray(c.scars)) c.scars = []; });
+    s.version = 12;
   }
   return s as GameState;
 }

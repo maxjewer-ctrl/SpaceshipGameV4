@@ -141,7 +141,18 @@ The rule: **campaigns knock; they never enter uninvited.**
    want, which is the economy-ceiling fix. Save v11 grandfathers old modules
    to Mk-I. 13 tests. Still open: parts-with-provenance / used-module market
    (the "salvaged, runs hot but never lies" flavor layer on top of this).
-3. **Veterancy ranks + scars** (pillar 2) — data model first, barks read it.
+3. ✅ **Veterancy ranks + scars** (pillar 2) — shipped (systems/veterancy.ts).
+   Each crew role earns 3 ranks, gated on BOTH days aboard AND events survived
+   *in role* (roleXp) — neither alone gets there, so rank can't be bought with
+   salary or rushed in one hard week. Ranks carry named titles ("Ghost of the
+   Lanes", "Deadeye") shown on the roster in place of the bare role, and a small
+   stacking edge (+6%/rank) folded into that role's effect (gunner damage, pilot
+   burn). Scars are the qualitative cousin: single events stamp a named trait —
+   surviving a bloody fight → `steady_under_fire`, the Broadcast →
+   `seen_the_silence`, a dead drive adrift → `lane_scarred` — shown as chips and
+   readable by the encounter/bark layer via `hasScar`. Save v12 grandfathers
+   existing crew to rank 0 (unblooded). 12 tests. Still open: barks/encounters
+   that actually *read* the scars, and per-role loyalty missions as the rank-3 gate.
 4. **Survey contracts + POI map marks** (pillar 4).
 5. **Loyalty missions** (pillar 2, biggest content lift, best payoff).
 6. **Station moods** (pillar 3, after standing works).
