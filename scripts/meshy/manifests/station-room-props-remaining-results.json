@@ -1,0 +1,33 @@
+[
+  {
+    "name": "station-recycler-line",
+    "status": "ok",
+    "path": "src/assets/models/station-recycler-line.glb",
+    "taskId": "019f5d2e-311d-74b9-b1ba-efdb63c1e8f7"
+  },
+  {
+    "name": "station-drydock-toolcart",
+    "status": "ok",
+    "path": "src/assets/models/station-drydock-toolcart.glb",
+    "taskId": "019f5d2d-c7e4-74a9-9922-8e130281d940"
+  },
+  {
+    "name": "station-auction-lot",
+    "status": "ok",
+    "path": "src/assets/models/station-auction-lot.glb",
+    "taskId": "019f5d32-2e8c-7be8-8bab-0d8aafef8dd2"
+  },
+  {
+    "name": "station-listening-array",
+    "status": "ok",
+    "path": "src/assets/models/station-listening-array.glb",
+    "taskId": "019f5d35-f90c-71a2-a1e9-837c14058496"
+  },
+  {
+    "name": "station-memorial-lighthouse",
+    "status": "ok",
+    "path": "src/assets/models/station-memorial-lighthouse.glb",
+    "taskId": "019f5d3c-a4aa-73b2-9520-101a6e9dffc3",
+    "note": "Initial batch task timed out; simplified prompt retry succeeded."
+  }
+]

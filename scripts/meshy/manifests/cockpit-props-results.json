@@ -1,0 +1,26 @@
+[
+  {
+    "name": "cockpit-command-console",
+    "status": "ok",
+    "path": "src/assets/models/cockpit-command-console.glb",
+    "taskId": "019f5d43-9b93-7a87-9313-5ecf698aebfa"
+  },
+  {
+    "name": "cockpit-captains-chair",
+    "status": "ok",
+    "path": "src/assets/models/cockpit-captains-chair.glb",
+    "taskId": "019f5d44-446d-762d-9d33-f7c631c621a1"
+  },
+  {
+    "name": "cockpit-navigation-holo",
+    "status": "ok",
+    "path": "src/assets/models/cockpit-navigation-holo.glb",
+    "taskId": "019f5d47-1c01-7c52-8437-eea337b18d34"
+  },
+  {
+    "name": "cockpit-comms-radar-stack",
+    "status": "ok",
+    "path": "src/assets/models/cockpit-comms-radar-stack.glb",
+    "taskId": "019f5d47-d4ec-7721-b04e-0e3d25e7b999"
+  }
+]
