@@ -33,8 +33,9 @@ export interface CharacterRig {
 
 const TAU = Math.PI * 2;
 
-function mat(color: THREE.ColorRepresentation, emissive = 0, roughness = .72): THREE.MeshStandardMaterial {
-  return new THREE.MeshStandardMaterial({ color, roughness, metalness: .22, emissive: color, emissiveIntensity: emissive });
+function mat(color: THREE.ColorRepresentation | null | undefined, emissive = 0, roughness = .72): THREE.MeshStandardMaterial {
+  const safeColor = color ?? "#5a6472";
+  return new THREE.MeshStandardMaterial({ color: safeColor, roughness, metalness: .22, emissive: safeColor, emissiveIntensity: emissive });
 }
 function mix(a: string, b: string, t: number): string {
   const h = (s: string) => [parseInt(s.slice(1, 3), 16), parseInt(s.slice(3, 5), 16), parseInt(s.slice(5, 7), 16)];

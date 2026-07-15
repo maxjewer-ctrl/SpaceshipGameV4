@@ -1,7 +1,8 @@
 // The walkable station: a real top-down deck you move a sprite through with
 // WASD/arrows. The cantina hides behind the exchange, the dry dock opens off
 // the docks, the undercity is down past the berths — this is the ONLY way
-// onto planetside services; there is no shortcut nav button into the cantina.
+// onto planetside services. Once a captain has physically visited a service at
+// a port, its local comm channel is retained as a fast path for repeat business.
 import { S } from "../state";
 import { PLANETS, NPCS, STATIONS } from "../content";
 import { requestRender } from "../bus";
@@ -11,6 +12,7 @@ import { hasPortMark, standingWord, standingGreeting } from "../systems/port";
 import { moodLine, moodTag } from "../systems/moods";
 import { openCrewTalk } from "../systems/crewtalk";
 import { isSilenced } from "../derive";
+import { actionAttr } from "../dispatch";
 
 // Location-stamped consequence set-dressing: a permanent physical change to
 // ONE station, keyed to something you did there. { mark: [room, appended prose] }
@@ -246,10 +248,45 @@ function verb(tab: string): string {
   return tab === "cantina" ? "Step into the Cantina" : tab === "market" ? "Walk the Exchange floor" : "Enter the Dry Dock";
 }
 
+const SERVICES = [
+  { tab: "market", label: "Exchange", code: "CH 03" },
+  { tab: "cantina", label: "Cantina", code: "CH 07" },
+  { tab: "yard", label: "Dry Dock", code: "CH 11" },
+] as const;
+
+function serviceFlag(loc: string, tab: string): string { return `service:${loc}:${tab}`; }
+
+export function serviceKnown(tab: string, loc = S.loc): boolean {
+  return !!S.flags[serviceFlag(loc, tab)];
+}
+
+export function discoverService(tab: string, loc = S.loc): boolean {
+  const key = serviceFlag(loc, tab);
+  if (S.flags[key]) return false;
+  S.flags[key] = true;
+  return true;
+}
+
+export function stationServicesHTML(): string {
+  if (isSilenced(S.loc)) {
+    return `<div class="panel station-directory"><h3>Port Directory</h3>
+      <div class="directory-offline">NO CARRIER<br><span>LOCAL SERVICES DARK</span></div></div>`;
+  }
+  const known = SERVICES.filter((service) => serviceKnown(service.tab));
+  const channels = known.length
+    ? known.map((service) => `<button class="service-fast" ${actionAttr("stationEnter", service.tab)}>
+        <span>${service.code}</span><b>${service.label}</b><small>OPEN</small></button>`).join("")
+    : `<div class="directory-offline">DIRECTORY EMPTY<br><span>VISIT A SERVICE TO STORE ITS CHANNEL</span></div>`;
+  return `<div class="panel station-directory"><h3>Port Directory</h3>
+    <p class="dim">Visited counters stay on the local comm net.</p>
+    <div class="service-channels">${channels}</div></div>`;
+}
+
 // Every action that walks the player OFF the station deck tears down the walk
 // engine first — otherwise its rAF loop and keydown listener keep running
 // against a detached canvas after render() overwrites #main for the new screen.
 export function stationEnter(tab: string) {
+  discoverService(tab);
   teardown();
   S.ptab = tab;
   S.screen = "planet";
@@ -407,6 +444,8 @@ export function buildStationScene(): WalkScene {
     onTick: (moving, dt, roomId) => {
       sfx.walkRoom(roomId);
       stationWalkTick(moving, dt, roomId);
+      const service = defs.find((r) => r.id === roomId)?.tab;
+      if (service && discoverService(service)) requestRender();
     },
   };
 }

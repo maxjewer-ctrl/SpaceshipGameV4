@@ -7,6 +7,12 @@ import { actionAttr } from "../dispatch";
 
 export function selPlanet(k: string) { S.selPlanet = k; requestRender(); }
 
+export function departureCrewWarnings(): { shown: string[]; hidden: number } {
+  if (!S.flags.intro_done) return { shown: [], hidden: 0 };
+  const all = crewGapWarnings();
+  return { shown: all.slice(0, 2), hidden: Math.max(0, all.length - 2) };
+}
+
 export function mapHTML(): string {
   const from = S.travel ? S.travel.from : S.loc;
   let svg = `<svg id="mapsvg" viewBox="0 0 860 480" xmlns="http://www.w3.org/2000/svg">
@@ -113,10 +119,11 @@ export function mapHTML(): string {
       const ok = S.fuel >= f;
       const darkWarn = isSilenced(S.selPlanet)
         ? `<p class="low" style="margin:6px 0">◇ NO SIGNAL — nothing has answered from ${p.n} since it went dark. No port services. No fuel. Whatever you fly in with is what you fly out on.</p>` : "";
-      const gaps = crewGapWarnings();
-      const gapWarn = gaps.length
+      const gaps = departureCrewWarnings();
+      const gapWarn = gaps.shown.length
         ? `<div class="card" style="border-color:var(--red); margin:8px 0"><div class="title" style="color:var(--red)">⚠ Before you cast off</div>
-            ${gaps.map((g) => `<div class="dim" style="margin-top:3px">· ${g}</div>`).join("")}</div>` : "";
+            ${gaps.shown.map((g) => `<div class="dim" style="margin-top:3px">· ${g}</div>`).join("")}
+            ${gaps.hidden ? `<div class="route-more">+${gaps.hidden} lower-priority crew gaps · review the Crew Roster later</div>` : ""}</div>` : "";
       info = `<div class="panel"><h3>${p.n}${moodBadge} <span class="badge fac">${FACS[p.fac].n}</span></h3>
         <p class="dim">${p.d}</p>${darkWarn}${gapWarn}
         <div class="statgrid" style="margin:8px 0">
@@ -136,6 +143,6 @@ export function mapHTML(): string {
   // same physical language as the ship screen's con-left/con-right split.
   return `<div class="cockpit"><div class="dash">
     <div class="console con-left"><div class="panel"><h3>Sector Chart</h3>${frameSvg}</div></div>
-    <div class="console con-right" style="max-width:300px">${info}</div>
+    <div class="console con-right map-readout">${info}</div>
   </div></div>`;
 }

@@ -10,8 +10,8 @@
 //   → 5 Port Solace: settle the debt + take a contract → done (intro_done).
 // All of it writes to the real systems — ledger, disposition, riders — so the
 // choices you make before you've learned the controls still follow you.
-import { S, setState, newState, log } from "../state";
-import { modal, closeModal, clearModal } from "../modal";
+import { S, setState, newState, log, mk } from "../state";
+import { modal, replaceModal, closeModal, clearModal } from "../modal";
 import { actionAttr } from "../dispatch";
 import { requestRender } from "../bus";
 import { clearSave } from "../state";
@@ -22,13 +22,20 @@ import { shift } from "./disposition";
 import { plantDelay } from "./scheduler";
 import { clamp } from "../util";
 import { dialogueHeadHTML, crewPortrait, crewPortraitKey } from "../ui/portraits";
-import { minDepartureCost } from "../derive";
+import { daysTo, foodPerDay, fuelTo, minDepartureCost, stats } from "../derive";
 import type { CrewMember } from "../types";
 
 const JUNO_ICON = "🧑‍🔧";
 
 export const introStage = (): number => (typeof S?.flags?.intro === "number" ? S.flags.intro : 0);
 export const introActive = (): boolean => introStage() >= 1 && !S.flags.intro_done;
+
+interface IntroObjective {
+  label: string;
+  title: string;
+  detail: string;
+  progress?: string;
+}
 
 function juno(): CrewMember | undefined {
   return S.crew.find((c) => c.name === "Juno Vale");
@@ -45,18 +52,32 @@ export function introStart() {
   S.captainName = getCaptainName();
   S.appearance = getAppearance();
   S.captainRole = role;
-  // The ship as the fight left her: drive down, bunkroom caved in, tanks holed.
+  // The ship as the fight left her: a convoy freighter with enough real rooms
+  // to teach the systems, not a late-game luxury yacht in disguise.
   S.credits = 85;
-  S.fuel = 3;
+  S.fuel = 0;
   S.food = 14;
   S.hull = 41;
   S.docked = false;
   S.loc = "kestrel";
   S.screen = "shipwalk";
+  S.slotsMax = 8;
+  S.modules = [
+    mk("cockpit"),
+    mk("engine"),
+    mk("fueltank"),
+    mk("cargohold"),
+    mk("cabin"),
+    mk("quarters"),
+    mk("medbay"),
+    mk("weapons"),
+    mk("workshop"),
+  ];
   S.flags.intro = 1;
   const eng = S.modules.find((m) => m.t === "engine");
   if (eng) { eng.dmg = true; }
-  S.modules.push({ t: "quarters", on: true, dmg: true });
+  const quarters = S.modules.find((m) => m.t === "quarters");
+  if (quarters) { quarters.dmg = true; }
   // Juno Vale — Osei's engineer, and now yours. Handcrafted Tapestry bundle:
   // the trust system, tells, and her deserter secret all run on the normal rails.
   const j: CrewMember = {
@@ -83,7 +104,7 @@ export function introStart() {
   modal(`<h2>◆ DEAD RECKONING</h2>
     <p>The klaxon dies mid-howl when Juno cuts power to it, and after that the loudest thing on the ship is your own blood.</p>
     <p>Eight hours ago you were the first mate of a grain convoy out of Kestrel's Rest — four freighters, one escort, a milk run. Then the raiders came out of the sun, and the escort <b>Vesper</b> broke her back buying you the minutes that mattered, and Captain Rhea Osei flew this ugly, beautiful ship like a knife until the shooting stopped.</p>
-    <p>The convoy scattered clear. The raiders didn't. You're alive. The board says the drive is down, the tanks are holed, and the bunkroom is crushed. And the captain hasn't answered the comm since the last hit.</p>
+    <p>The convoy scattered clear. The raiders didn't. You're alive. The board says the drive is down, the tanks are dry, and the bunkroom is crushed. And the captain hasn't answered the comm since the last hit.</p>
     <p class="dim">You were second in command. You know what that means now. Go forward.</p>
     <div class="choices"><button class="primary" ${actionAttr("introAct", "wake")}>Get up.</button></div>`);
   requestRender();
@@ -182,9 +203,9 @@ function stgGoodbye(properly: boolean) {
     log("You cover Osei with her own flight jacket and get to work. She'd have called anything else a waste of her dying.");
   }
   log("▸ NEXT: the drive core is down. Walk aft to the engine room and jury-rig it. (Your deck plan on the 🚀 Ship screen shows every system's status.)");
-  modal(`<div class="scene"><div class="scene-loc">${S.shipName} · cockpit</div>
+  replaceModal(`<div class="scene"><div class="scene-loc">${S.shipName} · cockpit</div>
     <h2>🧭 Taking Stock</h2>
-    <p>The board tells it plain: <b>drive core down. 3 fuel in the tanks. Hull at 41%.</b> The crew quarters took the worst of the last hit — Juno's bunk is somewhere under a caved-in spar.</p>
+    <p>The board tells it plain: <b>drive core down. 0 fuel in the tanks. Hull at 41%.</b> The crew quarters took the worst of the last hit — Juno's bunk is somewhere under a caved-in spar.</p>
     <p>${j ? "Juno's voice on the intercom, rough: \"Drive first, Captain. Everything else is a luxury.\"" : "Drive first. Everything else is a luxury."} The word <i>Captain</i> lands strangely. She means you.</p>
     <p class="dim">Tutorial: the <b>🚀 Ship</b> screen is your deck schematic — damaged systems glow red. The <b>Breaker Panel</b> toggles power. For now: walk aft.</p>
     <div class="choices"><button class="primary" ${actionAttr("closeModal")}>Aft, then.</button></div></div>`);
@@ -222,12 +243,12 @@ function stgRigDone(how: string) {
     line = "\"Galley heat-exchanger's the same fitting,\" Juno says, already moving. Hot meals become a memory (−3 food), and the drive gets a heart transplant from a soup warmer.";
   }
   log(`🔧 ${line}`);
-  log("▸ NEXT: the tanks are nearly dry — 3 fuel won't reach anywhere. The wrecks outside are still holding fuel. Suit up in the cockpit for a salvage EVA.");
-  modal(`<div class="scene"><div class="scene-loc">${S.shipName} · engine room</div>
+  log("▸ NEXT: the tanks are dry — no fuel, no thrust, no future. The wrecks outside are still holding fuel. Suit up in the cockpit for a salvage EVA.");
+  replaceModal(`<div class="scene"><div class="scene-loc">${S.shipName} · engine room</div>
     ${dialogueHeadHTML(j ? crewPortraitKey(j) : null, JUNO_ICON, "Juno Vale", "your mechanic")}
     <p>${line}</p>
     <p>The core catches on the third try — a half-tone flat, like a hymn sung by somebody angry — and every gauge on the ship blinks awake. Juno wipes her hands and looks at you for orders.</p>
-    <p>"We've got <b>3 fuel</b>, Captain. Port Solace is three days' burn. You can't math that into working." She nods at the glass, at the slow-tumbling dead outside. "But <i>they're</i> still holding fuel."</p>
+    <p>"We've got <b>nothing</b> in the tanks, Captain. Port Solace is three days' burn. You can't math nothing into working." She nods at the glass, at the slow-tumbling dead outside. "But <i>they're</i> still holding fuel."</p>
     <p class="dim">Tutorial: fuel burns per day in flight (see the Ship Systems panel). No fuel, no thrust, no future.</p>
     <div class="choices"><button class="primary" ${actionAttr("closeModal")}>Suit up.</button></div></div>`);
 }
@@ -244,7 +265,7 @@ function stgEva() {
 
 function stgVesperModal() {
   // First wreck: fuel, plus the first real moral fork — the dead escort's crew.
-  modal(`<div class="scene"><div class="scene-loc">wreck of the Vesper</div>
+  replaceModal(`<div class="scene"><div class="scene-loc">wreck of the Vesper</div>
     <h2>🛡 The Vesper</h2>
     <p>Her tanks survived her. You rig the siphon and watch <b>+8 fuel</b> crawl across your gauge while Juno floats through the broken crew deck with her torch down, out of respect.</p>
     <p>Twelve escort crew flew her. Their tags are still aboard — and so is her armory cache, sealed, unclaimed, worth real money to the right buyer. There's time to carry one load before the tether swings back.</p>
@@ -272,7 +293,7 @@ function introVesperChoice(tags: boolean) {
 }
 
 function stgCutterIntro() {
-  modal(`<div class="scene"><div class="scene-loc">raider cutter, dark</div>
+  replaceModal(`<div class="scene"><div class="scene-loc">raider cutter, dark</div>
     <h2>💀 The Cutter</h2>
     <p>The ship that killed Osei is ugly up close — a stripped-down lane-wolf, no flag, no registry plate. Her tanks give up <b>+6 fuel</b>, and her hold has <b>160cr in bearer salvage bonds</b>, which raiders carry because banks ask questions.</p>
     <p>Then Juno's light finds the flight recorder. Intact. A raider's black box says who they were, where they've hit — and sometimes, who was <i>paying</i>. Boxes like this have started wars on the frontier. Ended some, too.</p>
@@ -292,7 +313,7 @@ function stgCutter(tookBox: boolean) {
   } else {
     log("＋6 fuel and +160cr in bearer bonds off the cutter. You leave the black box to spin with its dead. Some answers cost more than they pay.");
   }
-  modal(`<div class="scene"><div class="scene-loc">drop-skiff, running lights stuttering</div>
+  replaceModal(`<div class="scene"><div class="scene-loc">drop-skiff, running lights stuttering</div>
     ${dialogueHeadHTML(j ? crewPortrait(j, "worried") : null, JUNO_ICON, "Juno Vale", "your mechanic — reading the panel")}
     <p>The last wreck isn't a wreck. The drop-skiff's cabin is holed, but her aft compartment is sealed — and something inside is <b>knocking</b>. Slow. Deliberate. The rhythm of someone who has been counting their own breaths for hours.</p>
     <p>Juno reads the panel. "One soul. Raider crew, has to be. Air's going amber in there, Captain — she has maybe an hour." A beat. "Your call. She shot at us this morning."</p>
@@ -320,8 +341,8 @@ function stgSkiff(cut: boolean) {
   S.flags.intro_beat = 0;
   S.travel = { from: "kestrel", dest: "solace", total: 3, left: 3 };
   S.screen = "travel";
-  log(`▸ NEXT: course laid in for Port Solace — 3 days, burning ${4}/day. Hit ▸ ENGAGE BURN to advance each day. Watch fuel and food.`);
-  modal(`<div class="scene"><div class="scene-loc">${S.shipName} · cockpit</div>
+  log(`▸ NEXT: course laid in for Port Solace — 3 days, burning ${stats().fuelDay}/day. Hit ▸ ENGAGE BURN to advance each day. Watch fuel and food.`);
+  replaceModal(`<div class="scene"><div class="scene-loc">${S.shipName} · cockpit</div>
     ${dialogueHeadHTML(j ? crewPortrait(j, cut ? "neutral" : "angry") : null, JUNO_ICON, "Juno Vale", cut ? "your mechanic" : "your mechanic — saying nothing")}
     <h2>🧭 The Limp</h2>
     <p>You sit in the chair. It's warm from the sun through the glass and from nothing else, and it fits wrong, and you fly anyway, because that is the whole job.</p>
@@ -381,7 +402,7 @@ function stgPatrol(how: string) {
       extra = ` The comms officer's voice changes when you mention the black box. <i>"Retain it, Captain. Someone senior will want that."</i> Which is one way of saying it's valuable — and another way of saying you're now the person holding it.`;
     }
     log("You give the Lattice the whole truth. They log Osei's death, register the handover, and their condolences sound almost unrehearsed. The registry now says CAPTAIN next to your name. (+Union)");
-    modal(`<div class="scene"><h2>🛰 Logged</h2>
+    replaceModal(`<div class="scene"><h2>🛰 Logged</h2>
       <p><i>"Handover recorded. The ship is yours pending probate, Captain."</i> The word again, official now, in a Union database forever.${extra}</p>
       <p>The Lattice burns off toward the debris field. Juno lets a long breath go at her board, and you make a note of that without knowing what it's a note about.</p>
       <div class="choices"><button class="primary" ${actionAttr("closeModal")}>Fly on.</button></div></div>`);
@@ -389,7 +410,7 @@ function stgPatrol(how: string) {
     shift("law", -1, "stonewalled a patrol");
     shift("daring", 1, "flew past the flag");
     log("\"Engine trouble. No assistance required.\" The Lattice holds the scan a beat longer than politeness, then lets you go. Some paperwork stays yours alone. So do some problems.");
-    modal(`<div class="scene"><h2>🛰 The Short Version</h2>
+    replaceModal(`<div class="scene"><h2>🛰 The Short Version</h2>
       <p>The corvette drifts alongside for a slow minute — long enough to say <i>we both know that isn't all of it</i> — and then peels away. Juno's shoulders come down an inch. "Thank you," she says, to the board, not to you. Another note you file without a folder to put it in.</p>
       <div class="choices"><button class="primary" ${actionAttr("closeModal")}>Fly on.</button></div></div>`);
   } else {
@@ -400,7 +421,7 @@ function stgPatrol(how: string) {
     S.rep.union = clamp(S.rep.union + 1, -20, 20);
     if (j) remember(crewKey(j), "handed_over_renn", -1, "Ilsa Renn went to a Union brig off your cargo deck. Lawful. Juno watched the airlock cycle and went back to work.");
     log("Ilsa Renn crosses to the Lattice in borrowed cuffs. Nineteen, raider, alive — the Union will decide what order those words go in. (+Union)");
-    modal(`<div class="scene"><h2>🛰 Transfer</h2>
+    replaceModal(`<div class="scene"><h2>🛰 Transfer</h2>
       <p>She doesn't fight it and doesn't thank you, which between raiders counts as good manners. At the airlock she stops. "You cut me out anyway," she says. "I'll remember the ship." Whether that's gratitude or a targeting note, she takes it with her.</p>
       <div class="choices"><button class="primary" ${actionAttr("closeModal")}>Fly on.</button></div></div>`);
   }
@@ -442,19 +463,20 @@ function stgGalley(toast: boolean) {
 export function introArrive(): boolean {
   if (introStage() !== 4 || S.loc !== "solace") return false;
   S.flags.intro = 5;
+  S.screen = "stationwalk";
   let renn = "";
   if (S.flags.intro_survivor && !S.flags.intro_survivor_union) {
     plantDelay(15, 35, "distress_guild_echo");
     renn = `<p>Ilsa Renn is gone before the boarding ramp finishes extending — over the rail and into the crowd with a raider's economy of motion. On your console she's left a bearing, a frequency, and four words: <i>"The ship. I remember."</i></p>`;
   }
   log("Docked at Port Solace. The dockmaster's queue found you before your engines cooled.");
-  log("▸ NEXT: Osei's debts are yours now — see the HARBORMASTER. Then the CANTINA for work, the EXCHANGE for fuel & food, the DRY DOCK for repairs. Walk the station (🛰).");
+  log("▸ NEXT: Osei's debts are yours now — see the HARBORMASTER. Vance's work can become your first contract; the CANTINA offers other jobs, the EXCHANGE sells provisions, and the DRY DOCK handles anything Juno couldn't patch. Walk the station (🛰).");
   modal(`<div class="scene"><div class="scene-loc">Port Solace · docks</div>
     <h2>🛰 Port Solace</h2>
     <p>The station takes you in like it's seen a thousand of you, because it has. Cranes, noise, the smell of coolant and fried protein — after three days of flat drive-hum it's practically music.</p>
     ${renn}
     <p>The music lasts until the dockmaster's runner finds you: a formal notice, Vance's seal. <b>Captain R. Osei: outstanding berth and bond, 220 credits.</b> Estates transfer. So do debts. The Harbormaster will see you at your earliest convenience, where <i>earliest</i> is underlined.</p>
-    <p class="dim">Tutorial: stations are walked, not menued — the cantina hires, the exchange sells fuel and food, the dry dock repairs. Start with the Harbormaster's window. Everyone does, eventually.</p>
+    <p class="dim">Tutorial: stations are walked, not menued — the cantina offers work and crew, the exchange sells fuel and food, and the dry dock handles whatever your mechanic couldn't patch in flight. Start with the Harbormaster's window. Everyone does, eventually.</p>
     <div class="choices"><button class="primary" ${actionAttr("introAct", "dock_ok")}>Step off the ramp.</button></div></div>`);
   requestRender();
   return true;
@@ -482,7 +504,7 @@ export function introDebtScene() {
       <button ${canPay ? "" : "disabled"} ${actionAttr("introAct", "debt_pay")}>Pay it, in full <span class="dim">— 220cr${payNote}</span></button>
       <button ${actionAttr("introAct", "debt_claim")}>Sign over the wreck-field salvage claim <span class="dim">— the Vesper families get nothing</span></button>
       ${boxBtn}
-      <button ${actionAttr("introAct", "debt_work")}>Work it off — one unmarked crate, no questions</button>
+      <button ${actionAttr("introAct", "debt_work")}>Work it off — your first contract, one unmarked crate</button>
     </div></div>`);
 }
 
@@ -545,21 +567,74 @@ function stgDoneClose() {
   requestRender();
 }
 
-// ---------- objective card (ship screen, Transmissions panel) ----------
-export function introCard(): string {
-  if (!introActive()) return "";
-  const st = introStage();
-  let line = "";
-  if (st === 1) line = "The captain is dead and the ship is drifting. Walk the deck (🧑‍🚀 Walk Ship) and get forward to <b>the cockpit</b>.";
-  if (st === 2) line = "The drive core is down. Walk aft to the <b>engine room</b> and jury-rig it with Juno.";
-  if (st === 3) line = "3 fuel won't reach anywhere. <b>Suit up in the cockpit</b> and salvage the wrecks outside.";
-  if (st === 4) line = "Limp to <b>Port Solace</b> — ▸ ENGAGE BURN advances each day. Watch the fuel and food gauges.";
-  if (st === 5) {
-    const debt = S.flags.intro_debt ? "✓ debt settled" : "settle Osei's debt at the <b>Harbormaster</b>";
-    const job = S.flags.intro_job ? "✓ contract taken" : "take a contract at the <b>Cantina</b>";
-    line = `Walk the station (🛰): ${debt} · ${job}. The Exchange sells fuel & food; the Dry Dock fixes the crushed quarters.`;
+// ---------- persistent objective strip ----------
+function firstContract(): IntroObjective | null {
+  const job = S.jobs.find((j) => j.tag === "vancedebt");
+  if (!S.flags.intro_done || !job) return null;
+
+  if (S.travel?.dest === job.dest) {
+    return {
+      label: "FIRST CONTRACT",
+      title: "Deliver Vance's unmarked crate",
+      detail: `Hold course for Kestrel's Rest. ${S.travel.left} day${S.travel.left === 1 ? "" : "s"} remain.`,
+      progress: `${Math.max(0, S.travel.total - S.travel.left)}/${S.travel.total} DAYS`,
+    };
   }
-  return `<div class="panel"><h3>◆ Orders</h3><div class="card" style="border-color:var(--amber)">
-    <div class="title" style="color:var(--amber)">◆ DEAD RECKONING</div>
-    <div class="dim">${line}</div></div></div>`;
+
+  if (S.docked && S.loc === "solace") {
+    const days = daysTo(S.loc, job.dest);
+    const fuelNeed = fuelTo(S.loc, job.dest);
+    const foodNeed = foodPerDay() * days;
+    const fuelShort = Math.max(0, fuelNeed - Math.floor(S.fuel));
+    const foodShort = Math.max(0, foodNeed - Math.floor(S.food));
+    const status = [
+      fuelShort ? `${fuelShort} fuel` : "fuel ready",
+      foodShort ? `${foodShort} food` : "food ready",
+    ].join(" · ");
+    const shortages = [fuelShort ? `${fuelShort} fuel` : "", foodShort ? `${foodShort} food` : ""].filter(Boolean);
+    const shopping = shortages.length === 2 ? `${shortages[0]} and ${shortages[1]}` : shortages[0];
+    const next = shopping
+      ? `Walk to the Exchange and buy ${shopping}.`
+      : "Stores are ready. Open the Star Map and plot Kestrel's Rest.";
+    return {
+      label: "FIRST CONTRACT",
+      title: shopping ? "Provision for Kestrel's Rest" : "Plot course to Kestrel's Rest",
+      detail: `${next} Route budget: ${fuelNeed} fuel + ${foodNeed} food for ${days} days.`,
+      progress: status.toUpperCase(),
+    };
+  }
+
+  return {
+    label: "FIRST CONTRACT",
+    title: "Deliver Vance's unmarked crate",
+    detail: "Take the crate to Kestrel's Rest. Use the Star Map to plot the route when docked.",
+  };
+}
+
+function currentObjective(): IntroObjective | null {
+  if (!introActive()) return firstContract();
+  const st = introStage();
+  if (st === 1) return { label: "DEAD RECKONING", title: "Reach the cockpit", detail: "Walk forward with WASD or the arrow keys. Press E at Captain Osei's chair.", progress: "1 / 5" };
+  if (st === 2) return { label: "DEAD RECKONING", title: "Jury-rig the drive", detail: "Walk aft to the engine room and work with Juno at the dark drive core.", progress: "2 / 5" };
+  if (st === 3) return { label: "DEAD RECKONING", title: "Salvage fuel", detail: "Return to the cockpit, suit up, and search the wreck field for enough fuel to move.", progress: "3 / 5" };
+  if (st === 4) return {
+    label: "DEAD RECKONING",
+    title: "Reach Port Solace",
+    detail: S.travel ? `Engage burn to advance the journey. ${S.travel.left} day${S.travel.left === 1 ? "" : "s"} remain.` : "Use the repaired drive to limp to Port Solace.",
+    progress: "4 / 5",
+  };
+  if (st === 5) {
+    if (!S.flags.intro_debt) return { label: "DEAD RECKONING", title: "Report to Harbormaster Vance", detail: "Walk the station to the Harbormaster and settle Captain Osei's docking debt.", progress: "5 / 5" };
+    if (!S.flags.intro_job) return { label: "DEAD RECKONING", title: "Take your first contract", detail: "Vance's work can settle the books immediately; the Cantina also posts legitimate contracts.", progress: "5 / 5" };
+  }
+  return null;
+}
+
+export function introObjectiveHTML(): string {
+  const objective = currentObjective();
+  if (!objective) return "";
+  return `<div class="objective-mark">◆</div><div class="objective-copy">
+    <span class="objective-label">${objective.label} · CURRENT OBJECTIVE</span>
+    <strong>${objective.title}</strong><span>${objective.detail}</span>
+  </div>${objective.progress ? `<div class="objective-progress">${objective.progress}</div>` : ""}`;
 }

@@ -24,6 +24,11 @@ they land; add new gaps as they're found.
 - **Every port ships with:** a face (who runs the deck), a signature room, a
   local mission flavor on the job board, and one street-level character who
   isn't plot — just texture with a name.
+- **Every station uses the same spatial grammar:** arrival berth, public
+  concourse, service rooms, a social room, a restricted/back-room space, and
+  exits. Those roles are data, not a custom UI flow; the local identity comes
+  from the architecture, people, events, lighting, and signage placed within
+  them.
 - **Faction faces:** each faction needs at least one named human the player
   can love or hate. Union ✅ (Vance, Farr, Mr. Grey). Frontier ✅ (Yun).
   **Syndicate ❌ — biggest gap in the cast.**

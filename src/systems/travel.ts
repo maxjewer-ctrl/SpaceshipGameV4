@@ -52,6 +52,14 @@ export function waitDay() {
   requestRender();
 }
 
+export function fieldRepairLimit(): number {
+  const st = stats();
+  const workshop = st.active("workshop") > 0;
+  const perk = perkActive("mechanic");
+  const ratio = (workshop ? 0.6 : 0.5) + (perk ? 0.05 : 0);
+  return Math.round(S.hullMax * ratio);
+}
+
 export function advanceDay() {
   if (!S.travel || S.over) return;
   dayTick(true);
@@ -144,20 +152,23 @@ export function dayTick(traveling: boolean) {
       }
     }
   }
-  // mechanic works in flight: hull first, then jury-rigging broken modules
+  // Mechanics can stabilize a wounded ship in flight, not rebuild it for free.
+  // Full integrity still belongs to a dry dock; a workshop raises the field cap.
   if (traveling && st.has("mechanic")) {
     const mechPerk = perkActive("mechanic");
     const mech = S.crew.find((c) => c.role === "mechanic");
-    if (S.hull < S.hullMax) {
-      const amt = ((st.active("workshop") > 0 ? 6 : 3) + (mechPerk ? 2 : 0)) * (mech ? rankBoost(S.crew, "mechanic") : 1);
-      S.hull = Math.min(S.hullMax, S.hull + amt);
+    const repairCap = fieldRepairLimit();
+    if (S.hull < repairCap) {
+      const amt = (2 + (mechPerk ? 1 : 0)) * (mech ? rankBoost(S.crew, "mechanic") : 1);
+      S.hull = Math.min(repairCap, S.hull + amt);
     }
     const dmgd = S.modules.filter((m) => m.dmg);
     if (dmgd.length && rand() < (st.active("workshop") > 0 ? 0.6 : 0.3) + (mechPerk ? 0.15 : 0)) {
       const m = pick(dmgd);
       m.dmg = false;
+      m.wear = Math.max(m.wear || 0, st.active("workshop") > 0 ? 45 : 65);
       powerRebalance();
-      log(`🔧 Your mechanic jury-rigs the ${MODS[m.t].n} back online. It sounds wrong, but it works.`);
+      log(`🔧 Your mechanic jury-rigs the ${MODS[m.t].n} back online. It works, but the repair is temporary — a refit would make it right.`);
       if (mech) markVeteranEvent(mech);
     }
   }

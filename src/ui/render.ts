@@ -9,13 +9,14 @@ import { shipHTML, captainsLogHTML } from "./ship";
 import { mapHTML } from "./map";
 import { planetHTML } from "./planet";
 import { travelHTML } from "./travel";
-import { buildStationScene } from "./stationwalk";
+import { buildStationScene, stationServicesHTML } from "./stationwalk";
 import { buildDesertTownScene } from "./planetwalk";
 import { buildShipScene, crewRosterHTML } from "./shipwalk";
 import { buildZoneScene, zoneActive } from "./zonewalk";
 import * as walk from "./walk";
 import * as sfx from "../audio";
 import { actionAttr } from "../dispatch";
+import { introObjectiveHTML } from "../systems/intro";
 
 const WALK_SCREENS = ["stationwalk", "shipwalk", "zone"];
 
@@ -53,6 +54,7 @@ export function render() {
   if (!S) return;
   renderTop();
   renderNav();
+  renderObjective();
   renderTicker();
   renderMain();
   renderSide();
@@ -62,6 +64,13 @@ export function render() {
     cautionKey: cautions().map((c) => c.t).join('|'),
   });
   save();
+}
+
+function renderObjective() {
+  const el = $("objective");
+  const html = introObjectiveHTML();
+  el.innerHTML = html;
+  el.className = html ? "active" : "";
 }
 
 // ---- master caution: every live warning on the boat, worst first ----
@@ -188,6 +197,9 @@ function renderSide() {
   } else if (S.screen === "shipwalk") {
     side.style.display = "";
     side.innerHTML = crewRosterHTML();
+  } else if (S.screen === "stationwalk") {
+    side.style.display = "";
+    side.innerHTML = stationServicesHTML() + captainsLogHTML();
   } else {
     side.style.display = "";
     side.innerHTML = captainsLogHTML();

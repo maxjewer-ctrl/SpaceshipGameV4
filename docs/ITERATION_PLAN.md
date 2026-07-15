@@ -17,6 +17,58 @@ cycles alternate so neither starves.
 Scenario coverage: `fresh · trader · fighter · silence · arc · run · reckoning`
 — between them they touch every system without grinding.
 
+## Structural Recovery Direction (2026-07-15)
+
+The next phase is not another content pass. It is a boundary-setting pass so
+new stations, combat encounters, and story systems stop creating one-off UI
+and state exceptions.
+
+### 1. Compact game shell
+
+- Keep the captain panel as persistent instrumentation: resources, current
+  objective, immediate alert, and one contextual action.
+- Let the third-person view own place, people, traversal, and immediate
+  tension. Expand the panel only for consequential navigation, transactions,
+  diagnostics, or emergencies.
+- Move secondary management into authored physical surfaces rather than
+  repeating generic amber card stacks on every screen.
+
+### 2. Station scene contract
+
+Every station should compose a small, data-driven set of roles: arrival bay,
+public concourse, service rooms, social room, restricted/back-room space, and
+exits. Scene data must own room placement, signage, service discovery, NPC
+anchors, ambient population, local events, and the ship berth. A station can
+then have a distinct identity without its own UI implementation.
+
+### 3. Shared interaction contract
+
+Doors, consoles, crew, merchants, salvage, combat targets, and objectives need
+one descriptor for range, priority, prompt, availability, cost, and result.
+This is the dependency for reliable overlapping prompts and for controller,
+keyboard, mouse, and touch parity.
+
+### 4. Explicit mode boundaries
+
+Traversal, on-foot combat, and ship combat may share input, encounter,
+telemetry, reward, and consequence infrastructure, but they must not share a
+single growing simulation authority. Each mode owns its movement and pacing;
+the run state owns outcomes and transitions.
+
+### 5. Progression and persistence infrastructure
+
+Model the first-hour flow, contract lifecycle, station discovery, repair
+states, and campaign beats as explicit transitions rather than scattered
+flags. Add schema validation, save migrations, and deterministic visual/state
+regression coverage before expanding the system count.
+
+### Structural acceptance gate
+
+A new station, interaction, or encounter can be added by data plus a bounded
+mode handler, without adding a screen-specific state path or duplicating input
+and save logic. Desktop and mobile screenshots retain a clear hierarchy with
+the captain panel reduced to its operating instruments.
+
 ## Cycle plan
 
 ### Cycle 1 — GAMEPLAY: the first hour (scenario: fresh + prologue)

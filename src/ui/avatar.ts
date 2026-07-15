@@ -10,7 +10,7 @@ import { HEADS, GARBS, AVATAR_LOOKS, SKINS, SUITS, TRIMS, DEFAULT_APPEARANCE, dr
 import { mountCreatorPreview, type CreatorPreview } from "./creatorPreview3d";
 import { PLAYER_MODELS, normalizePlayerModelId } from "./playerModel3d";
 import { ROLES } from "../content";
-import { startGame } from "./help";
+import { introStart } from "../systems/intro";
 import { actionAttr } from "../dispatch";
 
 const NAME_POOL = [
@@ -37,7 +37,7 @@ export function openCreator() {
     .map((r) => `<option value="${r}">${ROLES[r].n}</option>`).join("");
   modal(`<div class="creator">
     <h2>☄ THE KESTREL RUN</h2>
-    <p class="dim" style="margin-bottom:12px">Somewhere in a Port Solace cantina, a woman in a grey coat is watching the door. Not for you — not yet. First, become someone worth watching.</p>
+    <p class="dim" style="margin-bottom:12px">Somewhere in a Port Solace cantina, a woman in a grey coat is watching the door. If you live long enough to make it there, she may watch you too.</p>
     <div class="cc-wrap">
       <div class="cc-stage">
         <canvas id="avatarpreview" width="200" height="230"></canvas>
@@ -143,11 +143,7 @@ export function avStart() {
   if (nameEl) draft.captainName = nameEl.value;
   if (previewRAF) { cancelAnimationFrame(previewRAF); previewRAF = null; }
   preview3d?.teardown(); preview3d = null;
-  // Drop straight into the game at Port Solace. The DEAD RECKONING prologue
-  // (systems/intro.ts) used to play here as a scripted cold-open of dialogue
-  // popups; it's been taken out of the opening flow so a new game starts in the
-  // cockpit, not in a story sequence. The prologue code still exists, unwired.
-  startGame();
+  introStart();
 }
 
 function setText(id: string, txt: string) {

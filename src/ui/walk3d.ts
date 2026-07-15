@@ -68,6 +68,8 @@ let signature = "";
 // only what's actually interactable competes for the player's eye.
 let doorLabels = new Map<WalkDoor, THREE.Sprite>();
 let actorLabels = new Map<WalkActor, THREE.Sprite>();
+let objectiveTarget: THREE.Vector3 | null = null;
+let objectiveGuide: THREE.Line | null = null;
 // Camera-side (south) room walls, each carrying its own material clone so the
 // room the player is standing in can dissolve its near wall and let him be seen.
 let fadeWalls: THREE.Mesh[] = [];
@@ -75,12 +77,13 @@ let fadeWalls: THREE.Mesh[] = [];
 let roomLabels = new Map<string, THREE.Sprite>();
 // What a faded-out near wall drops to — not 0, so the room still reads as
 // bounded and you can see where the bulkhead is.
-const WALL_FADE = 0.06;
-const LABEL_DIM = 0.32;
-// Match the crew (fitCrewModel's 1.28 default) -- the captain was half their
-// height, and the combat FX already assume an adult: muzzle flashes and tracers
-// are drawn around y=.5, which sat above a 0.72 captain's head.
-const WALK_PLAYER_HEIGHT = 1.28;
+const WALL_FADE = 0.02;
+const LABEL_DIM = 0.16;
+const STATION_LABEL_DIM = 0.07;
+const STATION_ROOM_BEACON = 0.12;
+// The old 1.28m presentation made the captain a moving cursor instead of the
+// visual anchor. Keep the world scale, but frame people as readable characters.
+const WALK_PLAYER_HEIGHT = 1.68;
 
 // One-pass CRT finish: subtle chromatic aberration, curved-tube scanlines, and
 // a radial vignette. Runs after UnrealBloom in the composer chain, before
@@ -166,9 +169,9 @@ const ground = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
 // at that aspect, 62° vertical works out to ~106° horizontal: wide and
 // cinematic without tipping into fisheye stretch at the frame edges.
 // CAM_HEIGHT still comfortably clears Dustwell's opaque waist-high walls.
-const CAM_OFFSET_Z = 6.2;
-const CAM_HEIGHT = 4.5;
-const CAM_FOV = 62;
+const CAM_OFFSET_Z = 3.8;
+const CAM_HEIGHT = 4.4;
+const CAM_FOV = 50;
 
 const wx = (x: number) => (x - (current?.width || 0) / 2) * SCALE;
 const wz = (y: number) => (y - (current?.height || 0) / 2) * SCALE;
@@ -211,7 +214,7 @@ function loadCrewModel(key: string): Promise<CrewGltf | null> {
   return pending;
 }
 
-function fitCrewModel(src: THREE.Object3D, targetHeight = 1.28): THREE.Object3D {
+function fitCrewModel(src: THREE.Object3D, targetHeight = 1.62): THREE.Object3D {
   // SkeletonUtils.clone, not Object3D.clone: a plain deep clone copies the
   // SkinnedMeshes but leaves their .skeleton pointing at the *source* bones, so
   // every clone of a crew member would animate off one shared skeleton and the
@@ -251,7 +254,7 @@ function attachCrewModel(group: THREE.Group, modelKey: string | undefined, fallb
   if (!modelKey) return;
   loadCrewModel(modelKey).then((gltf) => {
     if (!gltf || !group.parent) return;
-    const model = fitCrewModel(gltf.scene, modelKey === "pip7" ? .9 : 1.28);
+    const model = fitCrewModel(gltf.scene, modelKey === "pip7" ? 1.1 : 1.62);
     model.name = `mesh:${modelKey}`;
     fallback.visible = false;
     group.add(model);
@@ -267,8 +270,9 @@ function attachCrewModel(group: THREE.Group, modelKey: string | undefined, fallb
   });
 }
 
-function mat(color: THREE.ColorRepresentation, emissive = 0): THREE.MeshStandardMaterial {
-  return new THREE.MeshStandardMaterial({ color, roughness: .72, metalness: .25, emissive: color, emissiveIntensity: emissive });
+function mat(color: THREE.ColorRepresentation | null | undefined, emissive = 0): THREE.MeshStandardMaterial {
+  const safeColor = color ?? "#5a6472";
+  return new THREE.MeshStandardMaterial({ color: safeColor, roughness: .72, metalness: .25, emissive: safeColor, emissiveIntensity: emissive });
 }
 // Every fine repeating texture (deck grating, wall panels, floor grid) is
 // viewed at a steep grazing angle from the chase camera — a corridor floor
@@ -494,7 +498,7 @@ function matchesRect(a: {x:number;y:number;w:number;h:number}, b: {x:number;y:nu
   return a.x === b.x && a.y === b.y && a.w === b.w && a.h === b.h;
 }
 function corridorFloorMat(w: number, d: number, dark: boolean): THREE.MeshStandardMaterial {
-  const m = mat(dark ? "#596270" : "#aab5bf", dark ? .1 : .18);
+  const m = mat(dark ? "#414b58" : "#667789", dark ? .05 : .06);
   m.map = floorPanelTexture(corridorFloorUrl, w, d);
   return m;
 }
@@ -671,7 +675,7 @@ function rebuild() {
   // rebuild mid-scene leaves them ticking against freed geometry.
   for(const m of actorMixers.values()) m.stopAllAction();
   root.remove(world); disposeObject(world); world = new THREE.Group(); root.add(world); actorMeshes.clear(); actorRigs.clear(); actorMixers.clear();
-  doorLabels = new Map(); actorLabels = new Map(); fadeWalls = []; roomLabels = new Map();
+  doorLabels = new Map(); actorLabels = new Map(); fadeWalls = []; roomLabels = new Map(); objectiveTarget = null; objectiveGuide = null;
   const dark = !!current.dark;
   const isDustwell = current.id === "station:dustwell";
   const roomTextures: Record<string, THREE.Texture> = {
@@ -699,7 +703,10 @@ function rebuild() {
   // room placement against the ship's outer shape; swapped for real hull
   // geometry later.
   if (current.hull && current.hull.length > 2) {
-    const hullMat = mat("#ffb463", .55);
+    const hullMat = mat("#9b7449", .12);
+    hullMat.transparent = true;
+    hullMat.opacity = .48;
+    hullMat.depthWrite = false;
     const beam = (a: THREE.Vector3, b: THREE.Vector3, thick = .05) => {
       const mid = a.clone().add(b).multiplyScalar(.5);
       const len = a.distanceTo(b);
@@ -710,15 +717,12 @@ function rebuild() {
       world.add(m);
     };
     const keel = current.hull.map((p) => new THREE.Vector3(wx(p.x), -.1, wz(p.y)));
-    const roof = current.hull.map((p) => new THREE.Vector3(wx(p.x) * .94, 2.75, wz(p.y) * .94));
     for (let i = 0; i < keel.length; i++) {
       const j = (i + 1) % keel.length;
       beam(keel[i], keel[j], .022);
-      beam(roof[i], roof[j], .022);
-      beam(keel[i], roof[i], .018);
     }
   }
-  const corridorWallMat=isDustwell?mat("#6b4a30",.05):mat(dark?"#5f6671":"#aeb7c0",dark?.1:.18);
+  const corridorWallMat=isDustwell?mat("#6b4a30",.05):mat(dark?"#48515e":"#6f7d8b",dark?.06:.08);
   if(!isDustwell){corridorWallMat.map=roomTextures.corridor;corridorWallMat.transparent=true;corridorWallMat.opacity=dark?.85:.95;corridorWallMat.depthWrite=false;}
   for (const f of current.floors) {
     const w=f.w*SCALE,d=f.h*SCALE;
@@ -726,7 +730,7 @@ function rebuild() {
     // tint, no corridor path-borders. Buildings and the wall come after.
     if(current.openGround){const fm=mat("#b5895a",.06);fm.map=sandTexture();const m=box(w,.12,d,fm);m.position.set(wx(f.x+f.w/2),-.08,wz(f.y+f.h/2));world.add(m);continue;}
     const isRoom=current.rooms.some((r)=>matchesRect(f,r));
-    const fm=isRoom?mat(isDustwell?"#a9764a":dark?"#252e3e":"#466080",isDustwell?.08:dark?.05:.16):(isDustwell?mat("#b5895a",.06):corridorFloorMat(w,d,dark));
+    const fm=isRoom?mat(isDustwell?"#a9764a":dark?"#202a38":"#344a64",isDustwell?.08:dark?.03:.07):(isDustwell?mat("#b5895a",.06):corridorFloorMat(w,d,dark));
     if(isRoom)fm.map=deck; else if(isDustwell)fm.map=sandTexture();
     const m=box(w,.12,d,fm); m.position.set(wx(f.x+f.w/2),-.08,wz(f.y+f.h/2)); world.add(m);
     if(!isRoom) addPathBorder(world,m.position.x,m.position.z,w,d,corridorWallMat);
@@ -750,10 +754,10 @@ function rebuild() {
     // ship. Nearly opaque still keeps the depthWrite:false blend safe at
     // shared edges without the x-ray effect. Dustwell keeps its original,
     // more transparent value — it's tuned separately for the open plaza.
-    const wallMat=mat(isDustwell?"#d9b98a":dark?"#465365":"#8fa7bd",isDustwell?.04:dark?.08:.16);wallMat.map=roomTextures[wallKind];wallMat.transparent=true;wallMat.opacity=isDustwell?(dark?.68:.84):(dark?.88:.96);wallMat.depthWrite=false;
+    const wallMat=mat(isDustwell?"#d9b98a":dark?"#3d4958":"#687d91",isDustwell?.04:dark?.04:.06);wallMat.map=roomTextures[wallKind];wallMat.transparent=true;wallMat.opacity=isDustwell?(dark?.68:.84):(dark?.9:.97);wallMat.depthWrite=false;
     // Dustwell's plank walls stay waist-high — the fixed top-down camera must
     // see over an outdoor town's fences, where a station's bulkheads can rise.
-    const wallH=isDustwell?1.05:1.85;
+    const wallH=isDustwell?1.05:1.22;
     const T=.18;
     // Clear height of a doorway. The captain stands 1.28, so 1.5 gives him
     // headroom; Dustwell's waist-high fences can't carry a header at all, so
@@ -770,8 +774,13 @@ function rebuild() {
       const mid=(a+b)/2;
       const fixed=side==="n"?r.y:side==="s"?r.y+r.h:side==="w"?r.x:r.x+r.w;
       const m=side==="s"?wallMat.clone():wallMat;
-      const q=horiz?box(len,h,T,m):box(T,h,len,m);
-      q.position.set(horiz?wx(mid):wx(fixed),y+h/2,horiz?wz(fixed):wz(mid));
+      // The camera is permanently south of the captain, so south walls are
+      // authored cutaways everywhere, not only in the current room. A low sill
+      // preserves the deck plan while preventing foreground slabs in corridors.
+      const cutawayH=side==="s"?Math.min(h,.58):h;
+      const cutawayY=side==="s"?-.04:y;
+      const q=horiz?box(len,cutawayH,T,m):box(T,cutawayH,len,m);
+      q.position.set(horiz?wx(mid):wx(fixed),cutawayY+cutawayH/2,horiz?wz(fixed):wz(mid));
       if(side==="s"){q.userData.roomId=r.id;q.userData.baseOpacity=m.opacity;fadeWalls.push(q);}
       world.add(q);
     };
@@ -785,12 +794,12 @@ function rebuild() {
       if(cur<hi) addWall(side,cur,hi,-.04,wallH);
       // header beam over each opening, so the gap reads as a doorway cut through
       // a bulkhead rather than a wall someone forgot to build
-      for(const [ga,gb] of gaps) addWall(side,ga,gb,doorH-.04,headerH);
+      if(side!=="s") for(const [ga,gb] of gaps) addWall(side,ga,gb,doorH-.04,headerH);
       // Jambs framing the opening. Kept thin and only faintly lit: at four per
       // room across a whole concourse, anything chunkier reads as a colonnade of
       // glowing pillars rather than a door frame.
       if(!isDustwell) for(const [ga,gb] of gaps) for(const e of [ga,gb]){
-        const j=box(horiz?.05:.07,doorH,horiz?.07:.05,mat(c,.22));
+        const j=box(horiz?.05:.07,doorH,horiz?.07:.05,mat(c,.08));
         const fixed=side==="n"?r.y:side==="s"?r.y+r.h:side==="w"?r.x:r.x+r.w;
         j.position.set(horiz?wx(e):wx(fixed),doorH/2-.04,horiz?wz(fixed):wz(e));
         world.add(j);
@@ -802,9 +811,9 @@ function rebuild() {
     // a picket fence of clashing colour instead of quiet edge-lighting.
     // Dustwell gets squat weathered fence posts (no glow) that suit an
     // outdoor frontier town and don't tower over the waist-high plank walls.
-    const pylonH=isDustwell?1.25:1.9, pylonMat=isDustwell?mat("#5a3d26",.04):mat(c,.2), pylonW=isDustwell?.13:.1;
+    const pylonH=isDustwell?1.25:1.9, pylonMat=isDustwell?mat("#5a3d26",.04):mat(c,.08), pylonW=isDustwell?.13:.1;
     for(const [px,pz] of [[cx-w/2,cz-d/2],[cx+w/2,cz-d/2],[cx-w/2,cz+d/2],[cx+w/2,cz+d/2]]){const p=box(pylonW,pylonH,pylonW,pylonMat);p.position.set(px,pylonH/2,pz);world.add(p);}
-    const trim=box(Math.max(.5,w-.3),.04,.05,mat(c,isDustwell?.45:.35)); trim.position.set(cx,.04,cz-d/2+.12); world.add(trim);
+    const trim=box(Math.max(.5,w-.3),.04,.05,mat(c,isDustwell?.3:.14)); trim.position.set(cx,.04,cz-d/2+.12); world.add(trim);
     const label=sprite(`${r.icon||""} ${r.label}`.trim(),c,.62); label.position.set(cx,2.72,cz); world.add(label); roomLabels.set(r.id,label);
     if(r.kind==="cockpit"){
       const glass=box(Math.max(1,w*.7),1.15,.04,mat("#071323",.15));glass.position.set(cx,.78,cz-d/2+.1);world.add(glass);
@@ -812,14 +821,29 @@ function rebuild() {
       stars.setAttribute("position",new THREE.Float32BufferAttribute(pts,3));const field=new THREE.Points(stars,new THREE.PointsMaterial({color:0xd8e8ff,size:.025}));field.userData.starfield=true;world.add(field);
     }
     if(r.moduleType){const g=new THREE.Group(),m=S.modules[r.moduleIndex!]; addMachinery(g,r.moduleType,c,!m?.dmg&&(m?.on!==false),!!m?.dmg,m?wearTier(m)!=="sound":false);g.position.set(cx,0,cz);world.add(g);}
-    const light=new THREE.PointLight(c,dark ? .55 : 1.05,7.2);light.position.set(cx,2.6,cz);world.add(light);
+    const light=new THREE.PointLight(c,dark ? .42 : .8,6.6);light.position.set(cx,2.6,cz);world.add(light);
   }
   if (isDustwell) spawnDesertProps(world, current);
   else if (current.id.startsWith("station:")) { spawnStationProps(world, current); spawnRoomClutter(world, current); }
   if (current.id === "ship") spawnCockpitProps(world, current);
   // THE RULE: the player's ship is on display wherever it's berthed.
   if (current.ship) renderShip(world, current.ship, dark);
-  for (const d of current.doors) { const g=box(Math.max(.4,d.w*SCALE),.04,Math.max(.28,d.h*SCALE),mat(d.locked?"#8a3030":"#3d91df",d.locked?.15:.8));g.position.set(wx(d.x+d.w/2),.04,wz(d.y+d.h/2));world.add(g);const l=sprite(d.label,d.locked?"#d77":"#9fd7ff",.55);l.position.set(g.position.x,.75,g.position.z);world.add(l);doorLabels.set(d,l); }
+  for (const d of current.doors) {
+    const color=d.locked?"#8a3030":d.objective?"#e8a04a":"#3d91df";
+    const markerW=d.objective?Math.min(1.15,Math.max(.4,d.w*SCALE)):Math.max(.4,d.w*SCALE);
+    const g=box(markerW,.04,Math.max(.28,d.h*SCALE),mat(color,d.locked ? .15 : d.objective ? .58 : .8));
+    g.position.set(wx(d.x+d.w/2),.04,wz(d.y+d.h/2));world.add(g);
+    const l=sprite(d.label,d.locked?"#d77":d.objective?"#ffd18a":"#9fd7ff",d.objective?.62:.55);
+    l.position.set(g.position.x,d.objective ? 1.92 : .75,g.position.z);world.add(l);doorLabels.set(d,l);
+    if(d.objective){
+      objectiveTarget=new THREE.Vector3(g.position.x,.055,g.position.z);
+      const ring=new THREE.Mesh(new THREE.RingGeometry(.36,.44,28),mat("#e8a04a",.7));
+      ring.rotation.x=-Math.PI/2;ring.position.copy(objectiveTarget);world.add(ring);
+      const geometry=new THREE.BufferGeometry().setFromPoints([objectiveTarget.clone(),objectiveTarget.clone()]);
+      objectiveGuide=new THREE.Line(geometry,new THREE.LineDashedMaterial({color:0xe8a04a,transparent:true,opacity:.58,dashSize:.12,gapSize:.1,depthWrite:false}));
+      objectiveGuide.computeLineDistances();world.add(objectiveGuide);
+    }
+  }
   for (const a of current.actors) {
     // Not every actor is a person. Ship module bays and the captain's chair
     // are interact points standing in for furniture already drawn by
@@ -852,7 +876,7 @@ export function mount(container: HTMLElement | null, s: WalkScene, actions: {mov
     renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:"high-performance"}); renderer.setPixelRatio(Math.min(devicePixelRatio,1.5)); renderer.outputColorSpace=THREE.SRGBColorSpace;
     renderer.domElement.className="walk3d-canvas"; container.insertBefore(renderer.domElement,container.firstChild);
     const isDesert = s.id === "station:dustwell";
-    root=new THREE.Scene(); root.background=new THREE.Color(s.dark?0x05070b:isDesert?0xc98a54:0x0c1420); root.fog=new THREE.Fog(root.background,34,85); root.add(new THREE.HemisphereLight(s.dark?0x7384a0:isDesert?0xf0ca96:0xbcdcff,isDesert?0x5a3f28:0x1a2130,s.dark ? .6 : isDesert ? 1.5 : 1.7));root.add(new THREE.AmbientLight(s.dark?0x647087:isDesert?0xd0a878:0x91b8df,s.dark?.35:isDesert?.95:.9));root.add(avatar,actionFx);
+    root=new THREE.Scene(); root.background=new THREE.Color(s.dark?0x05070b:isDesert?0xc98a54:0x0c1420); root.fog=new THREE.Fog(root.background,34,85); root.add(new THREE.HemisphereLight(s.dark?0x7384a0:isDesert?0xf0ca96:0xa8c8e4,isDesert?0x5a3f28:0x1a2130,s.dark ? .52 : isDesert ? 1.5 : 1.3));root.add(new THREE.AmbientLight(s.dark?0x647087:isDesert?0xd0a878:0x7895b4,s.dark?.28:isDesert?.95:.66));root.add(avatar,actionFx);
     // Desert sun: a warm high directional gives the open town form and lifts
     // the buildings — the plaza has no per-room lights, so this and the fill
     // light in renderOpenGround do the lifting. Kept modest so bloom doesn't
@@ -867,12 +891,12 @@ export function mount(container: HTMLElement | null, s: WalkScene, actions: {mov
     try {
       // Lower exposure for the desert: its sunlit sand is far brighter than a
       // dim ship interior, so the same 1.95 blows the highlights to white.
-      renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=isDesert?1.35:1.95;
+      renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=s.dark?1.2:isDesert?1.3:1.62;
       composer=new EffectComposer(renderer); composer.setPixelRatio(Math.min(devicePixelRatio,1.5));
       composer.addPass(new RenderPass(root,camera));
       // Gentle bloom in daylight — the desert has no emissives to make radiate,
       // so a strong threshold would just haze the whole bright scene.
-      bloomPass=new UnrealBloomPass(new THREE.Vector2(1,1), s.dark?0.75:isDesert?0.22:0.5, 0.55, isDesert?0.5:0.32);
+      bloomPass=new UnrealBloomPass(new THREE.Vector2(1,1), s.dark?0.58:isDesert?0.18:0.3, 0.48, isDesert?0.55:0.42);
       composer.addPass(bloomPass);
       crtPass=new ShaderPass(CRT_SHADER); composer.addPass(crtPass);
       composer.addPass(new OutputPass());
@@ -896,9 +920,14 @@ export function mount(container: HTMLElement | null, s: WalkScene, actions: {mov
   }
 }
 function resize(){if(!renderer||!camera||!host)return;const r=host.getBoundingClientRect();const w=Math.max(1,r.width),h=Math.max(1,r.height);renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();composer?.setSize(w,h);const pr=Math.min(devicePixelRatio,1.5);crtPass?.uniforms.resolution.value.set(w*pr,h*pr);}
-export function setScene(s: WalkScene){current=s;const sig=s.id+"|"+s.rooms.map(r=>`${r.id}:${r.moduleType}:${r.moduleIndex}`).join()+"|"+s.doors.map(d=>d.label+d.locked).join()+"|"+s.actors.map(a=>a.key).join()+"|"+(s.ship?`${s.ship.x},${s.ship.y},${s.ship.facing}`:"")+"|"+S.modules.map(m=>`${m.t}${m.on}${m.dmg}${wearTier(m)}`).join();if(sig!==signature){signature=sig;rebuild();}}
+export function setScene(s: WalkScene){current=s;const sig=s.id+"|"+s.rooms.map(r=>`${r.id}:${r.moduleType}:${r.moduleIndex}`).join()+"|"+s.doors.map(d=>d.label+d.locked+d.objective).join()+"|"+s.actors.map(a=>a.key).join()+"|"+(s.ship?`${s.ship.x},${s.ship.y},${s.ship.facing}`:"")+"|"+S.modules.map(m=>`${m.t}${m.on}${m.dmg}${wearTier(m)}`).join();if(sig!==signature){signature=sig;rebuild();}}
 export function render(v:{pos:{x:number;y:number};facing:string;heading?:number;moving:boolean;phase:number;nearDoor:WalkDoor|null;nearActor:WalkActor|null;time:number;aim:{x:number;y:number};rolling:boolean;rollCooldown:number;projectiles:Array<{x:number;y:number}>;dummy:{x:number;y:number;hp:number;hit:number}|null;highlightKey:string|null;enemies?:Array<{x:number;y:number;hp:number;maxhp:number;hit:number;kind:string;size?:number;color?:string;telegraph?:number}>;foeShots?:Array<{x:number;y:number}>;playerHit?:number;debris?:Array<{x:number;y:number;color:string;life:number}>;shake?:number;muzzle?:number;shotColor?:string;rollTrail?:number;melee?:number}){
   if(!renderer||!root||!camera||!current)return; const x=wx(v.pos.x),z=wz(v.pos.y);avatar.position.set(x,0,z);
+  if(objectiveGuide&&objectiveTarget){
+    const positions=objectiveGuide.geometry.getAttribute("position") as THREE.BufferAttribute;
+    positions.setXYZ(0,x,.055,z);positions.setXYZ(1,objectiveTarget.x,.055,objectiveTarget.z);positions.needsUpdate=true;
+    objectiveGuide.computeLineDistances();objectiveGuide.visible=Math.hypot(x-objectiveTarget.x,z-objectiveTarget.z)>.5;
+  }
   const dt=Math.min(.05,Math.max(0,(v.time-lastFrameTime)/1000||.016)); lastFrameTime=v.time;
   if(!captainModel&&!captainModelPending){
     const token=++captainModelToken;
@@ -935,6 +964,7 @@ export function render(v:{pos:{x:number;y:number};facing:string;heading?:number;
   avatarYaw+=dy*Math.min(1,dt*TURN_RATE);
   avatar.rotation.y=avatarYaw;
   const room=current.rooms.find(r=>v.pos.x>=r.x&&v.pos.x<=r.x+r.w&&v.pos.y>=r.y&&v.pos.y<=r.y+r.h);const shake=room?.kind==="engine"?Math.sin(v.time*.045)*.025:0;
+  const stationScene=current.id.startsWith("station:");
   // Dissolve the near wall of the room you're standing in. Without this the
   // south bulkhead's top edge sits between the camera and the captain and slices
   // him off at the knees the moment he steps into a bay.
@@ -944,12 +974,12 @@ export function render(v:{pos:{x:number;y:number};facing:string;heading?:number;
     const want=wmesh.userData.roomId===room?.id?WALL_FADE:base;
     m.opacity+=(want-m.opacity)*Math.min(1,dt*8);
   }
-  // Same story for the room's ceiling label: it hangs above the room's centre,
-  // which from an overhead camera projects straight onto the captain's chest.
-  // You know which room you walked into — fade the one you're in.
+  // Room labels are distant CRT beacons, not a second layer of UI. The current
+  // room is already named in the HUD; station rooms beyond it stay just bright
+  // enough to navigate by without turning the deck into a cloud of captions.
   for(const r of current.rooms){
     const l=roomLabels.get(r.id); if(!l) continue;
-    const want=r.id===room?.id?0:1;
+    const want=r.id===room?.id?0:stationScene?STATION_ROOM_BEACON:.62;
     const m=l.material as THREE.SpriteMaterial;
     m.opacity+=(want-m.opacity)*Math.min(1,dt*8);
     l.visible=m.opacity>.02;
@@ -964,10 +994,13 @@ export function render(v:{pos:{x:number;y:number};facing:string;heading?:number;
   // A room full of nametags/door labels reads as a wall of overlapping text;
   // fade everything but whatever's actually interactable right now so the
   // player's eye has one thing to land on instead of five stacked signs.
-  for(const [d,l] of doorLabels)(l.material as THREE.SpriteMaterial).opacity=d===v.nearDoor?1:LABEL_DIM;
+  for(const [d,l] of doorLabels){
+    const idle = objectiveTarget && !d.objective ? .025 : stationScene ? STATION_LABEL_DIM : LABEL_DIM;
+    (l.material as THREE.SpriteMaterial).opacity = d === v.nearDoor ? 1 : d.objective ? .82 : idle;
+  }
   // Roster-panel highlight (setHighlight): that actor's nametag stays lit and
   // pulses so the player can find them in a crowd from the crew list.
-  for(const [a,l] of actorLabels){const hl=a.key===v.highlightKey;(l.material as THREE.SpriteMaterial).opacity=a===v.nearActor||hl?1:LABEL_DIM;const g=actorMeshes.get(a.key);if(g)g.scale.setScalar(hl?1+Math.sin(v.time/140)*.06:1);}
+  for(const [a,l] of actorLabels){const hl=a.key===v.highlightKey;const idle=stationScene?STATION_LABEL_DIM:LABEL_DIM;(l.material as THREE.SpriteMaterial).opacity=a===v.nearActor||hl?1:idle;const g=actorMeshes.get(a.key);if(g)g.scale.setScalar(hl?1+Math.sin(v.time/140)*.06:1);}
   actionFx.clear();
   if(current.action){const aimLine=new THREE.Mesh(new THREE.BoxGeometry(.035,.025,1.15),mat("#70d7ff",.9));aimLine.position.set(x+v.aim.x*.55,.04,z+v.aim.y*.55);aimLine.rotation.y=Math.atan2(v.aim.x,v.aim.y);actionFx.add(aimLine);}
   // Melee swing: a bright crescent arc sweeping across the aim direction.
@@ -996,4 +1029,4 @@ export function render(v:{pos:{x:number;y:number};facing:string;heading?:number;
   // ever-larger numbers for no visual benefit.
   if(composer){if(crtPass)crtPass.uniforms.time.value=(v.time*.001)%1000;composer.render();}else renderer.render(root,camera);
 }
-export function teardown(){resizeObserver?.disconnect();resizeObserver=null;if(renderer&&clickHandler)renderer.domElement.removeEventListener("pointerdown",clickHandler);clickHandler=null;captainModelToken++;disposePlayerModel(captainModel);captainModel=null;captainModelPending=null;for(const m of actorMixers.values()) m.stopAllAction();actorMixers.clear();lastFrameTime=0;avatarYaw=0;if(root)disposeObject(root);composer?.dispose();bloomPass?.dispose();composer=null;bloomPass=null;crtPass=null;renderer?.dispose();renderer?.domElement.remove();renderer=null;root=null;camera=null;flashlight=null;current=null;host=null;signature="";world=new THREE.Group();avatar=new THREE.Group();actionFx=new THREE.Group();actorMeshes.clear();actorRigs.clear();doorLabels=new Map();actorLabels=new Map();fadeWalls=[];roomLabels=new Map();aimCallback=null;fireCallback=null;}
+export function teardown(){resizeObserver?.disconnect();resizeObserver=null;if(renderer&&clickHandler)renderer.domElement.removeEventListener("pointerdown",clickHandler);clickHandler=null;captainModelToken++;disposePlayerModel(captainModel);captainModel=null;captainModelPending=null;for(const m of actorMixers.values()) m.stopAllAction();actorMixers.clear();lastFrameTime=0;avatarYaw=0;if(root)disposeObject(root);composer?.dispose();bloomPass?.dispose();composer=null;bloomPass=null;crtPass=null;renderer?.dispose();renderer?.domElement.remove();renderer=null;root=null;camera=null;flashlight=null;current=null;host=null;signature="";world=new THREE.Group();avatar=new THREE.Group();actionFx=new THREE.Group();actorMeshes.clear();actorRigs.clear();doorLabels=new Map();actorLabels=new Map();objectiveTarget=null;objectiveGuide=null;fadeWalls=[];roomLabels=new Map();aimCallback=null;fireCallback=null;}

@@ -25,7 +25,7 @@ export function showHelp() {
     <p><b>Loop:</b> dock → cantina for jobs → market for fuel/food/trade → shipyard for modules & repairs → star map → depart → advance days, survive events → deliver → profit.</p>
     <p><b>Modules</b> define what jobs you can take: cabins for passengers, med bay for medical runs, weapons + armory for bounties, smuggler's hold for the shady stuff, hydroponics to grow food. Slots are limited — choices matter.</p>
     <p><b>Power:</b> active systems (⚡ pips on the deck plan) draw reactor power; the drive core only makes so much. Toggle modules on/off from the Ship screen, upgrade the drive (+2⚡ per mark), or fit an Auxiliary Reactor (+3⚡). <b>Damage:</b> combat hits and breakdowns knock specific modules offline — red LED, lost capability, sometimes vented fuel or jettisoned cargo. Fix them at a dry dock (80cr) or let a mechanic jury-rig them mid-flight.</p>
-    <p><b>Crew</b> delegate the work: a mechanic repairs in flight, a pilot saves fuel and dodges trouble, a cook stretches rations, a gunner hits harder, a quartermaster squeezes contracts. They need quarters, salaries, and food.</p>
+    <p><b>Crew</b> delegate the work: a mechanic can field-repair 2 hull/day up to 50% integrity (60% with a workshop), a pilot saves fuel and dodges trouble, a cook stretches rations, a gunner hits harder, and a quartermaster squeezes contracts. Full hull and permanent system repairs still need a dry dock. Crew need quarters, salaries, and food.</p>
     <p><b>Economy tips:</b> food is dirt-cheap on Kestrel's Rest; modules are 15% off at Foundry; goods bought at their source world sell high on the frontier. Medicine from Meridian → Verge is a classic.</p>
     <p><b>Don't:</b> run out of fuel mid-flight (ruinous tow fees), run out of food (crew starve and quit), skip payroll, or fly weaponless through pirate country with full holds.</p>
     <p><b>The Run:</b> the endgame is a timed dash against the Union net — Oregon Trail rules. Provision like your life depends on it. It does.</p>
@@ -75,6 +75,16 @@ export function closeHelp() {
 
 export function showSettings() {
   const muted = sfx.isMuted();
+  const devScenarios = import.meta.env.DEV ? `<div class="panel">
+      <h3>Playtest Scenarios</h3>
+      <p class="dim">Development only. Replaces the active run with a deterministic test state.</p>
+      <div class="choices">
+        <button ${actionAttr("loadScenario", "visual", 42)}>Fresh Port</button>
+        <button ${actionAttr("loadScenario", "trader", 42)}>Trade Loop</button>
+        <button ${actionAttr("loadScenario", "fighter", 42)}>Combat Ship</button>
+        <button ${actionAttr("loadScenario", "arc", 42)}>Story Arc</button>
+      </div>
+    </div>` : "";
   modal(`<h2>Settings</h2>
     <div class="panel">
       <h3>Audio</h3>
@@ -83,6 +93,7 @@ export function showSettings() {
         <button class="${muted ? "" : "primary"}" ${actionAttr("toggleMute")}>${muted ? "🔇 Unmute audio" : "🔊 Mute audio"}</button>
       </div>
     </div>
+    ${devScenarios}
     <div class="choices"><button ${actionAttr("closeModal")}>Back to the black</button></div>`);
 }
 

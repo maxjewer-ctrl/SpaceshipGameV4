@@ -12,7 +12,7 @@ import * as sfx from "../audio";
 function sfxSafe(fn: () => void) { try { fn(); } catch { /* no audio here */ } }
 
 export interface WalkRect { x: number; y: number; w: number; h: number; }
-export interface WalkDoor extends WalkRect { label: string; locked?: boolean; lockedHint?: string; action: () => void; }
+export interface WalkDoor extends WalkRect { label: string; locked?: boolean; lockedHint?: string; objective?: boolean; action: () => void; }
 export interface WalkActor extends WalkRect { key: string; label: string; icon?: string; color?: string; role?: string; modelKey?: string; bubble?: string; verb?: string; onInteract: () => void; }
 export interface WalkRoom extends WalkRect { id: string; label: string; icon?: string; color?: string; kind?: string; moduleIndex?: number; moduleType?: string; }
 // A solid structure you walk AROUND, not on — the inverse of a floor. Buildings
@@ -117,8 +117,12 @@ let heading = 0;
 let walkPhase = 0;
 let moving = false;
 const keys = new Set<string>();
+const pressStartedAt: Record<string, number> = {};
+const tapTimers: Record<string, number | undefined> = {};
 const gpDirs = new Set<string>();
 let gpAxis = { x: 0, y: 0 };
+let keyboardSprint = false;
+let gamepadSprint = false;
 let gpPrevA = false;
 let gpPrevB = false;
 let gpPrevX = false;
@@ -143,6 +147,7 @@ let clickStuck = 0;
 let highlightKey: string | null = null;
 // Two strides: decks are for walking and talking; action scenes move quicker.
 const DECK_SPEED = 230;
+const DECK_SPRINT_MULTIPLIER = 1.5;
 const ACTION = { moveSpeed:320, rollSpeed:620, rollDuration:.24, rollCooldown:.7, fireCooldown:.18, projectileSpeed:720 };
 // Melee: a close-range cone swipe. High flat damage, brief forward lunge, knocks
 // foes back AND cancels their windup/charge — the answer to enemies that rush you.
@@ -183,6 +188,33 @@ let shakeAmt=0, muzzle=0, killCount=0, rollTrail=0;
 type Walk3D = typeof import("./walk3d");
 let walk3d: Walk3D | null = null;
 let walk3dLoading: Promise<Walk3D> | null = null;
+const DPAD_TAP_THRESHOLD_MS = 160;
+const DPAD_TAP_HOLD_MS = 120;
+type InputFamily = "keyboard" | "gamepad";
+let activeInput: InputFamily = "keyboard";
+
+function inputHints(action = !!scene?.action): { head: string; foot: string } {
+  if (activeInput === "gamepad") {
+    return {
+      head: "◄ FREE MOVEMENT · LEFT STICK / D-PAD · L3 SPRINT ►",
+      foot: action ? "Ⓐ interact · RT fire · Ⓧ melee · Ⓑ roll" : "Ⓐ interact",
+    };
+  }
+  return {
+    head: "◄ FREE MOVEMENT · WASD / ARROWS · SHIFT SPRINT ►",
+    foot: action ? "[E] interact · LMB fire · [F] melee · [SPACE] roll" : "[E] interact",
+  };
+}
+
+function setActiveInput(input: InputFamily) {
+  if (activeInput === input) return;
+  activeInput = input;
+  const hints = inputHints();
+  const head = document.getElementById("wk-input-head");
+  const foot = document.getElementById("wk-input-foot");
+  if (head) head.textContent = hints.head;
+  if (foot) foot.textContent = hints.foot;
+}
 
 function loadWalk3d(): Promise<Walk3D> {
   if (walk3d) return Promise.resolve(walk3d);
@@ -199,7 +231,11 @@ function mountWalk3d(s: WalkScene) {
     // awaits the whole three.js chunk — an identity check silently stranded
     // that first walk screen on the 2D fallback. Mount the freshest object.
     if (!scene || mountedId !== id) return;
-    m.mount(parent, scene, { move:setClickMove, aim:setAim, fire });
+    m.mount(parent, scene, {
+      move: (x, y) => { setActiveInput("keyboard"); setClickMove(x, y); },
+      aim: (x, y) => { setActiveInput("keyboard"); setAim(x, y); },
+      fire: () => { setActiveInput("keyboard"); fire(); },
+    });
   });
 }
 
@@ -219,15 +255,18 @@ function bindListeners() {
     const tag = (document.activeElement && document.activeElement.tagName) || "";
     if (tag === "INPUT" || tag === "TEXTAREA") return;
     const dir = KEYMAP[e.code];
-    if (dir) { keys.add(dir); clearClickMove(); e.preventDefault(); return; }
-    if (e.code === "KeyE") { e.preventDefault(); interact(); }
-    if (e.code === "Space") { e.preventDefault(); startRoll(); }
-    if (e.code === "KeyF") { e.preventDefault(); meleeSwing(); }
+    if (dir) { setActiveInput("keyboard"); keys.add(dir); clearClickMove(); e.preventDefault(); return; }
+    if (e.code === "ShiftLeft" || e.code === "ShiftRight") { setActiveInput("keyboard"); keyboardSprint = true; e.preventDefault(); return; }
+    if (e.code === "KeyE") { setActiveInput("keyboard"); e.preventDefault(); interact(); }
+    if (e.code === "Space") { setActiveInput("keyboard"); e.preventDefault(); startRoll(); }
+    if (e.code === "KeyF") { setActiveInput("keyboard"); e.preventDefault(); meleeSwing(); }
   });
   document.addEventListener("keyup", (e) => {
     const dir = KEYMAP[e.code];
     if (dir) keys.delete(dir);
+    if (e.code === "ShiftLeft" || e.code === "ShiftRight") keyboardSprint = false;
   });
+  window.addEventListener("blur", () => { keys.clear(); keyboardSprint = false; });
 }
 
 export function needsMount(id: string): boolean { return mountedId !== id; }
@@ -235,6 +274,10 @@ export function needsMount(id: string): boolean { return mountedId !== id; }
 export function mountHTML(s: WalkScene): string {
   const dpad = (dir: string, glyph: string, cls: string) =>
     `<button class="wk-dbtn ${cls}" ${holdActionAttr("walkPressStart", "walkPressEnd", dir)}>${glyph}</button>`;
+  const debugRooms = import.meta.env.DEV && s.rooms.length
+    ? `<div class="walk-debug"><span>DEV JUMP</span>${s.rooms.map((room) =>
+        `<button ${actionAttr("walkDebugRoom", room.id)}>${room.label}</button>`).join("")}</div>`
+    : "";
   // The inline aspect-ratio derives the viewport's height from its width with
   // no min-height (see .walk-viewport's CSS comment — a fixed min-height
   // fights that on narrow/mobile viewports). Left unclamped it tracks the
@@ -243,11 +286,12 @@ export function mountHTML(s: WalkScene): string {
   // FOV can make read as a normal 3rd-person view. Capped to a wide but
   // sane cinematic-widescreen ratio instead.
   const viewportRatio = Math.min(s.width / s.height, 2.2);
+  const hints = inputHints(!!s.action);
   return `<div class="panel"><h3>${s.title}</h3>
     <div class="cockpit">
     <div class="console con-table">
       <div class="walkscope${s.dark ? " walk-dark" : ""}">
-        <div class="scope-head"><span>◄ FREE MOVEMENT ▬ WASD / ARROWS ►</span><span class="sh-r" id="wk-room"></span></div>
+        <div class="scope-head"><span id="wk-input-head">${hints.head}</span><span class="sh-r" id="wk-room"></span></div>
         <div class="walk-viewport" id="walk-viewport" style="aspect-ratio:${viewportRatio}">
           <div class="walk-prompt" id="wk-prompt"></div>
           <div class="wk-combat" id="wk-combat" style="display:none">
@@ -256,7 +300,7 @@ export function mountHTML(s: WalkScene): string {
             <span class="wk-hostiles" id="wk-hostiles"></span>
           </div>
         </div>
-        <div class="scope-foot"><span id="wk-status"></span><span>${s.action ? "[E]/Ⓐ interact · LMB/RT fire · [F]/Ⓧ melee · [SPACE]/Ⓑ roll" : "[E]/Ⓐ interact"}</span></div>
+        <div class="scope-foot"><span id="wk-status"></span><span id="wk-input-foot">${hints.foot}</span></div>
       </div>
     </div>
     <p class="dim" id="wk-desc" style="margin-top:8px; min-height:16px"></p>
@@ -268,6 +312,7 @@ export function mountHTML(s: WalkScene): string {
       </div>
       <div class="walk-fallback" id="wk-fallback"></div>
     </div>
+    ${debugRooms}
     </div>
   </div>`;
 }
@@ -280,7 +325,7 @@ export function start(s: WalkScene) {
   scene = s;
   mountedId = s.id;
   pos = savedPos[s.id] ? { ...savedPos[s.id] } : { ...s.spawn };
-  facing = "down"; heading = 0; walkPhase = 0; moving = false; keys.clear();
+  facing = "down"; heading = 0; walkPhase = 0; moving = false; keys.clear(); keyboardSprint = false; gamepadSprint = false;
   nearDoor = null; nearActor = null;
   lastRenderAt = 0; wasModal = false; // force an immediate first render on mount
   viewport = document.getElementById("walk-viewport");
@@ -340,14 +385,34 @@ export function teardown() {
   raf = null;
   if (scene) savedPos[scene.id] = { ...pos };
   scene = null; mountedId = null; viewport = null;
-  keys.clear(); clearClickMove();
+  keys.clear(); keyboardSprint = false; gamepadSprint = false; clearClickMove();
   walk3d?.teardown();
 }
 
 export function forgetSpawn(sceneId: string) { delete savedPos[sceneId]; }
 
-export function pressStart(dir: string) { keys.add(dir); }
-export function pressEnd(dir: string) { keys.delete(dir); }
+export function pressStart(dir: string) {
+  setActiveInput("keyboard");
+  if (tapTimers[dir] != null) {
+    clearTimeout(tapTimers[dir]);
+    tapTimers[dir] = undefined;
+  }
+  pressStartedAt[dir] = performance.now();
+  keys.add(dir);
+  clearClickMove();
+}
+export function pressEnd(dir: string) {
+  keys.delete(dir);
+  const started = pressStartedAt[dir];
+  delete pressStartedAt[dir];
+  if (started == null || hasModal()) return;
+  if (performance.now() - started >= DPAD_TAP_THRESHOLD_MS) return;
+  keys.add(dir);
+  tapTimers[dir] = window.setTimeout(() => {
+    keys.delete(dir);
+    tapTimers[dir] = undefined;
+  }, DPAD_TAP_HOLD_MS);
+}
 
 export function interact() {
   if (hasModal()) return;
@@ -409,14 +474,18 @@ function pollGamepad(_dt: number) {
   gpDirs.clear();
   const pads = navigator.getGamepads ? navigator.getGamepads() : [];
   const gp = pads && pads[0];
-  if (!gp) { gpPrevA = gpPrevB = false; gpAxis = { x: 0, y: 0 }; return; }
+  if (!gp) { gpPrevA = gpPrevB = false; gpAxis = { x: 0, y: 0 }; gamepadSprint = false; return; }
   const ax = gp.axes[0] || 0, ay = gp.axes[1] || 0;
   gpAxis = { x: Math.abs(ax) > .18 ? ax : 0, y: Math.abs(ay) > .18 ? ay : 0 };
   if (ay < -GP_DEADZONE || gp.buttons[12]?.pressed) gpDirs.add("up");
   if (ay > GP_DEADZONE || gp.buttons[13]?.pressed) gpDirs.add("down");
   if (ax < -GP_DEADZONE || gp.buttons[14]?.pressed) gpDirs.add("left");
   if (ax > GP_DEADZONE || gp.buttons[15]?.pressed) gpDirs.add("right");
+  gamepadSprint = !!gp.buttons[10]?.pressed;
   const aPressed = !!gp.buttons[0]?.pressed;
+  const controllerUsed = Math.abs(ax) > .18 || Math.abs(ay) > .18 ||
+    [0, 1, 2, 7, 10, 12, 13, 14, 15].some((i) => !!gp.buttons[i]?.pressed);
+  if (controllerUsed) setActiveInput("gamepad");
   if (aPressed && !gpPrevA) interact();
   gpPrevA = aPressed;
   if (inAction()) {
@@ -566,6 +635,20 @@ export function debugRooms() { return scene ? scene.rooms.map((r) => ({ id: r.id
 // Debug-only: teleport (bypasses collision) for exercising room/door/actor
 // detection directly, once movement collision itself is verified separately.
 export function debugGoto(x: number, y: number) { pos = { x, y }; simulate(0); drawFrame(); }
+export function debugRoom(id: string) {
+  const room = scene?.rooms.find((candidate) => candidate.id === id);
+  if (!room) return;
+  const door = scene?.doors.slice().reverse().find((candidate) => {
+    const x = candidate.x + candidate.w / 2;
+    const y = candidate.y + candidate.h / 2;
+    return !candidate.locked && x >= room.x && x <= room.x + room.w && y >= room.y && y <= room.y + room.h;
+  });
+  pos = door
+    ? { x: door.x + door.w / 2, y: door.y + door.h / 2 }
+    : { x: room.x + room.w / 2, y: room.y + room.h / 2 };
+  simulate(0);
+  drawFrame();
+}
 // Debug-only: drive the REAL click-to-move pathfinder (the same A* a mouse
 // click triggers) toward a target, respecting collision — the tool for
 // verifying a scene's room/corridor graph is actually walkable, not just that
@@ -608,7 +691,8 @@ function simulate(dt: number) {
     if (moving) {
       const len = Math.hypot(vx, vy) || 1;
       if (len > 1) { vx /= len; vy /= len; }
-      const speed = rollTime>0 ? ACTION.rollSpeed : inAction() ? ACTION.moveSpeed : DECK_SPEED;
+      const speed = rollTime>0 ? ACTION.rollSpeed : inAction() ? ACTION.moveSpeed
+        : DECK_SPEED * (keyboardSprint || gamepadSprint ? DECK_SPRINT_MULTIPLIER : 1);
       const nx = pos.x + vx * speed * dt;
       const ny = pos.y + vy * speed * dt;
       // Creep to the wall rather than hard-rejecting the whole step: a large
@@ -652,7 +736,20 @@ function simulate(dt: number) {
     if (combatActive || enemies.length) updateCombat(dt);
     nearDoor = null;
     let bestD = 46;
-    for (const d of scene.doors) { const dd = rectDist(pos.x, pos.y, d); if (dd < bestD) { bestD = dd; nearDoor = d; } }
+    // A live story beat is the player's reason for being in the room. Prefer it
+    // over overlapping furniture/utility pads, but only inside the ordinary
+    // interaction radius so objectives never become remote actions.
+    for (const d of scene.doors) {
+      if (!d.objective) continue;
+      const dd = rectDist(pos.x, pos.y, d);
+      if (dd < bestD) { bestD = dd; nearDoor = d; }
+    }
+    if (!nearDoor) {
+      for (const d of scene.doors) {
+        const dd = rectDist(pos.x, pos.y, d);
+        if (dd < bestD) { bestD = dd; nearDoor = d; }
+      }
+    }
     nearActor = null;
     let bestA = 40;
     for (const a of scene.actors) { const dd = Math.hypot(pos.x - (a.x + a.w / 2), pos.y - (a.y + a.h / 2)); if (dd < bestA) { bestA = dd; nearActor = a; } }
@@ -660,7 +757,8 @@ function simulate(dt: number) {
     // on wins. interact() runs doors first, so without this the cockpit's
     // "Ship's console" pad — which lies directly over the captain's chair —
     // shadowed the chair permanently and sitChair could never fire.
-    if (nearDoor && nearActor) {
+    if (nearDoor?.objective) nearActor = null;
+    else if (nearDoor && nearActor) {
       if (rectDist(pos.x, pos.y, nearActor) < rectDist(pos.x, pos.y, nearDoor)) nearDoor = null;
       else nearActor = null;
     }

@@ -42,6 +42,7 @@ import {
   closeThenLog, derelictBoard, derelictStrip,
 } from "./systems/events";
 import { wkRetreat } from "./ui/planetwalk";
+import { stationEnter } from "./ui/stationwalk";
 import { zoneBail } from "./ui/zonewalk";
 import {
   arcMeet, arcAcceptCrate, arcAcceptVoss, arcStartRun,
@@ -57,7 +58,7 @@ import {
   silBoardReturned, silScanReturned, silLearnNumbers, silLearnReturned,
   silCloseLog, silCloseLearnNumbers, silCloseLearnReturned,
 } from "./systems/silence";
-import { pressStart, pressEnd, interact } from "./ui/walk";
+import { pressStart, pressEnd, interact, debugRoom } from "./ui/walk";
 import { crewTalk, crewHighlight, wkInspect, walkDeck, sitChair, toggleModAndInspect } from "./ui/shipwalk";
 import { wkPay, wkTalk, wkFight } from "./systems/walkEncounters";
 import { ctVibe, ctAbout, ctShip, ctQuest, ctWorld, ctClose, ctQuestHelp, ctQuestSkip, ctDeepTalk } from "./systems/crewtalk";
@@ -78,15 +79,16 @@ import {
   surveyStake, surveyLogSeam, surveyDecode, surveyLogBeacon,
 } from "./systems/survey";
 import { loyaltyAccept, loyaltyDecline, loyaltyResolve } from "./systems/loyalty";
+import { loadScenario } from "./debug/scenarios";
 
 const ACTIONS: Record<string, (...args: any[]) => void> = {
   // navigation & screens
-  nav, ptab, selSlot, selPlanet, closeModal, log, shipView, masterCaution,
+  nav, ptab, selSlot, selPlanet, stationEnter, closeModal, log, shipView, masterCaution,
   // cockpit pedestal — physical controls
   setThrottle, throttleLive, bayToggle, jettisonGood, ventGuard, ventFuel,
   commsTune, engageBurn,
   // meta
-  showHelp, closeHelp, showSettings, toggleMute, confirmNewGame, newGame, intro, startGame,
+  showHelp, closeHelp, showSettings, toggleMute, confirmNewGame, newGame, intro, startGame, loadScenario,
   // save slots + backup
   openSaves, saveHere, loadSaveSlot, deleteSaveSlot, exportSaveFile, importSaveFile,
   // character creator
@@ -123,6 +125,7 @@ const ACTIONS: Record<string, (...args: any[]) => void> = {
   silCloseLog, silCloseLearnNumbers, silCloseLearnReturned,
   // free-roam walking: D-pad/keyboard fallback buttons, crew chat, foot encounters
   walkPressStart: pressStart, walkPressEnd: pressEnd, walkInteract: interact,
+  walkDebugRoom: debugRoom,
   crewTalk, crewHighlight, wkInspect, walkDeck, sitChair, wkPay, wkTalk, wkFight,
   toggleModAndInspect,
   // crew dialogue — trust-gated topics, personal quests

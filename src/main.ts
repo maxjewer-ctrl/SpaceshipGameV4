@@ -97,8 +97,6 @@ const saved = loadSaved();
 if (saved) {
   setState(saved);
   requestRender();
-  log("— Session restored. Welcome back, Captain. —");
-  requestRender();
 } else {
   intro();
 }

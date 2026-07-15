@@ -15,7 +15,7 @@ import { openCrewTalk } from "../systems/crewtalk";
 import { trustTier, dispositionWord } from "../systems/trust";
 import { rankOf, RANK_NAME } from "../systems/veterancy";
 import { shipWalkTick } from "../systems/walkEncounters";
-import { introShipDoors, introRoomDesc, introSpawnEngine, introAirlockHint } from "../systems/intro";
+import { introAct, introShipDoors, introRoomDesc, introSpawnEngine, introAirlockHint } from "../systems/intro";
 import { teardown, setHighlight, walkInsideFloors } from "./walk";
 import * as sfx from "../audio";
 import type { WalkScene, WalkRoom, WalkRect, WalkDoor, WalkActor } from "./walk";
@@ -155,7 +155,8 @@ export function buildShipScene(): WalkScene {
     doors.push({
       x: r.x + r.w - 150, y: r.y + r.h - 60, w: 134, h: 22,
       label: spec.label,
-      action: () => (window as any).introAct(spec.act),
+      objective: true,
+      action: () => introAct(spec.act),
     });
   }
 

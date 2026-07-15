@@ -10,7 +10,7 @@
   "weapons":  {"n":"Weapons Bay",      "price":600, "icon":"🎯", "dmg":8, "pw":2, "d":"+8 combat damage while powered. Stackable."},
   "shields":  {"n":"Shield Generator", "price":650, "icon":"🛡️", "shield":4, "pw":2, "d":"-4 damage per enemy hit while powered. Stackable."},
   "armory":   {"n":"Armory",           "price":450, "icon":"🔫",             "d":"Arms the crew. Unlocks bounty contracts. Passive."},
-  "workshop": {"n":"Workshop",         "price":400, "icon":"🔧", "pw":1,     "d":"Powered workbench: mechanic repairs 6 hull/day in flight (3 without) and fixes broken modules faster."},
+  "workshop": {"n":"Workshop",         "price":400, "icon":"🔧", "pw":1,     "d":"Powered workbench: raises field repairs from 50% to 60% hull and makes jury-rigs more durable. Full refits still need a yard."},
   "smuggler": {"n":"Smuggler's Hold",  "price":700, "icon":"🕳️", "scargo":10, "d":"10 units of hidden cargo. Unlocks smuggling runs. Patrols may scan you. Passive — that's the point."},
   "luxcabin": {"n":"Stateroom",        "price":800, "icon":"🥂", "vip":1, "pw":1, "d":"One luxury berth. Unlocks VIP charters. Cut its power and your VIP will itemize their displeasure."},
   "reactor":  {"n":"Auxiliary Reactor","price":550, "icon":"⚛️", "gen":3,    "d":"+3 reactor power. The drive core alone can only feed so many systems."}

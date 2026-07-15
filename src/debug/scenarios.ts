@@ -11,6 +11,7 @@ import { clearModal } from "../modal";
 import { genBundle } from "../systems/market";
 import { refreshMarket } from "../systems/market";
 import type { CrewMember } from "../types";
+import { MODS } from "../content";
 
 function crew(role: string, name: string): CrewMember {
   return {
@@ -35,6 +36,17 @@ const SCENARIOS: Record<string, { desc: string; build: () => void }> = {
   fresh: {
     desc: "Clean start, docked at Port Solace, 500cr (prologue skipped)",
     build: () => { base("Kestrel"); },
+  },
+  visual: {
+    desc: "Quiet Port Solace visual baseline, optional systems cold",
+    build: () => {
+      base("Kestrel Visual");
+      // The legacy sandbox owns every module at once. Keep the visual baseline
+      // quiet by leaving optional powered systems cold instead of spawning the
+      // screenshot under an irrelevant reactor-overdraw alarm. This is separate
+      // from `fresh`, whose exact powered state is a golden-master fixture.
+      for (const module of S.modules) if (MODS[module.t].pw) module.on = false;
+    },
   },
   trader: {
     desc: "Day 14 trade-loop ship: 2 cargo holds, pilot+mechanic, 1,800cr",

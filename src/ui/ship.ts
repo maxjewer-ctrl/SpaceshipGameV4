@@ -5,7 +5,6 @@ import { fmt } from "../util";
 import { requestRender } from "../bus";
 import { reputation } from "../systems/disposition";
 import { storyCards } from "../systems/silence";
-import { introCard } from "../systems/intro";
 import { standingWord } from "../systems/port";
 import { wearTier } from "../systems/wear";
 import { ensureSlots, bayCount } from "../systems/actions";
@@ -296,7 +295,6 @@ export function shipHTML(): string {
       ${selHtml}
     </div>
     <div class="console con-right">
-      ${introCard()}
       ${lifeSupportHTML()}
       ${commsFullHTML()}
       ${captainsLogHTML()}
