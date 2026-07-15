@@ -1,0 +1,3 @@
+# Keep source and content diffs stable across Windows and GitHub runners.
+* text=auto eol=lf
+

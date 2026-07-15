@@ -25,6 +25,9 @@ jobs:
       - name: Content integrity (every planet/faction/room/rider reference resolves)
         run: npm run lint:content
 
+      - name: Simulation purity (core remains host-independent)
+        run: npm run lint:purity
+
       - name: Typecheck
         run: npm run typecheck
 

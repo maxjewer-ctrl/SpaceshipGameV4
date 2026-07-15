@@ -76,6 +76,14 @@ mode handler, without adding a screen-specific state path or duplicating input
 and save logic. Desktop and mobile screenshots retain a clear hierarchy with
 the captain panel reduced to its operating instruments.
 
+## Repository Tracking Rules
+
+`main` is mirrored to GitHub through `origin`; every change is expected to be
+committed, pushed, and checked by GitHub Actions. Project-local `.agents/`
+skills are tracked source tooling, while generated output, dependencies, raw
+asset dumps, secrets, and scratch data remain ignored. See `CONTRIBUTING.md`
+for the required local gate and upload workflow.
+
 ## Cycle plan
 
 ### Cycle 1 — GAMEPLAY: the first hour (scenario: fresh + prologue)
