@@ -7,6 +7,7 @@ import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPa
 import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass.js";
 import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { clone as cloneSkeleton } from "three/examples/jsm/utils/SkeletonUtils.js";
 import { S } from "../state";
 import { fork } from "../rng";
 import { MODS } from "../content";
@@ -42,6 +43,10 @@ let world = new THREE.Group();
 let avatar = new THREE.Group();
 let actorMeshes = new Map<string, THREE.Group>();
 let actorRigs = new Map<string, CharacterRig>();
+// One mixer per crew member whose GLB came back from the rigging pipeline with
+// an idle clip (scripts/meshy/rig-crew.mjs). Keyed by actor so teardown can stop
+// them; render() pumps them all with the frame's dt.
+let actorMixers = new Map<string, THREE.AnimationMixer>();
 let captainModel: PlayerModel | null = null;
 let captainModelPending: Promise<PlayerModel> | null = null;
 let captainModelToken = 0;
@@ -188,44 +193,77 @@ const crewModelUrls: Record<string, string> = {
   tomas: new URL("../assets/models/crew-tomas.glb", import.meta.url).href,
   vex: new URL("../assets/models/crew-vex.glb", import.meta.url).href,
 };
-const crewModelCache = new Map<string, Promise<THREE.Object3D | null>>();
+interface CrewGltf { scene: THREE.Object3D; animations: THREE.AnimationClip[] }
+const crewModelCache = new Map<string, Promise<CrewGltf | null>>();
 
-function loadCrewModel(key: string): Promise<THREE.Object3D | null> {
+function loadCrewModel(key: string): Promise<CrewGltf | null> {
   const url = crewModelUrls[key];
   if (!url) return Promise.resolve(null);
   const cached = crewModelCache.get(key);
   if (cached) return cached;
   const pending = crewGltfLoader.loadAsync(url)
-    .then((gltf) => gltf.scene)
+    // Crew that have been through scripts/meshy/rig-crew.mjs carry a skeleton and
+    // an idle clip; the ones still waiting their turn are plain static meshes and
+    // hand back an empty animations array, which attachCrewModel treats as a statue.
+    .then((gltf): CrewGltf => ({ scene: gltf.scene, animations: gltf.animations ?? [] }))
     .catch(() => null);
   crewModelCache.set(key, pending);
   return pending;
 }
 
 function fitCrewModel(src: THREE.Object3D, targetHeight = 1.28): THREE.Object3D {
-  const model = src.clone(true);
-  const b = new THREE.Box3().setFromObject(model);
+  // SkeletonUtils.clone, not Object3D.clone: a plain deep clone copies the
+  // SkinnedMeshes but leaves their .skeleton pointing at the *source* bones, so
+  // every clone of a crew member would animate off one shared skeleton and the
+  // whole roster would twitch in lockstep.
+  const model = cloneSkeleton(src);
+  // `precise` walks the vertices through applyBoneTransform. Meshy's rig scales
+  // its root node by 0.01 (bones in centimetres) while the geometry is already
+  // in metres, and three cancels that at bind time -- so a cheap Box3 reports
+  // the model 100x too small and the fit blows it up to stadium size. Same trap
+  // playerModel3d.ts documents at length for the captain.
+  const b = new THREE.Box3().setFromObject(model, true);
   const size = new THREE.Vector3(); b.getSize(size);
   if (size.y > 0.0001) model.scale.multiplyScalar(targetHeight / size.y);
-  const b2 = new THREE.Box3().setFromObject(model);
+  const b2 = new THREE.Box3().setFromObject(model, true);
   model.position.set(-(b2.min.x + b2.max.x) / 2, -b2.min.y, -(b2.min.z + b2.max.z) / 2);
   model.traverse((o: any) => {
     if (!o.isMesh) return;
     o.castShadow = false; o.receiveShadow = false;
     const mats = Array.isArray(o.material) ? o.material : [o.material];
-    mats.forEach((m: any) => { if (m) { m.roughness = Math.max(m.roughness ?? .65, .55); m.metalness = Math.min(m.metalness ?? .1, .35); } });
+    mats.forEach((m: any) => {
+      if (!m) return;
+      // Meshy bakes the albedo into emissive, which makes the model self-illuminate
+      // and ignore the deck's lighting entirely — see playerModel3d.ts.
+      m.emissive?.setRGB(0, 0, 0);
+      m.emissiveMap = null;
+      m.emissiveIntensity = 0;
+      m.specularColor?.setRGB(1, 1, 1);
+      m.roughness = Math.max(m.roughness ?? .65, .55);
+      m.metalness = Math.min(m.metalness ?? .1, .35);
+      m.needsUpdate = true;
+    });
   });
   return model;
 }
 
-function attachCrewModel(group: THREE.Group, modelKey: string | undefined, fallback: THREE.Object3D) {
+function attachCrewModel(group: THREE.Group, modelKey: string | undefined, fallback: THREE.Object3D, actorKey: string, seed: number) {
   if (!modelKey) return;
-  loadCrewModel(modelKey).then((src) => {
-    if (!src || !group.parent) return;
-    const model = fitCrewModel(src, modelKey === "pip7" ? .9 : 1.28);
+  loadCrewModel(modelKey).then((gltf) => {
+    if (!gltf || !group.parent) return;
+    const model = fitCrewModel(gltf.scene, modelKey === "pip7" ? .9 : 1.28);
     model.name = `mesh:${modelKey}`;
     fallback.visible = false;
     group.add(model);
+    if (!gltf.animations.length) return; // not yet rigged: a statue, as before
+    const mixer = new THREE.AnimationMixer(model);
+    const idle = mixer.clipAction(gltf.animations[0]);
+    // Offset each actor into a different part of the cycle. Two crew sharing a
+    // model (or a clip) breathing in perfect sync reads as one puppet duplicated;
+    // a fraction of a second of drift is enough to break that.
+    idle.time = (seed % 997) / 997 * idle.getClip().duration;
+    idle.play();
+    actorMixers.set(actorKey, mixer);
   });
 }
 
@@ -629,7 +667,10 @@ function addMachinery(g: THREE.Group, type: string, color: string, online: boole
 
 function rebuild() {
   if (!root || !current) return;
-  root.remove(world); disposeObject(world); world = new THREE.Group(); root.add(world); actorMeshes.clear(); actorRigs.clear();
+  // Stop the mixers before the models they drive go into disposeObject, or a
+  // rebuild mid-scene leaves them ticking against freed geometry.
+  for(const m of actorMixers.values()) m.stopAllAction();
+  root.remove(world); disposeObject(world); world = new THREE.Group(); root.add(world); actorMeshes.clear(); actorRigs.clear(); actorMixers.clear();
   doorLabels = new Map(); actorLabels = new Map(); fadeWalls = []; roomLabels = new Map();
   const dark = !!current.dark;
   const isDustwell = current.id === "station:dustwell";
@@ -794,7 +835,7 @@ function rebuild() {
     let hv=0; for(let i=0;i<a.key.length;i++) hv=(hv*31+a.key.charCodeAt(i))|0; hv>>>=0;
     const g=new THREE.Group();
     const suitC=a.color||WARDROBE[hv%WARDROBE.length], skinC=SKIN3D[(hv>>4)%SKIN3D.length];
-    const rig=addPerson(suitC,skinC,a.color?"#e8d9b0":"#8fa8c9",hv);g.add(rig.group);attachCrewModel(g,a.modelKey,rig.group);
+    const rig=addPerson(suitC,skinC,a.color?"#e8d9b0":"#8fa8c9",hv);g.add(rig.group);attachCrewModel(g,a.modelKey,rig.group,a.key,hv);
     actorRigs.set(a.key,rig);
     const l=sprite(a.label,a.color||"#c9d2e4",.55);l.position.y=1.9;g.add(l);world.add(g);actorMeshes.set(a.key,g);actorLabels.set(a,l);
   }
@@ -861,7 +902,7 @@ export function render(v:{pos:{x:number;y:number};facing:string;heading?:number;
   const dt=Math.min(.05,Math.max(0,(v.time-lastFrameTime)/1000||.016)); lastFrameTime=v.time;
   if(!captainModel&&!captainModelPending){
     const token=++captainModelToken;
-    captainModelPending=createPlayerModel(true).then((model)=>{
+    captainModelPending=createPlayerModel(true, S.appearance?.model).then((model)=>{
       captainModelPending=null;
       if(token!==captainModelToken||!avatar.parent){disposePlayerModel(model);return model;}
       captainModel=model;
@@ -876,7 +917,12 @@ export function render(v:{pos:{x:number;y:number};facing:string;heading?:number;
     if(captainModel.walk) captainModel.walk.timeScale=v.moving?1:0;
     captainModel.mixer?.update(dt);
   }
-  for(const a of current.actors){const r=actorRigs.get(a.key);if(r)poseCharacter(r,{t:v.time+(a.x*131)%997});}
+  // A crew member is driven by exactly one of these: the skinned idle clip if
+  // their GLB has been through the rigging pipeline, else the procedural box rig.
+  // attachCrewModel hides the box the moment a mesh lands, so skip posing a rig
+  // nobody can see rather than paying for limb maths on an invisible figure.
+  for(const m of actorMixers.values()) m.update(dt);
+  for(const a of current.actors){const r=actorRigs.get(a.key);if(r?.group.visible)poseCharacter(r,{t:v.time+(a.x*131)%997});}
   avatar.rotation.z=v.rolling?-.45:0;avatar.scale.setScalar(v.rolling?.82:1);
   // Turn toward the true movement heading rather than snapping to one of four
   // cardinals: diagonals and click-to-move now read as a real turn. Only the
@@ -950,4 +996,4 @@ export function render(v:{pos:{x:number;y:number};facing:string;heading?:number;
   // ever-larger numbers for no visual benefit.
   if(composer){if(crtPass)crtPass.uniforms.time.value=(v.time*.001)%1000;composer.render();}else renderer.render(root,camera);
 }
-export function teardown(){resizeObserver?.disconnect();resizeObserver=null;if(renderer&&clickHandler)renderer.domElement.removeEventListener("pointerdown",clickHandler);clickHandler=null;captainModelToken++;disposePlayerModel(captainModel);captainModel=null;captainModelPending=null;lastFrameTime=0;avatarYaw=0;if(root)disposeObject(root);composer?.dispose();bloomPass?.dispose();composer=null;bloomPass=null;crtPass=null;renderer?.dispose();renderer?.domElement.remove();renderer=null;root=null;camera=null;flashlight=null;current=null;host=null;signature="";world=new THREE.Group();avatar=new THREE.Group();actionFx=new THREE.Group();actorMeshes.clear();actorRigs.clear();doorLabels=new Map();actorLabels=new Map();fadeWalls=[];roomLabels=new Map();aimCallback=null;fireCallback=null;}
+export function teardown(){resizeObserver?.disconnect();resizeObserver=null;if(renderer&&clickHandler)renderer.domElement.removeEventListener("pointerdown",clickHandler);clickHandler=null;captainModelToken++;disposePlayerModel(captainModel);captainModel=null;captainModelPending=null;for(const m of actorMixers.values()) m.stopAllAction();actorMixers.clear();lastFrameTime=0;avatarYaw=0;if(root)disposeObject(root);composer?.dispose();bloomPass?.dispose();composer=null;bloomPass=null;crtPass=null;renderer?.dispose();renderer?.domElement.remove();renderer=null;root=null;camera=null;flashlight=null;current=null;host=null;signature="";world=new THREE.Group();avatar=new THREE.Group();actionFx=new THREE.Group();actorMeshes.clear();actorRigs.clear();doorLabels=new Map();actorLabels=new Map();fadeWalls=[];roomLabels=new Map();aimCallback=null;fireCallback=null;}

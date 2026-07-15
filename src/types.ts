@@ -23,6 +23,7 @@ export interface Appearance {
   head: string;   // HEADS id: human | saurian | insectoid | cyclops | avian | synth
   garb: string;   // GARBS id: jumpsuit | coat | armor
   frame?: string; // body presentation: feminine | masculine | neutral
+  model?: string; // captain model id: explorer | female-explorer | alien-explorer
   skin: string;   // hex — head/skin color
   suit: string;   // hex — clothing color
   trim: string;   // hex — accent/trim/outline

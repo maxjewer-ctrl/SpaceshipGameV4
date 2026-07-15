@@ -10,6 +10,7 @@ import { PLANETS } from "../content";
 import { openCreator, getCaptainName, getAppearance } from "./avatar";
 import { $ } from "../util";
 import { actionAttr } from "../dispatch";
+import * as sfx from "../audio";
 
 // The character creator (ui/avatar.ts) renders the #captainrolein select; both
 // startGame() here and systems/intro.ts introStart() read the selection.
@@ -70,6 +71,24 @@ function updateGamepadStatus() {
 export function closeHelp() {
   stopGamepadWatch();
   closeModal();
+}
+
+export function showSettings() {
+  const muted = sfx.isMuted();
+  modal(`<h2>Settings</h2>
+    <div class="panel">
+      <h3>Audio</h3>
+      <p class="dim">${muted ? "All game audio is muted." : "Ambient sound and effects are enabled."}</p>
+      <div class="choices">
+        <button class="${muted ? "" : "primary"}" ${actionAttr("toggleMute")}>${muted ? "🔇 Unmute audio" : "🔊 Mute audio"}</button>
+      </div>
+    </div>
+    <div class="choices"><button ${actionAttr("closeModal")}>Back to the black</button></div>`);
+}
+
+export function toggleMute() {
+  sfx.toggleMuted();
+  showSettings();
 }
 
 export function confirmNewGame() {

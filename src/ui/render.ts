@@ -134,6 +134,7 @@ function renderNav() {
     (S.travel ? b("travel", "In Transit", S.screen === "travel") : "") +
     `<span class="right">
       <button class="mcaution${lit ? " lit" : ""}" ${actionAttr("masterCaution")}>⚠ MASTER CAUTION</button>
+      <button ${actionAttr("showSettings")}>⚙ Settings</button>
       <button ${actionAttr("openSaves")}>💾 Saves</button>
       <button ${actionAttr("showHelp")}>? Help</button>
       <button class="danger" ${actionAttr("confirmNewGame")}>New Game</button>

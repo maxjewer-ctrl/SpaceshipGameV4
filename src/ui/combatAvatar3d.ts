@@ -13,7 +13,7 @@ let raf: number | null = null;
 let mood: CombatAvatarMood = "command";
 let token = 0;
 
-export function mountCombatAvatar(stage: HTMLElement, nextMood: CombatAvatarMood) {
+export function mountCombatAvatar(stage: HTMLElement, nextMood: CombatAvatarMood, modelId?: string) {
   mood = nextMood;
   if (host === stage && renderer?.domElement.isConnected) return;
   teardownCombatAvatar();
@@ -38,7 +38,7 @@ export function mountCombatAvatar(stage: HTMLElement, nextMood: CombatAvatarMood
   camera.lookAt(0, .75, 0);
 
   const myToken = ++token;
-  pending = createPlayerModel(false).then((next) => {
+  pending = createPlayerModel(false, modelId).then((next) => {
     pending = null;
     if (myToken !== token || !scene || !host) { disposePlayerModel(next); return next; }
     model = next;

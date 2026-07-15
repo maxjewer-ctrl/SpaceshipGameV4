@@ -1,0 +1,18 @@
+[
+  {
+    "name": "crew-ada",
+    "status": "ok",
+    "path": "src/assets/models/crew-ada.glb",
+    "riggingTaskId": "019f62c0-04ae-7444-9f50-b72548f1d14e",
+    "animationTaskId": "019f62c3-977c-7542-b972-dd60c79f2be5",
+    "actionId": 244
+  },
+  {
+    "name": "crew-rook",
+    "status": "rejected",
+    "reason": "auto-rig mangled the mesh (torso/arms torn upward, plinth rigged as body); restored to static statue from git",
+    "riggingTaskId": "019f62c1-044d-7bc5-8af9-c7d0945408cd",
+    "animationTaskId": "019f62c4-215c-7571-a16e-1c6f683ed8c8",
+    "actionId": 245
+  }
+]

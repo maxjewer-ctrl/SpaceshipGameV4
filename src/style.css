@@ -604,6 +604,13 @@ th{color:var(--dim); font-weight:500; text-transform:uppercase; font-size:11px; 
 .cc-cyc button{ padding:3px 10px; }
 .cc-sw-lbl{ font-family:var(--mono); font-size:8.5px; letter-spacing:.12em; color:#6b7280; text-transform:uppercase; margin-top:4px; }
 .cc-swatches{ display:flex; gap:5px; flex-wrap:wrap; }
+.cc-models{ display:grid; grid-template-columns:repeat(3,1fr); gap:6px; }
+.cc-model{
+  padding:7px 5px; border-radius:5px; border:1px solid #2c313a; background:#10131b;
+  color:#8a8f99; font-size:10px; letter-spacing:.08em; text-transform:uppercase;
+}
+.cc-model:hover{ border-color:#465064; color:var(--txt); }
+.cc-model.on{ border-color:var(--amber); color:var(--amber); background:#1b160d; box-shadow:0 0 10px #e8b04b33; }
 .cc-swatch{
   width:22px; height:22px; padding:0; border-radius:50%; border:2px solid #2c313a;
   cursor:pointer; transition:transform .1s, border-color .1s;

@@ -11,3 +11,9 @@ dist/
 src/assets/Downloaded Assets/
 src/assets/Meshy_AI_*/
 src/assets/Meshy_AI_*.zip
+src/assets/Meshy_AI_*.glb
+scripts/meshy/raw/
+
+# Scratch downloads for free-asset sourcing (docs/ASSET_SOURCING.md) — the zips
+# and extracted kits are a local cache, not something that ships.
+.tmp-assets/

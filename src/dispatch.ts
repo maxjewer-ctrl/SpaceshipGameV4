@@ -21,12 +21,12 @@ import {
 import { selPlanet } from "./ui/map";
 import { ptab } from "./ui/planet";
 import {
-  showHelp, closeHelp, confirmNewGame, newGame, intro, startGame,
+  showHelp, closeHelp, showSettings, toggleMute, confirmNewGame, newGame, intro, startGame,
   openSaves, saveHere, loadSaveSlot, deleteSaveSlot, exportSaveFile, importSaveFile,
 } from "./ui/help";
 import { introStart, introAct } from "./systems/intro";
 import {
-  openCreator, avName, avRandomName, avFace, avLook, avHead, avGarb, avSkin, avSuit, avTrim, avStart,
+  openCreator, avName, avRandomName, avFace, avLook, avHead, avGarb, avSkin, avSuit, avTrim, avModel, avStart,
 } from "./ui/avatar";
 import { acceptMission, hire } from "./systems/market";
 import {
@@ -86,11 +86,11 @@ const ACTIONS: Record<string, (...args: any[]) => void> = {
   setThrottle, throttleLive, bayToggle, jettisonGood, ventGuard, ventFuel,
   commsTune, engageBurn,
   // meta
-  showHelp, closeHelp, confirmNewGame, newGame, intro, startGame,
+  showHelp, closeHelp, showSettings, toggleMute, confirmNewGame, newGame, intro, startGame,
   // save slots + backup
   openSaves, saveHere, loadSaveSlot, deleteSaveSlot, exportSaveFile, importSaveFile,
   // character creator
-  openCreator, avName, avRandomName, avFace, avLook, avHead, avGarb, avSkin, avSuit, avTrim, avStart,
+  openCreator, avName, avRandomName, avFace, avLook, avHead, avGarb, avSkin, avSuit, avTrim, avModel, avStart,
   // prologue campaign (DEAD RECKONING)
   introStart, introAct,
   // planet actions

@@ -3,7 +3,7 @@ import { DEFAULT_APPEARANCE } from "./ui/avatarDraw";
 import { platform } from "./platform";
 
 export const SAVE_KEY = "kestrelrun";
-export const SAVE_VERSION = 15;
+export const SAVE_VERSION = 16;
 
 // The single mutable game state. `export let` gives live bindings to importers;
 // replace it only through setState so everyone sees the new object.
@@ -294,6 +294,12 @@ export function migrate(s: any): GameState {
   if (s.version < 15) {
     if (typeof s.barkTick !== "number") s.barkTick = 0;
     s.version = 15;
+  }
+  // v16: captain model choice. Existing saves keep the original explorer.
+  if (s.version < 16) {
+    if (!s.appearance || typeof s.appearance !== "object") s.appearance = { ...DEFAULT_APPEARANCE };
+    if (!s.appearance.model) s.appearance.model = "explorer";
+    s.version = 16;
   }
   return s as GameState;
 }

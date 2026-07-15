@@ -59,7 +59,7 @@ export const TRIMS = [
 ];
 
 export const DEFAULT_APPEARANCE: Appearance = {
-  head: "human", garb: "jumpsuit", frame: "neutral", skin: "#d89b6c", suit: "#1c2131", trim: "#e8b04b",
+  head: "human", garb: "jumpsuit", frame: "neutral", model: "explorer", skin: "#d89b6c", suit: "#1c2131", trim: "#e8b04b",
 };
 
 // ---- color helpers ----

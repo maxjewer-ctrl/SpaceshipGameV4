@@ -8,7 +8,7 @@ import { uiRand } from "../rng";
 import { modal } from "../modal";
 import { HEADS, GARBS, AVATAR_LOOKS, SKINS, SUITS, TRIMS, DEFAULT_APPEARANCE, drawAvatar } from "./avatarDraw";
 import { mountCreatorPreview, type CreatorPreview } from "./creatorPreview3d";
-import { PLAYER_MODEL_LABEL } from "./playerModel3d";
+import { PLAYER_MODELS, normalizePlayerModelId } from "./playerModel3d";
 import { ROLES } from "../content";
 import { startGame } from "./help";
 import { actionAttr } from "../dispatch";
@@ -49,7 +49,7 @@ export function openCreator() {
         <input id="shipnamein" value="Kestrel" maxlength="18" class="cc-input">
         <label class="cc-lbl">Former specialty</label>
         <select id="captainrolein" class="cc-input">${roleOpts}</select>
-        <div class="cc-cyc cc-locked"><span>Character</span><b>${PLAYER_MODEL_LABEL}</b></div>
+        <div class="cc-sw-lbl">Character</div><div class="cc-models" id="cc-models">${modelChoices()}</div>
       </div>
     </div>
     <p class="dim" style="margin:10px 0 0; font-size:11px">A captain covers their old station until they hire a replacement — but a captain below decks isn't captaining.</p>
@@ -63,6 +63,13 @@ export function openCreator() {
 function swatches(list: string[], sel: string, handler: string): string {
   return list.map((hex) =>
     `<button class="cc-swatch${hex === sel ? " on" : ""}" style="background:${hex}" ${actionAttr(handler, hex)} aria-label="${hex}"></button>`
+  ).join("");
+}
+
+function modelChoices(): string {
+  const selected = normalizePlayerModelId(draft.app.model);
+  return PLAYER_MODELS.map((m) =>
+    `<button class="cc-model${m.id === selected ? " on" : ""}" ${actionAttr("avModel", m.id)}>${m.label}</button>`
   ).join("");
 }
 
@@ -124,6 +131,12 @@ export function avGarb(d: number) {
 export function avSkin(hex: string) { draft.app.skin = hex; markSwatch("cc-skin", hex); preview3d?.refresh(); }
 export function avSuit(hex: string) { draft.app.suit = hex; markSwatch("cc-suit", hex); preview3d?.refresh(); }
 export function avTrim(hex: string) { draft.app.trim = hex; markSwatch("cc-trim", hex); preview3d?.refresh(); }
+export function avModel(id: string) {
+  draft.app.model = normalizePlayerModelId(id);
+  const row = document.getElementById("cc-models");
+  if (row) row.innerHTML = modelChoices();
+  preview3d?.refresh();
+}
 
 export function avStart() {
   const nameEl = document.getElementById("captainnamein") as HTMLInputElement | null;

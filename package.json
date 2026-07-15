@@ -19,7 +19,8 @@
     "meshy:generate": "node --env-file=.env scripts/meshy/generate.mjs",
     "meshy:download": "node --env-file=.env scripts/meshy/download.mjs",
     "meshy:batch": "node --env-file=.env scripts/meshy/generate-batch.mjs",
-    "meshy:shrink": "node scripts/meshy/shrink-models.mjs"
+    "meshy:shrink": "node scripts/meshy/shrink-models.mjs",
+    "meshy:rig-crew": "node --env-file=.env scripts/meshy/rig-crew.mjs"
   },
   "devDependencies": {
     "@types/node": "^22.20.1",

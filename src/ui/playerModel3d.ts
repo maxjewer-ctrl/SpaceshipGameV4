@@ -2,17 +2,18 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { clone as cloneSkeleton } from "three/examples/jsm/utils/SkeletonUtils.js";
 
-export const PLAYER_MODEL_LABEL = "Explorer";
+export const PLAYER_MODELS = [
+  { id: "explorer", label: "Explorer", url: new URL("../assets/models/captain-explorer.glb", import.meta.url).href },
+  { id: "female-explorer", label: "Trailblazer", url: new URL("../assets/models/captain-female-explorer.glb", import.meta.url).href },
+  { id: "alien-explorer", label: "Outrider", url: new URL("../assets/models/captain-alien-explorer.glb", import.meta.url).href },
+] as const;
+export type PlayerModelId = typeof PLAYER_MODELS[number]["id"];
+export const DEFAULT_PLAYER_MODEL_ID: PlayerModelId = "explorer";
+export const PLAYER_MODEL_LABEL = PLAYER_MODELS[0].label;
 
 // World height every consumer can assume a fitted model has, with its feet at
 // the group origin. Callers scale from this rather than re-measuring.
 export const MODEL_HEIGHT = 1.5;
-
-// One asset for every surface: it carries the mesh, the skeleton and the walk
-// clip, so the still poses (creator, combat portrait) just park the clip on a
-// good frame instead of shipping a second GLB whose only job was a T-pose.
-// Rebuilt from the raw Meshy export by scripts/meshy/shrink-texture.mjs.
-const modelUrl = new URL("../assets/models/captain-explorer.glb", import.meta.url).href;
 
 // Seconds into the 1.07s walk cycle to freeze on for a still pose. This is the
 // cycle's passing position: feet together, shoulders square, arms hanging. It
@@ -21,7 +22,7 @@ const modelUrl = new URL("../assets/models/captain-explorer.glb", import.meta.ur
 const IDLE_POSE_TIME = 0.13;
 
 const loader = new GLTFLoader();
-let cached: Promise<{ scene: THREE.Group; animations: THREE.AnimationClip[] }> | null = null;
+const cache = new Map<PlayerModelId, Promise<{ scene: THREE.Group; animations: THREE.AnimationClip[] }>>();
 
 export interface PlayerModel {
   group: THREE.Group;
@@ -29,12 +30,25 @@ export interface PlayerModel {
   walk: THREE.AnimationAction | null;
 }
 
-function load() {
-  cached ??= loader.loadAsync(modelUrl).then((gltf) => ({
+export function normalizePlayerModelId(id: string | undefined): PlayerModelId {
+  return (PLAYER_MODELS.some((m) => m.id === id) ? id : DEFAULT_PLAYER_MODEL_ID) as PlayerModelId;
+}
+
+export function playerModelLabel(id: string | undefined): string {
+  const key = normalizePlayerModelId(id);
+  return PLAYER_MODELS.find((m) => m.id === key)?.label ?? PLAYER_MODEL_LABEL;
+}
+
+function load(id: string | undefined) {
+  const key = normalizePlayerModelId(id);
+  const asset = PLAYER_MODELS.find((m) => m.id === key)!;
+  if (cache.has(key)) return cache.get(key)!;
+  const pending = loader.loadAsync(asset.url).then((gltf) => ({
     scene: gltf.scene,
     animations: gltf.animations || [],
   }));
-  return cached;
+  cache.set(key, pending);
+  return pending;
 }
 
 // The Meshy rig's root node is scaled 0.01 (its bones are in centimetres) while
@@ -97,8 +111,8 @@ function fitModel(src: THREE.Group): THREE.Group {
   return model;
 }
 
-export async function createPlayerModel(animated = false): Promise<PlayerModel> {
-  const gltf = await load();
+export async function createPlayerModel(animated = false, modelId?: string): Promise<PlayerModel> {
+  const gltf = await load(modelId);
   const group = new THREE.Group();
   const model = fitModel(gltf.scene);
   const mixer = gltf.animations.length ? new THREE.AnimationMixer(model) : null;

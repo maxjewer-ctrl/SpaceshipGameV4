@@ -14,7 +14,6 @@ export interface CreatorPreview {
 }
 
 export function mountCreatorPreview(stage: HTMLElement, getApp: () => Appearance): CreatorPreview | null {
-  void getApp;
   let renderer: THREE.WebGLRenderer;
   try {
     // preserveDrawingBuffer so DOM-raster screenshots (__shot) can inline the bitmap
@@ -55,13 +54,21 @@ export function mountCreatorPreview(stage: HTMLElement, getApp: () => Appearance
   let model: PlayerModel | null = null;
   let disposed = false;
   let raf: number | null = null;
-  void createPlayerModel(false).then((next) => {
-    if (disposed) { disposePlayerModel(next); return; }
-    model = next;
-    next.group.scale.setScalar(.72);
-    next.group.position.set(0, .03, 0);
-    scene.add(next.group);
-  });
+  let loadToken = 0;
+  function loadCurrent() {
+    const token = ++loadToken;
+    const prior = model;
+    model = null;
+    if (prior) { scene.remove(prior.group); disposePlayerModel(prior); }
+    void createPlayerModel(false, getApp().model).then((next) => {
+      if (disposed || token !== loadToken) { disposePlayerModel(next); return; }
+      model = next;
+      next.group.scale.setScalar(.72);
+      next.group.position.set(0, .03, 0);
+      scene.add(next.group);
+    });
+  }
+  loadCurrent();
 
   const loop = (t: number) => {
     if (!renderer.domElement.isConnected) { teardown(); return; } // modal closed
@@ -76,6 +83,7 @@ export function mountCreatorPreview(stage: HTMLElement, getApp: () => Appearance
 
   function teardown() {
     disposed = true;
+    loadToken++;
     if (raf) cancelAnimationFrame(raf); raf = null;
     disposePlayerModel(model); model = null;
     disc.geometry.dispose(); (disc.material as THREE.Material).dispose();
@@ -86,8 +94,7 @@ export function mountCreatorPreview(stage: HTMLElement, getApp: () => Appearance
 
   return {
     refresh() {
-      // Appearance controls are temporarily disabled while the Meshy explorer
-      // is the only selectable captain model.
+      loadCurrent();
     },
     setFacing(dir: string) {
       void dir;
