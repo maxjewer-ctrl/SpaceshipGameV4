@@ -32,7 +32,7 @@ export function newState(shipName: string, seed: number = freshSeed()): GameStat
     barkTick: 0,
     shipName: shipName || "Kestrel",
     day: 1, credits: 500, fuel: 30, food: 20, hull: 100, hullMax: 100, prestige: 0,
-    engineLvl: 1, slotsMax: 14, loc: "solace", docked: true,
+    engineLvl: 1, slotsMax: 6, loc: "solace", docked: true,
     captainName: "Cass Ardent",
     appearance: { ...DEFAULT_APPEARANCE },
     captainRole: null,
@@ -40,9 +40,7 @@ export function newState(shipName: string, seed: number = freshSeed()): GameStat
     rep: { union: 0, frontier: 0, syndicate: 0 },
     modules: [
       mk("cockpit"), mk("engine"),
-      mk("fueltank"), mk("cargohold"), mk("medbay"), mk("cabin"),
-      mk("quarters"), mk("hydro"), mk("weapons"), mk("shields"),
-      mk("armory"), mk("workshop"), mk("smuggler"), mk("luxcabin"),
+      mk("fueltank"), mk("cargohold"), mk("cabin"), mk("quarters"), mk("workshop"),
     ],
     cargo: { ore: 0, med: 0, lux: 0 },
     crew: [], jobs: [], logLines: [],
@@ -87,7 +85,7 @@ function stripTransient(s: GameState): Record<string, unknown> {
 
 // Reconstruct the transient view state a load deliberately dropped.
 function applyLoadDefaults(s: any): GameState {
-  s.screen = s.travel ? "travel" : "shipwalk";
+  s.screen = "shipwalk";
   s.ptab = "cantina";
   s.sel = null;
   s.selPlanet = null;

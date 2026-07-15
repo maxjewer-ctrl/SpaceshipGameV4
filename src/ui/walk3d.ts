@@ -16,7 +16,7 @@ import { wearTier } from "../systems/wear";
 import type { WalkActor, WalkDoor, WalkScene, WalkRect, ShipBerth } from "./walk";
 import { spawnProp } from "./props3d";
 import { buildCharacter, poseCharacter, type CharacterRig } from "./character3d";
-import { createPlayerModel, disposePlayerModel, MODEL_HEIGHT, type PlayerModel } from "./playerModel3d";
+import { createPlayerModel, disposePlayerModel, MODEL_HEIGHT, setPlayerModelMoving, type PlayerModel } from "./playerModel3d";
 import bulkheadWallUrl from "../assets/ship/bulkhead-wall.webp";
 import corridorWallUrl from "../assets/ship/corridor-wall.webp";
 import corridorFloorUrl from "../assets/ship/corridor-floor.webp";
@@ -943,7 +943,7 @@ export function render(v:{pos:{x:number;y:number};facing:string;heading?:number;
     });
   }
   if(captainModel){
-    if(captainModel.walk) captainModel.walk.timeScale=v.moving?1:0;
+    setPlayerModelMoving(captainModel,v.moving);
     captainModel.mixer?.update(dt);
   }
   // A crew member is driven by exactly one of these: the skinned idle clip if

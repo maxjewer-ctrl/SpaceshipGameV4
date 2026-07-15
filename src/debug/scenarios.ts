@@ -32,6 +32,11 @@ function base(name: string) {
   S.flags.intro = 6;
 }
 
+function loadout(types: string[], slots: number) {
+  S.slotsMax = slots;
+  S.modules = [mk("cockpit"), mk("engine"), ...types.map((type) => mk(type))];
+}
+
 const SCENARIOS: Record<string, { desc: string; build: () => void }> = {
   fresh: {
     desc: "Clean start, docked at Port Solace, 500cr (prologue skipped)",
@@ -52,8 +57,8 @@ const SCENARIOS: Record<string, { desc: string; build: () => void }> = {
     desc: "Day 14 trade-loop ship: 2 cargo holds, pilot+mechanic, 1,800cr",
     build: () => {
       base("Marrow's Luck");
+      loadout(["fueltank", "cargohold", "cargohold", "cabin", "quarters", "quarters", "hydro", "workshop"], 8);
       S.day = 14; S.credits = 1800; S.prestige = 4; S.fuel = 36; S.food = 26;
-      S.modules.push(mk("cargohold"), mk("quarters"));
       S.crew.push(crew("pilot", "Odile Vance"), crew("mechanic", "Kesh Barlow"));
       S.rep.union = 2; S.rep.frontier = 1;
     },
@@ -62,9 +67,9 @@ const SCENARIOS: Record<string, { desc: string; build: () => void }> = {
     desc: "Day 20 armed ship: 2 weapons + shields + armory, gunner, engine Mk-II",
     build: () => {
       base("Spite & Polish");
+      loadout(["fueltank", "cargohold", "quarters", "hydro", "workshop", "weapons", "weapons", "shields", "armory"], 10);
       S.day = 20; S.credits = 900; S.prestige = 6; S.fuel = 38; S.food = 22;
-      S.engineLvl = 2; S.slotsMax = 8;
-      S.modules.push(mk("weapons"), mk("weapons"), mk("shields"), mk("armory"), mk("quarters"));
+      S.engineLvl = 2;
       S.crew.push(crew("gunner", "Rex Calloway"), crew("mechanic", "Pia Osei"));
       S.disposition.daring = 6;
     },
@@ -73,8 +78,8 @@ const SCENARIOS: Record<string, { desc: string; build: () => void }> = {
     desc: "Day 17 — the Broadcast fires on the next day tick; trader loadout",
     build: () => {
       base("Long Ear");
+      loadout(["fueltank", "cargohold", "cargohold", "cabin", "quarters", "hydro", "workshop"], 8);
       S.day = 17; S.credits = 1400; S.prestige = 5; S.fuel = 40; S.food = 30;
-      S.modules.push(mk("cargohold"), mk("quarters"));
       S.crew.push(crew("pilot", "Dane Okoro"), crew("cook", "Sef Adeyemi"));
     },
   },
@@ -82,9 +87,9 @@ const SCENARIOS: Record<string, { desc: string; build: () => void }> = {
     desc: "12★ prestige, day 30, kitted — the woman in the grey coat is waiting",
     build: () => {
       base("Twelve Stars");
+      loadout(["fueltank", "fueltank", "cargohold", "cabin", "quarters", "hydro", "workshop", "weapons", "shields"], 10);
       S.day = 30; S.credits = 2500; S.prestige = 12; S.fuel = 60; S.food = 35;
-      S.engineLvl = 2; S.slotsMax = 8;
-      S.modules.push(mk("weapons"), mk("shields"), mk("quarters"), mk("cabin"), mk("fueltank"));
+      S.engineLvl = 2;
       S.crew.push(crew("pilot", "Odile Vance"), crew("gunner", "Rex Calloway"), crew("mechanic", "Kesh Barlow"));
       S.rep.union = -2; S.rep.frontier = 4;
     },
@@ -93,9 +98,9 @@ const SCENARIOS: Record<string, { desc: string; build: () => void }> = {
     desc: "THE RUN in progress: arc stage 5, 14-day deadline, provisioned heavy",
     build: () => {
       base("Last Light");
+      loadout(["fueltank", "fueltank", "cargohold", "quarters", "hydro", "workshop", "weapons", "weapons", "shields"], 10);
       S.day = 44; S.credits = 800; S.prestige = 14; S.food = 44;
-      S.engineLvl = 3; S.slotsMax = 8;
-      S.modules.push(mk("fueltank"), mk("weapons"), mk("weapons"), mk("shields"), mk("quarters"));
+      S.engineLvl = 3;
       S.fuel = 80;
       S.crew.push(crew("pilot", "Odile Vance"), crew("gunner", "Rex Calloway"), crew("mechanic", "Kesh Barlow"));
       S.arc.stage = 5; S.arc.deadline = S.day + 14;
@@ -106,9 +111,9 @@ const SCENARIOS: Record<string, { desc: string; build: () => void }> = {
     desc: "Voss arc resolved (broadcast made) — the Tribunal threads are live",
     build: () => {
       base("Verdict");
+      loadout(["fueltank", "fueltank", "cargohold", "cabin", "quarters", "hydro", "workshop", "weapons", "shields"], 10);
       S.day = 52; S.credits = 3200; S.prestige = 15; S.fuel = 70; S.food = 40;
-      S.engineLvl = 3; S.slotsMax = 8;
-      S.modules.push(mk("fueltank"), mk("weapons"), mk("shields"), mk("quarters"), mk("cabin"));
+      S.engineLvl = 3;
       S.crew.push(crew("pilot", "Odile Vance"), crew("medic", "Ansel Grey"), crew("mechanic", "Kesh Barlow"));
       S.arc.stage = 6; S.arc.done = true;
       S.flags.arc_resolved = true; S.flags.arc_broadcast = true;

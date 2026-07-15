@@ -121,12 +121,15 @@ export interface CrewDialogueChoice {
                                      // job tag) — documentation only, read by
                                      // scripts/check-content.mjs for a sanity pass,
                                      // not by the dialogue engine itself.
+  stakes?: string;                  // concise player-facing outcome preview when effects alone are not enough
 }
 export interface CrewDialogueNode {
   text: string;
   sub?: string;                     // subline under their name
   expr?: string;                    // portrait expression (neutral | crew-specific variants)
-  choices: CrewDialogueChoice[];
+  choices?: CrewDialogueChoice[];
+  end?: boolean;                    // NPC has finished speaking; render navigation, not a fake player line
+  closeLabel?: string;              // optional navigation label for an ending response
 }
 export interface CrewDialogueBeat {
   id: string;                       // fired-once key → flags["<crewKey>_beat_<id>"]

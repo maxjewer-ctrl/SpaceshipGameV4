@@ -33,11 +33,11 @@ describe("save slots + transient stripping", () => {
     expect(loaded.selPlanet).toBeNull();
   });
 
-  it("defaults screen to travel when mid-flight", () => {
+  it("defaults to the walkable ship when mid-flight", () => {
     setState(newState("In Transit"));
     S.travel = { from: "solace", dest: "verge", total: 3, left: 2 };
     save();
-    expect(loadSaved()!.screen).toBe("travel");
+    expect(loadSaved()!.screen).toBe("shipwalk");
   });
 
   it("keeps slots isolated", () => {

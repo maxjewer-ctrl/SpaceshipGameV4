@@ -27,7 +27,41 @@ const cache = new Map<PlayerModelId, Promise<{ scene: THREE.Group; animations: T
 export interface PlayerModel {
   group: THREE.Group;
   mixer: THREE.AnimationMixer | null;
+  idle: THREE.AnimationAction | null;
   walk: THREE.AnimationAction | null;
+  moving: boolean;
+}
+
+function pickAnimation(clips: THREE.AnimationClip[], patterns: RegExp[]): THREE.AnimationClip | null {
+  for (const pattern of patterns) {
+    const hit = clips.find((clip) => pattern.test(clip.name));
+    if (hit) return hit;
+  }
+  return clips[0] ?? null;
+}
+
+function pickWalkClip(clips: THREE.AnimationClip[]): THREE.AnimationClip | null {
+  return pickAnimation(clips, [
+    /\bwalking\b/i,
+    /\bwalk\b/i,
+    /\bstage_walk\b/i,
+    /\brun(?:ning)?\b/i,
+    /\blocomo/i,
+  ]);
+}
+
+function pickStillClip(clips: THREE.AnimationClip[], walk: THREE.AnimationClip | null): THREE.AnimationClip | null {
+  const patterns = [
+    /\bidle\b/i,
+    /\bstand/i,
+    /\brest\b/i,
+    /\bsleep\b/i,
+  ];
+  for (const pattern of patterns) {
+    const hit = clips.find((clip) => pattern.test(clip.name));
+    if (hit) return hit;
+  }
+  return walk;
 }
 
 export function normalizePlayerModelId(id: string | undefined): PlayerModelId {
@@ -116,23 +150,62 @@ export async function createPlayerModel(animated = false, modelId?: string): Pro
   const group = new THREE.Group();
   const model = fitModel(gltf.scene);
   const mixer = gltf.animations.length ? new THREE.AnimationMixer(model) : null;
-  const walk = mixer ? mixer.clipAction(gltf.animations[0]) : null;
-  if (walk && mixer) {
-    walk.enabled = true;
-    walk.play();
-    if (!animated) {
-      // Still pose: hold one frame of the cycle. paused (not timeScale 0) so a
-      // caller that pumps the mixer every frame can't drift off the pose.
-      walk.time = IDLE_POSE_TIME;
-      walk.paused = true;
-      mixer.update(0); // stamp the pose onto the bones before anyone measures
+  const walkClip = pickWalkClip(gltf.animations);
+  const stillClip = pickStillClip(gltf.animations, walkClip);
+  const walk = mixer && walkClip ? mixer.clipAction(walkClip) : null;
+  const idle = mixer && stillClip ? mixer.clipAction(stillClip) : null;
+  if (mixer && idle) {
+    idle.enabled = true;
+    idle.play();
+    if (idle === walk) {
+      idle.time = IDLE_POSE_TIME;
+      idle.paused = true;
     }
+  }
+  if (walk && walk !== idle) {
+    walk.enabled = true;
+    walk.setEffectiveWeight(animated ? 0 : 1);
+    walk.play();
+  }
+  if (mixer && !animated && idle) {
+    if (walk && idle !== walk) walk.stop();
+    // Still pose: prefer a true idle if the file carries one, else hold one
+    // neutral frame of the walk cycle. paused (not timeScale 0) so a caller
+    // that pumps the mixer every frame can't drift off the pose.
+    idle.time = idle.getClip() === walkClip ? IDLE_POSE_TIME : 0;
+    idle.paused = true;
+    mixer.update(0); // stamp the pose onto the bones before anyone measures
   }
   // fitModel grounds and centres the rig, but it does that against the bind
   // pose; re-fit once the still pose is posed so the feet actually sit on y=0.
   if (!animated) reground(model);
   group.add(model);
-  return { group, mixer, walk };
+  return { group, mixer, idle, walk, moving: false };
+}
+
+export function setPlayerModelMoving(model: PlayerModel, moving: boolean) {
+  if (!model.mixer || model.moving === moving) return;
+  model.moving = moving;
+  const { idle, walk } = model;
+  if (idle && walk && idle !== walk) {
+    if (moving) {
+      idle.fadeOut(.12);
+      walk.reset().setEffectiveTimeScale(1).setEffectiveWeight(1).fadeIn(.12).play();
+    } else {
+      walk.fadeOut(.15);
+      idle.reset().setEffectiveTimeScale(1).setEffectiveWeight(1).fadeIn(.15).play();
+    }
+    return;
+  }
+  if (!walk) return;
+  if (moving) {
+    walk.paused = false;
+    walk.timeScale = 1;
+  } else {
+    walk.paused = true;
+    walk.time = IDLE_POSE_TIME;
+    model.mixer.update(0);
+  }
 }
 
 export function disposePlayerModel(model: PlayerModel | null) {

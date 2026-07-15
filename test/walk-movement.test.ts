@@ -41,8 +41,8 @@ describe("walk sprint", () => {
     key("keyup", "KeyD"); key("keyup", "ShiftLeft");
     const action = walk.debugPos().x;
 
-    expect(normal).toBeCloseTo(615);
-    expect(sprint).toBeCloseTo(672.5);
+    expect(normal).toBeCloseTo(630);
+    expect(sprint).toBeCloseTo(695);
     expect(action).toBeCloseTo(660);
   });
 });

@@ -4,7 +4,6 @@ import { combatViewImpl } from "./ui/combatView";
 import { render } from "./ui/render";
 import { loadSaved, setState, log } from "./state";
 import * as State from "./state";
-import { setThrottle, throttleLive } from "./ui/cockpit";
 import { avName } from "./ui/avatar";
 import { intro } from "./ui/help";
 import { debugStep, debugPos, debugActors, debugRooms, debugWalkTo, debugGoto, debugRenderCount, walkInsideFloors, debugCombat, debugFireAt, debugMelee } from "./ui/walk";
@@ -39,15 +38,13 @@ if (import.meta.env.DEV) import("./debug/shot").then((m) => m.installShot());
 // data-action/data-args mechanism (BETA_PLAN §3.4) — see installDispatch()
 // above. What's left on window is: `dispatch` itself (so headless test
 // scripts have one stable way to invoke a former-onclick handler, e.g.
-// `window.dispatch('depart', ['verge'])`), two controls that pass a live
-// DOM element through an inline event handler (`oninput="throttleLive(this)"`
-// / `onchange="setThrottle(this.value)"` for the throttle slider,
-// `oninput="avName(this.value)"` for the name field) which the JSON-based
+// `window.dispatch('depart', ['verge'])`), the avatar name control that passes
+// a live DOM value through an inline event handler, which the JSON-based
 // data-args scheme can't carry, and the dev/debug accessors below — none of
 // these were ever part of the onclick surface.
 Object.assign(window as any, {
   dispatch,
-  setThrottle, throttleLive, avName,
+  avName,
   // dev/debug: live state accessor + manual walk-frame stepper (harmless — behind underscores)
   __S: () => State.S,
   __walkStep: debugStep,

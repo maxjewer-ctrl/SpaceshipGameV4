@@ -6,13 +6,15 @@
 import { S } from "../state";
 import { PLANETS, NPCS, STATIONS } from "../content";
 import { requestRender } from "../bus";
+import { closeModal, modal } from "../modal";
 import { npcsInRoom, openNPC } from "../systems/scene";
 import { introDebtDoor, introDebtScene } from "../systems/intro";
 import { hasPortMark, standingWord, standingGreeting } from "../systems/port";
 import { moodLine, moodTag } from "../systems/moods";
 import { openCrewTalk } from "../systems/crewtalk";
-import { isSilenced } from "../derive";
+import { daysTo, isSilenced } from "../derive";
 import { actionAttr } from "../dispatch";
+import { getStationReturnAnchor, setShipReturnAnchor, setStationReturnAnchor } from "./physicalNav";
 
 // Location-stamped consequence set-dressing: a permanent physical change to
 // ONE station, keyed to something you did there. { mark: [room, appended prose] }
@@ -287,21 +289,43 @@ export function stationServicesHTML(): string {
 // against a detached canvas after render() overwrites #main for the new screen.
 export function stationEnter(tab: string) {
   discoverService(tab);
+  setStationReturnAnchor(tab as "market" | "cantina" | "yard");
   teardown();
   S.ptab = tab;
   S.screen = "planet";
   requestRender();
 }
 
+export function exitService() {
+  S.screen = "stationwalk";
+  requestRender();
+}
+
+export function directoryEnter(tab: string) {
+  closeModal();
+  stationEnter(tab);
+}
+
 export function boardShip() {
+  setShipReturnAnchor("airlock");
   teardown();
   S.screen = "shipwalk";
   requestRender();
 }
 export function departureBoard() {
-  teardown();
-  S.screen = "map";
-  requestRender();
+  const destinations = Object.keys(PLANETS).filter((key) => !PLANETS[key].hidden && key !== S.loc);
+  modal(`<div class="modal-context">${PLANETS[S.loc].n.toUpperCase()} · DEPARTURE BOARD</div><h2>Filed routes</h2>
+    <p class="dim">Public estimates only. Plot and commit the course from your captain's chair.</p>
+    <div class="departure-list">${destinations.map((key) => `<div><b>${PLANETS[key].n}</b><span>${daysTo(S.loc, key)} days</span></div>`).join("")}</div>
+    <div class="choices"><button class="primary" ${actionAttr("closeModal")}>Back to the docks</button></div>`);
+}
+
+function stationDirectory() {
+  const known = SERVICES.filter((service) => serviceKnown(service.tab));
+  modal(`<div class="modal-context">LOCAL PORT DIRECTORY</div><h2>${PLANETS[S.loc].n} services</h2>
+    <p class="dim">Only counters you have visited are stored on the local channel.</p>
+      <div class="directory-modal">${known.length ? known.map((service) => `<button ${actionAttr("directoryEnter", service.tab)}><span>${service.code}</span><b>${service.label}</b></button>`).join("") : '<p>No service channels stored. Explore the station deck first.</p>'}</div>
+    <div class="choices"><button ${actionAttr("closeModal")}>Close directory</button></div>`);
 }
 
 export function buildStationScene(): WalkScene {
@@ -366,6 +390,9 @@ export function buildStationScene(): WalkScene {
       doors.push({
         x: hatch.x - 45, y: hatch.y - 11, w: 90, h: 22,
         label: dark ? "Back aboard. Now." : "Board — rear hatch",
+        // The hatch is the authoritative ship transition. Keep adjacent
+        // reference terminals from stealing the interaction at zone edges.
+        priority: 20,
         onInteract: boardShip,
       });
       doors.push({
@@ -374,6 +401,11 @@ export function buildStationScene(): WalkScene {
         locked: dark,
         lockedHint: dark ? "The board's dead. Nothing's coming or going here." : undefined,
         onInteract: departureBoard,
+      });
+      doors.push({
+        x: hatch.x + 58, y: hatch.y - 62, w: 96, h: 22,
+        label: "Port directory terminal",
+        onInteract: stationDirectory,
       });
     }
     if (!dark) {
@@ -430,13 +462,18 @@ export function buildStationScene(): WalkScene {
   const p = PLANETS[S.loc];
   const swrd = dark ? "" : standingWord(S.loc);
   const mtag = dark ? "" : moodTag(S.loc);
+  const stationAnchor = getStationReturnAnchor();
+  const anchorRoom = defs.find((room) => room.tab === stationAnchor);
+  const spawn = anchorRoom
+    ? { x: anchorRoom.x + anchorRoom.w / 2, y: anchorRoom.y + anchorRoom.h - 48 }
+    : { x: 550, y: 585 };
   return {
     id: "station:" + S.loc,
     title: `${p.n} — Station Deck${dark ? " (dark)" : ""}`,
     status: dark ? "SIGNAL LOST · AUTOMATION ONLY" : `${p.n.toUpperCase()} STATION${mtag ? " · " + mtag : ""}${swrd && swrd !== "NEUTRAL" ? " · " + swrd : ""}`,
     width: 1000, height: 700,
     floors, rooms, roomDesc, doors, actors, ship,
-    spawn: { x: 550, y: 585 }, // just inside the docks, at the ship's hatch
+    spawn,
     dark,
     // A silenced station is hostile ground — action mode on. A living port
     // deck is civil space: no combat verbs between you and the cantina.

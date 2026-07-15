@@ -3,43 +3,39 @@
   "seed": 1,
   "days": 30,
   "ticks": [
-    "e0a121a5",
-    "b47fa9af",
-    "df84bf3c",
-    "7849bf88",
-    "39cfff89",
-    "9f637a1f",
-    "612b9af8",
-    "9e62f220",
-    "187f0817",
-    "390262de",
-    "10bd9994",
-    "c07fb3f9",
-    "88e131dd",
-    "91ad2e46",
-    "8eb88050",
-    "1e58531d",
-    "38e24a85",
-    "95b9ca48",
-    "32d9dc80",
-    "5e330e28",
-    "0e17233f",
-    "1bc36e97",
-    "dc008c3a",
-    "58749540",
-    "f3f60557",
-    "7779e7d3",
-    "4fa8f8fe",
-    "2ca2f378",
-    "2b612d01",
-    "eebf0c38"
+    "869ee921",
+    "3dc398b5",
+    "d5fa2a3c",
+    "c14a55c6",
+    "1415f055",
+    "d64843bd",
+    "2a759248",
+    "1630ad3e",
+    "3629b8c9",
+    "6b725627",
+    "87c49184",
+    "26c37d4d",
+    "629e8d05",
+    "979cb712",
+    "dbaf6d24",
+    "a540a455",
+    "ee5bcbd3",
+    "78099f6e",
+    "88d94628",
+    "7ec6d019",
+    "522dd7b2",
+    "9d4c794b",
+    "195885c7",
+    "f4e4def1",
+    "8304e2f9",
+    "d374582b"
   ],
   "landmarks": [
     {
       "day": 2,
       "credits": 500,
       "fuel": 30,
-      "food": 21,
+      "food": 19,
       "hull": 100,
       "loc": "solace",
       "log": [
@@ -51,7 +47,7 @@
       "day": 3,
       "credits": 500,
       "fuel": 30,
-      "food": 22,
+      "food": 18,
       "hull": 100,
       "loc": "solace",
       "log": [
@@ -64,7 +60,7 @@
       "day": 4,
       "credits": 500,
       "fuel": 30,
-      "food": 23,
+      "food": 17,
       "hull": 100,
       "loc": "solace",
       "log": [
@@ -77,7 +73,7 @@
       "day": 5,
       "credits": 500,
       "fuel": 30,
-      "food": 24,
+      "food": 16,
       "hull": 100,
       "loc": "solace",
       "log": [
@@ -90,7 +86,7 @@
       "day": 6,
       "credits": 500,
       "fuel": 30,
-      "food": 25,
+      "food": 15,
       "hull": 100,
       "loc": "solace",
       "log": [
@@ -103,7 +99,7 @@
       "day": 7,
       "credits": 500,
       "fuel": 30,
-      "food": 26,
+      "food": 14,
       "hull": 100,
       "loc": "solace",
       "log": [
@@ -116,7 +112,7 @@
       "day": 8,
       "credits": 500,
       "fuel": 30,
-      "food": 27,
+      "food": 13,
       "hull": 100,
       "loc": "solace",
       "log": [
@@ -129,7 +125,7 @@
       "day": 9,
       "credits": 500,
       "fuel": 30,
-      "food": 28,
+      "food": 12,
       "hull": 100,
       "loc": "solace",
       "log": [
@@ -142,7 +138,7 @@
       "day": 10,
       "credits": 500,
       "fuel": 30,
-      "food": 29,
+      "food": 11,
       "hull": 100,
       "loc": "solace",
       "log": [
@@ -155,7 +151,7 @@
       "day": 11,
       "credits": 500,
       "fuel": 30,
-      "food": 30,
+      "food": 10,
       "hull": 100,
       "loc": "solace",
       "log": [
@@ -168,7 +164,7 @@
       "day": 12,
       "credits": 500,
       "fuel": 30,
-      "food": 31,
+      "food": 9,
       "hull": 100,
       "loc": "solace",
       "log": [
@@ -181,7 +177,7 @@
       "day": 13,
       "credits": 500,
       "fuel": 30,
-      "food": 32,
+      "food": 8,
       "hull": 100,
       "loc": "solace",
       "log": [
@@ -194,7 +190,7 @@
       "day": 14,
       "credits": 500,
       "fuel": 30,
-      "food": 33,
+      "food": 7,
       "hull": 100,
       "loc": "solace",
       "log": [
@@ -207,7 +203,7 @@
       "day": 15,
       "credits": 500,
       "fuel": 30,
-      "food": 34,
+      "food": 6,
       "hull": 100,
       "loc": "solace",
       "log": [
@@ -220,7 +216,7 @@
       "day": 16,
       "credits": 500,
       "fuel": 30,
-      "food": 35,
+      "food": 5,
       "hull": 100,
       "loc": "solace",
       "log": [
@@ -233,7 +229,7 @@
       "day": 17,
       "credits": 500,
       "fuel": 30,
-      "food": 36,
+      "food": 4,
       "hull": 100,
       "loc": "solace",
       "log": [
@@ -246,7 +242,7 @@
       "day": 18,
       "credits": 500,
       "fuel": 30,
-      "food": 37,
+      "food": 3,
       "hull": 100,
       "loc": "solace",
       "log": [
@@ -259,7 +255,7 @@
       "day": 19,
       "credits": 500,
       "fuel": 30,
-      "food": 38,
+      "food": 2,
       "hull": 100,
       "loc": "solace",
       "log": [
@@ -272,7 +268,7 @@
       "day": 20,
       "credits": 500,
       "fuel": 30,
-      "food": 39,
+      "food": 1,
       "hull": 100,
       "loc": "solace",
       "log": [
@@ -285,7 +281,7 @@
       "day": 21,
       "credits": 500,
       "fuel": 30,
-      "food": 40,
+      "food": 0,
       "hull": 100,
       "loc": "solace",
       "log": [
@@ -298,7 +294,7 @@
       "day": 22,
       "credits": 500,
       "fuel": 30,
-      "food": 41,
+      "food": 0,
       "hull": 100,
       "loc": "solace",
       "log": [
@@ -311,25 +307,25 @@
       "day": 23,
       "credits": 500,
       "fuel": 30,
-      "food": 42,
+      "food": 0,
       "hull": 100,
       "loc": "solace",
       "log": [
         "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "You wait a day in port. The dockworkers play cards. The meter runs."
+        "⚠ STARVING — buy food, fast.",
+        "The pantry is empty. Everyone's rationing air-paste and resentment."
       ]
     },
     {
       "day": 24,
       "credits": 500,
       "fuel": 30,
-      "food": 43,
+      "food": 0,
       "hull": 100,
       "loc": "solace",
       "log": [
         "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "⚠ STARVING — buy food, fast.",
         "You wait a day in port. The dockworkers play cards. The meter runs."
       ]
     },
@@ -337,12 +333,12 @@
       "day": 25,
       "credits": 500,
       "fuel": 30,
-      "food": 44,
+      "food": 0,
       "hull": 100,
       "loc": "solace",
       "log": [
         "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "⚠ STARVING — buy food, fast.",
         "You wait a day in port. The dockworkers play cards. The meter runs."
       ]
     },
@@ -350,12 +346,12 @@
       "day": 26,
       "credits": 500,
       "fuel": 30,
-      "food": 45,
+      "food": 0,
       "hull": 100,
       "loc": "solace",
       "log": [
         "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "⚠ STARVING — buy food, fast.",
         "You wait a day in port. The dockworkers play cards. The meter runs."
       ]
     },
@@ -363,68 +359,16 @@
       "day": 27,
       "credits": 500,
       "fuel": 30,
-      "food": 46,
+      "food": 0,
       "hull": 100,
       "loc": "solace",
       "log": [
         "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "You wait a day in port. The dockworkers play cards. The meter runs."
-      ]
-    },
-    {
-      "day": 28,
-      "credits": 500,
-      "fuel": 30,
-      "food": 47,
-      "hull": 100,
-      "loc": "solace",
-      "log": [
-        "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "You wait a day in port. The dockworkers play cards. The meter runs."
-      ]
-    },
-    {
-      "day": 29,
-      "credits": 500,
-      "fuel": 30,
-      "food": 48,
-      "hull": 100,
-      "loc": "solace",
-      "log": [
-        "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "You wait a day in port. The dockworkers play cards. The meter runs."
-      ]
-    },
-    {
-      "day": 30,
-      "credits": 500,
-      "fuel": 30,
-      "food": 49,
-      "hull": 100,
-      "loc": "solace",
-      "log": [
-        "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "You wait a day in port. The dockworkers play cards. The meter runs."
-      ]
-    },
-    {
-      "day": 31,
-      "credits": 500,
-      "fuel": 30,
-      "food": 50,
-      "hull": 100,
-      "loc": "solace",
-      "log": [
-        "You wait a day in port. The dockworkers play cards. The meter runs.",
-        "You wait a day in port. The dockworkers play cards. The meter runs.",
+        "⚠ STARVING — buy food, fast.",
         "You wait a day in port. The dockworkers play cards. The meter runs."
       ]
     }
   ],
-  "finalState": "{\"appearance\":{\"frame\":\"neutral\",\"garb\":\"jumpsuit\",\"head\":\"human\",\"model\":\"explorer\",\"skin\":\"#d89b6c\",\"suit\":\"#1c2131\",\"trim\":\"#e8b04b\"},\"arc\":{\"ambushed\":false,\"betrayed\":false,\"deadline\":null,\"done\":false,\"stage\":0},\"barkTick\":30,\"campaign\":{\"silence\":{\"billDay\":null,\"nextDay\":null,\"nextWorld\":null,\"silenced\":[],\"stage\":1}},\"captainName\":\"Cass Ardent\",\"captainRole\":null,\"cargo\":{\"lux\":0,\"med\":0,\"ore\":0},\"credits\":500,\"crew\":[],\"day\":31,\"dead\":false,\"disposition\":{\"daring\":0,\"law\":0,\"mercy\":0},\"docked\":true,\"engineLvl\":1,\"flags\":{\"intro\":6,\"intro_done\":true,\"riderRumors\":[\"\\\"Every receiver on the station played it. Four seconds. My cousin on Meridian heard the same four seconds at the same tick. Explain that.\\\"\"],\"sil_stage1\":true},\"food\":50,\"fuel\":30,\"hull\":100,\"hullMax\":100,\"jobs\":[],\"ledger\":[],\"loc\":\"solace\",\"logLines\":[{\"d\":31,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":30,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":29,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":28,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":27,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":26,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":25,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":24,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":23,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":22,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":21,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":20,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":19,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":18,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":18,\"m\":\"◇ THE BROADCAST — every radio in the sector played the same four seconds. The band has holes in it now.\"},{\"d\":17,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":16,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":15,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":14,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":13,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":12,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":11,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":10,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":9,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":8,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":7,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":6,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":5,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":4,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":3,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":2,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":1,\"m\":\"— [dev] Scenario loaded: fresh. Clean start, docked at Port Solace, 500cr (prologue skipped) —\"}],\"market\":{\"day\":1,\"loc\":\"solace\",\"missions\":[{\"desc\":\"Recovered collateral — somebody's ship, stripped to 8 units of it — back to the lienholder on Foundry. Don't read the registry plates.\",\"dest\":\"foundry\",\"id\":1,\"kind\":\"cargo\",\"needs\":[\"cargo:8\"],\"pay\":244,\"prestige\":1,\"rep\":[\"union\",1],\"title\":\"Repossession haul\",\"units\":8},{\"desc\":\"Prima Callas requires discreet, comfortable passage to Kestrel's Rest. Stateroom mandatory. Reputation required.\",\"dest\":\"kestrel\",\"id\":2,\"kind\":\"vip\",\"minPrestige\":8,\"needs\":[\"vip:1\",\"prestige:8\"],\"pax\":{\"motive\":\"vip\",\"name\":\"Prima Callas\",\"sick\":false},\"pay\":540,\"prestige\":4,\"rep\":[\"union\",2],\"title\":\"VIP Charter: Prima Callas\",\"vip\":true},{\"desc\":\"Haul 14 units to Kestrel's Rest. 3 day run.\",\"dest\":\"kestrel\",\"id\":4,\"kind\":\"cargo\",\"needs\":[\"cargo:14\"],\"pay\":174,\"prestige\":1,\"rep\":[\"union\",1],\"title\":\"Freight: water recyclers\",\"units\":14},{\"desc\":\"Haul 12 units to Haven's Folly. 5 day run.\",\"dest\":\"havens\",\"id\":6,\"kind\":\"cargo\",\"needs\":[\"cargo:12\"],\"pay\":222,\"prestige\":1,\"rep\":[\"union\",1],\"title\":\"Freight: textiles\",\"units\":12},{\"desc\":\"Eli Petrov needs passage to Verge Station. They owns exactly one duffel bag.\",\"dest\":\"verge\",\"id\":7,\"kind\":\"passenger\",\"needs\":[\"pax:1\"],\"pax\":{\"motive\":\"drifter\",\"name\":\"Eli Petrov\",\"sick\":false},\"pay\":370,\"prestige\":1,\"rep\":[\"union\",1],\"title\":\"Passenger: Eli Petrov\"}],\"prices\":{\"lux\":67,\"med\":36,\"ore\":19},\"recruits\":[{\"bundle\":{\"origin\":\"a decommissioned Port Solace freight cooperative\",\"secret\":\"carries an encrypted route stamped with a ship registry the Union erased\",\"secretTag\":\"black_manifest\",\"tell\":\"counts every soul aboard before departure, then counts one more time\",\"tellSituation\":\"depart\",\"traits\":[\"chatty\",\"loyal\"],\"want\":\"to deliver the final manifest its missing crew entrusted to it\",\"wound\":\"was ordered to stay on the dock while its ship departed and vanished\",\"woundTag\":\"left_behind\"},\"daysAboard\":0,\"fee\":120,\"id\":9,\"key\":\"pip7\",\"name\":\"PIP-7\",\"questStage\":0,\"role\":\"quartermaster\",\"salary\":5},{\"bundle\":{\"origin\":\"a Syndicate debt she's still paying\",\"secret\":\"is a Union deserter — a patrol scan is a death sentence\",\"secretTag\":\"union_deserter\",\"tell\":\"hums a tune from somewhere you can't place when it's quiet\",\"tellSituation\":\"quiet\",\"traits\":[\"dreamer\",\"superstitious\"],\"want\":\"to see the edge of the charts with her own eyes\",\"wound\":\"was left in a cell once and hasn't forgotten it\",\"woundTag\":\"left_behind\"},\"daysAboard\":0,\"fee\":72,\"id\":8,\"name\":\"Yuki Stone\",\"questStage\":0,\"role\":\"mechanic\",\"salary\":12}],\"rumors\":[\"\\\"Verge Station's had bad radio nights for weeks now. Fuel broker says it's sunspots. Fuel broker says a lot of things.\\\"\",\"\\\"Union patrols scan for smuggler holds. A good bribe is cheaper than a fine.\\\"\"]},\"modules\":[{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"cockpit\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"engine\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"fueltank\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"cargohold\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"medbay\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"cabin\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"quarters\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"hydro\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"weapons\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"shields\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"armory\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"workshop\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"smuggler\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"luxcabin\"}],\"npcs\":[],\"over\":false,\"poi\":[],\"portMood\":{},\"portStanding\":{},\"prestige\":0,\"rep\":{\"frontier\":0,\"syndicate\":0,\"union\":0},\"rngState\":120306095,\"scheduled\":[],\"seed\":1,\"shipName\":\"Kestrel\",\"slotsMax\":14,\"starve\":0,\"travel\":null,\"uid\":10,\"unpaid\":0,\"usedMarket\":null,\"version\":16,\"won\":false}",
-  "finalHash": "eebf0c38"
+  "finalState": "{\"appearance\":{\"frame\":\"neutral\",\"garb\":\"jumpsuit\",\"head\":\"human\",\"model\":\"explorer\",\"skin\":\"#d89b6c\",\"suit\":\"#1c2131\",\"trim\":\"#e8b04b\"},\"arc\":{\"ambushed\":false,\"betrayed\":false,\"deadline\":null,\"done\":false,\"stage\":0},\"barkTick\":26,\"campaign\":{\"silence\":{\"billDay\":null,\"nextDay\":null,\"nextWorld\":null,\"silenced\":[],\"stage\":1}},\"captainName\":\"Cass Ardent\",\"captainRole\":null,\"cargo\":{\"lux\":0,\"med\":0,\"ore\":0},\"credits\":500,\"crew\":[],\"day\":27,\"dead\":true,\"disposition\":{\"daring\":0,\"law\":0,\"mercy\":0},\"docked\":true,\"engineLvl\":1,\"flags\":{\"intro\":6,\"intro_done\":true,\"riderRumors\":[\"\\\"Every receiver on the station played it. Four seconds. My cousin on Meridian heard the same four seconds at the same tick. Explain that.\\\"\"],\"sil_stage1\":true},\"food\":0,\"fuel\":30,\"hull\":100,\"hullMax\":100,\"jobs\":[],\"ledger\":[],\"loc\":\"solace\",\"logLines\":[{\"d\":26,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":26,\"m\":\"⚠ STARVING — buy food, fast.\"},{\"d\":25,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":25,\"m\":\"⚠ STARVING — buy food, fast.\"},{\"d\":24,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":24,\"m\":\"⚠ STARVING — buy food, fast.\"},{\"d\":23,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":23,\"m\":\"⚠ STARVING — buy food, fast.\"},{\"d\":23,\"m\":\"The pantry is empty. Everyone's rationing air-paste and resentment.\"},{\"d\":22,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":21,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":20,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":19,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":18,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":18,\"m\":\"◇ THE BROADCAST — every radio in the sector played the same four seconds. The band has holes in it now.\"},{\"d\":17,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":16,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":15,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":14,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":13,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":12,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":11,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":10,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":9,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":8,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":7,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":6,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":5,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":4,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":3,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":2,\"m\":\"You wait a day in port. The dockworkers play cards. The meter runs.\"},{\"d\":1,\"m\":\"— [dev] Scenario loaded: fresh. Clean start, docked at Port Solace, 500cr (prologue skipped) —\"}],\"market\":{\"day\":1,\"loc\":\"solace\",\"missions\":[{\"desc\":\"Recovered collateral — somebody's ship, stripped to 8 units of it — back to the lienholder on Foundry. Don't read the registry plates.\",\"dest\":\"foundry\",\"id\":1,\"kind\":\"cargo\",\"needs\":[\"cargo:8\"],\"pay\":244,\"prestige\":1,\"rep\":[\"union\",1],\"title\":\"Repossession haul\",\"units\":8},{\"desc\":\"Prima Callas requires discreet, comfortable passage to Kestrel's Rest. Stateroom mandatory. Reputation required.\",\"dest\":\"kestrel\",\"id\":2,\"kind\":\"vip\",\"minPrestige\":8,\"needs\":[\"vip:1\",\"prestige:8\"],\"pax\":{\"motive\":\"vip\",\"name\":\"Prima Callas\",\"sick\":false},\"pay\":540,\"prestige\":4,\"rep\":[\"union\",2],\"title\":\"VIP Charter: Prima Callas\",\"vip\":true},{\"desc\":\"Haul 14 units to Kestrel's Rest. 3 day run.\",\"dest\":\"kestrel\",\"id\":4,\"kind\":\"cargo\",\"needs\":[\"cargo:14\"],\"pay\":174,\"prestige\":1,\"rep\":[\"union\",1],\"title\":\"Freight: water recyclers\",\"units\":14},{\"desc\":\"Haul 12 units to Haven's Folly. 5 day run.\",\"dest\":\"havens\",\"id\":6,\"kind\":\"cargo\",\"needs\":[\"cargo:12\"],\"pay\":222,\"prestige\":1,\"rep\":[\"union\",1],\"title\":\"Freight: textiles\",\"units\":12},{\"desc\":\"Eli Petrov needs passage to Verge Station. They owns exactly one duffel bag.\",\"dest\":\"verge\",\"id\":7,\"kind\":\"passenger\",\"needs\":[\"pax:1\"],\"pax\":{\"motive\":\"drifter\",\"name\":\"Eli Petrov\",\"sick\":false},\"pay\":370,\"prestige\":1,\"rep\":[\"union\",1],\"title\":\"Passenger: Eli Petrov\"}],\"prices\":{\"lux\":67,\"med\":36,\"ore\":19},\"recruits\":[{\"bundle\":{\"origin\":\"a decommissioned Port Solace freight cooperative\",\"secret\":\"carries an encrypted route stamped with a ship registry the Union erased\",\"secretTag\":\"black_manifest\",\"tell\":\"counts every soul aboard before departure, then counts one more time\",\"tellSituation\":\"depart\",\"traits\":[\"chatty\",\"loyal\"],\"want\":\"to deliver the final manifest its missing crew entrusted to it\",\"wound\":\"was ordered to stay on the dock while its ship departed and vanished\",\"woundTag\":\"left_behind\"},\"daysAboard\":0,\"fee\":120,\"id\":9,\"key\":\"pip7\",\"name\":\"PIP-7\",\"questStage\":0,\"role\":\"quartermaster\",\"salary\":5},{\"bundle\":{\"origin\":\"a Syndicate debt she's still paying\",\"secret\":\"is a Union deserter — a patrol scan is a death sentence\",\"secretTag\":\"union_deserter\",\"tell\":\"hums a tune from somewhere you can't place when it's quiet\",\"tellSituation\":\"quiet\",\"traits\":[\"dreamer\",\"superstitious\"],\"want\":\"to see the edge of the charts with her own eyes\",\"wound\":\"was left in a cell once and hasn't forgotten it\",\"woundTag\":\"left_behind\"},\"daysAboard\":0,\"fee\":72,\"id\":8,\"name\":\"Yuki Stone\",\"questStage\":0,\"role\":\"mechanic\",\"salary\":12}],\"rumors\":[\"\\\"Verge Station's had bad radio nights for weeks now. Fuel broker says it's sunspots. Fuel broker says a lot of things.\\\"\",\"\\\"Union patrols scan for smuggler holds. A good bribe is cheaper than a fine.\\\"\"]},\"modules\":[{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"cockpit\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"engine\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"fueltank\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"cargohold\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"cabin\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"quarters\"},{\"dmg\":false,\"mk\":1,\"on\":true,\"t\":\"workshop\"}],\"npcs\":[],\"over\":true,\"poi\":[],\"portMood\":{},\"portStanding\":{},\"prestige\":0,\"rep\":{\"frontier\":0,\"syndicate\":0,\"union\":0},\"rngState\":120306095,\"scheduled\":[],\"seed\":1,\"shipName\":\"Kestrel\",\"slotsMax\":6,\"starve\":6,\"travel\":null,\"uid\":10,\"unpaid\":0,\"usedMarket\":null,\"version\":16,\"won\":false}",
+  "finalHash": "d374582b"
 }

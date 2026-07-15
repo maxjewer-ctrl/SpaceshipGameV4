@@ -4,13 +4,15 @@ import { stats, modInst, cargoUsed, daysTo, foodPerDay, fuelShortfallCost } from
 import { fmt } from "../util";
 import { requestRender } from "../bus";
 import { refreshMarket, canAccept, needBadges, yardPrice } from "../systems/market";
-import { marksAt, yardMaxMark, markLabel, markOf } from "../systems/modtier";
+import { marksAt, yardMaxMark, markLabel, markOf, markPrice } from "../systems/modtier";
 import { arcCantinaCard } from "../systems/arc";
 import { reputation } from "../systems/disposition";
 import { refitCost, wearTier, anyWorn } from "../systems/wear";
 import { usedStockHere, usedRackLabel, condLabel } from "../systems/usedmarket";
 import { crewPortrait, portraitFigure, storeOwnerPortrait } from "./portraits";
 import { actionAttr } from "../dispatch";
+import { buyGood, fuelPriceHere, sellGood } from "../systems/actions";
+import { missionStripHTML } from "./missionStrip";
 
 // Names of modules currently worn or failing — the refit card's honest pitch.
 function wornList(): string[] {
@@ -21,23 +23,26 @@ function wornList(): string[] {
 
 export function ptab(t: string) { S.ptab = t; requestRender(); }
 
+const tradeQty: Record<string, number> = { ore: 1, med: 1, lux: 1 };
+export function setTradeQty(g: string, delta: number) {
+  tradeQty[g] = Math.max(1, Math.min(99, (tradeQty[g] || 1) + delta));
+  requestRender();
+}
+export function buyTradeQty(g: string) { buyGood(g, tradeQty[g] || 1); }
+export function sellTradeQty(g: string) { sellGood(g, tradeQty[g] || 1); }
+
 export function planetHTML(): string {
   refreshMarket();
   const p = PLANETS[S.loc];
-  const tab = (id: string, label: string) => `<button class="${S.ptab === id ? "tab-on" : ""}" ${actionAttr("ptab", id)}>${label}</button>`;
   let body = "";
   if (S.ptab === "cantina") body = cantinaHTML();
   else if (S.ptab === "market") body = marketHTML();
   else body = yardHTML();
-  return `<div class="panel">
-    <h3>${p.n} — ${p.tag} <span class="badge fac">${FACS[p.fac].n}</span></h3>
-    <p class="dim" style="margin-bottom:10px">${p.d}</p>
-    <div style="display:flex; gap:6px; flex-wrap:wrap">
-      ${tab("cantina", "🍺 Cantina")} ${tab("market", "⚖ Market")} ${tab("yard", "🔧 Shipyard")}
-      <button ${actionAttr("waitDay")} title="Pass a day: refreshes jobs & prices, consumes food & payroll">⏳ Wait a day</button>
-      <button ${actionAttr("nav", "stationwalk")} style="margin-left:auto">🚪 Back to the deck</button>
-    </div>
-  </div>` + body;
+  const serviceName = S.ptab === "cantina" ? "Cantina" : S.ptab === "market" ? "Exchange" : "Dry Dock";
+  return `<div class="service-shell"><header class="service-header">
+    <div><div class="console-kicker">${p.n.toUpperCase()} · ${FACS[p.fac].n.toUpperCase()}</div><h1>${serviceName}</h1><p>${p.tag} · ${p.d}</p></div>
+    <button ${actionAttr("exitService")}>Exit to station</button>
+  </header>${missionStripHTML()}<div class="service-body">${body}</div></div>`;
 }
 
 function cantinaHTML(): string {
@@ -102,23 +107,24 @@ function marketHTML(): string {
   const M = S.market!, p = PLANETS[S.loc];
   const rows = Object.keys(GOODS).map((g) => {
     const buy = M.prices[g], sell = Math.round(buy * 0.92);
-    return `<tr><td>${GOODS[g].n}</td><td>${buy}cr</td><td>${sell}cr</td><td>${S.cargo[g]}</td>
-      <td>
-        <button ${actionAttr("buyGood", g, 1)}>+1</button> <button ${actionAttr("buyGood", g, 10)}>+10</button>
-        <button ${actionAttr("sellGood", g, 1)}>−1</button> <button ${actionAttr("sellGood", g, 10)}>−10</button>
-      </td></tr>`;
+    const qty = tradeQty[g] || 1;
+    const free = stats().cargoCap - cargoUsed();
+    const canBuy = free >= qty && S.credits >= qty * buy;
+    const canSell = S.cargo[g] >= qty;
+    return `<article class="trade-row"><div><div class="console-kicker">COMMODITY</div><h2>${GOODS[g].n}</h2><p>Held ${S.cargo[g]} · ${free} cargo space free</p></div>
+      <div class="trade-prices"><span>Buy <b>${buy}cr</b></span><span>Sell <b>${sell}cr</b></span></div>
+      <div class="quantity-stepper"><button ${actionAttr("setTradeQty", g, -1)}>−</button><b>${qty}</b><button ${actionAttr("setTradeQty", g, 1)}>+</button></div>
+      <div class="trade-actions"><button class="primary" ${canBuy ? "" : "disabled"} ${actionAttr("buyTradeQty", g)}>Buy ${qty} · ${qty * buy}cr</button><button ${canSell ? "" : "disabled"} ${actionAttr("sellTradeQty", g)}>Sell ${qty} · ${qty * sell}cr</button></div></article>`;
   }).join("");
-  return `<div class="row"><div class="col">
-    <div class="panel"><h3>Commodities <span class="dim">(cargo ${cargoUsed()}/${stats().cargoCap})</span></h3>
-      <table><tr><th>Good</th><th>Buy</th><th>Sell</th><th>Held</th><th></th></tr>${rows}</table>
-      <p class="dim" style="margin-top:8px">Prices vary by world and drift daily. Buy where they make it, sell where they can't.</p>
-    </div></div>
-    <div class="col"><div class="panel"><h3>Provisions</h3>
-      <div class="card"><div class="title">⛽ Fuel — ${p.fuelP}cr/unit <span class="dim">(${Math.floor(S.fuel)}/${stats().fuelCap})</span></div>
-        <div style="margin-top:6px"><button ${actionAttr("buyFuel", 10)}>+10</button> <button ${actionAttr("buyFuel", 999)}>Fill tanks (${Math.ceil(stats().fuelCap - S.fuel) * p.fuelP}cr)</button></div></div>
-      <div class="card"><div class="title">🍞 Food — ${p.foodP}cr/unit <span class="dim">(${Math.floor(S.food)} held, eating ${foodPerDay()}/day)</span></div>
-        <div style="margin-top:6px"><button ${actionAttr("buyFood", 10)}>+10</button> <button ${actionAttr("buyFood", 30)}>+30</button></div></div>
-    </div></div></div>`;
+  const st = stats();
+  const fuelFill = Math.floor(st.fuelCap - S.fuel);
+  const fuelPrice = fuelPriceHere();
+  const foodBurn = foodPerDay();
+  return `<div class="exchange-layout"><section><div class="service-section-head"><div><div class="console-kicker">TRADE FLOOR</div><h2>Commodities</h2></div><b>Cargo ${cargoUsed()}/${st.cargoCap}</b></div>${rows}</section>
+    <aside class="provision-stack"><div class="console-kicker">PROVISIONS</div>
+      <article class="provision-card"><h2>Fuel</h2><p>${Math.floor(S.fuel)}/${st.fuelCap} units · ${st.fuelDay}/day underway${S.flags.juno_reg_done ? " · true-tuned regulator" : ""}</p><div class="outcome-table compact"><div><span>Buy 10</span><b>${Math.floor(S.fuel)} -> ${Math.floor(S.fuel) + 10} · ${10 * fuelPrice}cr</b></div><div><span>Fill tanks</span><b>${Math.floor(S.fuel)} -> ${st.fuelCap} · ${fuelFill * fuelPrice}cr</b></div></div><div class="button-row"><button ${st.fuelCap - S.fuel >= 10 && S.credits >= 10 * fuelPrice ? "" : "disabled"} ${actionAttr("buyFuel", 10)}>Buy 10</button><button class="primary" ${fuelFill > 0 && S.credits >= fuelFill * fuelPrice ? "" : "disabled"} ${actionAttr("buyFuel", 999)}>Fill tanks</button></div></article>
+      <article class="provision-card"><h2>Food</h2><p>${Math.floor(S.food)} held · ${foodBurn}/day · ${foodBurn ? Math.floor(S.food / foodBurn) : "steady"} days</p><div class="outcome-table compact"><div><span>Buy 10</span><b>${Math.floor(S.food)} -> ${Math.floor(S.food + 10)} · ${10 * p.foodP}cr</b></div><div><span>Buy 30</span><b>${Math.floor(S.food)} -> ${Math.floor(S.food + 30)} · ${30 * p.foodP}cr</b></div></div><div class="button-row"><button ${S.credits >= 10 * p.foodP ? "" : "disabled"} ${actionAttr("buyFood", 10)}>Buy 10</button><button class="primary" ${S.credits >= 30 * p.foodP ? "" : "disabled"} ${actionAttr("buyFood", 30)}>Buy 30</button></div></article>
+    </aside></div>`;
 }
 
 function yardHTML(): string {
@@ -152,7 +158,7 @@ function yardHTML(): string {
     }
     return `<div class="card"><div class="title">${m.icon} ${m.n} ${ownedBadge}</div>
       <div class="dim">${m.d}</div>
-      <div>${pwr}</div>
+      <div>${pwr} <span class="badge">bays ${nonCore}/${S.slotsMax} -> ${nonCore + 1}/${S.slotsMax}</span></div>
       <div class="mk-buys" style="margin-top:6px; display:flex; gap:6px; flex-wrap:wrap; align-items:center">
         ${buys}${upBtn}
       </div></div>`;
@@ -162,6 +168,10 @@ function yardHTML(): string {
   // The second-hand rack — dead captains' modules, salvage, auction lots.
   // Cheaper than new, but each already carries wear and a story (usedmarket.ts).
   const used = usedStockHere();
+  const installedHtml = `<div class="panel installed-systems"><h3>Installed Systems <span class="dim">— resale and removal</span></h3>
+    <p class="dim">Operational controls stay at the captain's chair. The yard handles physical removal and resale.</p>
+    ${modInst().map((m, index) => `<div class="installed-row"><div><b>${MODS[m.t].icon} ${MODS[m.t].n} Mk-${markLabel(markOf(m))}</b><span>${m.dmg ? "Damaged" : wearTier(m)} · resale ${Math.round(markPrice(m.t, markOf(m)) * (m.dmg ? .4 : .6))}cr</span></div><button class="danger quiet" ${actionAttr("sellMod", index)}>Sell installed system</button></div>`).join("")}
+  </div>`;
   const usedHtml = used.length ? `<div class="panel">
     <h3>${usedRackLabel()} <span class="dim">— salvage, sold as-is</span></h3>
     <p class="dim" style="margin-bottom:8px">Second-hand modules: cheaper than yard-new, but each comes with wear already on it and a history. Cheap now, refit sooner.</p>
@@ -178,7 +188,7 @@ function yardHTML(): string {
           <button ${S.credits >= u.price && nonCore < S.slotsMax ? "" : "disabled"} ${actionAttr("buyUsed", u.id)}>Take it on</button>
         </div></div>`;
     }).join("")}</div>` : "";
-  return usedHtml + `<div class="row">
+  return `<div class="yard-sections"><div class="console-kicker">DRY DOCK SERVICES</div>${installedHtml}${usedHtml}</div><div class="row">
     <div class="col"><div class="panel"><h3>Module Shop ${p.yard ? '<span class="badge ok">15% off</span>' : ""} <span class="badge${maxMark >= 3 ? " ok" : ""}">up to Mk-${markLabel(maxMark)}</span> <span class="dim">(slots ${nonCore}/${S.slotsMax})</span></h3>
       ${maxMark < 3 ? '<p class="dim" style="margin-bottom:8px">This yard fits up to Mk-II. The best gear — Mk-III — is only fitted at Foundry\'s shipyard.</p>' : ""}
       ${full ? '<p class="low" style="margin-bottom:8px">Ship is full — sell a module (Ship screen) or buy a hull expansion.</p>' : ""}
@@ -198,7 +208,6 @@ function yardHTML(): string {
           <div style="margin-top:6px"><button ${S.engineLvl < 3 && S.credits >= engCost ? "" : "disabled"} ${actionAttr("upgradeEngine")}>${S.engineLvl < 3 ? `Upgrade to Mk-${["", "", "II", "III"][S.engineLvl + 1]} (${engCost}cr)` : "Maxed out"}</button></div></div>
         <div class="card"><div class="title">🧱 Hull expansion — +2 module slots <span class="dim">(${S.slotsMax}/10)</span></div>
           <div style="margin-top:6px"><button ${S.slotsMax < 10 && S.credits >= slotCost ? "" : "disabled"} ${actionAttr("buySlots")}>${S.slotsMax < 10 ? `Expand (${slotCost}cr)` : "Fully expanded"}</button></div></div>
-        <p class="dim">Sell installed modules from the Ship screen (60% of list).</p>
       </div>
     </div></div>`;
 }

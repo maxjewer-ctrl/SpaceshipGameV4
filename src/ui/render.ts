@@ -1,186 +1,119 @@
-import { S, save } from "../state";
 import { PLANETS } from "../content";
-import { stats, foodPerDay, isSilenced } from "../derive";
-import { fmt, $ } from "../util";
-import { requestRender } from "../bus";
+import { actionAttr } from "../dispatch";
 import { modal } from "../modal";
+import { S, save } from "../state";
+import { currentObjectiveData } from "../systems/intro";
 import { refreshMarket } from "../systems/market";
-import { shipHTML, captainsLogHTML } from "./ship";
+import { requestRender } from "../bus";
+import * as sfx from "../audio";
+import * as walk from "./walk";
+import { commandConsoleHTML } from "./commandConsole";
+import { cautions } from "./cautions";
 import { mapHTML } from "./map";
 import { planetHTML } from "./planet";
-import { travelHTML } from "./travel";
-import { captainPanelHTML, type CaptainAlert } from "./captainPanel";
-import { buildStationScene, stationServicesHTML } from "./stationwalk";
 import { buildDesertTownScene } from "./planetwalk";
-import { buildShipScene, crewRosterHTML } from "./shipwalk";
+import { buildShipScene } from "./shipwalk";
+import { buildStationScene } from "./stationwalk";
+import { travelHTML } from "./travel";
 import { buildZoneScene, zoneActive } from "./zonewalk";
-import * as walk from "./walk";
-import * as sfx from "../audio";
-import { actionAttr } from "../dispatch";
 
 const WALK_SCREENS = ["stationwalk", "shipwalk", "zone"];
-
-// Screen swaps used to be a hard cut (innerHTML replaced synchronously, same
-// frame). Now the outgoing screen gets a brief exit fade/slide, THEN the
-// state actually changes and the incoming screen fades/slides in — so
-// switching consoles reads as a transition, not a jump. Safe to defer: nav()
-// is only ever invoked from onclick handlers, never chained with code that
-// expects S.screen to have changed by the time nav() returns.
 const NAV_ANIM_MS = 110;
 let navAnimTimer: number | null = null;
+let cautionAck = "";
 
-export function nav(scr: string) {
+export function nav(screen: string) {
   sfx.uiClick();
   const main = document.getElementById("main");
   const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
   const finish = () => {
-    if (WALK_SCREENS.includes(S.screen) && !WALK_SCREENS.includes(scr)) { walk.teardown(); sfx.walkExit(); }
-    S.screen = scr;
-    if (scr === "planet") refreshMarket();
+    if (WALK_SCREENS.includes(S.screen) && !WALK_SCREENS.includes(screen)) { walk.teardown(); sfx.walkExit(); }
+    S.screen = screen;
+    if (screen === "planet") refreshMarket();
     requestRender();
-    const m = document.getElementById("main");
-    if (m) { m.classList.remove("screen-enter"); void m.offsetWidth; m.classList.add("screen-enter"); }
+    document.getElementById("main")?.classList.add("screen-enter");
   };
   if (main && !reduced) {
     if (navAnimTimer !== null) clearTimeout(navAnimTimer);
     main.classList.add("screen-exit");
-    navAnimTimer = window.setTimeout(() => { main.classList.remove("screen-exit"); navAnimTimer = null; finish(); }, NAV_ANIM_MS);
-  } else {
-    finish();
+    navAnimTimer = window.setTimeout(() => {
+      main.classList.remove("screen-exit");
+      navAnimTimer = null;
+      finish();
+    }, NAV_ANIM_MS);
+  } else finish();
+}
+
+export function masterCaution() {
+  const alerts = cautions();
+  cautionAck = alerts.map((alert) => alert.t).join("|");
+  sfx.uiClick();
+  sfx.ackAlarm();
+  modal(`<div class="modal-context">CAPTAIN'S CHAIR · DIAGNOSTICS</div><h2>Master Caution</h2>
+    ${alerts.length ? alerts.map((alert) => `<div class="logline" style="border-left-color:${alert.crit ? "var(--red)" : "var(--amber)"};color:${alert.crit ? "var(--red)" : "var(--amber)"}">${alert.t}</div>`).join("") : '<p class="dim">All systems nominal.</p>'}
+    <div class="choices"><button class="primary" ${actionAttr("closeModal")}>Acknowledge</button></div>`);
+  requestRender();
+}
+
+export function showHudCaution() {
+  modal(`<div class="modal-context">SHIPBOARD WARNING</div><h2>Master caution active</h2>
+    <p>The warning board has a live condition. Sit in the captain's chair to review diagnostics and acknowledge it.</p>
+    <div class="choices"><button class="primary" ${actionAttr("closeModal")}>Understood</button></div>`);
+}
+
+function objectiveLine(): string {
+  const objective = currentObjectiveData();
+  if (objective) return `${objective.title} · ${objective.detail}`;
+  if (S.travel) return `Hold course for ${PLANETS[S.travel.dest].n} · ${S.travel.left}d remaining`;
+  if (S.jobs[0]) return `${S.jobs[0].title} · ${PLANETS[S.jobs[0].dest].n}`;
+  return S.docked ? `Find work or provision at ${PLANETS[S.loc].n}` : "Return to the captain's chair";
+}
+
+function renderHud() {
+  const hud = document.getElementById("hud")!;
+  if (!WALK_SCREENS.includes(S.screen)) {
+    hud.className = "";
+    hud.innerHTML = "";
+    return;
+  }
+  const alerts = cautions();
+  const lit = alerts.length > 0 && cautionAck !== alerts.map((alert) => alert.t).join("|");
+  const location = S.screen === "shipwalk" ? S.shipName : PLANETS[S.loc].n;
+  hud.className = "walk-hud";
+  hud.innerHTML = `<div class="hud-objective"><span>OBJECTIVE</span><b>${objectiveLine()}</b></div>
+    <div class="hud-status"><span>DAY ${S.day}</span><b>${location}</b>${alerts.length ? `<button class="hud-caution${lit ? " lit" : ""}" ${actionAttr("showHudCaution")}>CAUTION</button>` : ""}<button class="hud-pause" ${actionAttr("showPauseMenu")}>Pause</button></div>`;
+}
+
+function renderMain() {
+  const main = document.getElementById("main")!;
+  if (S.screen === "ship") main.innerHTML = commandConsoleHTML();
+  else if (S.screen === "map") main.innerHTML = mapHTML();
+  else if (S.screen === "travel") main.innerHTML = travelHTML();
+  else if (S.screen === "planet") main.innerHTML = planetHTML();
+  else if (S.screen === "stationwalk") {
+    const scene = S.loc === "dustwell" ? buildDesertTownScene() : buildStationScene();
+    if (walk.needsMount(scene.id)) main.innerHTML = walk.mountHTML(scene);
+    walk.ensureRunning(scene);
+  } else if (S.screen === "shipwalk") {
+    const scene = buildShipScene();
+    if (walk.needsMount(scene.id)) main.innerHTML = walk.mountHTML(scene);
+    walk.ensureRunning(scene);
+  } else if (S.screen === "zone") {
+    if (!zoneActive()) { S.screen = "shipwalk"; main.innerHTML = walk.mountHTML(buildShipScene()); return; }
+    const scene = buildZoneScene();
+    if (walk.needsMount(scene.id)) main.innerHTML = walk.mountHTML(scene);
+    walk.ensureRunning(scene);
   }
 }
 
 export function render() {
   if (!S) return;
-  renderTop();
-  renderNav();
-  renderObjective();
-  renderTicker();
+  renderHud();
   renderMain();
-  renderSide();
   sfx.update({
     travel: !!S.travel,
     hullPct: S.hull / S.hullMax,
-    cautionKey: cautions().map((c) => c.t).join('|'),
+    cautionKey: cautions().map((alert) => alert.t).join("|"),
   });
   save();
-}
-
-function renderObjective() {
-  const el = $("objective");
-  el.innerHTML = "";
-  el.className = "";
-}
-
-// ---- master caution: every live warning on the boat, worst first ----
-export function cautions(): CaptainAlert[] {
-  const st = stats();
-  const out: CaptainAlert[] = [];
-  const dmg = S.modules.filter((m) => m.dmg).length;
-  if (S.hull < 40) out.push({ t: `HULL INTEGRITY ${Math.round((S.hull / S.hullMax) * 100)}%`, crit: true });
-  if (dmg) out.push({ t: `${dmg} SYSTEM${dmg > 1 ? "S" : ""} DAMAGED — REPAIR REQUIRED`, crit: true });
-  if (st.powerUse > st.powerOut) out.push({ t: "REACTOR OVERDRAW — SHED LOAD", crit: true });
-  if (S.fuel < st.fuelDay * 2) out.push({ t: `FUEL RESERVE LOW — ${Math.floor(S.fuel)} UNITS`, crit: S.fuel < st.fuelDay });
-  if (S.food < foodPerDay() * 2) out.push({ t: `PROVISIONS LOW — ${Math.floor(S.food)} RATIONS`, crit: S.food < foodPerDay() });
-  if (S.arc.stage === 5 && S.arc.deadline) out.push({ t: `RUN DEADLINE — DAY ${S.arc.deadline}`, crit: S.arc.deadline - S.day <= 2 });
-  if ((S.flags.injuredUntil ?? 0) > S.day) out.push({ t: `CAPTAIN INJURED — REDUCED VITALITY TIL DAY ${S.flags.injuredUntil}`, crit: false });
-  return out.sort((a, b) => +b.crit - +a.crit);
-}
-
-// Acknowledging silences the flasher until the caution set changes.
-let cautionAck = "";
-export function masterCaution() {
-  const cs = cautions();
-  cautionAck = cs.map((c) => c.t).join("|");
-  sfx.uiClick();
-  sfx.ackAlarm();
-  modal(`<h2>⚠ Master Caution</h2>
-    ${cs.length ? cs.map((c) => `<div class="logline" style="border-left-color:${c.crit ? "var(--red)" : "var(--amber)"};color:${c.crit ? "var(--red)" : "var(--amber)"}">${c.t}</div>`).join("")
-      : '<p class="dim">All systems nominal. The board is dark, Captain.</p>'}
-    <div class="choices"><button class="primary" ${actionAttr("closeModal")}>ACKNOWLEDGE</button></div>`);
-  requestRender();
-}
-
-function pill(k: string, v: string | number, tone: string, title: string) {
-  return `<span class="pill" title="${title || ""}"><span class="pk">${k}</span><span class="pv ${tone}">${v}</span></span>`;
-}
-
-function renderTop() {
-  const st = stats();
-  const loc = S.travel ? `→ ${PLANETS[S.travel.dest].n.toUpperCase()}` : PLANETS[S.loc].n.toUpperCase();
-  const reg = "KR-" + (((S.seed >>> 0) % 8999) + 1000);
-  const run = S.arc.stage === 5 && S.arc.deadline ? pill("RUN", "DAY " + S.arc.deadline, "low", "Deadline") : "";
-  $("topbar").innerHTML =
-    `<span class="brand"><span class="brand-diamond"><i></i></span>
-      <span class="brand-text"><span class="bt-name">${S.shipName}</span><br><span class="bt-reg">CAPT. ${(S.captainName || "").toUpperCase()} · REG ${reg}</span></span>
-    </span>
-    <span class="pills">` +
-    pill("CR", fmt(S.credits), S.credits < 100 ? "low" : "amber", "Credits") +
-    pill("FUEL", Math.floor(S.fuel) + "/" + st.fuelCap, S.fuel < 10 ? "low" : "", "Fuel (burn " + st.fuelDay + "/day in flight)") +
-    pill("HULL", Math.round(S.hull) + "/" + S.hullMax, S.hull < 40 ? "low" : "green", "Hull") +
-    pill("DAY", S.day, "", "") +
-    pill("LOC", loc, "blue", "Current position") + run +
-    `</span>`;
-}
-
-function renderNav() {
-  const b = (id: string, label: string, on?: boolean, dis?: boolean) =>
-    `<button class="${on ? "tab-on" : ""}" ${dis ? "disabled" : ""} ${actionAttr("nav", id)}><span class="navdot"></span>${label}</button>`;
-  const cs = cautions();
-  const lit = cs.length > 0 && cautionAck !== cs.map((c) => c.t).join("|");
-  // No direct shortcut into the cantina/market/yard screen: the station deck
-  // is the only door in. Walk to the room, then through it.
-  $("nav").innerHTML =
-    b("ship", "Ship", S.screen === "ship") +
-    b("shipwalk", "Walk Ship", S.screen === "shipwalk") +
-    b("map", "Star Map", S.screen === "map") +
-    (S.docked && S.loc !== "gate" && S.loc !== "anechoic" ? b("stationwalk", isSilenced(S.loc) ? "Station (dark)" : "Station", S.screen === "stationwalk") : "") +
-    (S.travel ? b("travel", "In Transit", S.screen === "travel") : "") +
-    `<span class="right">
-      <button class="mcaution${lit ? " lit" : ""}" ${actionAttr("masterCaution")}>⚠ MASTER CAUTION</button>
-      <button ${actionAttr("showSettings")}>⚙ Settings</button>
-      <button ${actionAttr("openSaves")}>💾 Saves</button>
-      <button ${actionAttr("showHelp")}>? Help</button>
-      <button class="danger" ${actionAttr("confirmNewGame")}>New Game</button>
-    </span>`;
-}
-
-// Alarm ticker: worst live caution, else the latest log line, else quiet band.
-function renderTicker() {
-  const el = $("ticker");
-  el.className = "";
-  el.innerHTML = "";
-}
-
-function renderMain() {
-  const m = $("main");
-  if (S.screen === "ship") m.innerHTML = shipHTML();
-  else if (S.screen === "map") m.innerHTML = mapHTML();
-  else if (S.screen === "stationwalk") {
-    const scene = S.loc === "dustwell" ? buildDesertTownScene() : buildStationScene();
-    if (walk.needsMount(scene.id)) m.innerHTML = walk.mountHTML(scene);
-    walk.ensureRunning(scene);
-  } else if (S.screen === "shipwalk") {
-    const scene = buildShipScene();
-    if (walk.needsMount(scene.id)) m.innerHTML = walk.mountHTML(scene);
-    walk.ensureRunning(scene);
-  } else if (S.screen === "zone") {
-    if (!zoneActive()) { S.screen = "ship"; m.innerHTML = shipHTML(); return; }
-    const scene = buildZoneScene();
-    if (walk.needsMount(scene.id)) m.innerHTML = walk.mountHTML(scene);
-    walk.ensureRunning(scene);
-  } else if (S.screen === "planet") m.innerHTML = planetHTML();
-  else if (S.screen === "travel") m.innerHTML = travelHTML();
-}
-
-function renderSide() {
-  const side = $("side");
-  const cs = cautions();
-  const lit = cs.length > 0 && cautionAck !== cs.map((c) => c.t).join("|");
-  let html = captainPanelHTML(cs, lit);
-  if (S.screen === "shipwalk") html += crewRosterHTML();
-  else if (S.screen === "stationwalk") html += stationServicesHTML();
-  else if (S.screen !== "ship") html += captainsLogHTML();
-  side.style.display = "";
-  side.innerHTML = html;
 }

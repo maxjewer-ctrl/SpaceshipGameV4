@@ -10,18 +10,17 @@
 // onclick-driven — they're invoked from the console or headless test
 // scripts — and stay as plain `window` globals in main.ts, untouched by
 // this refactor.
-import { nav, masterCaution } from "./ui/render";
-import { log } from "./state";
-import { closeModal } from "./modal";
+import { nav, masterCaution, showHudCaution } from "./ui/render";
+import { S, log } from "./state";
+import { closeModal, hasModal } from "./modal";
 import { selSlot, shipView } from "./ui/ship";
 import {
-  setThrottle, throttleLive, bayToggle, jettisonGood, ventGuard, ventFuel,
-  commsTune, engageBurn,
+  bayToggle, jettisonGood, ventGuard, ventFuel, commsTune, confirmJettisonGood, confirmVentFuel,
 } from "./ui/cockpit";
 import { selPlanet } from "./ui/map";
-import { ptab } from "./ui/planet";
+import { buyTradeQty, ptab, sellTradeQty, setTradeQty } from "./ui/planet";
 import {
-  showHelp, closeHelp, showSettings, toggleMute, confirmNewGame, newGame, intro, startGame,
+  showHelp, closeHelp, showSettings, showPauseMenu, toggleMute, confirmNewGame, newGame, intro, startGame,
   openSaves, saveHere, loadSaveSlot, deleteSaveSlot, exportSaveFile, importSaveFile,
 } from "./ui/help";
 import { introStart, introAct } from "./systems/intro";
@@ -30,7 +29,7 @@ import {
 } from "./ui/avatar";
 import { acceptMission, hire } from "./systems/market";
 import {
-  toggleMod, repairSystems, fireCrew, buyGood, sellGood, buyFuel, buyFood,
+  toggleMod, repairSystems, buyGood, sellGood, buyFuel, buyFood,
   repairShip, buyMod, sellMod, upgradeMod, upgradeEngine, buySlots, moveModTo,
 } from "./systems/actions";
 import { depart, waitDay, advanceDay, abandonJob } from "./systems/travel";
@@ -42,7 +41,7 @@ import {
   closeThenLog, derelictBoard, derelictStrip,
 } from "./systems/events";
 import { wkRetreat } from "./ui/planetwalk";
-import { stationEnter } from "./ui/stationwalk";
+import { directoryEnter, exitService, stationEnter } from "./ui/stationwalk";
 import { zoneBail } from "./ui/zonewalk";
 import {
   arcMeet, arcAcceptCrate, arcAcceptVoss, arcStartRun,
@@ -61,7 +60,7 @@ import {
 import { pressStart, pressEnd, interact, debugRoom } from "./ui/walk";
 import { crewTalk, crewHighlight, wkInspect, walkDeck, sitChair, toggleModAndInspect } from "./ui/shipwalk";
 import { wkPay, wkTalk, wkFight } from "./systems/walkEncounters";
-import { ctVibe, ctAbout, ctShip, ctQuest, ctWorld, ctClose, ctQuestHelp, ctQuestSkip, ctDeepTalk } from "./systems/crewtalk";
+import { ctVibe, ctAbout, ctShip, ctQuest, ctWorld, ctClose, ctQuestHelp, ctQuestSkip, ctDeepTalk, ctDismiss, ctDismissCancel, ctDismissConfirm } from "./systems/crewtalk";
 import { crewDialogueChoose, crewDialogueContinue } from "./systems/crewdialogue";
 import { dcValve, dcVector, dcCare } from "./systems/damagecontrol";
 import { refitShip } from "./systems/wear";
@@ -80,15 +79,18 @@ import {
 } from "./systems/survey";
 import { loyaltyAccept, loyaltyDecline, loyaltyResolve } from "./systems/loyalty";
 import { loadScenario } from "./debug/scenarios";
+import {
+  setConsoleTab, setRecordsTab, standUp, locateCrew, confirmAbandonJob, abandonConfirmed,
+} from "./ui/commandConsole";
 
 const ACTIONS: Record<string, (...args: any[]) => void> = {
   // navigation & screens
-  nav, ptab, selSlot, selPlanet, stationEnter, closeModal, log, shipView, masterCaution,
+  nav, ptab, setTradeQty, buyTradeQty, sellTradeQty, selSlot, selPlanet, stationEnter, directoryEnter, exitService, closeModal, log, shipView, masterCaution, showHudCaution,
+  setConsoleTab, setRecordsTab, standUp, locateCrew, confirmAbandonJob, abandonConfirmed,
   // cockpit pedestal — physical controls
-  setThrottle, throttleLive, bayToggle, jettisonGood, ventGuard, ventFuel,
-  commsTune, engageBurn,
+  bayToggle, jettisonGood, ventGuard, ventFuel, commsTune, confirmJettisonGood, confirmVentFuel,
   // meta
-  showHelp, closeHelp, showSettings, toggleMute, confirmNewGame, newGame, intro, startGame, loadScenario,
+  showHelp, closeHelp, showSettings, showPauseMenu, toggleMute, confirmNewGame, newGame, intro, startGame, loadScenario,
   // save slots + backup
   openSaves, saveHere, loadSaveSlot, deleteSaveSlot, exportSaveFile, importSaveFile,
   // character creator
@@ -96,7 +98,7 @@ const ACTIONS: Record<string, (...args: any[]) => void> = {
   // prologue campaign (DEAD RECKONING)
   introStart, introAct,
   // planet actions
-  acceptMission, hire, fireCrew, buyGood, sellGood, buyFuel, buyFood,
+  acceptMission, hire, buyGood, sellGood, buyFuel, buyFood,
   repairShip, repairSystems, buyMod, sellMod, upgradeMod, toggleMod, upgradeEngine, buySlots, refitShip, moveModTo, buyUsed,
   // travel
   depart, waitDay, advanceDay, abandonJob,
@@ -129,7 +131,7 @@ const ACTIONS: Record<string, (...args: any[]) => void> = {
   crewTalk, crewHighlight, wkInspect, walkDeck, sitChair, wkPay, wkTalk, wkFight,
   toggleModAndInspect,
   // crew dialogue — trust-gated topics, personal quests
-  ctVibe, ctAbout, ctShip, ctQuest, ctWorld, ctClose, ctQuestHelp, ctQuestSkip,
+  ctVibe, ctAbout, ctShip, ctQuest, ctWorld, ctClose, ctQuestHelp, ctQuestSkip, ctDismiss, ctDismissCancel, ctDismissConfirm,
   // named crew's deep conversation trees (trust + faction rep + events) — Juno, Bapu, ...
   ctDeepTalk, crewDialogueChoose, crewDialogueContinue,
   // damage control — crew-gap minigames (no mechanic/pilot/med bay aboard)
@@ -207,4 +209,12 @@ export function installDispatch() {
   for (const type of ["pointerdown", "pointerup", "pointerleave", "pointercancel"]) {
     document.addEventListener(type, handlePointer);
   }
+  document.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape") return;
+    event.preventDefault();
+    if (hasModal()) closeModal();
+    else if (S.screen === "ship") standUp();
+    else if (S.screen === "planet") exitService();
+    else showPauseMenu();
+  });
 }

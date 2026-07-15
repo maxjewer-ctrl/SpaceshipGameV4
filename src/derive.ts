@@ -47,6 +47,9 @@ export function stats(): ShipStats {
   const powerUse = S.modules.reduce(
     (a, m) => a + (MODS[m.t].pw && m.on && !m.dmg ? MODS[m.t].pw! : 0), 0);
   const wDmg = sumActive("weapons", "dmg");
+  // This is a ship refit, not a crew perk: once Juno installs the rebuilt
+  // regulator, its efficiency remains with the drive even if the roster moves.
+  const regulatorEfficiency = S.flags.juno_reg_done ? 0.9 : 1;
   return {
     inst, intact, active, has, powerOut, powerUse,
     fuelCap: sumIntact("fueltank", "fuel"),
@@ -59,7 +62,7 @@ export function stats(): ShipStats {
     shield: sumActive("shields", "shield"),
     foodGen: sumActive("hydro", "food"),
     speed: [0, 70, 85, 100][S.engineLvl],
-    fuelDay: +(4 * (has("pilot") ? (perkActive("pilot") ? 0.78 : 0.85) * rankDiscount(S.crew, "pilot") : 1)).toFixed(1),
+    fuelDay: +(4 * regulatorEfficiency * (has("pilot") ? (perkActive("pilot") ? 0.78 : 0.85) * rankDiscount(S.crew, "pilot") : 1)).toFixed(1),
   };
 }
 

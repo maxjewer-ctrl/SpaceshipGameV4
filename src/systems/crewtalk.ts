@@ -43,8 +43,13 @@ function renderCrewTalk() {
   const dw = dispositionWord(c);
   const rank = rankOf(c);
   const rankTag = rank > 1 ? ` · ${RANK_NAME[rank]}` : "";
+  const impression = strongestMemory(crewKey(c));
+  const impressionHTML = impression?.note
+    ? `<div class="ct-impression"><span>LASTING IMPRESSION</span>${impression.note}</div>`
+    : "";
   const rev = c.revealed || (c.revealed = {});
   const questBtn = rev.want ? `<button ${actionAttr("ctQuest")}>${questLabel(c)}</button>` : "";
+  const dismissBtn = S.docked ? `<button class="danger quiet" ${actionAttr("ctDismiss")}>End their contract</button>` : "";
   const where = S.docked && S.screen === "stationwalk"
     ? `${PLANETS[S.loc].n} · off duty`
     : `${S.shipName} · ${ROLES[c.role]?.n || c.role}`;
@@ -52,6 +57,7 @@ function renderCrewTalk() {
     <div class="scene-loc">${where}</div>
     ${dialogueHeadHTML(crewPortraitKey(c), "🧑‍🚀", c.name, `${TIER_LABEL[tier]}${rankTag} · <span class="ctword ${dw.cls}">${dw.word}</span>`)}
     ${lastLine ? `<p>${lastLine}</p>` : `<p class="dim">${c.name} looks up as you approach.</p>`}
+    ${impressionHTML}
     <div class="choices">
       <button ${actionAttr("ctVibe")}>How are you holding up?</button>
       <button ${actionAttr("ctAbout")}>Tell me about yourself</button>
@@ -60,6 +66,7 @@ function renderCrewTalk() {
       ${c.key && CREW_TREES[c.key] ? `<button ${actionAttr("ctDeepTalk")}>Talk it through — the long version</button>` : ""}
       ${questBtn}
       <button class="primary" ${actionAttr("ctClose")}>Nod and move on</button>
+      ${dismissBtn}
     </div>
   </div>`);
 }
@@ -341,6 +348,28 @@ export function ctClose() {
   activeCrewId = null;
   lastLine = "";
   closeModal();
+}
+export function ctDismiss() {
+  const c = activeCrewId != null ? findCrew(activeCrewId) : undefined;
+  if (!c || !S.docked) return;
+  replaceModal(`<div class="scene"><div class="scene-loc">${PLANETS[S.loc].n} · CREW CONTRACT</div>
+    <h2>Dismiss ${c.name}?</h2>
+    <p>${c.name} will leave the ship here. Their ${ROLES[c.role]?.n || c.role} coverage and ${fmt(c.salary)}cr daily payroll both end immediately.</p>
+    <div class="choices"><button ${actionAttr("ctDismissCancel")}>Keep them aboard</button><button class="danger" ${actionAttr("ctDismissConfirm")}>Dismiss ${c.name}</button></div></div>`);
+}
+export function ctDismissCancel() {
+  renderCrewTalk();
+}
+export function ctDismissConfirm() {
+  const c = activeCrewId != null ? findCrew(activeCrewId) : undefined;
+  if (!c || !S.docked) return;
+  const index = S.crew.findIndex((crew) => crew.id === c.id);
+  if (index >= 0) S.crew.splice(index, 1);
+  log(`${c.name} collected their pay and left the ship at ${PLANETS[S.loc].n}.`);
+  activeCrewId = null;
+  lastLine = "";
+  closeModal();
+  requestRender();
 }
 // Registered crew get a deep conversation tree (systems/crewdialogue.ts) on
 // top of the topic menu above; this just opens it for whoever's aboard.

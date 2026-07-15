@@ -22,7 +22,7 @@ import { requestRender } from "../bus";
 import { actionAttr } from "../dispatch";
 import { crewPortrait, dialogueHeadHTML } from "../ui/portraits";
 import { applyEffects } from "./scheduler";
-import { sentiment, crewKey, remember } from "./ledger";
+import { sentiment, crewKey, remember, hasMemory } from "./ledger";
 import { trustTier, type Trust } from "./trust";
 import type { CrewMember } from "../types";
 import type { CrewDialogueChoice, CrewDialogueNode, CrewDialogueTree } from "../content";
@@ -86,18 +86,45 @@ export function checkCrewReq(req: Record<string, any> | undefined, c: CrewMember
 // Consequences: crew-specific verbs handled locally, everything else delegated
 // to the shared DSL. "@self" in a remember/who is rewritten to this crew
 // member's ledger key so content never has to know their runtime id.
-function applyCrewEffects(effects: any[] | undefined, c: CrewMember) {
-  if (!effects || !effects.length) return;
+function applyCrewEffects(effects: any[] | undefined, c: CrewMember): boolean {
+  if (!effects || !effects.length) return false;
   const pass: any[] = [];
+  let remembered = false;
   for (const e of effects) {
     if (e.perk) { c.perk = true; continue; }
     if (e.remember && e.remember.who === "@self") {
-      remember(crewKey(c), e.remember.fact, e.remember.weight, e.remember.note);
+      // A conversation is not a relationship vending machine. Repeating the
+      // same authored line may replay the prose, but it cannot deepen the same
+      // memory again. Repeated world events still use ledger.remember directly
+      // and retain their stacking behavior.
+      if (!hasMemory(crewKey(c), e.remember.fact)) {
+        remember(crewKey(c), e.remember.fact, e.remember.weight, e.remember.note);
+        remembered = true;
+      }
       continue;
     }
     pass.push(e);
   }
   if (pass.length) applyEffects(pass);
+  return remembered;
+}
+
+function choiceStakes(ch: CrewDialogueChoice): string {
+  const bits: string[] = [];
+  for (const e of ch.effects || []) {
+    if (typeof e.credits === "number" && e.credits < 0) bits.push(`−${Math.abs(e.credits)}cr`);
+    if (e.mission) bits.push("commits the ship");
+  }
+  if (ch.stakes) bits.push(ch.stakes);
+  return bits.length ? ` <span class="choice-stakes">— ${bits.join(" · ")}</span>` : "";
+}
+
+function consequenceHTML(ch: CrewDialogueChoice, remembered: boolean): string {
+  const mission = (ch.effects || []).find((e: any) => e.mission)?.mission;
+  const lines: string[] = [];
+  if (mission) lines.push(`Commitment logged: <b>${mission.title}</b>`);
+  if (remembered) lines.push("This will shape how they remember the captain.");
+  return lines.length ? `<div class="dialogue-consequence">${lines.join("<br>")}</div>` : "";
 }
 
 // ---- rendering ----
@@ -119,28 +146,32 @@ function headFor(c: CrewMember, node: CrewDialogueNode): string {
 // already-open conversation (replaces in place, never queues behind itself).
 // false (default) for the unprompted docking beat (checkCrewDialogueArcs),
 // which should queue behind whatever another system may already be showing.
-function renderCrewNode(key: string, tree: CrewDialogueTree, nodeKey: string, force = false) {
+function renderCrewNode(key: string, tree: CrewDialogueTree, nodeKey: string, force = false, consequence = "") {
   const c = findByKey(key);
   const node = tree.nodes[nodeKey];
   if (!c || !node) { activeKey = ""; closeModal(); requestRender(); return; }
   activeKey = key;
   S.flags[key + "_seen_" + nodeKey] = true;
-  const buttons = node.choices
+  const buttons = (node.choices || [])
     .map((ch: CrewDialogueChoice, i: number) => ({ ch, i, seen: !!(ch.once && S.flags[key + "_took_" + nodeKey + "_" + i]) }))
     .filter((x) => !x.seen)
     .map((x) => {
       const [ok, why] = checkCrewReq(x.ch.requires, c);
       if (!ok && x.ch.hidden) return "";
       const cls = x.ch.tone === "primary" ? "primary" : x.ch.tone === "danger" ? "danger" : "";
-      const hint = !ok && why ? ` <span class="dim">— ${why}</span>` : "";
+      const hint = !ok && why ? ` <span class="dim">— ${why}</span>` : ok ? choiceStakes(x.ch) : "";
       return `<button class="${cls}" ${ok ? "" : "disabled"} ${actionAttr("crewDialogueChoose", key, nodeKey, x.i)}>${x.ch.label}${hint}</button>`;
     })
     .join("");
+  const controls = node.end
+    ? `<button class="primary" ${actionAttr("crewDialogueContinue")}>${node.closeLabel || "Leave it there."}</button>`
+    : buttons;
   const html = `<div class="scene">
     <div class="scene-loc">${sceneLoc()}</div>
     ${headFor(c, node)}
     <p>${node.text}</p>
-    <div class="choices">${buttons}</div>
+    ${consequence}
+    <div class="choices">${controls}</div>
   </div>`;
   if (force) replaceModal(html); else modal(html);
 }
@@ -161,24 +192,26 @@ export function crewDialogueChoose(key: string, nodeKey: string, idx: number) {
   const tree = CREW_TREES[key];
   const node = tree?.nodes[nodeKey];
   if (!c || !node) { closeModal(); return; }
-  const ch = node.choices[idx];
+  const ch = node.choices?.[idx];
   if (!ch) return;
   if (!checkCrewReq(ch.requires, c)[0]) return;
   if (ch.once) S.flags[key + "_took_" + nodeKey + "_" + idx] = true;
-  applyCrewEffects(ch.effects, c);
+  const remembered = applyCrewEffects(ch.effects, c);
+  const consequence = consequenceHTML(ch, remembered);
   if (ch.log) log(ch.log);
-  const after = () => {
+  const after = (showConsequence = true) => {
     if (ch.end) { activeKey = ""; closeModal(); requestRender(); }
-    else if (ch.goto) { renderCrewNode(key, tree, ch.goto, true); requestRender(); }
-    else { renderCrewNode(key, tree, "hub", true); requestRender(); } // default: back to the hub, stay talking
+    else if (ch.goto) { renderCrewNode(key, tree, ch.goto, true, showConsequence ? consequence : ""); requestRender(); }
+    else { renderCrewNode(key, tree, "hub", true, showConsequence ? consequence : ""); requestRender(); } // default: back to the hub, stay talking
   };
   if (ch.reply) {
-    pendingAfter = after;
+    pendingAfter = () => after(false);
     const src = crewPortrait(c, ch.expr || node.expr || "neutral");
     replaceModal(`<div class="scene">
       <div class="scene-loc">${sceneLoc()}</div>
       ${dialogueHeadHTML(src, "🧑‍🚀", c.name, "")}
       <p>${ch.reply}</p>
+      ${consequence}
       <div class="choices"><button class="primary" ${actionAttr("crewDialogueContinue")}>Continue</button></div>
     </div>`);
     requestRender();

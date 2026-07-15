@@ -32,7 +32,7 @@ describe("Dead Reckoning opener", () => {
     expect(S.fuel).toBe(0);
     expect(S.hull).toBe(41);
     expect(S.credits).toBe(85);
-    expect(S.slotsMax).toBe(8);
+    expect(S.slotsMax).toBe(6);
     expect(S.crew.map((c) => c.name)).toContain("Juno Vale");
 
     const moduleTypes = S.modules.map((m) => m.t);
@@ -43,8 +43,6 @@ describe("Dead Reckoning opener", () => {
       "cargohold",
       "cabin",
       "quarters",
-      "medbay",
-      "weapons",
       "workshop",
     ]);
 
@@ -125,8 +123,8 @@ describe("Dead Reckoning opener", () => {
     S.docked = true;
     S.travel = null;
     expect(introArrive()).toBe(true);
-    expect(S.screen).toBe("stationwalk");
+    expect(S.screen).toBe("shipwalk");
     expect(modalHTML()).toContain("Port Solace");
-    expect(modalHTML()).toContain("whatever your mechanic couldn't patch in flight");
+    expect(modalHTML()).toContain("AIRLOCK · PORT SOLACE");
   });
 });

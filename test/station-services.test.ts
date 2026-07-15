@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { newState, setState, S } from "../src/state";
-import { discoverService, serviceKnown, stationServicesHTML } from "../src/ui/stationwalk";
+import { buildStationScene, discoverService, serviceKnown, stationServicesHTML } from "../src/ui/stationwalk";
 
 describe("station service directory", () => {
   beforeEach(() => {
@@ -25,5 +25,12 @@ describe("station service directory", () => {
     discoverService("cantina", "solace");
     expect(serviceKnown("cantina", "solace")).toBe(true);
     expect(serviceKnown("cantina", "foundry")).toBe(false);
+  });
+
+  it("keeps the ship hatch authoritative beside dock reference terminals", () => {
+    const doors = buildStationScene().doors;
+    const hatch = doors.find((door) => door.label.includes("rear hatch"));
+    const departureBoard = doors.find((door) => door.label === "Departure board");
+    expect(hatch?.priority).toBeGreaterThan(departureBoard?.priority ?? 0);
   });
 });

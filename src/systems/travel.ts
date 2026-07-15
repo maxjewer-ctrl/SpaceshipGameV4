@@ -36,7 +36,7 @@ export function depart(destId: string) {
   if (S.fuel < f) { log(`Not enough fuel — need ${f}, have ${Math.floor(S.fuel)}.`); requestRender(); return; }
   S.travel = { from: S.loc, dest: destId, total: d, left: d };
   S.docked = false;
-  S.screen = "travel";
+  S.screen = "ship";
   S.selPlanet = null;
   log(`Departed ${PLANETS[S.loc].n} for ${PLANETS[destId].n}. ${d} days out. ${pick(FLAVOR.depart)}`);
   if (!tellBark("depart")) bark("depart", { chance: 0.7 });

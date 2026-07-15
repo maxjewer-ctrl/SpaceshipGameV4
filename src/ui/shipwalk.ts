@@ -3,7 +3,7 @@
 // arrangement set on the ship schematic, so moving, buying, or losing a
 // module changes the deck you walk. Unoccupied slots are empty rooms.
 import { S } from "../state";
-import { MODS, ROLES } from "../content";
+import { MODS, PLANETS, ROLES } from "../content";
 import { requestRender } from "../bus";
 import { modal } from "../modal";
 import { modCategory } from "./ship";
@@ -22,6 +22,7 @@ import type { WalkScene, WalkRoom, WalkRect, WalkDoor, WalkActor } from "./walk"
 import { INTERACTION_PRIORITY } from "../systems/interactions";
 import { steerAgent } from "../systems/walkRuntime";
 import { actionAttr } from "../dispatch";
+import { getShipReturnAnchor, setStationReturnAnchor } from "./physicalNav";
 
 const CAT_COLOR: Record<string, string> = {
   "cat-combat": "#d96b6b", "cat-flow": "#e8b04b", "cat-life": "#57b6c9",
@@ -61,7 +62,11 @@ export function wkInspect(i: number) {
 // onclick string (`toggleMod(i);wkInspect(i)`) — the dispatcher's data-action
 // only carries one action name, so this composite stands in for that pair.
 export function toggleModAndInspect(i: number) { toggleMod(i); wkInspect(i); }
-function toStation() { S.screen = "stationwalk"; requestRender(); }
+function toStation() {
+  setStationReturnAnchor("airlock");
+  S.screen = "stationwalk";
+  requestRender();
+}
 
 const ROOM_KIND: Record<string, string> = {
   cockpit: "cockpit", engine: "engine", cargohold: "cargo", quarters: "quarters",
@@ -141,10 +146,9 @@ export function buildShipScene(): WalkScene {
   };
 
   const doors: WalkDoor[] = [
-    { x: cockpit.x + 16, y: cockpit.y + cockpit.h - 30, w: 120, h: 22, label: "Ship's console (schematic)", onInteract: openSchematic },
     {
       x: cockpit.x + 16, y: cockpit.y + 24, w: 90, h: 22,
-      label: "Airlock", locked: !S.docked,
+      label: S.docked ? `AIRLOCK · ${PLANETS[S.loc].n}` : "AIRLOCK · SEALED", locked: !S.docked,
       lockedHint: introAirlockHint() || "Sealed. You're in transit — nowhere to go but forward.",
       onInteract: toStation,
     },
@@ -227,9 +231,12 @@ export function buildShipScene(): WalkScene {
   // Prologue overrides: room prose follows the story beats, and the cold open
   // wakes you aft by the drive core instead of in the captain's seat.
   Object.assign(roomDesc, introRoomDesc());
+  const anchor = getShipReturnAnchor();
   const spawn = introSpawnEngine()
     ? { x: engine.x + engine.w / 2, y: engine.y + engine.h / 2 }
-    : { x: cockpit.x + cockpit.w / 2, y: cockpit.y + cockpit.h / 2 };
+    : anchor === "airlock"
+      ? { x: cockpit.x + 70, y: cockpit.y + 62 }
+      : { x: cockpit.x + cockpit.w / 2, y: cockpit.y + cockpit.h - 58 };
   return {
     id: "ship",
     title: `${S.shipName} — Walk the Decks`,

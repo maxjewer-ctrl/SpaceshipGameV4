@@ -188,7 +188,7 @@ for (const file of dialogueFiles) {
   };
 
   for (const [nk, node] of Object.entries(tree.nodes || {})) {
-    if (!Array.isArray(node.choices) || !node.choices.length) err(`${file}.${nk}`, `node has no choices`);
+    if ((!Array.isArray(node.choices) || !node.choices.length) && !node.end) err(`${file}.${nk}`, `node has no choices and is not an ending response`);
     for (const [i, c] of (node.choices || []).entries()) {
       const where = `${file}.${nk}[${i}]`;
       if (c.goto && !nodeKeys.has(c.goto)) err(where, `goto -> unknown node '${c.goto}'`);

@@ -124,14 +124,20 @@ export function sellGood(g: string, n: number) {
   log(`Sold ${n} ${GOODS[g].n} @ ${price}cr.`); requestRender();
 }
 
-export function buyFuel(n: number) {
+export function fuelPriceHere(): number {
   // Three things move the pump price: the miners' guild echo (a season of
   // gratitude after a rescue), your standing at THIS port, and Bev's salvage
   // stall if you set her up here.
   const guild = typeof S.flags.guild_discount === "number" && S.flags.guild_discount > S.day;
   const bev = hasPortMark(S.loc, "bev_stall");
   const mult = portPriceMult(S.loc) * (guild ? 0.85 : 1) * (bev ? 0.9 : 1) * moodFuelMult(S.loc);
-  const p = Math.max(1, Math.round(PLANETS[S.loc].fuelP * mult));
+  return Math.max(1, Math.round(PLANETS[S.loc].fuelP * mult));
+}
+
+export function buyFuel(n: number) {
+  const guild = typeof S.flags.guild_discount === "number" && S.flags.guild_discount > S.day;
+  const bev = hasPortMark(S.loc, "bev_stall");
+  const p = fuelPriceHere();
   n = Math.min(n, Math.floor(S.credits / p), Math.floor(stats().fuelCap - S.fuel));
   if (n <= 0) { log("Tanks full or pockets empty."); requestRender(); return; }
   S.credits -= n * p; S.fuel += n;

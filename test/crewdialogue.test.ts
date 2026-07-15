@@ -4,6 +4,7 @@ import { CREW_TREES } from "../src/content";
 import { modalHTML, clearModal, hasModal } from "../src/modal";
 import { sentiment, crewKey } from "../src/systems/ledger";
 import { trustTier } from "../src/systems/trust";
+import { stats } from "../src/derive";
 import {
   openCrewDialogue, crewDialogueChoose, crewDialogueContinue, checkCrewDialogueArcs, checkCrewReq,
 } from "../src/systems/crewdialogue";
@@ -47,13 +48,14 @@ describe("Juno dialogue — gating", () => {
     openCrewDialogue(1);
     let html = modalHTML() || "";
     expect(html).toContain("How's she holding"); // always-on topic present
-    expect(html).not.toContain("Tell me about Osei"); // hidden:true, gate fails
+    expect(html).not.toContain("what was that like"); // hidden:true, gate fails
 
     seatJuno({ days: 40, bond: 10 });
     expect(trustTier(juno())).toBe("bonded");
     openCrewDialogue(1);
     html = modalHTML() || "";
-    expect(html).toContain("Tell me about Osei");
+    expect(html).toContain("what was that like");
+    expect(html).not.toContain("Tell me about Osei"); // the prologue + wake own this material now
   });
 
   it("gates the confession's faction-specific choices on standing", () => {
@@ -80,14 +82,93 @@ describe("Juno dialogue — choices persist", () => {
     seatJuno({ days: 40, bond: 10 });
     const before = sentiment(crewKey(juno()));
     openCrewDialogue(1);
-    // Osei → 'You did everything you could' writes a +3 @juno memory
-    crewDialogueChoose("juno", "osei_1", idxOf("osei_1", "did everything you could"));
+    // Offering cover before knowing the secret writes a +3 @juno memory.
+    crewDialogueChoose("juno", "tell_1", idxOf("tell_1", "doesn't leave this deck"));
     crewDialogueContinue(); // clear the reply interstitial
     const after = sentiment(crewKey(juno()));
     expect(after).toBe(before + 3);
     // the memory landed under her real key, not the literal sentinel
     expect(S.ledger.some((m) => m.who === "@self")).toBe(false);
-    expect(S.ledger.some((m) => m.who === crewKey(juno()) && m.fact === "grieved_osei_together")).toBe(true);
+    expect(S.ledger.some((m) => m.who === crewKey(juno()) && m.fact === "captain_offered_cover")).toBe(true);
+  });
+
+  it("previews the regulator payoff and lowers the ship's fuel burn when installed", () => {
+    seatJuno({ days: 40, bond: 10 });
+    S.credits = 100;
+    openCrewDialogue(1);
+    crewDialogueChoose("juno", "hub", idxOf("hub", "half a tone flat"));
+    expect(modalHTML() || "").toContain("drive fuel burn −10%");
+
+    crewDialogueChoose("juno", "reg_1", idxOf("reg_1", "Wire it"));
+    crewDialogueContinue();
+    expect(S.jobs.some((j) => j.tag === "juno_regulator")).toBe(true);
+
+    clearModal();
+    S.flags.job_juno_regulator = true;
+    S.loc = "havens";
+    const before = stats().fuelDay;
+    checkCrewDialogueArcs();
+    crewDialogueChoose("juno", "reg_install", 0);
+
+    expect(S.flags.juno_reg_done).toBe(true);
+    expect(stats().fuelDay).toBe(+(before * 0.9).toFixed(1));
+    expect(S.logLines.some((l) => l.m.includes("burns 10% less fuel"))).toBe(true);
+  });
+
+  it("does not let a repeated authored line farm the same memory", () => {
+    seatJuno({ days: 40, bond: 10 });
+    const decline = idxOf("reg_1", "patch holds");
+    const before = sentiment(crewKey(juno()));
+
+    crewDialogueChoose("juno", "reg_1", decline);
+    crewDialogueContinue();
+    expect(sentiment(crewKey(juno()))).toBe(before - 1);
+
+    crewDialogueChoose("juno", "reg_1", decline);
+    crewDialogueContinue();
+    expect(sentiment(crewKey(juno()))).toBe(before - 1);
+  });
+
+  it("shows material stakes before the player commits", () => {
+    seatJuno({ days: 40, bond: 10 });
+    S.flags.juno_secret_confessed = true;
+    S.credits = 300;
+    openCrewDialogue(1);
+    crewDialogueChoose("juno", "hub", idxOf("hub", "still need to be"));
+
+    const html = modalHTML() || "";
+    expect(html).toContain("−150cr");
+    expect(html).toContain("commits the ship");
+  });
+
+  it("lets the captain answer Juno's reaction instead of forcing Continue", () => {
+    seatJuno({ days: 40, bond: 10 });
+    S.rep.union = 8;
+    crewDialogueChoose("juno", "confession", idxOf("confession", "Union freight"));
+
+    let html = modalHTML() || "";
+    expect(html).toContain("light goes out of her face");
+    expect(html).toContain("Tell me how to make it right");
+    expect(html).toContain("The contracts come first");
+    expect(html).toContain("shape how they remember the captain");
+    expect(html).not.toContain(">Continue<");
+
+    crewDialogueChoose("juno", "confession_union", idxOf("confession_union", "make it right"));
+    html = modalHTML() || "";
+    expect(html).toContain("Words won’t fix it");
+    expect(html).toContain("Then we run it");
+  });
+
+  it("presents a closing NPC response as navigation, not a fake player line", () => {
+    seatJuno({ days: 40, bond: 10 });
+    crewDialogueChoose("juno", "confession", idxOf("confession", "secret's safe"));
+
+    const html = modalHTML() || "";
+    expect(html).toContain("fly her till the stars go out");
+    expect(html).toContain("Let the promise stand");
+    expect(html).not.toContain(">Continue<");
+    crewDialogueContinue();
+    expect(hasModal()).toBe(false);
   });
 
   it("turns the manumission into a mission to Foundry, resolved by the stamp beat", () => {
@@ -141,7 +222,6 @@ describe("Juno dialogue — patrol beats", () => {
     clearModal();
     S.flags.juno_beat_cooldown = 0;
     S.flags.juno_beat_grief = true; // quiet the ambient beats for this check
-    S.flags.juno_beat_foundry = true;
     S.loc = "meridian";
     checkCrewDialogueArcs();
     expect(modalHTML() || "").toContain("I’m the thing they find");
@@ -152,7 +232,6 @@ describe("Juno dialogue — patrol beats", () => {
     S.flags.juno_secret_confessed = true;
     S.loc = "meridian";
     S.flags.juno_beat_grief = true;
-    S.flags.juno_beat_foundry = true;
     checkCrewDialogueArcs();
     crewDialogueChoose("juno", "beat_patrol_post", idxOf("beat_patrol_post", "Get below"));
     crewDialogueContinue();
@@ -168,7 +247,8 @@ describe("Juno dialogue — beat pacing", () => {
     checkCrewDialogueArcs(); // grief fires, arms the cooldown
     expect(modalHTML()).toContain("Osei");
     clearModal();
-    checkCrewDialogueArcs(); // foundry beat is eligible but the cooldown holds it
+    S.campaign.silence.stage = 2;
+    checkCrewDialogueArcs(); // the Dimming beat is eligible but the cooldown holds it
     expect(hasModal()).toBe(false);
     S.flags.juno_patrol_flagged = true; // planted payoff arrives → priority beat
     checkCrewDialogueArcs();
@@ -176,7 +256,22 @@ describe("Juno dialogue — beat pacing", () => {
     clearModal();
     S.day = 20; // cooldown expired → ambient beats resume
     checkCrewDialogueArcs();
-    expect(modalHTML() || "").toContain("smelter-glow");
+    expect(modalHTML() || "").toContain("Another station went dark");
+  });
+
+  it("keeps the one Silence reaction without treating reassurance as relationship currency", () => {
+    seatJuno({ days: 40, bond: 10 });
+    S.flags.juno_beat_grief = true;
+    S.campaign.silence.stage = 2;
+    S.loc = "solace";
+    const before = sentiment(crewKey(juno()));
+
+    checkCrewDialogueArcs();
+    expect(modalHTML() || "").toContain("Another station went dark");
+    crewDialogueChoose("juno", "beat_dimming", idxOf("beat_dimming", "full larder"));
+
+    expect(sentiment(crewKey(juno()))).toBe(before);
+    expect(modalHTML() || "").not.toContain("shape how they remember the captain");
   });
 });
 

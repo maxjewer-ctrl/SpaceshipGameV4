@@ -94,7 +94,23 @@ export function showSettings() {
       </div>
     </div>
     ${devScenarios}
+    <div class="panel pause-danger-zone">
+      <h3>Run Management</h3>
+      <p class="dim">Starting over permanently clears the active save slot.</p>
+      <div class="choices"><button class="danger" ${actionAttr("confirmNewGame")}>Start a new game</button></div>
+    </div>
     <div class="choices"><button ${actionAttr("closeModal")}>Back to the black</button></div>`);
+}
+
+export function showPauseMenu() {
+  modal(`<div class="modal-context">SYSTEM MENU</div><h2>Pause</h2>
+    <p class="dim">The run is held while this menu is open.</p>
+    <div class="pause-grid">
+      <button class="primary" ${actionAttr("closeModal")}>Resume</button>
+      <button ${actionAttr("openSaves")}>Save and load</button>
+      <button ${actionAttr("showSettings")}>Settings</button>
+      <button ${actionAttr("showHelp")}>How to fly</button>
+    </div>`);
 }
 
 export function toggleMute() {

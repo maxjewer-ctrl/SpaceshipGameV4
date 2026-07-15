@@ -147,7 +147,7 @@ let clickPath: Array<{ x: number; y: number }> = [];
 let clickStuck = 0;
 let highlightKey: string | null = null;
 // Two strides: decks are for walking and talking; action scenes move quicker.
-const DECK_SPEED = 230;
+const DECK_SPEED = 260;
 const DECK_SPRINT_MULTIPLIER = 1.5;
 const ACTION = { moveSpeed:320, rollSpeed:620, rollDuration:.24, rollCooldown:.7, fireCooldown:.18, projectileSpeed:720 };
 // Melee: a close-range cone swipe. High flat damage, brief forward lunge, knocks

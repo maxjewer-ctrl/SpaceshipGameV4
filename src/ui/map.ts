@@ -4,6 +4,7 @@ import { daysTo, fuelTo, foodPerDay, planetVisible, isSilenced, crewGapWarnings 
 import { activeMood, MOOD_WORD, MOOD_ICON } from "../systems/moods";
 import { requestRender } from "../bus";
 import { actionAttr } from "../dispatch";
+import { outcomeRowsHTML, routeProjection } from "./projections";
 
 export function selPlanet(k: string) { S.selPlanet = k; requestRender(); }
 
@@ -115,7 +116,8 @@ export function mapHTML(): string {
       info = `<div class="panel"><h3>${p.n}${moodBadge}</h3><p class="dim">${p.d}</p><p class="dim">You're here.</p></div>`;
     } else {
       const d = daysTo(from, S.selPlanet), f = fuelTo(from, S.selPlanet);
-      const foodNeed = foodPerDay() * d;
+      const route = routeProjection(S.selPlanet);
+      const foodNeed = route.foodUse;
       const ok = S.fuel >= f;
       const darkWarn = isSilenced(S.selPlanet)
         ? `<p class="low" style="margin:6px 0">◇ NO SIGNAL — nothing has answered from ${p.n} since it went dark. No port services. No fuel. Whatever you fly in with is what you fly out on.</p>` : "";
@@ -126,13 +128,14 @@ export function mapHTML(): string {
             ${gaps.hidden ? `<div class="route-more">+${gaps.hidden} lower-priority crew gaps · review the Crew Roster later</div>` : ""}</div>` : "";
       info = `<div class="panel"><h3>${p.n}${moodBadge} <span class="badge fac">${FACS[p.fac].n}</span></h3>
         <p class="dim">${p.d}</p>${darkWarn}${gapWarn}
-        <div class="statgrid" style="margin:8px 0">
-          <span>Distance</span><b>${d} days</b>
-          <span>Fuel needed</span><b class="${ok ? "" : "low"}">${f} (have ${Math.floor(S.fuel)})</b>
-          <span>Food needed (est.)</span><b class="${S.food >= foodNeed ? "" : "low"}">~${foodNeed} (have ${Math.floor(S.food)})</b>
-          <span>Fuel price there</span><b>${p.fuelP || "—"}cr</b>
-        </div>
-        ${S.docked ? `<button class="primary" ${ok ? "" : "disabled"} ${actionAttr("depart", S.selPlanet)}>${ok ? "⛽ Depart (" + f + " fuel, " + d + " days)" : "Not enough fuel"}</button>` : `<span class="dim">Already in transit.</span>`}
+        <div class="route-distance"><span>Distance</span><b>${d} days</b></div>
+        ${outcomeRowsHTML([
+          { label: "Fuel", current: `${Math.floor(S.fuel)}`, resulting: `${route.fuelAfter}`, severity: route.fuelAfter < 0 ? "danger" : "normal", note: `${f} required` },
+          { label: "Food", current: `${Math.floor(S.food)}`, resulting: `${Math.floor(route.foodAfter)}`, severity: route.foodAfter <= 0 ? "danger" : "normal", note: `${foodNeed} consumed${route.foodGenerated ? `, ${route.foodGenerated} generated` : ""}` },
+          { label: "Credits", current: `${S.credits}cr`, resulting: `${route.creditsAfter}cr`, severity: S.credits < route.payroll ? "warning" : "normal", note: `${route.payroll}cr payroll en route` },
+        ])}
+        ${S.jobs.some((job) => job.dest === S.selPlanet && job.deadline) ? `<p class="deadline-effect">Contracts for this port: ${S.jobs.filter((job) => job.dest === S.selPlanet && job.deadline).map((job) => `${job.title} · ${S.day + d <= job.deadline! ? `${job.deadline! - (S.day + d)}d margin` : `${S.day + d - job.deadline!}d late`}`).join(" · ")}</p>` : ""}
+        ${S.docked ? `<button class="primary route-depart" ${ok ? "" : "disabled"} ${actionAttr("depart", S.selPlanet)}>${ok ? "Depart for " + p.n : "Not enough fuel"}</button>` : `<span class="dim">Already in transit.</span>`}
       </div>`;
     }
   } else {

@@ -61,7 +61,7 @@ export function introStart() {
   S.docked = false;
   S.loc = "kestrel";
   S.screen = "shipwalk";
-  S.slotsMax = 8;
+  S.slotsMax = 6;
   S.modules = [
     mk("cockpit"),
     mk("engine"),
@@ -69,8 +69,6 @@ export function introStart() {
     mk("cargohold"),
     mk("cabin"),
     mk("quarters"),
-    mk("medbay"),
-    mk("weapons"),
     mk("workshop"),
   ];
   S.flags.intro = 1;
@@ -202,12 +200,12 @@ function stgGoodbye(properly: boolean) {
   } else {
     log("You cover Osei with her own flight jacket and get to work. She'd have called anything else a waste of her dying.");
   }
-  log("▸ NEXT: the drive core is down. Walk aft to the engine room and jury-rig it. (Your deck plan on the 🚀 Ship screen shows every system's status.)");
+  log("▸ NEXT: the drive core is down. Walk aft to the engine room and jury-rig it. The captain's chair will expose full diagnostics once the ship is stable.");
   replaceModal(`<div class="scene"><div class="scene-loc">${S.shipName} · cockpit</div>
     <h2>🧭 Taking Stock</h2>
     <p>The board tells it plain: <b>drive core down. 0 fuel in the tanks. Hull at 41%.</b> The crew quarters took the worst of the last hit — Juno's bunk is somewhere under a caved-in spar.</p>
     <p>${j ? "Juno's voice on the intercom, rough: \"Drive first, Captain. Everything else is a luxury.\"" : "Drive first. Everything else is a luxury."} The word <i>Captain</i> lands strangely. She means you.</p>
-    <p class="dim">Tutorial: the <b>🚀 Ship</b> screen is your deck schematic — damaged systems glow red. The <b>Breaker Panel</b> toggles power. For now: walk aft.</p>
+    <p class="dim">Tutorial: sit in the captain's chair to open <b>Systems</b>. Its deck plan shows damaged modules and places power controls beside their projected draw. For now: walk aft.</p>
     <div class="choices"><button class="primary" ${actionAttr("closeModal")}>Aft, then.</button></div></div>`);
 }
 
@@ -249,7 +247,7 @@ function stgRigDone(how: string) {
     <p>${line}</p>
     <p>The core catches on the third try — a half-tone flat, like a hymn sung by somebody angry — and every gauge on the ship blinks awake. Juno wipes her hands and looks at you for orders.</p>
     <p>"We've got <b>nothing</b> in the tanks, Captain. Port Solace is three days' burn. You can't math nothing into working." She nods at the glass, at the slow-tumbling dead outside. "But <i>they're</i> still holding fuel."</p>
-    <p class="dim">Tutorial: fuel burns per day in flight (see the Ship Systems panel). No fuel, no thrust, no future.</p>
+    <p class="dim">Tutorial: the chair's <b>Navigation</b> console shows fuel, food, and payroll before every burn. No fuel, no thrust, no future.</p>
     <div class="choices"><button class="primary" ${actionAttr("closeModal")}>Suit up.</button></div></div>`);
 }
 
@@ -340,14 +338,14 @@ function stgSkiff(cut: boolean) {
   S.flags.intro = 4;
   S.flags.intro_beat = 0;
   S.travel = { from: "kestrel", dest: "solace", total: 3, left: 3 };
-  S.screen = "travel";
-  log(`▸ NEXT: course laid in for Port Solace — 3 days, burning ${stats().fuelDay}/day. Hit ▸ ENGAGE BURN to advance each day. Watch fuel and food.`);
+    S.screen = "ship";
+  log(`▸ NEXT: course laid in for Port Solace — 3 days, burning ${stats().fuelDay}/day. Use Navigation at the chair to review and advance each burn.`);
   replaceModal(`<div class="scene"><div class="scene-loc">${S.shipName} · cockpit</div>
     ${dialogueHeadHTML(j ? crewPortrait(j, cut ? "neutral" : "angry") : null, JUNO_ICON, "Juno Vale", cut ? "your mechanic" : "your mechanic — saying nothing")}
     <h2>🧭 The Limp</h2>
     <p>You sit in the chair. It's warm from the sun through the glass and from nothing else, and it fits wrong, and you fly anyway, because that is the whole job.</p>
     <p><b>Port Solace, three days.</b> Fuel for maybe four. Food for maybe seven. A drive that sings flat and a crew of one, plus whatever you're carrying that knocks.</p>
-    <p class="dim">Tutorial: each ▸ ENGAGE BURN advances one day — burning fuel, eating food, paying salaries, and rolling the dice on the lane. The pedestal throttle needs to be up for the drive to answer.</p>
+    <p class="dim">Tutorial: <b>Navigation</b> shows the next day's fuel, food, payroll, and course progress before <b>ADVANCE DAY</b>. The burn may still produce a lane event.</p>
     <div class="choices"><button class="primary" ${actionAttr("introAct", "burn")}>Take her out.</button></div></div>`);
 }
 
@@ -463,21 +461,21 @@ function stgGalley(toast: boolean) {
 export function introArrive(): boolean {
   if (introStage() !== 4 || S.loc !== "solace") return false;
   S.flags.intro = 5;
-  S.screen = "stationwalk";
+  S.screen = "shipwalk";
   let renn = "";
   if (S.flags.intro_survivor && !S.flags.intro_survivor_union) {
     plantDelay(15, 35, "distress_guild_echo");
     renn = `<p>Ilsa Renn is gone before the boarding ramp finishes extending — over the rail and into the crowd with a raider's economy of motion. On your console she's left a bearing, a frequency, and four words: <i>"The ship. I remember."</i></p>`;
   }
   log("Docked at Port Solace. The dockmaster's queue found you before your engines cooled.");
-  log("▸ NEXT: Osei's debts are yours now — see the HARBORMASTER. Vance's work can become your first contract; the CANTINA offers other jobs, the EXCHANGE sells provisions, and the DRY DOCK handles anything Juno couldn't patch. Walk the station (🛰).");
-  modal(`<div class="scene"><div class="scene-loc">Port Solace · docks</div>
+  log("▸ NEXT: use the AIRLOCK, then report to the HARBORMASTER. Service doors on the station lead to the CANTINA, EXCHANGE, and DRY DOCK.");
+  modal(`<div class="scene"><div class="scene-loc">Kestrel · ship airlock</div>
     <h2>🛰 Port Solace</h2>
     <p>The station takes you in like it's seen a thousand of you, because it has. Cranes, noise, the smell of coolant and fried protein — after three days of flat drive-hum it's practically music.</p>
     ${renn}
     <p>The music lasts until the dockmaster's runner finds you: a formal notice, Vance's seal. <b>Captain R. Osei: outstanding berth and bond, 220 credits.</b> Estates transfer. So do debts. The Harbormaster will see you at your earliest convenience, where <i>earliest</i> is underlined.</p>
-    <p class="dim">Tutorial: stations are walked, not menued — the cantina offers work and crew, the exchange sells fuel and food, and the dry dock handles whatever your mechanic couldn't patch in flight. Start with the Harbormaster's window. Everyone does, eventually.</p>
-    <div class="choices"><button class="primary" ${actionAttr("introAct", "dock_ok")}>Step off the ramp.</button></div></div>`);
+    <p class="dim">Tutorial: the station is outside the ship. Close this notice, use the marked <b>AIRLOCK · PORT SOLACE</b>, then walk to the Harbormaster's service door.</p>
+    <div class="choices"><button class="primary" ${actionAttr("introAct", "dock_ok")}>Go to the airlock.</button></div></div>`);
   requestRender();
   return true;
 }

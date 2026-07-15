@@ -25,6 +25,8 @@
 import { hasModal, closeModal } from "../modal";
 import { S } from "../state";
 import { nav } from "./render";
+import { standUp } from "./commandConsole";
+import { exitService } from "./stationwalk";
 
 const GP_DEADZONE = 0.5;      // stick deflection needed to register a jump/shoulder step
 const SCROLL_DEADZONE = 0.2;  // finer threshold for analog scroll
@@ -47,7 +49,7 @@ function focusButtons(inModal: boolean): HTMLButtonElement[] {
   const enabled = (root: HTMLElement | null) =>
     root ? (Array.from(root.querySelectorAll("button")).filter((b) => !(b as HTMLButtonElement).disabled) as HTMLButtonElement[]) : [];
   if (inModal) return enabled(document.getElementById("modal"));
-  return [...enabled(document.getElementById("main")), ...enabled(document.getElementById("nav"))];
+  return enabled(document.getElementById("main"));
 }
 
 function center(el: Element): { x: number; y: number } {
@@ -120,7 +122,9 @@ function tick() {
   const bNow = !!gp.buttons[1]?.pressed;
   if (bNow && !prevB) {
     if (inModal) closeModal();
-    else if (S.screen !== "ship") nav("ship");
+    else if (S.screen === "ship") standUp();
+    else if (S.screen === "planet") exitService();
+    else nav("ship");
   }
   prevB = bNow;
 
