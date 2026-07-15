@@ -611,7 +611,7 @@ function firstContract(): IntroObjective | null {
   };
 }
 
-function currentObjective(): IntroObjective | null {
+export function currentObjectiveData(): IntroObjective | null {
   if (!introActive()) return firstContract();
   const st = introStage();
   if (st === 1) return { label: "DEAD RECKONING", title: "Reach the cockpit", detail: "Walk forward with WASD or the arrow keys. Press E at Captain Osei's chair.", progress: "1 / 5" };
@@ -631,7 +631,7 @@ function currentObjective(): IntroObjective | null {
 }
 
 export function introObjectiveHTML(): string {
-  const objective = currentObjective();
+  const objective = currentObjectiveData();
   if (!objective) return "";
   return `<div class="objective-mark">◆</div><div class="objective-copy">
     <span class="objective-label">${objective.label} · CURRENT OBJECTIVE</span>

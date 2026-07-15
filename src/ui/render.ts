@@ -9,6 +9,7 @@ import { shipHTML, captainsLogHTML } from "./ship";
 import { mapHTML } from "./map";
 import { planetHTML } from "./planet";
 import { travelHTML } from "./travel";
+import { captainPanelHTML, type CaptainAlert } from "./captainPanel";
 import { buildStationScene, stationServicesHTML } from "./stationwalk";
 import { buildDesertTownScene } from "./planetwalk";
 import { buildShipScene, crewRosterHTML } from "./shipwalk";
@@ -16,7 +17,6 @@ import { buildZoneScene, zoneActive } from "./zonewalk";
 import * as walk from "./walk";
 import * as sfx from "../audio";
 import { actionAttr } from "../dispatch";
-import { introObjectiveHTML } from "../systems/intro";
 
 const WALK_SCREENS = ["stationwalk", "shipwalk", "zone"];
 
@@ -68,16 +68,14 @@ export function render() {
 
 function renderObjective() {
   const el = $("objective");
-  const html = introObjectiveHTML();
-  el.innerHTML = html;
-  el.className = html ? "active" : "";
+  el.innerHTML = "";
+  el.className = "";
 }
 
 // ---- master caution: every live warning on the boat, worst first ----
-type Caution = { t: string; crit: boolean };
-export function cautions(): Caution[] {
+export function cautions(): CaptainAlert[] {
   const st = stats();
-  const out: Caution[] = [];
+  const out: CaptainAlert[] = [];
   const dmg = S.modules.filter((m) => m.dmg).length;
   if (S.hull < 40) out.push({ t: `HULL INTEGRITY ${Math.round((S.hull / S.hullMax) * 100)}%`, crit: true });
   if (dmg) out.push({ t: `${dmg} SYSTEM${dmg > 1 ? "S" : ""} DAMAGED — REPAIR REQUIRED`, crit: true });
@@ -119,10 +117,7 @@ function renderTop() {
     <span class="pills">` +
     pill("CR", fmt(S.credits), S.credits < 100 ? "low" : "amber", "Credits") +
     pill("FUEL", Math.floor(S.fuel) + "/" + st.fuelCap, S.fuel < 10 ? "low" : "", "Fuel (burn " + st.fuelDay + "/day in flight)") +
-    pill("FOOD", Math.floor(S.food), S.food < foodPerDay() * 2 ? "low" : "", "Food (" + foodPerDay() + "/day eaten, +" + st.foodGen + " grown)") +
     pill("HULL", Math.round(S.hull) + "/" + S.hullMax, S.hull < 40 ? "low" : "green", "Hull") +
-    pill("PWR", st.powerUse + "/" + st.powerOut, S.modules.some((m) => m.dmg) ? "low" : "blue", "Reactor power: drawn/output — red means damaged systems aboard") +
-    pill("PRTG", S.prestige, "", "Prestige — reputation as a captain") +
     pill("DAY", S.day, "", "") +
     pill("LOC", loc, "blue", "Current position") + run +
     `</span>`;
@@ -152,16 +147,9 @@ function renderNav() {
 
 // Alarm ticker: worst live caution, else the latest log line, else quiet band.
 function renderTicker() {
-  const cs = cautions();
   const el = $("ticker");
-  if (cs.length) {
-    el.className = cs[0].crit ? "crit" : "warn";
-    el.innerHTML = `<span class="tdot"></span><span class="ttext">${cs[0].t}${cs.length > 1 ? ` · +${cs.length - 1} MORE` : ""}</span>`;
-  } else {
-    const last = S.logLines[0];
-    el.className = "";
-    el.innerHTML = `<span class="tdot"></span><span class="ttext">${last ? `D${last.d} · ${last.m}` : "ALL SYSTEMS NOMINAL — CHANNEL QUIET"}</span>`;
-  }
+  el.className = "";
+  el.innerHTML = "";
 }
 
 function renderMain() {
@@ -186,22 +174,13 @@ function renderMain() {
 }
 
 function renderSide() {
-  // On the ship screen the log lives at the top of the cockpit's right
-  // console instead — hide the standalone sidebar so it isn't shown twice.
-  // On the walk-the-decks screen, the roster replaces the log — you're down
-  // there to see your people, not to reread what already happened.
   const side = $("side");
-  if (S.screen === "ship") {
-    side.style.display = "none";
-    side.innerHTML = "";
-  } else if (S.screen === "shipwalk") {
-    side.style.display = "";
-    side.innerHTML = crewRosterHTML();
-  } else if (S.screen === "stationwalk") {
-    side.style.display = "";
-    side.innerHTML = stationServicesHTML() + captainsLogHTML();
-  } else {
-    side.style.display = "";
-    side.innerHTML = captainsLogHTML();
-  }
+  const cs = cautions();
+  const lit = cs.length > 0 && cautionAck !== cs.map((c) => c.t).join("|");
+  let html = captainPanelHTML(cs, lit);
+  if (S.screen === "shipwalk") html += crewRosterHTML();
+  else if (S.screen === "stationwalk") html += stationServicesHTML();
+  else if (S.screen !== "ship") html += captainsLogHTML();
+  side.style.display = "";
+  side.innerHTML = html;
 }
