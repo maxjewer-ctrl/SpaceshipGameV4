@@ -104,7 +104,7 @@ export function buildDesertTownScene(): WalkScene {
         label: verb(b.tab),
         locked: dark,
         lockedHint: dark ? "Boarded up. Nobody's answering." : undefined,
-        action: () => stationEnter(b.tab!),
+        onInteract: () => stationEnter(b.tab!),
       });
     }
     if (!dark) {
@@ -133,14 +133,14 @@ export function buildDesertTownScene(): WalkScene {
   doors.push({
     x: hatch.x - 45, y: hatch.y - 11, w: 90, h: 22,
     label: dark ? "Back aboard. Now." : "Board — rear hatch",
-    action: boardShip,
+    onInteract: boardShip,
   });
   doors.push({
     x: hatch.x - 45, y: hatch.y - 78, w: 90, h: 22,
     label: "Departure board",
     locked: dark,
     lockedHint: dark ? "The board's dead. Nothing's coming or going here." : undefined,
-    action: departureBoard,
+    onInteract: departureBoard,
   });
 
   const roomDesc: Record<string, string> = {};

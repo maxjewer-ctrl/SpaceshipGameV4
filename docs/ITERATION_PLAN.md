@@ -48,6 +48,13 @@ one descriptor for range, priority, prompt, availability, cost, and result.
 This is the dependency for reliable overlapping prompts and for controller,
 keyboard, mouse, and touch parity.
 
+**Initial foundation shipped:** `systems/interactions.ts` now owns the shared
+target shape and deterministic resolver. Walk doors and actors both expose
+`onInteract`; objective priority is explicit rather than a walk-loop special
+case; equal-priority targets resolve by distance then declaration order. Add
+availability/cost/result payloads here before the next interaction type lands,
+not in a new screen-specific handler.
+
 ### 4. Explicit mode boundaries
 
 Traversal, on-foot combat, and ship combat may share input, encounter,

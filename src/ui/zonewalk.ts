@@ -134,11 +134,11 @@ export function buildZoneScene(): WalkScene {
     const gap = ARENA.w / (z.exits.length + 1);
     z.exits.forEach((ex, i) => doors.push({
       x: gap * (i + 1) - 62, y: 34, w: 124, h: 30,
-      label: `${ex.icon} ${ex.label}`, action: () => pickExit(ex.id),
+      label: `${ex.icon} ${ex.label}`, onInteract: () => pickExit(ex.id),
     }));
   } else {
     // Sealed: a single locked hatch telegraphs "clear to proceed".
-    doors.push({ x: ARENA.w / 2 - 62, y: 34, w: 124, h: 30, label: "Sealed hatch", locked: true, lockedHint: "Sealed — clear the chamber.", action: () => {} });
+    doors.push({ x: ARENA.w / 2 - 62, y: 34, w: 124, h: 30, label: "Sealed hatch", locked: true, lockedHint: "Sealed — clear the chamber.", onInteract: () => {} });
   }
 
   // combat is only READ by walk.start() (on scene-id change), so a cleared

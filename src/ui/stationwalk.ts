@@ -341,7 +341,7 @@ export function buildStationScene(): WalkScene {
         label: verb(r.tab),
         locked: dark,
         lockedHint: dark ? "Locked down. Nothing answers." : undefined,
-        action: () => stationEnter(r.tab!),
+        onInteract: () => stationEnter(r.tab!),
       });
     }
     // One off-duty crew member loiters by the ramp, rotating daily — the ship
@@ -359,21 +359,21 @@ export function buildStationScene(): WalkScene {
       doors.push({
         x: r.x + r.w / 2 - 60, y: r.y + r.h - 30, w: 120, h: 22,
         label: "Settle Captain Osei's debt",
-        action: introDebtScene,
+        onInteract: introDebtScene,
       });
     }
     if (r.id === "docks" && hatch) {
       doors.push({
         x: hatch.x - 45, y: hatch.y - 11, w: 90, h: 22,
         label: dark ? "Back aboard. Now." : "Board — rear hatch",
-        action: boardShip,
+        onInteract: boardShip,
       });
       doors.push({
         x: hatch.x - 45, y: hatch.y - 62, w: 90, h: 22,
         label: "Departure board",
         locked: dark,
         lockedHint: dark ? "The board's dead. Nothing's coming or going here." : undefined,
-        action: departureBoard,
+        onInteract: departureBoard,
       });
     }
     if (!dark) {

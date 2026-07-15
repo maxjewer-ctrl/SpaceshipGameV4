@@ -132,7 +132,7 @@ describe("combat-zone run structure (Phase B)", () => {
       scene = buildZoneScene();
       const open = scene.doors.filter((d) => !d.locked);
       expect(open.length).toBeGreaterThan(0);
-      open[0].action();
+      open[0].onInteract();
     }
 
     expect(sealedSeen).toBe(true);          // exits really did seal during fights
@@ -205,7 +205,7 @@ function runIncursionToExtract() {
     scene = buildZoneScene();
     const open = scene.doors.filter((d) => !d.locked);
     if (!open.length) break;
-    open[0].action();
+    open[0].onInteract();
   }
 }
 
@@ -225,7 +225,7 @@ describe("run boons (Phase D)", () => {
     scene = buildZoneScene();
     const boon = scene.doors.find((d) => !d.locked && /—/.test(d.label));
     expect(boon).toBeTruthy();
-    boon!.action();
+    boon!.onInteract();
 
     expect(JSON.stringify(zoneMods())).not.toBe(base); // the gun changed
   });

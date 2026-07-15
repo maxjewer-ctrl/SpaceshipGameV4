@@ -6,14 +6,15 @@
 // time an unrelated state change calls requestRender() elsewhere in the game.
 import { hasModal } from "../modal";
 import { actionAttr, holdActionAttr } from "../dispatch";
+import { resolveInteraction, type InteractionTarget } from "../systems/interactions";
 import * as sfx from "../audio";
 // Audio is pure polish and browser-only (no AudioContext under jsdom/headless):
 // never let a sound failure interrupt the sim.
 function sfxSafe(fn: () => void) { try { fn(); } catch { /* no audio here */ } }
 
 export interface WalkRect { x: number; y: number; w: number; h: number; }
-export interface WalkDoor extends WalkRect { label: string; locked?: boolean; lockedHint?: string; objective?: boolean; action: () => void; }
-export interface WalkActor extends WalkRect { key: string; label: string; icon?: string; color?: string; role?: string; modelKey?: string; bubble?: string; verb?: string; onInteract: () => void; }
+export interface WalkDoor extends WalkRect, InteractionTarget { locked?: boolean; lockedHint?: string; objective?: boolean; }
+export interface WalkActor extends WalkRect, InteractionTarget { key: string; icon?: string; color?: string; role?: string; modelKey?: string; bubble?: string; verb?: string; }
 export interface WalkRoom extends WalkRect { id: string; label: string; icon?: string; color?: string; kind?: string; moduleIndex?: number; moduleType?: string; }
 // A solid structure you walk AROUND, not on — the inverse of a floor. Buildings
 // on an open-ground plaza are obstacles; the door to enter sits on the plaza in
@@ -416,7 +417,7 @@ export function pressEnd(dir: string) {
 
 export function interact() {
   if (hasModal()) return;
-  if (nearDoor && !nearDoor.locked) nearDoor.action();
+  if (nearDoor && !nearDoor.locked) nearDoor.onInteract();
   else if (nearActor) nearActor.onInteract();
 }
 
@@ -734,34 +735,18 @@ function simulate(dt: number) {
     }
     if(projectiles.length)projectiles=projectiles.filter(p=>p.life>0);
     if (combatActive || enemies.length) updateCombat(dt);
-    nearDoor = null;
-    let bestD = 46;
-    // A live story beat is the player's reason for being in the room. Prefer it
-    // over overlapping furniture/utility pads, but only inside the ordinary
-    // interaction radius so objectives never become remote actions.
-    for (const d of scene.doors) {
-      if (!d.objective) continue;
-      const dd = rectDist(pos.x, pos.y, d);
-      if (dd < bestD) { bestD = dd; nearDoor = d; }
-    }
-    if (!nearDoor) {
-      for (const d of scene.doors) {
-        const dd = rectDist(pos.x, pos.y, d);
-        if (dd < bestD) { bestD = dd; nearDoor = d; }
-      }
-    }
-    nearActor = null;
-    let bestA = 40;
-    for (const a of scene.actors) { const dd = Math.hypot(pos.x - (a.x + a.w / 2), pos.y - (a.y + a.h / 2)); if (dd < bestA) { bestA = dd; nearActor = a; } }
-    // When a door pad and an actor overlap, whichever you're actually standing
-    // on wins. interact() runs doors first, so without this the cockpit's
-    // "Ship's console" pad — which lies directly over the captain's chair —
-    // shadowed the chair permanently and sitChair could never fire.
-    if (nearDoor?.objective) nearActor = null;
-    else if (nearDoor && nearActor) {
-      if (rectDist(pos.x, pos.y, nearActor) < rectDist(pos.x, pos.y, nearDoor)) nearDoor = null;
-      else nearActor = null;
-    }
+    const candidates: Array<{ target: WalkDoor | WalkActor; distance: number; order: number }> = [];
+    scene.doors.forEach((door, order) => {
+      const distance = rectDist(pos.x, pos.y, door);
+      if (distance < 46) candidates.push({ target: door, distance, order });
+    });
+    scene.actors.forEach((actor, order) => {
+      const distance = Math.hypot(pos.x - (actor.x + actor.w / 2), pos.y - (actor.y + actor.h / 2));
+      if (distance < 40) candidates.push({ target: actor, distance, order: scene.doors.length + order });
+    });
+    const target = resolveInteraction(candidates);
+    nearDoor = target && scene.doors.includes(target as WalkDoor) ? target as WalkDoor : null;
+    nearActor = target && scene.actors.includes(target as WalkActor) ? target as WalkActor : null;
     scene.onTick?.(moving, dt, roomAt(pos.x, pos.y)?.id ?? null);
   } else {
     moving = false;

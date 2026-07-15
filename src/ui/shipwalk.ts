@@ -19,6 +19,7 @@ import { introAct, introShipDoors, introRoomDesc, introSpawnEngine, introAirlock
 import { teardown, setHighlight, walkInsideFloors } from "./walk";
 import * as sfx from "../audio";
 import type { WalkScene, WalkRoom, WalkRect, WalkDoor, WalkActor } from "./walk";
+import { INTERACTION_PRIORITY } from "../systems/interactions";
 import { steerAgent } from "../systems/walkRuntime";
 import { actionAttr } from "../dispatch";
 
@@ -140,12 +141,12 @@ export function buildShipScene(): WalkScene {
   };
 
   const doors: WalkDoor[] = [
-    { x: cockpit.x + 16, y: cockpit.y + cockpit.h - 30, w: 120, h: 22, label: "Ship's console (schematic)", action: openSchematic },
+    { x: cockpit.x + 16, y: cockpit.y + cockpit.h - 30, w: 120, h: 22, label: "Ship's console (schematic)", onInteract: openSchematic },
     {
       x: cockpit.x + 16, y: cockpit.y + 24, w: 90, h: 22,
       label: "Airlock", locked: !S.docked,
       lockedHint: introAirlockHint() || "Sealed. You're in transit — nowhere to go but forward.",
-      action: toStation,
+      onInteract: toStation,
     },
   ];
   // Prologue beats appear as doors in the rooms they live in — the campaign
@@ -156,7 +157,8 @@ export function buildShipScene(): WalkScene {
       x: r.x + r.w - 150, y: r.y + r.h - 60, w: 134, h: 22,
       label: spec.label,
       objective: true,
-      action: () => introAct(spec.act),
+      priority: INTERACTION_PRIORITY.objective,
+      onInteract: () => introAct(spec.act),
     });
   }
 

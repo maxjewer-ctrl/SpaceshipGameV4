@@ -81,7 +81,7 @@ describe("Dead Reckoning opener", () => {
     const chair = buildShipScene().doors.find((door) => door.label === "The captain's chair");
     expect(chair).toBeDefined();
 
-    chair?.action();
+    chair?.onInteract();
 
     expect(modalHTML()).toContain("The Chair");
   });
