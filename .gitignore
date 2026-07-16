@@ -17,3 +17,20 @@ scripts/meshy/raw/
 # Scratch downloads for free-asset sourcing (docs/ASSET_SOURCING.md) — the zips
 # and extracted kits are a local cache, not something that ships.
 .tmp-assets/
+
+# Unity generated files and local outputs.
+unity/[Ll]ibrary/
+unity/[Tt]emp/
+unity/[Oo]bj/
+unity/**/[Bb]in/
+unity/**/[Oo]bj/
+unity/[Bb]uild/
+unity/[Bb]uilds/
+unity/[Ll]ogs/
+unity/[Uu]ser[Ss]ettings/
+unity/MemoryCaptures/
+unity/Recordings/
+unity/TestResults/
+unity/.vs/
+unity/*.csproj
+unity/*.sln

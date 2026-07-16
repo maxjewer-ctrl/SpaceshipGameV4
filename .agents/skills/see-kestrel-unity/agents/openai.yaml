@@ -1,0 +1,4 @@
+interface:
+  display_name: "See Kestrel Unity"
+  short_description: "Capture and inspect Unity WebGL screenshots."
+  default_prompt: "Capture and inspect the Unity WebGL build."

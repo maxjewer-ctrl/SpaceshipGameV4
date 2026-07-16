@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <title>The Kestrel Run - Unity</title>
+  <style>
+    html, body, #unity-container, #unity-canvas {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: #111417;
+    }
+    #unity-canvas {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div id="unity-container">
+    <canvas id="unity-canvas" tabindex="-1"></canvas>
+  </div>
+  <script src="Build/{{{ LOADER_FILENAME }}}"></script>
+  <script>
+    const canvas = document.querySelector("#unity-canvas");
+    window.kestrel = {
+      ready: false,
+      lastState: "{}",
+      command(action, args = {}) {
+        const payload = JSON.stringify({ action, ...args });
+        window.kestrel.unityInstance.SendMessage("KestrelBridge", "Command", payload);
+      },
+      state() {
+        try {
+          return JSON.parse(window.kestrel.lastState || "{}");
+        } catch {
+          return {};
+        }
+      },
+      capture() {
+        const dataUrl = canvas.toDataURL("image/png");
+        window.kestrel.lastCapture = dataUrl;
+        return dataUrl;
+      }
+    };
+
+    createUnityInstance(canvas, {
+      dataUrl: "Build/{{{ DATA_FILENAME }}}",
+      frameworkUrl: "Build/{{{ FRAMEWORK_FILENAME }}}",
+      codeUrl: "Build/{{{ CODE_FILENAME }}}",
+      streamingAssetsUrl: "StreamingAssets",
+      companyName: "Kestrel",
+      productName: "The Kestrel Run",
+      productVersion: "0.1.0"
+    }).then((unityInstance) => {
+      window.kestrel.unityInstance = unityInstance;
+    });
+  </script>
+</body>
+</html>

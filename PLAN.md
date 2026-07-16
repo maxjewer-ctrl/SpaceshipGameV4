@@ -54,6 +54,41 @@ This is the feature that makes it *"crazy endless"* and justifies Supabase's exi
 
 Current: one 2,500-line HTML file, string-templated DOM, localStorage. It's a great prototype and a terrible foundation. Migrate **before** adding content, or every feature costs 3×.
 
+### Unity migration checkpoint (2026-07-15)
+
+The browser/Vite game remains the live reference, but the next architecture
+track has begun: a nested Unity project now exists under `unity/`, with a
+local WebGL build that can be played in the browser for live iteration.
+
+Current Unity foundation:
+
+- `Kestrel.Sim`: pure C# simulation layer with deterministic RNG, v16 save
+  shape, scenario factories, canonical hashes, and GitHub-safe .NET tests.
+- `Kestrel.Game`: Unity presentation layer with a generated 6/8-bay ship deck,
+  over-the-shoulder movement, module sockets, captain-console module swapping,
+  save/load, and a WebGL `window.kestrel` bridge.
+- `Kestrel.Editor`: setup, content sync, level validation, Unity tests, and
+  WebGL build commands.
+- Content authority remains the browser JSON. Unity setup syncs
+  `src/content/modules.json` into `Assets/Resources/KestrelContent/modules.json`
+  and uses it for module display names.
+- Project-local Codex skills now exist for Unity development, playtesting, and
+  screenshot inspection: `develop-kestrel-unity`, `playtest-kestrel-unity`,
+  and `see-kestrel-unity`.
+
+Current local gates:
+
+- `npm run ci`
+- `scripts/unity.ps1 sim-test`
+- `scripts/unity.ps1 unity-test`
+- `scripts/unity.ps1 build-web-dev`
+- `scripts/unity.ps1 verify`
+
+Near-term Unity direction: replace generated prototype rooms with hand-authored
+ship prefabs while preserving stable module socket IDs; then port more of the
+browser save/state model into `Kestrel.Sim` without changing gameplay rules in
+the same pass.
+
 ### Target stack (deliberately boring)
 | Layer | Choice | Why |
 |---|---|---|

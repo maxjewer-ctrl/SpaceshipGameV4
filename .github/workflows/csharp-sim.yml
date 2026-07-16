@@ -1,0 +1,17 @@
+name: C# Sim
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  sim:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+      - name: Test pure C# sim
+        run: dotnet test unity/Kestrel.Sim.Tests/Kestrel.Sim.Tests.csproj
