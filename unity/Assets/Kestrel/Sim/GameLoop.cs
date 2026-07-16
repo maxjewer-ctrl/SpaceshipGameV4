@@ -15,6 +15,9 @@ public static class GameLoop
     public const float FuelPerDay = 4f;
     public const int FoodPerPersonPerDay = 1;
     public const int HydroponicsFoodPerDay = 2;
+    private const int BaseLaneEventPoolSize = 18;
+    private const int TinkerTraderPoolStart = 13;
+    private const int TinkerTraderPoolEnd = 15;
 
     public static bool SwapModules(GameState state, int slotA, int slotB)
     {
@@ -53,7 +56,7 @@ public static class GameLoop
 
     public static bool AdvanceTravelDay(GameState state)
     {
-        if (state.Travel == null || state.Over) return false;
+        if (state.Travel == null || state.Over || state.LaneEvent != null) return false;
         DayTick(state, true);
         state.Travel.Left--;
 
@@ -61,11 +64,58 @@ public static class GameLoop
         {
             Arrive(state);
         }
+        else if (!state.Over && state.Travel.Left == 1 && !state.Travel.Encountered)
+        {
+            state.Travel.Encountered = true;
+            if (!RollLaneEvent(state))
+                state.Log.Insert(0, $"Holding course. {state.Travel.Left} days remain.");
+        }
         else if (!state.Over)
         {
             state.Log.Insert(0, $"Holding course. {state.Travel.Left} days remain.");
         }
 
+        return true;
+    }
+
+    public static bool RollLaneEvent(GameState state)
+    {
+        if (state.LaneEvent != null) return false;
+        var rng = new DeterministicRng(state.RngState);
+        var poolIndex = rng.NextInt(0, BaseLaneEventPoolSize);
+        state.RngState = rng.State;
+        if (poolIndex < TinkerTraderPoolStart || poolIndex >= TinkerTraderPoolEnd) return false;
+
+        state.LaneEvent = new LaneEventState { Key = LaneEvents.TinkerTrader };
+        state.Log.Insert(0, "Tinker Barge 'Bargain' hails the ship with fuel, food, and fair-ish prices.");
+        return true;
+    }
+
+    public static bool ResolveLaneEvent(GameState state, string choice)
+    {
+        if (state.LaneEvent?.Key != LaneEvents.TinkerTrader) return false;
+        switch (choice)
+        {
+            case LaneEvents.BuyFood:
+                if (state.Credits < 30)
+                {
+                    state.Log.Insert(0, "Can't afford it.");
+                }
+                else
+                {
+                    state.Credits -= 30;
+                    state.Food += 10;
+                    state.Log.Insert(0, "Bought 10 food off the tinker barge. Don't ask what's in the cans.");
+                }
+                break;
+            case LaneEvents.Dismiss:
+                state.Log.Insert(0, "You wave the tinker off. He sells you nothing but a bad feeling.");
+                break;
+            default:
+                return false;
+        }
+
+        state.LaneEvent = null;
         return true;
     }
 

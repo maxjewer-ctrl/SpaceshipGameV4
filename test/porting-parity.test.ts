@@ -15,6 +15,7 @@ function projection(scenario: string) {
   return {
     version: S.version,
     seed: S.seed,
+    rngState: S.rngState,
     scenario,
     shipName: S.shipName,
     day: S.day,

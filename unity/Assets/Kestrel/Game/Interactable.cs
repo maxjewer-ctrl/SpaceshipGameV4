@@ -10,12 +10,14 @@ public sealed class Interactable : MonoBehaviour
     public string Prompt { get; set; } = "Interact";
     public float Range { get; set; } = 2f;
 
+    private KestrelPlayerController? playerController;
     private Transform? player;
 
     private void Update()
     {
-        player ??= FindFirstObjectByType<KestrelPlayerController>()?.transform;
-        if (player == null)
+        playerController ??= FindFirstObjectByType<KestrelPlayerController>();
+        player ??= playerController?.transform;
+        if (player == null || playerController == null || !playerController.InputEnabled)
         {
             return;
         }
@@ -28,8 +30,9 @@ public sealed class Interactable : MonoBehaviour
 
     private void OnGUI()
     {
-        player ??= FindFirstObjectByType<KestrelPlayerController>()?.transform;
-        if (player == null || Camera.main == null)
+        playerController ??= FindFirstObjectByType<KestrelPlayerController>();
+        player ??= playerController?.transform;
+        if (player == null || playerController == null || !playerController.InputEnabled || Camera.main == null)
         {
             return;
         }

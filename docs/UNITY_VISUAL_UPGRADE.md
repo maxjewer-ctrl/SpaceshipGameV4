@@ -63,9 +63,10 @@ The initial six-bay pass is implemented in visual revision 7:
 
 - Unity EditMode and PlayMode test command passes.
 - Unity WebGL development build completes.
-- Live WebGL acceptance passes all 8 checks: fresh scenario, authored module
-  state, module swap, save/load, captain selection persistence, contract travel
-  loop, day upkeep, and nonblank capture.
+- Live WebGL acceptance passes all 11 checks: fresh scenario, authored module
+  state, module swap, save/load, captain selection persistence, lane-event
+  selection/choice/save-load, contract travel loop, day upkeep, and nonblank
+  capture.
 
 ## #3 Captain Presentation
 

@@ -105,4 +105,35 @@ public sealed class ShipDeckPlayModeTests
         yield return null;
         Object.Destroy(go);
     }
+
+    [UnityTest]
+    public IEnumerator TinkerEncounterOpensChoiceUiAndPersistsResolvedStores()
+    {
+        var go = new GameObject("lane-event-runtime");
+        var runtime = go.AddComponent<ShipDeckRuntime>();
+        runtime.BuildScenario("fresh", 33);
+        runtime.CaptainPicker?.Close(false);
+        Assert.That(runtime.AcceptContract(), Is.True);
+        Assert.That(runtime.Depart("foundry"), Is.True);
+        Assert.That(runtime.AdvanceTravelDay(), Is.True);
+        Assert.That(runtime.AdvanceTravelDay(), Is.True);
+
+        Assert.That(runtime.State.LaneEvent?.Key, Is.EqualTo(LaneEvents.TinkerTrader));
+        Assert.That(runtime.LaneEventUI?.IsOpen, Is.True);
+        Assert.That(runtime.ResolveLaneEvent(LaneEvents.BuyFood), Is.True);
+        Assert.That(runtime.LaneEventUI?.IsOpen, Is.False);
+        Assert.That(runtime.State.Credits, Is.EqualTo(470));
+        Assert.That(runtime.State.Food, Is.EqualTo(28));
+
+        runtime.SaveCurrent();
+        runtime.BuildScenario("trader", 8919);
+        Assert.That(runtime.LoadSaved(), Is.True);
+        Assert.That(runtime.State.Credits, Is.EqualTo(470));
+        Assert.That(runtime.State.Food, Is.EqualTo(28));
+        Assert.That(runtime.State.LaneEvent, Is.Null);
+
+        yield return null;
+        PlayerPrefs.DeleteKey("kestrelrun:unity:slot0");
+        Object.Destroy(go);
+    }
 }

@@ -14,9 +14,11 @@ not file count.
 | Level contract validation | Complete | Socket count/order, duplicate IDs, transforms, colliders, room references, and console anchor |
 | First contract/travel loop | Complete | Accept → depart → three days → arrive → pay → save/load |
 | Repeatable automated gate | Complete | `scripts/unity.ps1 verify-slice` |
-| Live WebGL acceptance | Complete | 8/8 checks, including captain persistence, with evidence under `.shots/unity/latest/` |
+| Live WebGL acceptance | Complete | 11/11 checks, including captain and lane-event persistence, with evidence under `.shots/unity/latest/` |
 | Captain appearance parity | Complete | All three browser model IDs are Unity-native, player-selectable, and persisted in v16 saves |
-| Full browser v16 save parity | In progress | Unity persists the bounded portable subset plus `appearance.model` |
+| Browser RNG parity | Complete | Unity uses browser-compatible Mulberry32 and pins all scenario `rngState` values |
+| First random lane event | Complete | Weighted Tinker Barge selection, buy-food/decline choice UI, travel pause, and resolved save/load |
+| Full browser v16 save parity | In progress | Unity persists the bounded portable subset plus appearance, RNG, travel-event, and upkeep state |
 | Tick-trace parity | Complete | Browser-derived starvation, payroll, recovery, and hydroponics traces pass in C# |
 | Stations, economy, combat, campaigns | Browser-owned | Move only after the preceding simulation vocabulary is pinned |
 
@@ -45,8 +47,8 @@ evidence for deck-layout or camera changes.
 
 ## Next transfer slice
 
-Port the first deterministic random lane-event kernel. Pin the browser event
-selection and outcome trace for one bounded encounter, reproduce it in
-`Kestrel.Sim`, and expose only the resulting decision and state through the
-captain console and bridge. In parallel with that gameplay transfer, the next
-presentation pass is the diegetic HUD described in `UNITY_VISUAL_UPGRADE.md`.
+Port the Distress Signal as the second bounded lane event. Pin both player
+choices and the seeded rescue payout before bringing over its delayed guild
+echo; keep the scheduler consequence separate until its trace is explicit. In
+parallel with that gameplay transfer, the next presentation pass remains the
+diegetic HUD described in `UNITY_VISUAL_UPGRADE.md`.

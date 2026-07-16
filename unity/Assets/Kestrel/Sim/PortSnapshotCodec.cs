@@ -10,6 +10,7 @@ public static class PortSnapshotCodec
         json.Append('{');
         Field(json, "version", state.Version).Append(',');
         Field(json, "seed", state.Seed).Append(',');
+        Field(json, "rngState", state.RngState).Append(',');
         Field(json, "scenario", state.Scenario).Append(',');
         Field(json, "shipName", state.ShipName).Append(',');
         Field(json, "day", state.Day).Append(',');

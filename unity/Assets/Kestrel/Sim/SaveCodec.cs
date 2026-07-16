@@ -15,6 +15,7 @@ public static class SaveCodec
         json.Append('{');
         Number(json, "version", state.Version).Append(',');
         Number(json, "seed", state.Seed).Append(',');
+        Number(json, "rngState", state.RngState).Append(',');
         String(json, "scenario", state.Scenario).Append(',');
         String(json, "shipName", state.ShipName).Append(',');
         Number(json, "day", state.Day).Append(',');
@@ -48,6 +49,9 @@ public static class SaveCodec
         json.Append("],\"travel\":");
         if (state.Travel == null) json.Append("null");
         else AppendTravel(json, state.Travel);
+        json.Append(",\"laneEvent\":");
+        if (state.LaneEvent == null) json.Append("null");
+        else AppendLaneEvent(json, state.LaneEvent);
         json.Append(",\"log\":[");
         for (var i = 0; i < state.Log.Count; i++)
         {
@@ -65,6 +69,7 @@ public static class SaveCodec
         {
             Version = Int(root, "version"),
             Seed = Int(root, "seed"),
+            RngState = IntOrDefault(root, "rngState", Int(root, "seed")),
             Scenario = Text(root, "scenario"),
             ShipName = Text(root, "shipName"),
             Day = Int(root, "day"),
@@ -81,7 +86,8 @@ public static class SaveCodec
             EngineLevel = Int(root, "engineLevel"),
             Location = Text(root, "location"),
             Docked = Bool(root, "docked"),
-            Appearance = ReadAppearance(root)
+            Appearance = ReadAppearance(root),
+            LaneEvent = ReadLaneEvent(root)
         };
 
         if (state.Version > GameState.CurrentVersion)
@@ -114,7 +120,11 @@ public static class SaveCodec
         if (root.TryGetValue("travel", out var travelValue) && travelValue != null)
         {
             var travel = Object(travelValue, "travel");
-            state.Travel = new TravelState { From = Text(travel, "from"), Destination = Text(travel, "destination"), Total = Int(travel, "total"), Left = Int(travel, "left") };
+            state.Travel = new TravelState
+            {
+                From = Text(travel, "from"), Destination = Text(travel, "destination"),
+                Total = Int(travel, "total"), Left = Int(travel, "left"), Encountered = BoolOrDefault(travel, "encountered")
+            };
         }
         foreach (var value in Array(root, "log")) state.Log.Add(value as string ?? "");
         Validate(state);
@@ -147,6 +157,13 @@ public static class SaveCodec
         };
     }
 
+    private static LaneEventState? ReadLaneEvent(Dictionary<string, object?> root)
+    {
+        if (!root.TryGetValue("laneEvent", out var value) || value == null) return null;
+        var laneEvent = Object(value, "laneEvent");
+        return new LaneEventState { Key = TextOrDefault(laneEvent, "key", "") };
+    }
+
     private static void AppendModule(StringBuilder json, ModuleState module)
     {
         json.Append('{'); Number(json, "slot", module.Slot).Append(','); String(json, "key", module.Key).Append(',');
@@ -163,7 +180,11 @@ public static class SaveCodec
     }
     private static void AppendTravel(StringBuilder json, TravelState travel)
     {
-        json.Append('{'); String(json, "from", travel.From).Append(','); String(json, "destination", travel.Destination).Append(','); Number(json, "total", travel.Total).Append(','); Number(json, "left", travel.Left); json.Append('}');
+        json.Append('{'); String(json, "from", travel.From).Append(','); String(json, "destination", travel.Destination).Append(','); Number(json, "total", travel.Total).Append(','); Number(json, "left", travel.Left).Append(','); Boolean(json, "encountered", travel.Encountered); json.Append('}');
+    }
+    private static void AppendLaneEvent(StringBuilder json, LaneEventState laneEvent)
+    {
+        json.Append('{'); String(json, "key", laneEvent.Key); json.Append('}');
     }
     private static void AppendList<T>(StringBuilder json, IReadOnlyList<T> values, Action<StringBuilder, T> append)
     {
@@ -203,6 +224,7 @@ public static class SaveCodec
     {
         if (state.Version != GameState.CurrentVersion) throw new InvalidOperationException($"Expected save version {GameState.CurrentVersion}, got {state.Version}.");
         if (state.Appearance == null || !CaptainAppearance.IsSupported(state.Appearance.Model)) throw new InvalidOperationException("Captain appearance model is not supported.");
+        if (state.LaneEvent != null && !LaneEvents.IsSupported(state.LaneEvent.Key)) throw new InvalidOperationException("Lane event is not supported.");
         if (state.Ship.BayCount <= 0 || state.Ship.Modules.Count > state.Ship.BayCount) throw new InvalidOperationException("Ship modules must fit within the authored bay count.");
         var slots = state.Ship.Modules.Select(module => module.Slot).ToArray();
         if (slots.Distinct().Count() != slots.Length || slots.Any(slot => slot < 0 || slot >= state.Ship.BayCount))

@@ -18,6 +18,15 @@ public sealed class SimTests
     }
 
     [Fact]
+    public void RngMatchesBrowserMulberry32StateAndRoll()
+    {
+        var rng = new DeterministicRng(2);
+        Assert.Equal(0.7342509443406016d, rng.NextDouble(), 15);
+        Assert.Equal(1831565815, rng.State);
+        Assert.Equal(13, new DeterministicRng(2).NextInt(0, 18));
+    }
+
+    [Fact]
     public void EveryBrowserScenarioMatchesThePortableCSharpProjection()
     {
         using var fixture = LoadFixture();
@@ -78,6 +87,53 @@ public sealed class SimTests
         Assert.Equal(state.Fuel, restored.Fuel);
         Assert.Equal(state.Jobs.Single().Title, restored.Jobs.Single().Title);
         Assert.Equal(2, restored.Travel?.Left);
+    }
+
+    [Fact]
+    public void TinkerTraderSelectionAndFoodChoiceMatchBrowserTrace()
+    {
+        using var fixture = LoadFixture("lane-event-traces.json");
+        var root = fixture.RootElement;
+        var expectedSelected = root.GetProperty("selected");
+        var expectedResolved = root.GetProperty("resolved");
+        var state = GameStateFactory.CreateScenario("fresh", root.GetProperty("seed").GetInt32());
+        state.RngState = root.GetProperty("initial").GetProperty("rngState").GetInt32();
+
+        Assert.True(GameLoop.RollLaneEvent(state));
+        Assert.Equal(expectedSelected.GetProperty("rngState").GetInt32(), state.RngState);
+        Assert.Equal(expectedSelected.GetProperty("event").GetString(), state.LaneEvent?.Key);
+        Assert.Equal(expectedSelected.GetProperty("credits").GetInt32(), state.Credits);
+        Assert.Equal(expectedSelected.GetProperty("food").GetInt32(), state.Food);
+
+        Assert.True(GameLoop.ResolveLaneEvent(state, root.GetProperty("choice").GetString()!));
+        Assert.Null(state.LaneEvent);
+        Assert.Equal(expectedResolved.GetProperty("rngState").GetInt32(), state.RngState);
+        Assert.Equal(expectedResolved.GetProperty("credits").GetInt32(), state.Credits);
+        Assert.Equal(expectedResolved.GetProperty("food").GetInt32(), state.Food);
+        Assert.Equal(expectedResolved.GetProperty("latestLog").GetProperty("m").GetString(), state.Log[0]);
+    }
+
+    [Fact]
+    public void NaturalTinkerEncounterBlocksTravelUntilResolvedAndRoundTrips()
+    {
+        var state = GameStateFactory.CreateScenario("fresh", 33);
+        Assert.True(GameLoop.Depart(state, "foundry"));
+        Assert.True(GameLoop.AdvanceTravelDay(state));
+        Assert.True(GameLoop.AdvanceTravelDay(state));
+        Assert.Equal(LaneEvents.TinkerTrader, state.LaneEvent?.Key);
+        Assert.False(GameLoop.AdvanceTravelDay(state));
+
+        var pending = SaveCodec.Deserialize(SaveCodec.Serialize(state));
+        Assert.Equal(LaneEvents.TinkerTrader, pending.LaneEvent?.Key);
+        Assert.True(pending.Travel?.Encountered);
+        Assert.True(GameLoop.ResolveLaneEvent(pending, LaneEvents.BuyFood));
+
+        var restored = SaveCodec.Deserialize(SaveCodec.Serialize(pending));
+        Assert.Null(restored.LaneEvent);
+        Assert.Equal(470, restored.Credits);
+        Assert.Equal(28, restored.Food);
+        Assert.True(GameLoop.AdvanceTravelDay(restored));
+        Assert.Equal("foundry", restored.Location);
     }
 
     [Fact]

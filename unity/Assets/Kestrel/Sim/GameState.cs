@@ -7,6 +7,7 @@ public sealed class GameState
     public const int CurrentVersion = 16;
     public int Version { get; set; } = CurrentVersion;
     public int Seed { get; set; }
+    public int RngState { get; set; }
     public string Scenario { get; set; } = "fresh";
     public string ShipName { get; set; } = "Kestrel";
     public int Day { get; set; } = 1;
@@ -29,6 +30,7 @@ public sealed class GameState
     public List<ContractState> Offers { get; set; } = new();
     public List<ContractState> Jobs { get; set; } = new();
     public TravelState? Travel { get; set; }
+    public LaneEventState? LaneEvent { get; set; }
     public List<string> Log { get; set; } = new();
 }
 
@@ -98,6 +100,21 @@ public sealed class TravelState
     public string Destination { get; set; } = "";
     public int Total { get; set; }
     public int Left { get; set; }
+    public bool Encountered { get; set; }
+}
+
+public sealed class LaneEventState
+{
+    public string Key { get; set; } = LaneEvents.TinkerTrader;
+}
+
+public static class LaneEvents
+{
+    public const string TinkerTrader = "tinker-trader";
+    public const string BuyFood = "buy-food";
+    public const string Dismiss = "dismiss";
+
+    public static bool IsSupported(string? eventKey) => eventKey == TinkerTrader;
 }
 
 public sealed class CanonicalScenario

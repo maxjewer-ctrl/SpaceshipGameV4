@@ -22,6 +22,7 @@ public sealed class ShipDeckRuntime : MonoBehaviour
     private KestrelPlayerController? player;
     private GameObject? captainVisual;
     private CaptainPickerUI? captainPicker;
+    private LaneEventUI? laneEventUI;
     private KestrelPlayerController? previewPlayer;
     private Quaternion captainRotationBeforePreview;
     private Light? captainPreviewLight;
@@ -42,6 +43,7 @@ public sealed class ShipDeckRuntime : MonoBehaviour
     public string CaptainModelId => state.Appearance.Model;
     public Animator? CaptainAnimator => captainVisual?.GetComponentInChildren<Animator>(true);
     public CaptainPickerUI? CaptainPicker => captainPicker;
+    public LaneEventUI? LaneEventUI => laneEventUI;
 
     private void Start()
     {
@@ -80,8 +82,43 @@ public sealed class ShipDeckRuntime : MonoBehaviour
     public bool AdvanceTravelDay()
     {
         var changed = GameLoop.AdvanceTravelDay(state);
-        if (changed) StateChanged();
+        if (changed)
+        {
+            StateChanged();
+            laneEventUI?.OpenIfPending();
+        }
         return changed;
+    }
+
+    public bool ResolveLaneEvent(string choice)
+    {
+        var changed = GameLoop.ResolveLaneEvent(state, choice);
+        if (changed)
+        {
+            laneEventUI?.CloseIfResolved();
+            StateChanged();
+        }
+        return changed;
+    }
+
+    public bool RollLaneEvent()
+    {
+        var changed = GameLoop.RollLaneEvent(state);
+        if (changed)
+        {
+            StateChanged();
+            laneEventUI?.OpenIfPending();
+        }
+        return changed;
+    }
+
+    public void RunLaneEventDemo()
+    {
+        BuildScenario("fresh", 33);
+        AcceptContract();
+        Depart("foundry");
+        AdvanceTravelDay();
+        AdvanceTravelDay();
     }
 
     public bool WaitDay()
@@ -154,6 +191,19 @@ public sealed class ShipDeckRuntime : MonoBehaviour
     }
 
     public void OpenCaptainPicker() => captainPicker?.Open();
+
+    public void BeginLaneEventPresentation()
+    {
+        if (captainPicker?.IsOpen == true) captainPicker.Close(false);
+        player?.SetInputEnabled(false);
+        followCamera?.FrameInspection(new Vector3(0f, 2.1f, -4.4f), new Vector3(0f, 0f, 0.75f));
+    }
+
+    public void EndLaneEventPresentation()
+    {
+        player?.SetInputEnabled(true);
+        followCamera?.ClearInspection();
+    }
 
     public void BeginCaptainPreview()
     {
@@ -244,6 +294,7 @@ public sealed class ShipDeckRuntime : MonoBehaviour
         CreatePlayerAndCamera();
         CreateBridge();
         CreateCaptainPicker();
+        CreateLaneEventUI();
         UsingAuthoredDeck = TryCreateAuthoredDeck();
         if (!UsingAuthoredDeck) CreatePrototypeDeck();
         BindSocketInteractions();
@@ -311,7 +362,8 @@ public sealed class ShipDeckRuntime : MonoBehaviour
 
     private void NextLoopStep()
     {
-        if (state.Offers.Any()) AcceptContract(state.Offers[0].Id);
+        if (state.LaneEvent != null) laneEventUI?.OpenIfPending();
+        else if (state.Offers.Any()) AcceptContract(state.Offers[0].Id);
         else if (state.Docked && state.Jobs.Any()) Depart(state.Jobs[0].Destination);
         else if (state.Travel != null) AdvanceTravelDay();
     }
@@ -331,6 +383,7 @@ public sealed class ShipDeckRuntime : MonoBehaviour
     private string CurrentObjective()
     {
         if (state.Over) return "End of the line";
+        if (state.LaneEvent != null) return "Answer the Tinker Barge hail";
         if (state.Offers.Any()) return $"Accept {state.Offers[0].Title}";
         if (state.Docked && state.Jobs.Any()) return $"Plot course to {state.Jobs[0].Destination}";
         if (state.Travel != null) return $"Advance burn ({state.Travel.Left}d remain)";
@@ -419,6 +472,12 @@ public sealed class ShipDeckRuntime : MonoBehaviour
     {
         captainPicker = GetComponent<CaptainPickerUI>() ?? gameObject.AddComponent<CaptainPickerUI>();
         captainPicker.Initialize(this);
+    }
+
+    private void CreateLaneEventUI()
+    {
+        laneEventUI = GetComponent<LaneEventUI>() ?? gameObject.AddComponent<LaneEventUI>();
+        laneEventUI.Initialize(this);
     }
 
     private GameObject Cube(string name, Vector3 position, Vector3 scale, Material? material)

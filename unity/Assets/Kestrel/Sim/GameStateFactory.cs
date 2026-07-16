@@ -15,6 +15,7 @@ public static class GameStateFactory
         public int Food { get; set; } = 20;
         public int Prestige { get; set; }
         public int EngineLevel { get; set; } = 1;
+        public int RngDraws { get; set; } = 57;
         public int BayCount { get; set; } = 6;
         public string[] Modules { get; set; } = Array.Empty<string>();
         public (string Name, string Role)[] Crew { get; set; } = Array.Empty<(string, string)>();
@@ -28,37 +29,37 @@ public static class GameStateFactory
         },
         ["trader"] = new()
         {
-            ShipName = "Marrow's Luck", Day = 14, Credits = 1800, Fuel = 36f, Food = 26, Prestige = 4, BayCount = 8,
+            ShipName = "Marrow's Luck", Day = 14, Credits = 1800, Fuel = 36f, Food = 26, Prestige = 4, BayCount = 8, RngDraws = 95,
             Modules = new[] { "fueltank", "cargohold", "cargohold", "cabin", "quarters", "quarters", "hydro", "workshop" },
             Crew = new[] { ("Odile Vance", "pilot"), ("Kesh Barlow", "mechanic") }
         },
         ["fighter"] = new()
         {
-            ShipName = "Spite & Polish", Day = 20, Credits = 900, Fuel = 38f, Food = 22, Prestige = 6, EngineLevel = 2, BayCount = 10,
+            ShipName = "Spite & Polish", Day = 20, Credits = 900, Fuel = 38f, Food = 22, Prestige = 6, EngineLevel = 2, BayCount = 10, RngDraws = 101,
             Modules = new[] { "fueltank", "cargohold", "quarters", "hydro", "workshop", "weapons", "weapons", "shields", "armory" },
             Crew = new[] { ("Rex Calloway", "gunner"), ("Pia Osei", "mechanic") }
         },
         ["silence"] = new()
         {
-            ShipName = "Long Ear", Day = 17, Credits = 1400, Fuel = 40f, Food = 30, Prestige = 5, BayCount = 8,
+            ShipName = "Long Ear", Day = 17, Credits = 1400, Fuel = 40f, Food = 30, Prestige = 5, BayCount = 8, RngDraws = 95,
             Modules = new[] { "fueltank", "cargohold", "cargohold", "cabin", "quarters", "hydro", "workshop" },
             Crew = new[] { ("Dane Okoro", "pilot"), ("Sef Adeyemi", "cook") }
         },
         ["arc"] = new()
         {
-            ShipName = "Twelve Stars", Day = 30, Credits = 2500, Fuel = 60f, Food = 35, Prestige = 12, EngineLevel = 2, BayCount = 10,
+            ShipName = "Twelve Stars", Day = 30, Credits = 2500, Fuel = 60f, Food = 35, Prestige = 12, EngineLevel = 2, BayCount = 10, RngDraws = 101,
             Modules = new[] { "fueltank", "fueltank", "cargohold", "cabin", "quarters", "hydro", "workshop", "weapons", "shields" },
             Crew = new[] { ("Odile Vance", "pilot"), ("Rex Calloway", "gunner"), ("Kesh Barlow", "mechanic") }
         },
         ["run"] = new()
         {
-            ShipName = "Last Light", Day = 44, Credits = 800, Fuel = 80f, Food = 44, Prestige = 14, EngineLevel = 3, BayCount = 10,
+            ShipName = "Last Light", Day = 44, Credits = 800, Fuel = 80f, Food = 44, Prestige = 14, EngineLevel = 3, BayCount = 10, RngDraws = 101,
             Modules = new[] { "fueltank", "fueltank", "cargohold", "quarters", "hydro", "workshop", "weapons", "weapons", "shields" },
             Crew = new[] { ("Odile Vance", "pilot"), ("Rex Calloway", "gunner"), ("Kesh Barlow", "mechanic") }
         },
         ["reckoning"] = new()
         {
-            ShipName = "Verdict", Day = 52, Credits = 3200, Fuel = 70f, Food = 40, Prestige = 15, EngineLevel = 3, BayCount = 10,
+            ShipName = "Verdict", Day = 52, Credits = 3200, Fuel = 70f, Food = 40, Prestige = 15, EngineLevel = 3, BayCount = 10, RngDraws = 101,
             Modules = new[] { "fueltank", "fueltank", "cargohold", "cabin", "quarters", "hydro", "workshop", "weapons", "shields" },
             Crew = new[] { ("Odile Vance", "pilot"), ("Ansel Grey", "medic"), ("Kesh Barlow", "mechanic") }
         }
@@ -75,9 +76,13 @@ public static class GameStateFactory
             definition = Scenarios[normalized];
         }
 
+        var rng = new DeterministicRng(seed);
+        for (var draw = 0; draw < definition.RngDraws; draw++) rng.NextDouble();
+
         var state = new GameState
         {
             Seed = seed,
+            RngState = rng.State,
             Scenario = normalized,
             ShipName = definition.ShipName,
             Day = definition.Day,

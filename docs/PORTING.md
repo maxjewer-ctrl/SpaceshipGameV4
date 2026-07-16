@@ -26,6 +26,12 @@ The scenario projection also pins the browser's `appearance.model` vocabulary;
 Unity accepts exactly `explorer`, `female-explorer`, and `alien-explorer`, with
 older or unknown values falling back to `explorer`.
 
+`test/porting-lane-event.test.ts` pins the first bounded random encounter. The
+browser's Mulberry32 seed `2` selects weighted pool index 13, the Tinker Barge,
+and buying food changes 500cr/20 food to 470cr/30 food without advancing the
+gameplay RNG again. Unity scenario construction also advances the identical RNG
+stream by the browser-observed draw count, so each projected `rngState` matches.
+
 Regenerate the projection only for an intentional browser behavior change:
 
 ```powershell
@@ -58,10 +64,11 @@ starving days dismiss the last crew member; three missed payrolls dismiss the
 first; six starving days end the run. These order-sensitive outcomes are pinned
 to browser-derived traces.
 
-Random lane events, generated markets, campaign scheduling, and advanced crew
-modifiers (perks, veterancy discounts, cook efficiency) remain browser-owned.
-They should enter C# one bounded vocabulary at a time, with trace fixtures added
-before presentation work.
+The Tinker Barge's weighted selection, buy-food/decline outcomes, travel pause,
+and Unity presentation are now portable. Other random lane events, remaining
+Tinker trade options, generated markets, campaign scheduling, and advanced crew
+modifiers remain browser-owned. They should enter C# one bounded vocabulary at
+a time, with trace fixtures added before presentation work.
 
 ## Boundaries
 
@@ -73,3 +80,5 @@ before presentation work.
   advertised as a byte-compatible browser save until the full schema migrates.
 - The portable subset includes `appearance.model`, and the in-game captain
   picker is required to persist it through rebuild, save, and load.
+- The portable subset includes `rngState`, `travel.encountered`, and the current
+  bounded `laneEvent`; unresolved travel cannot advance until the choice closes.

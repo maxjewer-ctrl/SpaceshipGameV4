@@ -5,6 +5,7 @@
     {
       "version": 16,
       "seed": 8919,
+      "rngState": 1320045156,
       "scenario": "fresh",
       "shipName": "Kestrel",
       "day": 1,
@@ -61,6 +62,7 @@
     {
       "version": 16,
       "seed": 8919,
+      "rngState": -2094897982,
       "scenario": "trader",
       "shipName": "Marrow's Luck",
       "day": 14,
@@ -147,6 +149,7 @@
     {
       "version": 16,
       "seed": 8919,
+      "rngState": 304562304,
       "scenario": "fighter",
       "shipName": "Spite & Polish",
       "day": 20,
@@ -240,6 +243,7 @@
     {
       "version": 16,
       "seed": 8919,
+      "rngState": -2094897982,
       "scenario": "silence",
       "shipName": "Long Ear",
       "day": 17,
@@ -319,6 +323,7 @@
     {
       "version": 16,
       "seed": 8919,
+      "rngState": 304562304,
       "scenario": "arc",
       "shipName": "Twelve Stars",
       "day": 30,
@@ -416,6 +421,7 @@
     {
       "version": 16,
       "seed": 8919,
+      "rngState": 304562304,
       "scenario": "run",
       "shipName": "Last Light",
       "day": 44,
@@ -513,6 +519,7 @@
     {
       "version": 16,
       "seed": 8919,
+      "rngState": 304562304,
       "scenario": "reckoning",
       "shipName": "Verdict",
       "day": 52,
@@ -612,6 +619,7 @@
     "initial": {
       "version": 16,
       "seed": 8919,
+      "rngState": 1320045156,
       "scenario": "fresh",
       "shipName": "Kestrel",
       "day": 1,
@@ -668,6 +676,7 @@
     "afterSwap": {
       "version": 16,
       "seed": 8919,
+      "rngState": 1320045156,
       "scenario": "fresh",
       "shipName": "Kestrel",
       "day": 1,

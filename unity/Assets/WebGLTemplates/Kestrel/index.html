@@ -68,6 +68,7 @@
   <aside id="dev-monitor" aria-label="Unity development monitor">
     <button id="run-acceptance" type="button">Run acceptance</button>
     <button id="open-captain-picker" type="button">Captain setup</button>
+    <button id="run-lane-event" type="button">Tinker encounter</button>
     <div id="view-controls" aria-label="Ship inspection views">
       <button id="view-cockpit" type="button">Cockpit</button>
       <button id="view-midship" type="button">Midship</button>
@@ -158,6 +159,22 @@
           check("save/load", state.ship.modules.find((module) => module.slot === 2)?.key === beforeA);
           check("captain selection", state.appearance.model === "alien-explorer");
 
+          window.kestrel.command("runLaneEventDemo");
+          state = await window.kestrel.waitForState((next) => next.laneEvent?.key === "tinker-trader");
+          check("lane event selection", state.seed === 33 && state.rngState === -1143365213,
+            `seed=${state.seed}, rngState=${state.rngState}`);
+          window.kestrel.command("resolveLaneEvent", { choice: "buy-food" });
+          state = await window.kestrel.waitForState((next) => next.laneEvent === null && next.credits === 470 && next.food === 28);
+          check("lane event choice", state.travel?.left === 1, `credits=${state.credits}, food=${state.food}`);
+          window.kestrel.command("save");
+          window.kestrel.command("loadScenario", { scenario: "trader", seed: 8919 });
+          await window.kestrel.waitForState((next) => next.scenario === "trader");
+          window.kestrel.command("load");
+          state = await window.kestrel.waitForState((next) => next.scenario === "fresh" && next.seed === 33 && next.food === 28);
+          check("lane event save/load", state.credits === 470 && state.laneEvent === null);
+
+          window.kestrel.command("loadScenario", { scenario: "fresh", seed: 8919 });
+          await window.kestrel.waitForState((next) => next.scenario === "fresh" && next.seed === 8919);
           window.kestrel.command("runTransferLoop");
           state = await window.kestrel.waitForState((next) => next.location === "foundry" && next.docked === true);
           check("contract travel loop", state.credits === 740 && state.prestige === 1, `credits=${state.credits}, prestige=${state.prestige}`);
@@ -188,6 +205,7 @@
       window.kestrel.runAcceptance();
     });
     document.querySelector("#open-captain-picker").addEventListener("click", () => window.kestrel.command("openCaptainPicker"));
+    document.querySelector("#run-lane-event").addEventListener("click", () => window.kestrel.command("runLaneEventDemo"));
     document.querySelector("#view-cockpit").addEventListener("click", () => window.kestrel.command("movePlayerToCockpit"));
     document.querySelector("#view-midship").addEventListener("click", () => window.kestrel.command("movePlayerToMidship"));
     document.querySelector("#view-engine").addEventListener("click", () => window.kestrel.command("movePlayerToEngine"));

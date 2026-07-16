@@ -55,6 +55,12 @@ public sealed class BrowserBridgeBehaviour : MonoBehaviour
             case "runTransferLoop":
                 Runtime.RunTransferLoop();
                 break;
+            case "runLaneEventDemo":
+                Runtime.RunLaneEventDemo();
+                break;
+            case "resolveLaneEvent":
+                Runtime.ResolveLaneEvent(command.choice);
+                break;
             case "movePlayerToSlot":
                 Runtime.MovePlayerToSlot(command.slot);
                 break;
@@ -130,5 +136,6 @@ public sealed class BrowserBridgeBehaviour : MonoBehaviour
         public int contractId;
         public string destination = "";
         public string model = "";
+        public string choice = "";
     }
 }
