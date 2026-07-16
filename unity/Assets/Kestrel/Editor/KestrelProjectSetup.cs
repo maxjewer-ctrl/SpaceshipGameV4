@@ -20,13 +20,7 @@ public static class KestrelProjectSetup
         Directory.CreateDirectory("Assets/Kestrel/Content");
         KestrelContentSync.SyncBrowserContent();
         KestrelShipPrefabBuilder.EnsurePrefabs();
-
-        if (!File.Exists(ShipDeckScenePath))
-        {
-            var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
-            scene.name = "KestrelShipDeck";
-            EditorSceneManager.SaveScene(scene, ShipDeckScenePath);
-        }
+        EnsureStarterScene();
 
         EditorBuildSettings.scenes = new[]
         {
@@ -39,6 +33,34 @@ public static class KestrelProjectSetup
         PlayerSettings.SetScriptingBackend(NamedBuildTarget.WebGL, ScriptingImplementation.IL2CPP);
         EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.WebGL, BuildTarget.WebGL);
         AssetDatabase.SaveAssets();
+    }
+
+    private static void EnsureStarterScene()
+    {
+        var scene = File.Exists(ShipDeckScenePath)
+            ? EditorSceneManager.OpenScene(ShipDeckScenePath, OpenSceneMode.Single)
+            : EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+
+        var runtime = Object.FindFirstObjectByType<ShipDeckRuntime>();
+        if (runtime == null)
+        {
+            var runtimeObject = new GameObject("Kestrel Runtime");
+            runtime = runtimeObject.AddComponent<ShipDeckRuntime>();
+        }
+
+        var preview = runtime.transform.Find(ShipDeckRuntime.EditorPreviewName);
+        if (preview == null)
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(KestrelShipPrefabBuilder.SixBayPrefabPath);
+            if (prefab == null) throw new BuildFailedException($"Missing ship preview prefab at {KestrelShipPrefabBuilder.SixBayPrefabPath}.");
+            var instance = (GameObject)PrefabUtility.InstantiatePrefab(prefab, runtime.transform);
+            instance.name = ShipDeckRuntime.EditorPreviewName;
+            instance.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
+            instance.transform.localScale = Vector3.one;
+        }
+
+        EditorSceneManager.MarkSceneDirty(scene);
+        EditorSceneManager.SaveScene(scene, ShipDeckScenePath);
     }
 
     [MenuItem("Kestrel/Level/Create Level From Template")]

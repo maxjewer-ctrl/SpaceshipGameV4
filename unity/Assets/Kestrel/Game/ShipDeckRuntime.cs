@@ -9,10 +9,12 @@ namespace Kestrel.Game;
 public sealed class ShipDeckRuntime : MonoBehaviour
 {
     private const string SixBayDeckResource = "Kestrel/Prefabs/KestrelSixBayDeck";
+    public const string EditorPreviewName = "Kestrel Ship Preview";
     private readonly List<ModuleBaySocket> sockets = new();
     private GameState state = GameStateFactory.CreateScenario("fresh", 8919);
     private ModuleCatalog moduleCatalog = ModuleCatalog.Empty;
     private KestrelPlayerController? player;
+    private FollowCamera? followCamera;
     private BrowserBridgeBehaviour? bridge;
     private Transform? deckRoot;
     private Interactable? captainConsole;
@@ -101,18 +103,41 @@ public sealed class ShipDeckRuntime : MonoBehaviour
     {
         var socket = sockets.FirstOrDefault(candidate => candidate.Slot == slot);
         if (socket == null || player == null) return;
-        player.Teleport(socket.transform.position + new Vector3(0f, 0.2f, -1.8f));
+        var roomSide = Mathf.Sign(socket.transform.position.x);
+        player.Teleport(new Vector3(0f, 0.2f, socket.transform.position.z));
+        followCamera?.FrameInspection(
+            new Vector3(-roomSide * 1.1f, 2.4f, -2.05f),
+            new Vector3(roomSide * 2.15f, 0f, 0.15f));
     }
 
-    public void MovePlayerToCockpit() => player?.Teleport(new Vector3(0f, 0.2f, -5f));
+    public void MovePlayerToCockpit()
+    {
+        followCamera?.ClearInspection();
+        player?.Teleport(new Vector3(0f, 0.2f, -5f));
+    }
 
-    public void MovePlayerToMidship() => player?.Teleport(new Vector3(0f, 0.2f, 7.8f));
+    public void MovePlayerToMidship()
+    {
+        followCamera?.ClearInspection();
+        player?.Teleport(new Vector3(0f, 0.2f, 7.8f));
+    }
 
-    public void MovePlayerToEngine() => player?.Teleport(new Vector3(0f, 0.2f, 20.7f));
+    public void MovePlayerToEngine()
+    {
+        followCamera?.ClearInspection();
+        player?.Teleport(new Vector3(0f, 0.2f, 20.7f));
+    }
 
     private void RebuildDeck()
     {
         EnsureMaterials();
+        var editorPreview = transform.Find(EditorPreviewName);
+        if (editorPreview != null)
+        {
+            editorPreview.gameObject.SetActive(false);
+            if (Application.isPlaying) Destroy(editorPreview.gameObject);
+            else DestroyImmediate(editorPreview.gameObject);
+        }
         if (deckRoot != null) Destroy(deckRoot.gameObject);
         sockets.Clear();
         deckRoot = new GameObject("Ship Deck").transform;
@@ -277,8 +302,9 @@ public sealed class ShipDeckRuntime : MonoBehaviour
         camera.clearFlags = CameraClearFlags.SolidColor;
         camera.backgroundColor = new Color(0.006f, 0.012f, 0.022f);
         camera.allowHDR = true;
-        var follow = camera.GetComponent<FollowCamera>() ?? camera.gameObject.AddComponent<FollowCamera>();
-        follow.Target = player.transform;
+        followCamera = camera.GetComponent<FollowCamera>() ?? camera.gameObject.AddComponent<FollowCamera>();
+        followCamera.Target = player.transform;
+        followCamera.ClearInspection();
     }
 
     private void CreateBridge()

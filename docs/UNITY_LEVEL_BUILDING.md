@@ -31,7 +31,7 @@ Use Unity `6000.4.2f1` for the current local project. The migration plan still p
 The six-bay scene now loads the authored
 `Assets/Resources/Kestrel/Prefabs/KestrelSixBayDeck.prefab`. It owns stable
 module sockets `0..5`, room colliders, interaction anchors, an integrated
-command deck, and an engine room. Visual revision 6 uses a narrow central spine
+command deck, and an engine room. Visual revision 7 uses a narrow central spine
 with three port/starboard room pairs, procedural plated materials, recessed
 floor/wall/ceiling layers, practical emissive lighting, service conduits,
 observation windows, recognizable fuel/cargo/berth/workshop equipment, and a
@@ -39,6 +39,13 @@ framed drive core. `ShipDeckRuntime` remains the orchestrator. Larger 8/10-bay
 deterministic scenarios still use prototype geometry until their prefabs are
 authored. The prioritized upgrade backlog lives in
 [`UNITY_VISUAL_UPGRADE.md`](UNITY_VISUAL_UPGRADE.md).
+
+The starter scene now contains an editor-visible prefab instance under
+`Kestrel Runtime/Kestrel Ship Preview`. Open the Unity project at the `unity/`
+directory, not at `unity/Assets/Scenes/`. During Play Mode the preview is hidden
+and replaced by the runtime-authored deck. If the preview is missing, run
+`scripts/unity.ps1 setup`, reopen `KestrelShipDeck.unity`, select
+`Kestrel Ship Preview` in the Hierarchy, and press `F` to frame it.
 
 ## Fresh Session Handoff
 

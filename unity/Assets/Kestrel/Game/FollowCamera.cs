@@ -11,6 +11,22 @@ public sealed class FollowCamera : MonoBehaviour
     [SerializeField] private float smoothTime = 0.1f;
 
     private Vector3 velocity;
+    private Vector3? inspectionOffset;
+    private Vector3? inspectionLook;
+
+    public void FrameInspection(Vector3 worldOffset, Vector3 worldLook)
+    {
+        inspectionOffset = worldOffset;
+        inspectionLook = worldLook;
+        velocity = Vector3.zero;
+    }
+
+    public void ClearInspection()
+    {
+        inspectionOffset = null;
+        inspectionLook = null;
+        velocity = Vector3.zero;
+    }
 
     private void LateUpdate()
     {
@@ -19,8 +35,8 @@ public sealed class FollowCamera : MonoBehaviour
             return;
         }
 
-        var desired = Target.position + offset;
+        var desired = Target.position + (inspectionOffset ?? offset);
         transform.position = Vector3.SmoothDamp(transform.position, desired, ref velocity, smoothTime);
-        transform.LookAt(Target.position + Vector3.up * 0.95f + Vector3.forward * lookAhead);
+        transform.LookAt(Target.position + Vector3.up * 0.95f + (inspectionLook ?? Vector3.forward * lookAhead));
     }
 }

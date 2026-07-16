@@ -8,8 +8,8 @@ and a pirate combat encounter, followed by WebGL inspection of the Unity ship.
 1. **Ship-interior rendering foundation** — layered materials, emissive practical
    lighting, floor/wall/ceiling panel detail, structural depth, atmosphere, and
    visible exterior context.
-2. **Module silhouettes and set dressing** — replace generic block forms with
-   distinct fuel, cargo, berth, workshop, utility, and life-support prop kits.
+2. **Module silhouettes and set dressing** — initial six-bay pass complete;
+   continue replacing primitive forms as production meshes become available.
 3. **Captain presentation** — replace the blockout marker with a readable
    animated character, grounded feet, and a contact shadow.
 4. **Diegetic HUD** — consolidate status and interaction information into ship
@@ -38,6 +38,26 @@ Implemented in six-bay visual revision 6:
   palette.
 - Dark blue camera background and linear depth fog for atmospheric separation.
 
+## #2 Module Silhouettes and Set Dressing
+
+The initial six-bay pass is implemented in visual revision 7:
+
+- Fuel bay with paired pressure vessels, collars, warning bands, feed pipes,
+  valves, manifold, drip tray, and pressure display.
+- Cargo hold with a pallet, individually braced freight, cargo markings, and an
+  overhead hoist rail, carriage, and hook.
+- Passenger cabin with a single framed bed, mattress, blanket, pillow, locker,
+  shelf, and reading light.
+- Crew quarters with stacked framed bunks, blankets, reading lights, ladder,
+  shared lockers, and a footlocker.
+- Workshop with a supported bench, tool wall, hanging tools, diagnostic screen,
+  vice, parts bin, overhead rail, and drop cable.
+- Empty/service bay with power cells, status faces, an emergency locker, and a
+  foldout service cart.
+- Direct Bay 0–5 WebGL inspection controls with side-facing camera framing.
+- An editor-visible ship preview in `KestrelShipDeck.unity`; Play Mode hides the
+  preview before the runtime deck initializes.
+
 ## Verification
 
 - Unity EditMode and PlayMode test command passes.
@@ -45,4 +65,3 @@ Implemented in six-bay visual revision 6:
 - Live WebGL acceptance passes all 7 checks: fresh scenario, authored module
   state, module swap, save/load, contract travel loop, day upkeep, and nonblank
   capture.
-

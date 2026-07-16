@@ -9,7 +9,7 @@ namespace Kestrel.Editor;
 public static class KestrelShipPrefabBuilder
 {
     public const string SixBayPrefabPath = "Assets/Resources/Kestrel/Prefabs/KestrelSixBayDeck.prefab";
-    public const int SixBayVisualRevision = 6;
+    public const int SixBayVisualRevision = 7;
     private const string MaterialRoot = "Assets/Kestrel/Content/Materials";
     private const string FlatShaderName = "Kestrel/Flat";
 
@@ -291,35 +291,193 @@ public static class KestrelShipPrefabBuilder
         switch (slot)
         {
             case 0:
-                Primitive("Fuel Tank A", room, new Vector3(outerX, 0.86f, -0.72f), new Vector3(0.48f, 0.82f, 0.48f), cargo, Vector3.zero, PrimitiveType.Cylinder);
-                Primitive("Fuel Tank B", room, new Vector3(outerX, 0.86f, 0.72f), new Vector3(0.48f, 0.82f, 0.48f), cargo, Vector3.zero, PrimitiveType.Cylinder);
-                Primitive("Fuel Manifold", room, new Vector3(outerX, 1.68f, 0f), new Vector3(0.18f, 0.16f, 1.75f), warning);
+                BuildFuelBay(side, outerX, room, wall, trim, warning, screen);
                 break;
             case 1:
-                Primitive("Cargo Crate A", room, new Vector3(outerX, 0.48f, -0.85f), new Vector3(1.05f, 0.9f, 1.2f), cargo);
-                Primitive("Cargo Crate B", room, new Vector3(outerX, 0.48f, 0.55f), new Vector3(1.05f, 0.9f, 1.2f), cargo);
-                Primitive("Cargo Crate Top", room, new Vector3(outerX, 1.28f, 0.15f), new Vector3(0.9f, 0.65f, 1.15f), cargo);
+                BuildCargoBay(side, outerX, room, wall, trim, warning, cargo);
                 break;
             case 2:
+                BuildPassengerCabin(side, outerX, room, wall, trim, screen, berth);
+                break;
             case 3:
-                Primitive("Lower Berth", room, new Vector3(outerX, 0.42f, 0f), new Vector3(1.05f, 0.22f, 2.8f), berth);
-                Primitive("Upper Berth", room, new Vector3(outerX, 1.48f, 0f), new Vector3(1.05f, 0.22f, 2.8f), berth);
-                Primitive("Berth Spine", room, new Vector3(outerX + side * 0.48f, 0.95f, 0f), new Vector3(0.12f, 1.9f, 2.9f), wall);
-                Primitive("Reading Light", room, new Vector3(outerX - side * 0.46f, 1.82f, -0.85f), new Vector3(0.08f, 0.12f, 0.42f), screen);
+                BuildCrewQuarters(side, outerX, room, wall, trim, screen, berth);
                 break;
             case 4:
-                Primitive("Workshop Bench", room, new Vector3(outerX, 0.72f, 0f), new Vector3(1.05f, 0.18f, 2.9f), cargo);
-                Primitive("Tool Wall", room, new Vector3(outerX + side * 0.47f, 1.45f, 0f), new Vector3(0.12f, 1.45f, 2.9f), wall);
-                Primitive("Diagnostic Screen", room, new Vector3(outerX - side * 0.05f, 1.48f, -0.55f), new Vector3(0.12f, 0.62f, 0.78f), screen);
-                Primitive("Bench Vice", room, new Vector3(outerX - side * 0.4f, 1.02f, 0.75f), new Vector3(0.3f, 0.35f, 0.35f), trim);
+                BuildWorkshopBay(side, outerX, room, wall, trim, warning, screen, cargo);
                 break;
             default:
-                Primitive("Spare Rack", room, new Vector3(outerX, 1.2f, 0f), new Vector3(1.0f, 2.25f, 2.8f), wall);
-                for (var index = 0; index < 3; index++)
-                {
-                    Primitive($"Rack Status {index}", room, new Vector3(outerX - side * 0.52f, 0.62f + index * 0.58f, 0f), new Vector3(0.08f, 0.16f, 1.85f), index == 2 ? warning : screen);
-                }
+                BuildServiceBay(side, outerX, room, wall, trim, warning, screen);
                 break;
+        }
+    }
+
+    private static void BuildFuelBay(
+        int side,
+        float outerX,
+        Transform room,
+        Material wall,
+        Material trim,
+        Material warning,
+        Material screen)
+    {
+        var steel = Material("FuelSteel", new Color(0.16f, 0.22f, 0.25f), pattern: 2f, panelScale: 2.1f, wear: 0.2f);
+        var hose = Material("HoseRubber", new Color(0.025f, 0.035f, 0.04f), pattern: 2f, panelScale: 2.8f, wear: 0.12f);
+        Decoration("Fuel Drip Tray", room, new Vector3(outerX, 0.12f, 0f), new Vector3(1.28f, 0.08f, 2.65f), wall);
+
+        foreach (var z in new[] { -0.78f, 0.78f })
+        {
+            Decoration($"Fuel Pressure Vessel {z:0.00}", room, new Vector3(outerX, 1.05f, z), new Vector3(0.48f, 0.86f, 0.48f), steel, Vector3.zero, PrimitiveType.Cylinder);
+            Decoration($"Fuel Vessel Lower Collar {z:0.00}", room, new Vector3(outerX, 0.3f, z), new Vector3(0.52f, 0.08f, 0.52f), trim, Vector3.zero, PrimitiveType.Cylinder);
+            Decoration($"Fuel Vessel Upper Collar {z:0.00}", room, new Vector3(outerX, 1.8f, z), new Vector3(0.52f, 0.08f, 0.52f), trim, Vector3.zero, PrimitiveType.Cylinder);
+            Decoration($"Fuel Vessel Warning Band {z:0.00}", room, new Vector3(outerX, 1.24f, z), new Vector3(0.5f, 0.055f, 0.5f), warning, Vector3.zero, PrimitiveType.Cylinder);
+            Decoration($"Fuel Feed Pipe {z:0.00}", room, new Vector3(outerX + side * 0.44f, 2.06f, z), new Vector3(0.09f, 0.52f, 0.09f), hose, Vector3.zero, PrimitiveType.Cylinder);
+            Decoration($"Fuel Valve Wheel {z:0.00}", room, new Vector3(outerX - side * 0.5f, 1.42f, z), new Vector3(0.22f, 0.05f, 0.22f), warning, new Vector3(0f, 0f, 90f), PrimitiveType.Cylinder);
+            Decoration($"Fuel Valve Hub {z:0.00}", room, new Vector3(outerX - side * 0.56f, 1.42f, z), new Vector3(0.08f, 0.06f, 0.08f), steel, new Vector3(0f, 0f, 90f), PrimitiveType.Cylinder);
+        }
+
+        Decoration("Fuel Manifold", room, new Vector3(outerX + side * 0.38f, 2.38f, 0f), new Vector3(0.18f, 0.18f, 2.25f), steel);
+        Decoration("Fuel Pressure Display", room, new Vector3(outerX - side * 0.54f, 2.06f, 0f), new Vector3(0.08f, 0.42f, 0.62f), screen);
+    }
+
+    private static void BuildCargoBay(
+        int side,
+        float outerX,
+        Transform room,
+        Material wall,
+        Material trim,
+        Material warning,
+        Material cargo)
+    {
+        Decoration("Cargo Pallet", room, new Vector3(outerX, 0.14f, 0f), new Vector3(1.36f, 0.12f, 3.25f), wall);
+        BuildCargoCrate("Cargo Crate A", side, room, new Vector3(outerX, 0.62f, -0.95f), new Vector3(1.12f, 0.9f, 1.12f), cargo, trim, warning);
+        BuildCargoCrate("Cargo Crate B", side, room, new Vector3(outerX, 0.62f, 0.48f), new Vector3(1.12f, 0.9f, 1.25f), cargo, trim, warning);
+        BuildCargoCrate("Cargo Crate C", side, room, new Vector3(outerX, 1.48f, 0.62f), new Vector3(0.92f, 0.72f, 0.95f), cargo, trim, warning);
+
+        Decoration("Cargo Hoist Rail", room, new Vector3(outerX, 2.62f, 0f), new Vector3(0.18f, 0.16f, 3.55f), trim);
+        Decoration("Cargo Hoist Carriage", room, new Vector3(outerX - side * 0.12f, 2.38f, -0.45f), new Vector3(0.45f, 0.3f, 0.38f), wall);
+        Decoration("Cargo Hoist Hook", room, new Vector3(outerX - side * 0.18f, 1.98f, -0.45f), new Vector3(0.08f, 0.38f, 0.08f), warning, Vector3.zero, PrimitiveType.Cylinder);
+    }
+
+    private static void BuildCargoCrate(
+        string name,
+        int side,
+        Transform room,
+        Vector3 position,
+        Vector3 scale,
+        Material body,
+        Material trim,
+        Material warning)
+    {
+        Decoration(name, room, position, scale, body);
+        var frontX = position.x - side * (scale.x * 0.5f + 0.025f);
+        Decoration($"{name} Upper Brace", room, new Vector3(frontX, position.y + scale.y * 0.32f, position.z), new Vector3(0.05f, 0.08f, scale.z * 0.88f), trim);
+        Decoration($"{name} Lower Brace", room, new Vector3(frontX, position.y - scale.y * 0.32f, position.z), new Vector3(0.05f, 0.08f, scale.z * 0.88f), trim);
+        Decoration($"{name} Cargo Mark", room, new Vector3(frontX - side * 0.02f, position.y, position.z), new Vector3(0.035f, scale.y * 0.28f, 0.28f), warning);
+    }
+
+    private static void BuildPassengerCabin(
+        int side,
+        float outerX,
+        Transform room,
+        Material wall,
+        Material trim,
+        Material screen,
+        Material berth)
+    {
+        var fabric = Material("CabinFabric", new Color(0.34f, 0.28f, 0.21f), pattern: 2f, panelScale: 2.4f, wear: 0.08f);
+        var locker = Material("LockerOlive", new Color(0.12f, 0.18f, 0.135f), pattern: 1f, panelScale: 1.5f, wear: 0.15f);
+        Decoration("Cabin Bed Frame", room, new Vector3(outerX, 0.4f, -0.35f), new Vector3(1.12f, 0.16f, 2.75f), trim);
+        Decoration("Cabin Mattress", room, new Vector3(outerX - side * 0.04f, 0.56f, -0.35f), new Vector3(1.04f, 0.18f, 2.58f), berth);
+        Decoration("Cabin Blanket", room, new Vector3(outerX - side * 0.57f, 0.67f, -0.08f), new Vector3(0.04f, 0.14f, 1.15f), fabric);
+        Decoration("Cabin Pillow", room, new Vector3(outerX - side * 0.08f, 0.71f, -1.28f), new Vector3(0.72f, 0.18f, 0.38f), fabric);
+        Decoration("Cabin Headboard", room, new Vector3(outerX + side * 0.5f, 0.9f, -1.55f), new Vector3(0.1f, 1.05f, 0.18f), wall);
+        Decoration("Cabin Locker", room, new Vector3(outerX, 1.1f, 1.48f), new Vector3(1.05f, 2.0f, 0.58f), locker);
+        Decoration("Cabin Locker Handle", room, new Vector3(outerX - side * 0.55f, 1.12f, 1.48f), new Vector3(0.06f, 0.32f, 0.08f), trim);
+        Decoration("Cabin Shelf", room, new Vector3(outerX - side * 0.08f, 1.42f, 0.62f), new Vector3(0.92f, 0.1f, 0.72f), wall);
+        Decoration("Cabin Reading Light", room, new Vector3(outerX - side * 0.55f, 1.82f, -0.86f), new Vector3(0.06f, 0.16f, 0.38f), screen);
+    }
+
+    private static void BuildCrewQuarters(
+        int side,
+        float outerX,
+        Transform room,
+        Material wall,
+        Material trim,
+        Material screen,
+        Material berth)
+    {
+        var fabric = Material("CrewFabric", new Color(0.27f, 0.11f, 0.065f), pattern: 2f, panelScale: 2.2f, wear: 0.12f);
+        var locker = Material("LockerOlive", new Color(0.12f, 0.18f, 0.135f), pattern: 1f, panelScale: 1.5f, wear: 0.15f);
+        foreach (var y in new[] { 0.46f, 1.53f })
+        {
+            Decoration($"Crew Bunk Frame {y:0.00}", room, new Vector3(outerX, y, -0.35f), new Vector3(1.12f, 0.12f, 2.65f), trim);
+            Decoration($"Crew Bunk Mattress {y:0.00}", room, new Vector3(outerX - side * 0.04f, y + 0.13f, -0.35f), new Vector3(1.02f, 0.16f, 2.5f), berth);
+            Decoration($"Crew Bunk Blanket {y:0.00}", room, new Vector3(outerX - side * 0.55f, y + 0.24f, 0.15f), new Vector3(0.04f, 0.13f, 0.95f), fabric);
+            Decoration($"Crew Reading Light {y:0.00}", room, new Vector3(outerX - side * 0.56f, y + 0.38f, -1.18f), new Vector3(0.05f, 0.12f, 0.28f), screen);
+        }
+        Decoration("Crew Bunk Spine", room, new Vector3(outerX + side * 0.52f, 1.06f, -0.35f), new Vector3(0.12f, 2.18f, 2.76f), wall);
+        for (var rung = 0; rung < 4; rung++)
+        {
+            Decoration($"Crew Bunk Ladder {rung}", room, new Vector3(outerX - side * 0.57f, 0.55f + rung * 0.38f, 0.92f), new Vector3(0.06f, 0.06f, 0.48f), trim);
+        }
+        Decoration("Crew Locker Bank", room, new Vector3(outerX, 1.18f, 1.48f), new Vector3(1.05f, 2.18f, 0.62f), locker);
+        Decoration("Crew Footlocker", room, new Vector3(outerX - side * 0.03f, 0.42f, 1.0f), new Vector3(0.98f, 0.56f, 0.48f), locker);
+    }
+
+    private static void BuildWorkshopBay(
+        int side,
+        float outerX,
+        Transform room,
+        Material wall,
+        Material trim,
+        Material warning,
+        Material screen,
+        Material cargo)
+    {
+        var tool = Material("ToolRed", new Color(0.38f, 0.055f, 0.028f), pattern: 2f, panelScale: 2f, wear: 0.24f);
+        Decoration("Workshop Bench Top", room, new Vector3(outerX, 0.86f, 0f), new Vector3(1.12f, 0.18f, 3.1f), cargo);
+        foreach (var z in new[] { -1.18f, 1.18f })
+        {
+            Decoration($"Workshop Bench Leg {z:0.00}", room, new Vector3(outerX + side * 0.36f, 0.43f, z), new Vector3(0.16f, 0.78f, 0.18f), trim);
+        }
+        Decoration("Workshop Tool Wall", room, new Vector3(outerX + side * 0.52f, 1.62f, 0f), new Vector3(0.12f, 1.42f, 3.12f), wall);
+        for (var index = 0; index < 5; index++)
+        {
+            var z = -1.16f + index * 0.58f;
+            Decoration($"Workshop Hanging Tool {index}", room, new Vector3(outerX - side * 0.55f, 1.62f + (index % 2) * 0.23f, z), new Vector3(0.06f, 0.48f, 0.08f), index == 2 ? warning : tool);
+        }
+        Decoration("Workshop Diagnostic Screen", room, new Vector3(outerX - side * 0.57f, 1.72f, -0.58f), new Vector3(0.06f, 0.62f, 0.82f), screen);
+        Decoration("Workshop Bench Vice Base", room, new Vector3(outerX - side * 0.38f, 1.06f, 0.82f), new Vector3(0.38f, 0.24f, 0.4f), tool);
+        Decoration("Workshop Bench Vice Jaw", room, new Vector3(outerX - side * 0.58f, 1.22f, 0.82f), new Vector3(0.18f, 0.22f, 0.46f), trim);
+        Decoration("Workshop Parts Bin", room, new Vector3(outerX - side * 0.02f, 0.46f, -1.2f), new Vector3(0.92f, 0.58f, 0.52f), tool);
+        Decoration("Workshop Overhead Rail", room, new Vector3(outerX, 2.56f, 0f), new Vector3(0.16f, 0.14f, 3.35f), trim);
+        Decoration("Workshop Drop Cable", room, new Vector3(outerX - side * 0.18f, 2.1f, 0.44f), new Vector3(0.06f, 0.48f, 0.06f), warning, Vector3.zero, PrimitiveType.Cylinder);
+    }
+
+    private static void BuildServiceBay(
+        int side,
+        float outerX,
+        Transform room,
+        Material wall,
+        Material trim,
+        Material warning,
+        Material screen)
+    {
+        var utility = Material("UtilityYellow", new Color(0.34f, 0.24f, 0.035f), pattern: 2f, panelScale: 1.8f, wear: 0.22f);
+        var steel = Material("FuelSteel", new Color(0.16f, 0.22f, 0.25f), pattern: 2f, panelScale: 2.1f, wear: 0.2f);
+        Decoration("Service Rack Spine", room, new Vector3(outerX + side * 0.5f, 1.28f, 0f), new Vector3(0.14f, 2.35f, 3.0f), wall);
+        foreach (var z in new[] { -1.05f, 0f, 1.05f })
+        {
+            Decoration($"Service Power Cell {z:0.00}", room, new Vector3(outerX, 1.15f, z), new Vector3(0.86f, 1.72f, 0.66f), steel);
+            Decoration($"Service Cell Face {z:0.00}", room, new Vector3(outerX - side * 0.45f, 1.2f, z), new Vector3(0.06f, 1.18f, 0.48f), utility);
+            Decoration($"Service Cell Status {z:0.00}", room, new Vector3(outerX - side * 0.5f, 1.52f, z), new Vector3(0.04f, 0.16f, 0.32f), z > 0.5f ? warning : screen);
+        }
+        Decoration("Service Emergency Locker", room, new Vector3(outerX, 1.06f, 1.7f), new Vector3(0.92f, 1.88f, 0.42f), utility);
+        Decoration("Service Locker Mark", room, new Vector3(outerX - side * 0.48f, 1.35f, 1.7f), new Vector3(0.05f, 0.52f, 0.18f), warning);
+        Decoration("Service Foldout Cart", room, new Vector3(outerX - side * 0.12f, 0.52f, -1.72f), new Vector3(1.02f, 0.14f, 0.52f), trim);
+        foreach (var z in new[] { -1.9f, -1.54f })
+        {
+            Decoration($"Service Cart Wheel {z:0.00}", room, new Vector3(outerX - side * 0.48f, 0.28f, z), new Vector3(0.16f, 0.06f, 0.16f), steel, new Vector3(0f, 0f, 90f), PrimitiveType.Cylinder);
         }
     }
 
@@ -457,6 +615,13 @@ public static class KestrelShipPrefabBuilder
         Material("Starlight", new Color(0.35f, 0.55f, 0.72f), 1f, emission: 1.45f, emissionColor: new Color(0.65f, 0.84f, 1f));
         Material("PlanetBlue", new Color(0.025f, 0.12f, 0.2f), 1f, emission: 0.3f, emissionColor: new Color(0.08f, 0.25f, 0.38f));
         Material("LightPoolCyan", new Color(0.015f, 0.08f, 0.1f), 1f, emission: 0.18f, emissionColor: new Color(0.02f, 0.2f, 0.28f));
+        Material("FuelSteel", new Color(0.16f, 0.22f, 0.25f), pattern: 2f, panelScale: 2.1f, wear: 0.2f);
+        Material("HoseRubber", new Color(0.025f, 0.035f, 0.04f), pattern: 2f, panelScale: 2.8f, wear: 0.12f);
+        Material("CabinFabric", new Color(0.34f, 0.28f, 0.21f), pattern: 2f, panelScale: 2.4f, wear: 0.08f);
+        Material("CrewFabric", new Color(0.27f, 0.11f, 0.065f), pattern: 2f, panelScale: 2.2f, wear: 0.12f);
+        Material("LockerOlive", new Color(0.12f, 0.18f, 0.135f), pattern: 1f, panelScale: 1.5f, wear: 0.15f);
+        Material("ToolRed", new Color(0.38f, 0.055f, 0.028f), pattern: 2f, panelScale: 2f, wear: 0.24f);
+        Material("UtilityYellow", new Color(0.34f, 0.24f, 0.035f), pattern: 2f, panelScale: 1.8f, wear: 0.22f);
         Material("CargoTan", new Color(0.37f, 0.25f, 0.13f));
         Material("BerthBlue", new Color(0.12f, 0.25f, 0.38f));
         AssetDatabase.SaveAssets();
