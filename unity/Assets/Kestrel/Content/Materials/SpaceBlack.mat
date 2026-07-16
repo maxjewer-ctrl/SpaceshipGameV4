@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: ScreenCyan
+  m_Name: SpaceBlack
   m_Shader: {fileID: 4800000, guid: 30ca4b7390bb4a8e8673109d8d68e4cf, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
@@ -25,13 +25,13 @@ Material:
     m_TexEnvs: []
     m_Ints: []
     m_Floats:
-    - _Emission: 0.92
+    - _Emission: 0
     - _PanelScale: 1
     - _Pattern: 0
     - _Unlit: 1
     - _Wear: 0
     m_Colors:
-    - _Color: {r: 0.025, g: 0.22, b: 0.27, a: 1}
-    - _EmissionColor: {r: 0.06, g: 0.72, b: 0.92, a: 1}
+    - _Color: {r: 0.004, g: 0.008, b: 0.018, a: 1}
+    - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

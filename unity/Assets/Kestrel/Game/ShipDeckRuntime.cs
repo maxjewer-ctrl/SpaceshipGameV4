@@ -237,6 +237,14 @@ public sealed class ShipDeckRuntime : MonoBehaviour
 
     private void CreateLighting()
     {
+        RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
+        RenderSettings.ambientLight = new Color(0.035f, 0.055f, 0.075f);
+        RenderSettings.fog = true;
+        RenderSettings.fogMode = FogMode.Linear;
+        RenderSettings.fogColor = new Color(0.012f, 0.025f, 0.042f);
+        RenderSettings.fogStartDistance = 15f;
+        RenderSettings.fogEndDistance = 43f;
+
         var lightObject = new GameObject("Deck Key Light");
         lightObject.transform.SetParent(deckRoot, false);
         lightObject.transform.SetPositionAndRotation(new Vector3(0f, 7f, 8f), Quaternion.Euler(55f, 180f, 0f));
@@ -266,6 +274,9 @@ public sealed class ShipDeckRuntime : MonoBehaviour
         camera.fieldOfView = 62f;
         camera.nearClipPlane = 0.08f;
         camera.farClipPlane = 90f;
+        camera.clearFlags = CameraClearFlags.SolidColor;
+        camera.backgroundColor = new Color(0.006f, 0.012f, 0.022f);
+        camera.allowHDR = true;
         var follow = camera.GetComponent<FollowCamera>() ?? camera.gameObject.AddComponent<FollowCamera>();
         follow.Target = player.transform;
     }

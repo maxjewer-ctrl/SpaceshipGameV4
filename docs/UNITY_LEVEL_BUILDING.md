@@ -31,11 +31,14 @@ Use Unity `6000.4.2f1` for the current local project. The migration plan still p
 The six-bay scene now loads the authored
 `Assets/Resources/Kestrel/Prefabs/KestrelSixBayDeck.prefab`. It owns stable
 module sockets `0..5`, room colliders, interaction anchors, an integrated
-command deck, and an engine room. Visual revision 3 uses a narrow central spine
-with three port/starboard room pairs, door frames, ceiling lights, recognizable
-fuel/cargo/berth/workshop equipment, and a framed drive core. `ShipDeckRuntime`
-remains the orchestrator. Larger 8/10-bay deterministic scenarios still use
-prototype geometry until their prefabs are authored.
+command deck, and an engine room. Visual revision 6 uses a narrow central spine
+with three port/starboard room pairs, procedural plated materials, recessed
+floor/wall/ceiling layers, practical emissive lighting, service conduits,
+observation windows, recognizable fuel/cargo/berth/workshop equipment, and a
+framed drive core. `ShipDeckRuntime` remains the orchestrator. Larger 8/10-bay
+deterministic scenarios still use prototype geometry until their prefabs are
+authored. The prioritized upgrade backlog lives in
+[`UNITY_VISUAL_UPGRADE.md`](UNITY_VISUAL_UPGRADE.md).
 
 ## Fresh Session Handoff
 

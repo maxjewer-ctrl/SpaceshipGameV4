@@ -25,8 +25,13 @@ Material:
     m_TexEnvs: []
     m_Ints: []
     m_Floats:
+    - _Emission: 1.35
+    - _PanelScale: 1
+    - _Pattern: 0
     - _Unlit: 1
+    - _Wear: 0
     m_Colors:
-    - _Color: {r: 1, g: 0.16, b: 0.035, a: 1}
+    - _Color: {r: 0.36, g: 0.025, b: 0.012, a: 1}
+    - _EmissionColor: {r: 1, g: 0.11, b: 0.025, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
