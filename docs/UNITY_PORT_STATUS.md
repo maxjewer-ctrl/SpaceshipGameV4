@@ -10,6 +10,7 @@ not file count.
 | Browser scenario projection | Complete | Seven browser-derived scenario fixtures consumed by C# tests |
 | First action parity | Complete | Fresh-scenario module swap matches the browser fixture |
 | Authored six-bay ship | Complete | Resource prefab with slots 0–5, room colliders, anchors, cockpit, and engine room |
+| Ship-interior visual read | Complete | Visual revision 3: command deck, framed spine corridor, paired furnished module rooms, ceiling lights, and visible drive core |
 | Level contract validation | Complete | Socket count/order, duplicate IDs, transforms, colliders, room references, and console anchor |
 | First contract/travel loop | Complete | Accept → depart → three days → arrive → pay → save/load |
 | Repeatable automated gate | Complete | `scripts/unity.ps1 verify-slice` |
@@ -36,6 +37,10 @@ await window.kestrel.runAcceptance()
 
 Keep the resulting validation JSON, acceptance result, state, and screenshot
 under `.shots/unity/latest/` while reviewing the change.
+
+For visual reviews, the WebGL development monitor also exposes **Cockpit**,
+**Midship**, and **Engine** inspection views. Treat all three as required visual
+evidence for deck-layout or camera changes.
 
 ## Next transfer slice
 

@@ -120,11 +120,11 @@ switch ($Command) {
       throw "WebGL build not found. Run: scripts\unity.ps1 build-web-dev"
     }
     Write-Host "Serving Unity WebGL build at http://127.0.0.1:$Port"
-    $python = Get-Command python -ErrorAction SilentlyContinue
-    if ($python) {
-      python -m http.server $Port -d $build
-    } else {
+    $py = Get-Command py -ErrorAction SilentlyContinue
+    if ($py) {
       py -3 -m http.server $Port -d $build
+    } else {
+      python -m http.server $Port -d $build
     }
   }
   "verify" {

@@ -20,7 +20,7 @@ public sealed class Interactable : MonoBehaviour
             return;
         }
 
-        if (Vector3.Distance(player.position, transform.position) <= Range && Input.GetKeyDown(KeyCode.E))
+        if (IsClosestToPlayer() && Vector3.Distance(player.position, transform.position) <= Range && Input.GetKeyDown(KeyCode.E))
         {
             OnInteract?.Invoke();
         }
@@ -34,7 +34,7 @@ public sealed class Interactable : MonoBehaviour
             return;
         }
 
-        if (Vector3.Distance(player.position, transform.position) > Range)
+        if (Vector3.Distance(player.position, transform.position) > Range || !IsClosestToPlayer())
         {
             return;
         }
@@ -47,5 +47,23 @@ public sealed class Interactable : MonoBehaviour
 
         var rect = new Rect(screen.x - 110f, Screen.height - screen.y - 18f, 220f, 36f);
         GUI.Box(rect, $"E - {Prompt}");
+    }
+
+    private bool IsClosestToPlayer()
+    {
+        if (player == null) return false;
+        var distance = Vector3.SqrMagnitude(player.position - transform.position);
+        foreach (var candidate in FindObjectsByType<Interactable>(FindObjectsSortMode.None))
+        {
+            if (candidate == this) continue;
+            var candidateDistance = Vector3.SqrMagnitude(player.position - candidate.transform.position);
+            if (candidateDistance + 0.001f < distance ||
+                (Mathf.Abs(candidateDistance - distance) <= 0.001f && candidate.GetInstanceID() < GetInstanceID()))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

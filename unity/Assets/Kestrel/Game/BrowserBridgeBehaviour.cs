@@ -55,6 +55,15 @@ public sealed class BrowserBridgeBehaviour : MonoBehaviour
             case "movePlayerToSlot":
                 Runtime.MovePlayerToSlot(command.slot);
                 break;
+            case "movePlayerToCockpit":
+                Runtime.MovePlayerToCockpit();
+                break;
+            case "movePlayerToMidship":
+                Runtime.MovePlayerToMidship();
+                break;
+            case "movePlayerToEngine":
+                Runtime.MovePlayerToEngine();
+                break;
             case "save":
                 Runtime.SaveCurrent();
                 break;

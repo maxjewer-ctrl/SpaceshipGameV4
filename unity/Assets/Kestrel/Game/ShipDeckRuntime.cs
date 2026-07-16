@@ -97,6 +97,12 @@ public sealed class ShipDeckRuntime : MonoBehaviour
         player.Teleport(socket.transform.position + new Vector3(0f, 0.2f, -1.8f));
     }
 
+    public void MovePlayerToCockpit() => player?.Teleport(new Vector3(0f, 0.2f, -5f));
+
+    public void MovePlayerToMidship() => player?.Teleport(new Vector3(0f, 0.2f, 7.8f));
+
+    public void MovePlayerToEngine() => player?.Teleport(new Vector3(0f, 0.2f, 20.7f));
+
     private void RebuildDeck()
     {
         EnsureMaterials();
@@ -236,11 +242,11 @@ public sealed class ShipDeckRuntime : MonoBehaviour
         player = FindFirstObjectByType<KestrelPlayerController>();
         if (player == null)
         {
-            var playerObject = CaptainMarker("Captain", new Vector3(0f, 1f, -4.5f), new Color(0.75f, 0.82f, 0.92f));
+            var playerObject = CaptainMarker("Captain", new Vector3(0f, 1f, -4.5f), new Color(0.22f, 0.4f, 0.56f));
             playerObject.AddComponent<CharacterController>();
             player = playerObject.AddComponent<KestrelPlayerController>();
         }
-        player.Teleport(new Vector3(0f, 0.2f, -4.5f));
+        player.Teleport(new Vector3(0f, 0.2f, -5f));
         var camera = Camera.main;
         if (camera == null)
         {
@@ -249,6 +255,9 @@ public sealed class ShipDeckRuntime : MonoBehaviour
             camera = cameraObject.AddComponent<Camera>();
             cameraObject.AddComponent<AudioListener>();
         }
+        camera.fieldOfView = 62f;
+        camera.nearClipPlane = 0.08f;
+        camera.farClipPlane = 90f;
         var follow = camera.GetComponent<FollowCamera>() ?? camera.gameObject.AddComponent<FollowCamera>();
         follow.Target = player.transform;
     }
@@ -277,18 +286,26 @@ public sealed class ShipDeckRuntime : MonoBehaviour
         // makes WebGL's managed stripping omit CapsuleCollider, which CreatePrimitive then
         // tries to add at runtime. The marker is visual only; CharacterController owns
         // player collision.
-        var marker = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        marker.name = name;
+        var marker = new GameObject(name);
         marker.transform.position = position;
-        marker.transform.localScale = new Vector3(0.7f, 1.8f, 0.7f);
-        var primitiveCollider = marker.GetComponent<Collider>();
-        if (primitiveCollider != null)
-        {
-            if (Application.isPlaying) Destroy(primitiveCollider);
-            else DestroyImmediate(primitiveCollider);
-        }
-        marker.GetComponent<Renderer>().sharedMaterial = NewMaterial(color, $"{name} Material");
+        var material = NewMaterial(color, $"{name} Material");
+        CaptainPart("Body", marker.transform, new Vector3(0f, 0.72f, 0f), new Vector3(0.52f, 1.15f, 0.42f), material);
+        CaptainPart("Head", marker.transform, new Vector3(0f, 1.55f, 0f), new Vector3(0.46f, 0.46f, 0.46f), material);
         return marker;
+    }
+
+    private static void CaptainPart(string name, Transform parent, Vector3 localPosition, Vector3 scale, Material material)
+    {
+        var part = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        part.name = name;
+        part.transform.SetParent(parent, false);
+        part.transform.localPosition = localPosition;
+        part.transform.localScale = scale;
+        part.GetComponent<Renderer>().sharedMaterial = material;
+        var primitiveCollider = part.GetComponent<Collider>();
+        if (primitiveCollider == null) return;
+        if (Application.isPlaying) Destroy(primitiveCollider);
+        else DestroyImmediate(primitiveCollider);
     }
 
     private static Material NewMaterial(Color color, string name)

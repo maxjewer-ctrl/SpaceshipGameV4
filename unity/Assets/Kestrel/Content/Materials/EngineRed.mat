@@ -124,12 +124,13 @@ Material:
     - _SrcBlend: 1
     - _SrcBlendAlpha: 1
     - _Surface: 0
+    - _Unlit: 0
     - _WorkflowMode: 1
     - _XRMotionVectorsPass: 1
     - _ZWrite: 1
     m_Colors:
     - _BaseColor: {r: 0.34, g: 0.11, b: 0.08, a: 1}
-    - _Color: {r: 0.34, g: 0.11, b: 0.08, a: 1}
+    - _Color: {r: 0.3, g: 0.065, b: 0.035, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _SpecColor: {r: 0.2, g: 0.2, b: 0.2, a: 1}
   m_BuildTextureStacks: []

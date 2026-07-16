@@ -32,7 +32,7 @@ public sealed class ModuleBaySocket : MonoBehaviour
     {
         var camera = Camera.main;
         var player = FindFirstObjectByType<KestrelPlayerController>();
-        if (camera == null || player == null || Vector3.Distance(player.transform.position, transform.position) > 7.5f)
+        if (camera == null || player == null || Vector3.Distance(player.transform.position, transform.position) > 4.8f)
         {
             return;
         }

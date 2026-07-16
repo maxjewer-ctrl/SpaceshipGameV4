@@ -37,6 +37,16 @@
       border-radius: 3px;
       cursor: pointer;
     }
+    #view-controls {
+      display: flex;
+      gap: 5px;
+      margin-bottom: 7px;
+    }
+    #view-controls button {
+      flex: 1;
+      padding: 4px;
+      font-size: 11px;
+    }
     #acceptance-status {
       margin: 0;
       white-space: pre-wrap;
@@ -49,6 +59,11 @@
   </div>
   <aside id="dev-monitor" aria-label="Unity development monitor">
     <button id="run-acceptance" type="button">Run acceptance</button>
+    <div id="view-controls" aria-label="Ship inspection views">
+      <button id="view-cockpit" type="button">Cockpit</button>
+      <button id="view-midship" type="button">Midship</button>
+      <button id="view-engine" type="button">Engine</button>
+    </div>
     <pre id="acceptance-status">Loading Unity...</pre>
   </aside>
   <script src="Build/{{{ LOADER_FILENAME }}}"></script>
@@ -133,6 +148,9 @@
     document.querySelector("#run-acceptance").addEventListener("click", () => {
       window.kestrel.runAcceptance();
     });
+    document.querySelector("#view-cockpit").addEventListener("click", () => window.kestrel.command("movePlayerToCockpit"));
+    document.querySelector("#view-midship").addEventListener("click", () => window.kestrel.command("movePlayerToMidship"));
+    document.querySelector("#view-engine").addEventListener("click", () => window.kestrel.command("movePlayerToEngine"));
 
     createUnityInstance(canvas, {
       dataUrl: "Build/{{{ DATA_FILENAME }}}",
