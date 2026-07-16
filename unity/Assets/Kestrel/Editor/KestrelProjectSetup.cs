@@ -19,6 +19,7 @@ public static class KestrelProjectSetup
         Directory.CreateDirectory("Assets/Scenes");
         Directory.CreateDirectory("Assets/Kestrel/Content");
         KestrelContentSync.SyncBrowserContent();
+        KestrelShipPrefabBuilder.EnsurePrefabs();
 
         if (!File.Exists(ShipDeckScenePath))
         {

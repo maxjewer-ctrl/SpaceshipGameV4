@@ -19,6 +19,26 @@ public sealed class ShipDeckPlayModeTests
 
         Assert.That(Object.FindFirstObjectByType<KestrelPlayerController>(), Is.Not.Null);
         Assert.That(runtime.Sockets.Count, Is.EqualTo(6));
+        Assert.That(runtime.UsingAuthoredDeck, Is.True);
+        Object.Destroy(go);
+    }
+
+    [UnityTest]
+    public IEnumerator ContractTravelAndSaveLoadWorkThroughRuntime()
+    {
+        var go = new GameObject("loop-runtime");
+        var runtime = go.AddComponent<ShipDeckRuntime>();
+        runtime.BuildScenario("fresh", 8919);
+        Assert.That(runtime.RunTransferLoop(), Is.True);
+        Assert.That(runtime.State.Location, Is.EqualTo("foundry"));
+        Assert.That(runtime.State.Credits, Is.EqualTo(740));
+        runtime.SaveCurrent();
+        runtime.BuildScenario("trader", 42);
+        Assert.That(runtime.LoadSaved(), Is.True);
+        Assert.That(runtime.State.Location, Is.EqualTo("foundry"));
+        Assert.That(runtime.State.Credits, Is.EqualTo(740));
+        yield return null;
+        PlayerPrefs.DeleteKey("kestrelrun:unity:slot0");
         Object.Destroy(go);
     }
 }

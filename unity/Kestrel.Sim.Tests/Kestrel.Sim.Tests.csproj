@@ -13,4 +13,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Kestrel.Sim\Kestrel.Sim.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\test\porting\fixtures\*.json" Link="Fixtures\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
 </Project>

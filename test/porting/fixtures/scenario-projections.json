@@ -1,0 +1,716 @@
+{
+  "schema": 1,
+  "seed": 8919,
+  "scenarios": [
+    {
+      "version": 16,
+      "seed": 8919,
+      "scenario": "fresh",
+      "shipName": "Kestrel",
+      "day": 1,
+      "credits": 500,
+      "fuel": 30,
+      "food": 20,
+      "hull": 100,
+      "hullMax": 100,
+      "prestige": 0,
+      "engineLevel": 1,
+      "location": "solace",
+      "docked": true,
+      "bayCount": 6,
+      "modules": [
+        {
+          "slot": 0,
+          "key": "fueltank",
+          "powered": true,
+          "damaged": false,
+          "mark": 1
+        },
+        {
+          "slot": 1,
+          "key": "cargohold",
+          "powered": true,
+          "damaged": false,
+          "mark": 1
+        },
+        {
+          "slot": 2,
+          "key": "cabin",
+          "powered": true,
+          "damaged": false,
+          "mark": 1
+        },
+        {
+          "slot": 3,
+          "key": "quarters",
+          "powered": true,
+          "damaged": false,
+          "mark": 1
+        },
+        {
+          "slot": 4,
+          "key": "workshop",
+          "powered": true,
+          "damaged": false,
+          "mark": 1
+        }
+      ],
+      "crew": []
+    },
+    {
+      "version": 16,
+      "seed": 8919,
+      "scenario": "trader",
+      "shipName": "Marrow's Luck",
+      "day": 14,
+      "credits": 1800,
+      "fuel": 36,
+      "food": 26,
+      "hull": 100,
+      "hullMax": 100,
+      "prestige": 4,
+      "engineLevel": 1,
+      "location": "solace",
+      "docked": true,
+      "bayCount": 8,
+      "modules": [
+        {
+          "slot": 0,
+          "key": "fueltank",
+          "powered": true,
+          "damaged": false,
+          "mark": 1
+        },
+        {
+          "slot": 1,
+          "key": "cargohold",
+          "powered": true,
+          "damaged": false,
+          "mark": 1
+        },
+        {
+          "slot": 2,
+          "key": "cargohold",
+          "powered": true,
+          "damaged": false,
+          "mark": 1
+        },
+        {
+          "slot": 3,
+          "key": "cabin",
+          "powered": true,
+          "damaged": false,
+          "mark": 1
+        },
+        {
+          "slot": 4,
+          "key": "quarters",
+          "powered": true,
+          "damaged": false,
+          "mark": 1
+        },
+        {
+          "slot": 5,
+          "key": "quarters",
+          "powered": true,
+          "damaged": false,
+          "mark": 1
+        },
+        {
+          "slot": 6,
+          "key": "hydro",
+          "powered": true,
+          "damaged": false,
+          "mark": 1
+        },
+        {
+          "slot": 7,
+          "key": "workshop",
+          "powered": true,
+          "damaged": false,
+          "mark": 1
+        }
+      ],
+      "crew": [
+        {
+          "name": "Odile Vance",
+          "role": "pilot"
+        },
+        {
+          "name": "Kesh Barlow",
+          "role": "mechanic"
+        }
+      ]
+    },
+    {
+      "version": 16,
+      "seed": 8919,
+      "scenario": "fighter",
+      "shipName": "Spite & Polish",
+      "day": 20,
+      "credits": 900,
+      "fuel": 38,
+      "food": 22,
+      "hull": 100,
+      "hullMax": 100,
+      "prestige": 6,
+      "engineLevel": 2,
+      "location": "solace",
+      "docked": true,
+      "bayCount": 10,
+      "modules": [
+        {
+          "slot": 0,
+          "key": "fueltank",
+          "powered": true,
+          "damaged": false,
+          "mark": 1
+        },
+        {
+          "slot": 1,
+          "key": "cargohold",
+          "powered": true,
+          "damaged": false,
+          "mark": 1
+        },
+        {
+          "slot": 2,
+          "key": "quarters",
+          "powered": true,
+          "damaged": false,
+          "mark": 1
+        },
+        {
+          "slot": 3,
+          "key": "hydro",
+          "powered": true,
+          "damaged": false,
+          "mark": 1
+        },
+        {
+          "slot": 4,
+          "key": "workshop",
+          "powered": true,
+          "damaged": false,
+          "mark": 1
+        },
+        {
+          "slot": 5,
+          "key": "weapons",
+          "powered": true,
+          "damaged": false,
+          "mark": 1
+        },
+        {
+          "slot": 6,
+          "key": "weapons",
+          "powered": true,
+          "damaged": false,
+          "mark": 1
+        },
+        {
+          "slot": 7,
+          "key": "shields",
+          "powered": true,
+          "damaged": false,
+          "mark": 1
+        },
+        {
+          "slot": 8,
+          "key": "armory",
+          "powered": true,
+          "damaged": false,
+          "mark": 1
+        }
+      ],
+      "crew": [
+        {
+          "name": "Rex Calloway",
+          "role": "gunner"
+        },
+        {
+          "name": "Pia Osei",
+          "role": "mechanic"
+        }
+      ]
+    },
+    {
+      "version": 16,
+      "seed": 8919,
+      "scenario": "silence",
+      "shipName": "Long Ear",
+      "day": 17,
+      "credits": 1400,
+      "fuel": 40,
+      "food": 30,
+      "hull": 100,
+      "hullMax": 100,
+      "prestige": 5,
+      "engineLevel": 1,
+      "location": "solace",
+      "docked": true,
+      "bayCount": 8,
+      "modules": [
+        {
+          "slot": 0,
+          "key": "fueltank",
+          "powered": true,
+          "damaged": false,
+          "mark": 1
+        },
+        {
+          "slot": 1,
+          "key": "cargohold",
+          "powered": true,
+          "damaged": false,
+          "mark": 1
+        },
+        {
+          "slot": 2,
+          "key": "cargohold",
+          "powered": true,
+          "damaged": false,
+          "mark": 1
+        },
+        {
+          "slot": 3,
+          "key": "cabin",
+          "powered": true,
+          "damaged": false,
+          "mark": 1
+        },
+        {
+          "slot": 4,
+          "key": "quarters",
+          "powered": true,
+          "damaged": false,
+          "mark": 1
+        },
+        {
+          "slot": 5,
+          "key": "hydro",
+          "powered": true,
+          "damaged": false,
+          "mark": 1
+        },
+        {
+          "slot": 6,
+          "key": "workshop",
+          "powered": true,
+          "damaged": false,
+          "mark": 1
+        }
+      ],
+      "crew": [
+        {
+          "name": "Dane Okoro",
+          "role": "pilot"
+        },
+        {
+          "name": "Sef Adeyemi",
+          "role": "cook"
+        }
+      ]
+    },
+    {
+      "version": 16,
+      "seed": 8919,
+      "scenario": "arc",
+      "shipName": "Twelve Stars",
+      "day": 30,
+      "credits": 2500,
+      "fuel": 60,
+      "food": 35,
+      "hull": 100,
+      "hullMax": 100,
+      "prestige": 12,
+      "engineLevel": 2,
+      "location": "solace",
+      "docked": true,
+      "bayCount": 10,
+      "modules": [
+        {
+          "slot": 0,
+          "key": "fueltank",
+          "powered": true,
+          "damaged": false,
+          "mark": 1
+        },
+        {
+          "slot": 1,
+          "key": "fueltank",
+          "powered": true,
+          "damaged": false,
+          "mark": 1
+        },
+        {
+          "slot": 2,
+          "key": "cargohold",
+          "powered": true,
+          "damaged": false,
+          "mark": 1
+        },
+        {
+          "slot": 3,
+          "key": "cabin",
+          "powered": true,
+          "damaged": false,
+          "mark": 1
+        },
+        {
+          "slot": 4,
+          "key": "quarters",
+          "powered": true,
+          "damaged": false,
+          "mark": 1
+        },
+        {
+          "slot": 5,
+          "key": "hydro",
+          "powered": true,
+          "damaged": false,
+          "mark": 1
+        },
+        {
+          "slot": 6,
+          "key": "workshop",
+          "powered": true,
+          "damaged": false,
+          "mark": 1
+        },
+        {
+          "slot": 7,
+          "key": "weapons",
+          "powered": true,
+          "damaged": false,
+          "mark": 1
+        },
+        {
+          "slot": 8,
+          "key": "shields",
+          "powered": true,
+          "damaged": false,
+          "mark": 1
+        }
+      ],
+      "crew": [
+        {
+          "name": "Odile Vance",
+          "role": "pilot"
+        },
+        {
+          "name": "Rex Calloway",
+          "role": "gunner"
+        },
+        {
+          "name": "Kesh Barlow",
+          "role": "mechanic"
+        }
+      ]
+    },
+    {
+      "version": 16,
+      "seed": 8919,
+      "scenario": "run",
+      "shipName": "Last Light",
+      "day": 44,
+      "credits": 800,
+      "fuel": 80,
+      "food": 44,
+      "hull": 100,
+      "hullMax": 100,
+      "prestige": 14,
+      "engineLevel": 3,
+      "location": "solace",
+      "docked": true,
+      "bayCount": 10,
+      "modules": [
+        {
+          "slot": 0,
+          "key": "fueltank",
+          "powered": true,
+          "damaged": false,
+          "mark": 1
+        },
+        {
+          "slot": 1,
+          "key": "fueltank",
+          "powered": true,
+          "damaged": false,
+          "mark": 1
+        },
+        {
+          "slot": 2,
+          "key": "cargohold",
+          "powered": true,
+          "damaged": false,
+          "mark": 1
+        },
+        {
+          "slot": 3,
+          "key": "quarters",
+          "powered": true,
+          "damaged": false,
+          "mark": 1
+        },
+        {
+          "slot": 4,
+          "key": "hydro",
+          "powered": true,
+          "damaged": false,
+          "mark": 1
+        },
+        {
+          "slot": 5,
+          "key": "workshop",
+          "powered": true,
+          "damaged": false,
+          "mark": 1
+        },
+        {
+          "slot": 6,
+          "key": "weapons",
+          "powered": true,
+          "damaged": false,
+          "mark": 1
+        },
+        {
+          "slot": 7,
+          "key": "weapons",
+          "powered": true,
+          "damaged": false,
+          "mark": 1
+        },
+        {
+          "slot": 8,
+          "key": "shields",
+          "powered": true,
+          "damaged": false,
+          "mark": 1
+        }
+      ],
+      "crew": [
+        {
+          "name": "Odile Vance",
+          "role": "pilot"
+        },
+        {
+          "name": "Rex Calloway",
+          "role": "gunner"
+        },
+        {
+          "name": "Kesh Barlow",
+          "role": "mechanic"
+        }
+      ]
+    },
+    {
+      "version": 16,
+      "seed": 8919,
+      "scenario": "reckoning",
+      "shipName": "Verdict",
+      "day": 52,
+      "credits": 3200,
+      "fuel": 70,
+      "food": 40,
+      "hull": 100,
+      "hullMax": 100,
+      "prestige": 15,
+      "engineLevel": 3,
+      "location": "solace",
+      "docked": true,
+      "bayCount": 10,
+      "modules": [
+        {
+          "slot": 0,
+          "key": "fueltank",
+          "powered": true,
+          "damaged": false,
+          "mark": 1
+        },
+        {
+          "slot": 1,
+          "key": "fueltank",
+          "powered": true,
+          "damaged": false,
+          "mark": 1
+        },
+        {
+          "slot": 2,
+          "key": "cargohold",
+          "powered": true,
+          "damaged": false,
+          "mark": 1
+        },
+        {
+          "slot": 3,
+          "key": "cabin",
+          "powered": true,
+          "damaged": false,
+          "mark": 1
+        },
+        {
+          "slot": 4,
+          "key": "quarters",
+          "powered": true,
+          "damaged": false,
+          "mark": 1
+        },
+        {
+          "slot": 5,
+          "key": "hydro",
+          "powered": true,
+          "damaged": false,
+          "mark": 1
+        },
+        {
+          "slot": 6,
+          "key": "workshop",
+          "powered": true,
+          "damaged": false,
+          "mark": 1
+        },
+        {
+          "slot": 7,
+          "key": "weapons",
+          "powered": true,
+          "damaged": false,
+          "mark": 1
+        },
+        {
+          "slot": 8,
+          "key": "shields",
+          "powered": true,
+          "damaged": false,
+          "mark": 1
+        }
+      ],
+      "crew": [
+        {
+          "name": "Odile Vance",
+          "role": "pilot"
+        },
+        {
+          "name": "Ansel Grey",
+          "role": "medic"
+        },
+        {
+          "name": "Kesh Barlow",
+          "role": "mechanic"
+        }
+      ]
+    }
+  ],
+  "swapTrace": {
+    "initial": {
+      "version": 16,
+      "seed": 8919,
+      "scenario": "fresh",
+      "shipName": "Kestrel",
+      "day": 1,
+      "credits": 500,
+      "fuel": 30,
+      "food": 20,
+      "hull": 100,
+      "hullMax": 100,
+      "prestige": 0,
+      "engineLevel": 1,
+      "location": "solace",
+      "docked": true,
+      "bayCount": 6,
+      "modules": [
+        {
+          "slot": 0,
+          "key": "fueltank",
+          "powered": true,
+          "damaged": false,
+          "mark": 1
+        },
+        {
+          "slot": 1,
+          "key": "cargohold",
+          "powered": true,
+          "damaged": false,
+          "mark": 1
+        },
+        {
+          "slot": 2,
+          "key": "cabin",
+          "powered": true,
+          "damaged": false,
+          "mark": 1
+        },
+        {
+          "slot": 3,
+          "key": "quarters",
+          "powered": true,
+          "damaged": false,
+          "mark": 1
+        },
+        {
+          "slot": 4,
+          "key": "workshop",
+          "powered": true,
+          "damaged": false,
+          "mark": 1
+        }
+      ],
+      "crew": []
+    },
+    "afterSwap": {
+      "version": 16,
+      "seed": 8919,
+      "scenario": "fresh",
+      "shipName": "Kestrel",
+      "day": 1,
+      "credits": 500,
+      "fuel": 30,
+      "food": 20,
+      "hull": 100,
+      "hullMax": 100,
+      "prestige": 0,
+      "engineLevel": 1,
+      "location": "solace",
+      "docked": true,
+      "bayCount": 6,
+      "modules": [
+        {
+          "slot": 0,
+          "key": "cargohold",
+          "powered": true,
+          "damaged": false,
+          "mark": 1
+        },
+        {
+          "slot": 1,
+          "key": "fueltank",
+          "powered": true,
+          "damaged": false,
+          "mark": 1
+        },
+        {
+          "slot": 2,
+          "key": "cabin",
+          "powered": true,
+          "damaged": false,
+          "mark": 1
+        },
+        {
+          "slot": 3,
+          "key": "quarters",
+          "powered": true,
+          "damaged": false,
+          "mark": 1
+        },
+        {
+          "slot": 4,
+          "key": "workshop",
+          "powered": true,
+          "damaged": false,
+          "mark": 1
+        }
+      ],
+      "crew": []
+    }
+  }
+}

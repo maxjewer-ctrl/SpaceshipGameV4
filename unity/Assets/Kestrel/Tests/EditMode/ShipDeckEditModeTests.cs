@@ -18,7 +18,8 @@ public sealed class ShipDeckEditModeTests
         runtime.BuildScenario("fresh", 8919);
 
         Assert.That(runtime.Sockets.Count, Is.EqualTo(6));
-        Assert.That(runtime.State.Ship.Modules.Count, Is.EqualTo(6));
+        Assert.That(runtime.State.Ship.Modules.Count, Is.EqualTo(5));
+        Assert.That(runtime.UsingAuthoredDeck, Is.True);
         Object.DestroyImmediate(go);
     }
 
@@ -48,7 +49,10 @@ public sealed class ShipDeckEditModeTests
     public void SyncedBrowserModulesCoverUnityScenarios()
     {
         var catalog = UnityModuleContent.LoadCatalog();
-        var moduleKeys = GameStateFactory.CreateScenario("trader", 424242).Ship.Modules.Select(module => module.Key).Distinct();
+        var moduleKeys = GameStateFactory.ScenarioNames
+            .SelectMany(name => GameStateFactory.CreateScenario(name, 424242).Ship.Modules)
+            .Select(module => module.Key)
+            .Distinct();
 
         foreach (var key in moduleKeys)
         {
@@ -62,5 +66,18 @@ public sealed class ShipDeckEditModeTests
         var result = KestrelLevelValidator.ValidateOpenLevel();
 
         Assert.That(result.Errors, Is.Empty);
+    }
+
+    [Test]
+    public void AuthoredSixBayPrefabHasCompleteLevelContract()
+    {
+        var result = KestrelLevelValidator.ValidatePrefabAtPath(KestrelShipPrefabBuilder.SixBayPrefabPath);
+        Assert.That(result.Errors, Is.Empty);
+
+        var prefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>(KestrelShipPrefabBuilder.SixBayPrefabPath);
+        var sockets = prefab.GetComponentsInChildren<ModuleBaySocket>(true).OrderBy(socket => socket.Slot).ToArray();
+        Assert.That(sockets.Select(socket => socket.Slot), Is.EqualTo(Enumerable.Range(0, 6)));
+        Assert.That(sockets.All(socket => socket.InteractionAnchor != null), Is.True);
+        Assert.That(sockets.All(socket => socket.RoomCollider != null), Is.True);
     }
 }

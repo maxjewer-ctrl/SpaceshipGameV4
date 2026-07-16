@@ -8,12 +8,14 @@ namespace Kestrel.Game;
 
 public sealed class ShipDeckRuntime : MonoBehaviour
 {
+    private const string SixBayDeckResource = "Kestrel/Prefabs/KestrelSixBayDeck";
     private readonly List<ModuleBaySocket> sockets = new();
     private GameState state = GameStateFactory.CreateScenario("fresh", 8919);
     private ModuleCatalog moduleCatalog = ModuleCatalog.Empty;
     private KestrelPlayerController? player;
     private BrowserBridgeBehaviour? bridge;
     private Transform? deckRoot;
+    private Interactable? captainConsole;
     private Material? floorMaterial;
     private Material? wallMaterial;
     private Material? cockpitMaterial;
@@ -22,6 +24,8 @@ public sealed class ShipDeckRuntime : MonoBehaviour
 
     public GameState State => state;
     public IReadOnlyList<ModuleBaySocket> Sockets => sockets;
+    public bool UsingAuthoredDeck { get; private set; }
+    public string Objective => CurrentObjective();
 
     private void Start()
     {
@@ -33,78 +37,179 @@ public sealed class ShipDeckRuntime : MonoBehaviour
     {
         state = GameStateFactory.CreateScenario(scenario, seed);
         RebuildDeck();
-        bridge?.PublishState();
+        PublishState();
     }
 
     public void SwapModules(int slotA, int slotB)
     {
-        var a = state.Ship.Modules.FirstOrDefault(m => m.Slot == slotA);
-        var b = state.Ship.Modules.FirstOrDefault(m => m.Slot == slotB);
-        if (a == null || b == null || a == b)
-        {
-            return;
-        }
-
-        (a.Key, b.Key) = (b.Key, a.Key);
-        (a.Powered, b.Powered) = (b.Powered, a.Powered);
-        RefreshSocketLabels();
-        SaveCurrent();
-        bridge?.PublishState();
+        if (GameLoop.SwapModules(state, slotA, slotB)) StateChanged();
     }
 
-    public void SaveCurrent()
+    public bool AcceptContract(int contractId = 1001)
     {
-        var json = SaveCodec.Serialize(state);
-        KestrelSaveStore.Save("kestrelrun:unity:slot0", json);
+        var changed = GameLoop.AcceptContract(state, contractId);
+        if (changed) StateChanged();
+        return changed;
     }
+
+    public bool Depart(string destination)
+    {
+        var changed = GameLoop.Depart(state, destination);
+        if (changed) StateChanged();
+        return changed;
+    }
+
+    public bool AdvanceTravelDay()
+    {
+        var changed = GameLoop.AdvanceTravelDay(state);
+        if (changed) StateChanged();
+        return changed;
+    }
+
+    public bool RunTransferLoop()
+    {
+        if (state.Offers.Any()) AcceptContract(state.Offers[0].Id);
+        if (state.Docked && state.Jobs.Any()) Depart(state.Jobs[0].Destination);
+        var guard = 20;
+        while (state.Travel != null && guard-- > 0) AdvanceTravelDay();
+        return state.Docked && state.Location == "foundry" && state.Jobs.Count == 0 && state.Credits >= 740;
+    }
+
+    public void SaveCurrent() => KestrelSaveStore.Save("kestrelrun:unity:slot0", SaveCodec.Serialize(state));
 
     public bool LoadSaved()
     {
         var json = KestrelSaveStore.Load("kestrelrun:unity:slot0");
-        if (string.IsNullOrWhiteSpace(json))
-        {
-            return false;
-        }
-
+        if (string.IsNullOrWhiteSpace(json)) return false;
         state = SaveCodec.Deserialize(json);
         RebuildDeck();
-        bridge?.PublishState();
+        PublishState();
         return true;
     }
 
-    public string StateJson()
-    {
-        return SaveCodec.Serialize(state);
-    }
+    public string StateJson() => SaveCodec.Serialize(state);
+    public string PortSnapshotJson() => PortSnapshotCodec.Serialize(state);
 
     public void MovePlayerToSlot(int slot)
     {
-        var socket = sockets.FirstOrDefault(s => s.Slot == slot);
-        if (socket == null || player == null)
-        {
-            return;
-        }
-
+        var socket = sockets.FirstOrDefault(candidate => candidate.Slot == slot);
+        if (socket == null || player == null) return;
         player.Teleport(socket.transform.position + new Vector3(0f, 0.2f, -1.8f));
     }
 
     private void RebuildDeck()
     {
         EnsureMaterials();
-        if (deckRoot != null)
-        {
-            Destroy(deckRoot.gameObject);
-        }
-
+        if (deckRoot != null) Destroy(deckRoot.gameObject);
         sockets.Clear();
         deckRoot = new GameObject("Ship Deck").transform;
         deckRoot.SetParent(transform, false);
-
         CreateLighting();
         CreatePlayerAndCamera();
         CreateBridge();
-        CreateDeckGeometry();
+        UsingAuthoredDeck = TryCreateAuthoredDeck();
+        if (!UsingAuthoredDeck) CreatePrototypeDeck();
+        BindSocketInteractions();
         RefreshSocketLabels();
+        UpdateConsolePrompt();
+    }
+
+    private bool TryCreateAuthoredDeck()
+    {
+        if (state.Ship.BayCount != 6) return false;
+        var prefab = Resources.Load<GameObject>(SixBayDeckResource);
+        if (prefab == null) return false;
+        var instance = Instantiate(prefab, deckRoot, false);
+        instance.name = "Kestrel Six Bay Deck (Authored)";
+        sockets.AddRange(instance.GetComponentsInChildren<ModuleBaySocket>(true).OrderBy(socket => socket.Slot));
+        var layout = instance.GetComponent<ShipDeckLayout>();
+        if (layout?.CaptainConsoleAnchor != null) BindCaptainConsole(layout.CaptainConsoleAnchor);
+        return sockets.Count == state.Ship.BayCount;
+    }
+
+    private void CreatePrototypeDeck()
+    {
+        var count = state.Ship.BayCount;
+        var length = count * 4.5f + 4f;
+        Cube("Main Corridor", new Vector3(0f, -0.05f, length * 0.5f - 2f), new Vector3(2.8f, 0.1f, length), floorMaterial);
+        for (var slot = 0; slot < count; slot++) CreatePrototypeBay(slot, slot * 4.5f);
+        Cube("Port Wall", new Vector3(-3.55f, 1.4f, length * 0.5f - 2f), new Vector3(0.2f, 2.8f, length), wallMaterial);
+        Cube("Starboard Wall", new Vector3(3.55f, 1.4f, length * 0.5f - 2f), new Vector3(0.2f, 2.8f, length), wallMaterial);
+        var console = Cube("Captain Console", new Vector3(0f, 0.45f, -2.2f), new Vector3(1.4f, 0.8f, 0.7f), cockpitMaterial);
+        BindCaptainConsole(console.transform);
+    }
+
+    private void CreatePrototypeBay(int slot, float z)
+    {
+        var floor = Cube($"Bay {slot} Floor", new Vector3(0f, 0f, z), new Vector3(6.8f, 0.12f, 3.7f), moduleMaterial);
+        Cube($"Bay {slot} Port Bulkhead", new Vector3(-3.35f, 1.2f, z), new Vector3(0.16f, 2.4f, 3.6f), wallMaterial);
+        Cube($"Bay {slot} Starboard Bulkhead", new Vector3(3.35f, 1.2f, z), new Vector3(0.16f, 2.4f, 3.6f), wallMaterial);
+        var socketObject = new GameObject($"Module Socket {slot}");
+        socketObject.transform.SetParent(deckRoot, false);
+        socketObject.transform.position = new Vector3(0f, 0.15f, z);
+        var anchor = new GameObject("Interaction Anchor").transform;
+        anchor.SetParent(socketObject.transform, false);
+        var socket = socketObject.AddComponent<ModuleBaySocket>();
+        socket.Configure(slot, anchor, floor.GetComponent<Collider>());
+        sockets.Add(socket);
+    }
+
+    private void BindSocketInteractions()
+    {
+        foreach (var socket in sockets)
+        {
+            var anchor = socket.InteractionAnchor ?? socket.transform;
+            var interactable = anchor.GetComponent<Interactable>() ?? anchor.gameObject.AddComponent<Interactable>();
+            interactable.Range = 2.25f;
+            interactable.Prompt = "Inspect module";
+        }
+    }
+
+    private void BindCaptainConsole(Transform anchor)
+    {
+        captainConsole = anchor.GetComponent<Interactable>() ?? anchor.gameObject.AddComponent<Interactable>();
+        captainConsole.Range = 2.5f;
+        captainConsole.OnInteract += NextLoopStep;
+    }
+
+    private void NextLoopStep()
+    {
+        if (state.Offers.Any()) AcceptContract(state.Offers[0].Id);
+        else if (state.Docked && state.Jobs.Any()) Depart(state.Jobs[0].Destination);
+        else if (state.Travel != null) AdvanceTravelDay();
+    }
+
+    private void StateChanged()
+    {
+        RefreshSocketLabels();
+        UpdateConsolePrompt();
+        PublishState();
+    }
+
+    private void UpdateConsolePrompt()
+    {
+        if (captainConsole != null) captainConsole.Prompt = CurrentObjective();
+    }
+
+    private string CurrentObjective()
+    {
+        if (state.Offers.Any()) return $"Accept {state.Offers[0].Title}";
+        if (state.Docked && state.Jobs.Any()) return $"Plot course to {state.Jobs[0].Destination}";
+        if (state.Travel != null) return $"Advance burn ({state.Travel.Left}d remain)";
+        return "Review completed run";
+    }
+
+    private void PublishState() => bridge?.PublishState();
+
+    private void RefreshSocketLabels()
+    {
+        foreach (var socket in sockets)
+        {
+            var module = state.Ship.Modules.FirstOrDefault(candidate => candidate.Slot == socket.Slot);
+            socket.ModuleKey = module?.Key ?? "empty";
+            socket.ModuleName = moduleCatalog.Find(socket.ModuleKey)?.Name ?? socket.ModuleKey;
+            socket.Powered = module?.Powered ?? false;
+        }
     }
 
     private void EnsureMaterials()
@@ -114,13 +219,6 @@ public sealed class ShipDeckRuntime : MonoBehaviour
         cockpitMaterial ??= NewMaterial(new Color(0.12f, 0.23f, 0.34f), "Kestrel Cockpit");
         engineMaterial ??= NewMaterial(new Color(0.35f, 0.18f, 0.12f), "Kestrel Engine");
         moduleMaterial ??= NewMaterial(new Color(0.22f, 0.31f, 0.25f), "Kestrel Module");
-    }
-
-    private static Material NewMaterial(Color color, string name)
-    {
-        var shader = Shader.Find("Universal Render Pipeline/Lit") ?? Shader.Find("Standard");
-        var material = new Material(shader) { name = name, color = color };
-        return material;
     }
 
     private void CreateLighting()
@@ -138,13 +236,11 @@ public sealed class ShipDeckRuntime : MonoBehaviour
         player = FindFirstObjectByType<KestrelPlayerController>();
         if (player == null)
         {
-            var playerObject = Capsule("Captain", new Vector3(0f, 1f, -1.5f), new Color(0.75f, 0.82f, 0.92f));
+            var playerObject = CaptainMarker("Captain", new Vector3(0f, 1f, -4.5f), new Color(0.75f, 0.82f, 0.92f));
             playerObject.AddComponent<CharacterController>();
             player = playerObject.AddComponent<KestrelPlayerController>();
         }
-
-        player.Teleport(new Vector3(0f, 0.2f, -1.5f));
-
+        player.Teleport(new Vector3(0f, 0.2f, -4.5f));
         var camera = Camera.main;
         if (camera == null)
         {
@@ -153,7 +249,6 @@ public sealed class ShipDeckRuntime : MonoBehaviour
             camera = cameraObject.AddComponent<Camera>();
             cameraObject.AddComponent<AudioListener>();
         }
-
         var follow = camera.GetComponent<FollowCamera>() ?? camera.gameObject.AddComponent<FollowCamera>();
         follow.Target = player.transform;
     }
@@ -161,73 +256,8 @@ public sealed class ShipDeckRuntime : MonoBehaviour
     private void CreateBridge()
     {
         bridge = FindFirstObjectByType<BrowserBridgeBehaviour>();
-        if (bridge == null)
-        {
-            var bridgeObject = new GameObject("KestrelBridge");
-            bridge = bridgeObject.AddComponent<BrowserBridgeBehaviour>();
-        }
-
+        if (bridge == null) bridge = new GameObject("KestrelBridge").AddComponent<BrowserBridgeBehaviour>();
         bridge.Runtime = this;
-    }
-
-    private void CreateDeckGeometry()
-    {
-        var count = state.Ship.BayCount;
-        var length = count * 4.5f + 4f;
-        Cube("Main Corridor", new Vector3(0f, -0.05f, length * 0.5f - 2f), new Vector3(2.8f, 0.1f, length), floorMaterial);
-
-        for (var i = 0; i < count; i++)
-        {
-            var z = i * 4.5f;
-            var roomMaterial = i == 0 ? cockpitMaterial : i == count - 1 ? engineMaterial : moduleMaterial;
-            CreateBay(i, z, roomMaterial);
-        }
-
-        Cube("Port Wall", new Vector3(-3.55f, 1.4f, length * 0.5f - 2f), new Vector3(0.2f, 2.8f, length), wallMaterial);
-        Cube("Starboard Wall", new Vector3(3.55f, 1.4f, length * 0.5f - 2f), new Vector3(0.2f, 2.8f, length), wallMaterial);
-    }
-
-    private void CreateBay(int slot, float z, Material? roomMaterial)
-    {
-        Cube($"Bay {slot} Floor", new Vector3(0f, 0f, z), new Vector3(6.8f, 0.12f, 3.7f), roomMaterial);
-        Cube($"Bay {slot} Port Bulkhead", new Vector3(-3.35f, 1.2f, z), new Vector3(0.16f, 2.4f, 3.6f), wallMaterial);
-        Cube($"Bay {slot} Starboard Bulkhead", new Vector3(3.35f, 1.2f, z), new Vector3(0.16f, 2.4f, 3.6f), wallMaterial);
-        Cube($"Bay {slot} Aft Line", new Vector3(0f, 0.08f, z + 1.85f), new Vector3(6.8f, 0.16f, 0.1f), wallMaterial);
-
-        var socketObject = new GameObject($"Module Socket {slot}");
-        socketObject.transform.SetParent(deckRoot, false);
-        socketObject.transform.position = new Vector3(0f, 0.15f, z);
-        var socket = socketObject.AddComponent<ModuleBaySocket>();
-        socket.Slot = slot;
-        sockets.Add(socket);
-
-        var interactable = socketObject.AddComponent<Interactable>();
-        interactable.Range = 2.25f;
-        interactable.Prompt = slot == 0 ? "Captain console" : "Inspect module";
-        interactable.OnInteract += () =>
-        {
-            if (slot == 0)
-            {
-                SwapModules(1, Math.Min(2, state.Ship.BayCount - 2));
-            }
-        };
-
-        if (slot == 0)
-        {
-            var console = Cube("Captain Console", new Vector3(0f, 0.45f, z + 0.8f), new Vector3(1.4f, 0.8f, 0.7f), cockpitMaterial);
-            console.transform.SetParent(socketObject.transform, true);
-        }
-    }
-
-    private void RefreshSocketLabels()
-    {
-        foreach (var socket in sockets)
-        {
-            var module = state.Ship.Modules.FirstOrDefault(m => m.Slot == socket.Slot);
-            socket.ModuleKey = module?.Key ?? "empty";
-            socket.ModuleName = moduleCatalog.Find(socket.ModuleKey)?.Name ?? socket.ModuleKey;
-            socket.Powered = module?.Powered ?? false;
-        }
     }
 
     private GameObject Cube(string name, Vector3 position, Vector3 scale, Material? material)
@@ -237,20 +267,42 @@ public sealed class ShipDeckRuntime : MonoBehaviour
         cube.transform.SetParent(deckRoot, false);
         cube.transform.position = position;
         cube.transform.localScale = scale;
-        if (material != null)
-        {
-            cube.GetComponent<Renderer>().sharedMaterial = material;
-        }
-
+        if (material != null) cube.GetComponent<Renderer>().sharedMaterial = material;
         return cube;
     }
 
-    private static GameObject Capsule(string name, Vector3 position, Color color)
+    private static GameObject CaptainMarker(string name, Vector3 position, Color color)
     {
-        var capsule = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-        capsule.name = name;
-        capsule.transform.position = position;
-        capsule.GetComponent<Renderer>().sharedMaterial = NewMaterial(color, $"{name} Material");
-        return capsule;
+        // Cube is already retained by the authored deck. Using the capsule primitive here
+        // makes WebGL's managed stripping omit CapsuleCollider, which CreatePrimitive then
+        // tries to add at runtime. The marker is visual only; CharacterController owns
+        // player collision.
+        var marker = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        marker.name = name;
+        marker.transform.position = position;
+        marker.transform.localScale = new Vector3(0.7f, 1.8f, 0.7f);
+        var primitiveCollider = marker.GetComponent<Collider>();
+        if (primitiveCollider != null)
+        {
+            if (Application.isPlaying) Destroy(primitiveCollider);
+            else DestroyImmediate(primitiveCollider);
+        }
+        marker.GetComponent<Renderer>().sharedMaterial = NewMaterial(color, $"{name} Material");
+        return marker;
+    }
+
+    private static Material NewMaterial(Color color, string name)
+    {
+        var shader = Shader.Find("Kestrel/Flat") ?? Shader.Find("Universal Render Pipeline/Unlit") ?? Shader.Find("Standard");
+        return new Material(shader) { name = name, color = color };
+    }
+
+    private void OnGUI()
+    {
+        var travel = state.Travel == null ? state.Location : $"{state.Travel.From} → {state.Travel.Destination} ({state.Travel.Left}d)";
+        GUI.Box(new Rect(18f, 18f, 360f, 112f), "");
+        GUI.Label(new Rect(32f, 28f, 330f, 24f), $"{state.ShipName} · Day {state.Day} · {travel}");
+        GUI.Label(new Rect(32f, 52f, 330f, 24f), $"{state.Credits}cr  Fuel {state.Fuel:0.#}  Food {state.Food}  Hull {state.Hull}/{state.HullMax}");
+        GUI.Label(new Rect(32f, 78f, 330f, 40f), $"Objective: {CurrentObjective()}");
     }
 }

@@ -40,6 +40,18 @@ public sealed class BrowserBridgeBehaviour : MonoBehaviour
             case "swapModules":
                 Runtime.SwapModules(command.slotA, command.slotB);
                 break;
+            case "acceptContract":
+                Runtime.AcceptContract(command.contractId == 0 ? 1001 : command.contractId);
+                break;
+            case "depart":
+                Runtime.Depart(string.IsNullOrWhiteSpace(command.destination) ? "foundry" : command.destination);
+                break;
+            case "advanceDay":
+                Runtime.AdvanceTravelDay();
+                break;
+            case "runTransferLoop":
+                Runtime.RunTransferLoop();
+                break;
             case "movePlayerToSlot":
                 Runtime.MovePlayerToSlot(command.slot);
                 break;
@@ -97,5 +109,7 @@ public sealed class BrowserBridgeBehaviour : MonoBehaviour
         public int slot;
         public int slotA;
         public int slotB;
+        public int contractId;
+        public string destination = "";
     }
 }

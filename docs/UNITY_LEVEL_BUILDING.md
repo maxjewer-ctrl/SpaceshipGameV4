@@ -12,6 +12,11 @@ Use Unity `6000.4.2f1` for the current local project. The migration plan still p
 - `scripts/unity.ps1 unity-test`: run Unity EditMode and PlayMode tests locally.
 - `scripts/unity.ps1 build-web-dev`: build the local WebGL development player.
 - `scripts/unity.ps1 serve-web`: serve the WebGL build at `http://127.0.0.1:5174`.
+- `scripts/unity.ps1 verify-slice`: setup, C# tests, Unity tests, level report,
+  WebGL build verification, and shared browser CI.
+- The WebGL development player includes a **Run acceptance** monitor. It checks
+  scenario load, authored state, module swapping, explicit save/load, the first
+  contract/travel loop, and a nonblank canvas capture.
 
 ## Authoring Rules
 
@@ -23,7 +28,12 @@ Use Unity `6000.4.2f1` for the current local project. The migration plan still p
 
 ## Current Slice
 
-The current scene is generated at runtime by `ShipDeckRuntime`. It creates 6-bay and 8-bay layouts, an over-the-shoulder player controller, module sockets, a captain console interaction, save/load, and the browser bridge. Replace generated rooms with hand-authored prefabs incrementally while preserving the socket IDs.
+The six-bay scene now loads the authored
+`Assets/Resources/Kestrel/Prefabs/KestrelSixBayDeck.prefab`. It owns stable
+module sockets `0..5`, room colliders, interaction anchors, an integrated
+cockpit, and an engine room. `ShipDeckRuntime` remains the orchestrator. Larger
+8/10-bay deterministic scenarios still use prototype geometry until their
+prefabs are authored.
 
 ## Fresh Session Handoff
 
@@ -38,16 +48,14 @@ Current verified state:
   coverage for Unity scenarios.
 - PlayMode tests cover runtime player/socket spawning.
 
-Recommended next task:
+Current validation rejects missing/duplicate/non-contiguous socket IDs,
+non-finite transforms, missing room colliders, missing interaction anchors,
+missing room references, and a missing captain-console anchor.
 
-Create the first hand-authored ship interior prefab set:
-
-- Keep slot IDs stable and contiguous.
-- Start with the 6-bay hull.
-- Replace generated floor/wall cubes with authored room prefabs.
-- Keep `ShipDeckRuntime` as the orchestrator until prefab loading is tested.
-- Add validation for missing socket transforms, duplicate slots, missing
-  colliders, and missing interaction anchors.
+Recommended next task: pin browser traces for starvation and payroll, then add
+them to the existing fuel/food/arrival travel kernel. Author the eight-bay
+prefab only after that trace passes, keeping visual expansion behind simulation
+proof.
 
 Before handing off or committing, run:
 
@@ -56,5 +64,6 @@ scripts/unity.ps1 sim-test
 scripts/unity.ps1 unity-test
 scripts/unity.ps1 build-web-dev
 scripts/unity.ps1 verify
+scripts/unity.ps1 verify-slice
 npm run ci
 ```

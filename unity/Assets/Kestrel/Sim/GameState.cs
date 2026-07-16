@@ -5,12 +5,26 @@ namespace Kestrel.Sim;
 public sealed class GameState
 {
     public const int CurrentVersion = 16;
-
     public int Version { get; set; } = CurrentVersion;
     public int Seed { get; set; }
     public string Scenario { get; set; } = "fresh";
+    public string ShipName { get; set; } = "Kestrel";
+    public int Day { get; set; } = 1;
+    public int Credits { get; set; } = 500;
+    public float Fuel { get; set; } = 30f;
+    public int Food { get; set; } = 20;
+    public int Hull { get; set; } = 100;
+    public int HullMax { get; set; } = 100;
+    public int Prestige { get; set; }
+    public int EngineLevel { get; set; } = 1;
+    public string Location { get; set; } = "solace";
+    public bool Docked { get; set; } = true;
     public ShipState Ship { get; set; } = new();
     public List<CrewState> Crew { get; set; } = new();
+    public List<ContractState> Offers { get; set; } = new();
+    public List<ContractState> Jobs { get; set; } = new();
+    public TravelState? Travel { get; set; }
+    public List<string> Log { get; set; } = new();
 }
 
 public sealed class ShipState
@@ -25,6 +39,8 @@ public sealed class ModuleState
     public int Slot { get; set; }
     public string Key { get; set; } = "";
     public bool Powered { get; set; } = true;
+    public bool Damaged { get; set; }
+    public int Mark { get; set; } = 1;
 }
 
 public sealed class CrewState
@@ -33,6 +49,23 @@ public sealed class CrewState
     public string Name { get; set; } = "";
     public string Role { get; set; } = "";
     public int PostSlot { get; set; }
+}
+
+public sealed class ContractState
+{
+    public int Id { get; set; }
+    public string Title { get; set; } = "";
+    public string Destination { get; set; } = "";
+    public int Pay { get; set; }
+    public int Prestige { get; set; }
+}
+
+public sealed class TravelState
+{
+    public string From { get; set; } = "";
+    public string Destination { get; set; } = "";
+    public int Total { get; set; }
+    public int Left { get; set; }
 }
 
 public sealed class CanonicalScenario

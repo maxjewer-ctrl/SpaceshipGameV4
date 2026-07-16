@@ -2,6 +2,8 @@ mergeInto(LibraryManager.library, {
   KestrelBridgeReady: function () {
     window.kestrel = window.kestrel || {};
     window.kestrel.ready = true;
+    var status = document.querySelector("#acceptance-status");
+    if (status) status.textContent = "Unity ready · acceptance not run";
   },
 
   KestrelBridgeState: function (statePtr) {

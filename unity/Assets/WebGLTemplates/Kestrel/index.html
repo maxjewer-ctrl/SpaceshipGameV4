@@ -15,15 +15,50 @@
     #unity-canvas {
       display: block;
     }
+    #dev-monitor {
+      position: fixed;
+      top: 14px;
+      right: 14px;
+      z-index: 10;
+      width: 260px;
+      padding: 10px;
+      color: #dcebf0;
+      background: rgba(10, 15, 18, 0.88);
+      border: 1px solid #55727d;
+      border-radius: 6px;
+      font: 12px/1.35 monospace;
+    }
+    #dev-monitor button {
+      margin-bottom: 7px;
+      padding: 5px 9px;
+      color: #e8f4f7;
+      background: #244b5a;
+      border: 1px solid #79aabb;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+    #acceptance-status {
+      margin: 0;
+      white-space: pre-wrap;
+    }
   </style>
 </head>
 <body>
   <div id="unity-container">
     <canvas id="unity-canvas" tabindex="-1"></canvas>
   </div>
+  <aside id="dev-monitor" aria-label="Unity development monitor">
+    <button id="run-acceptance" type="button">Run acceptance</button>
+    <pre id="acceptance-status">Loading Unity...</pre>
+  </aside>
   <script src="Build/{{{ LOADER_FILENAME }}}"></script>
   <script>
     const canvas = document.querySelector("#unity-canvas");
+    const acceptanceStatus = document.querySelector("#acceptance-status");
+    const setAcceptanceStatus = (text) => {
+      acceptanceStatus.textContent = text;
+      acceptanceStatus.dataset.updatedAt = new Date().toISOString();
+    };
     window.kestrel = {
       ready: false,
       lastState: "{}",
@@ -42,8 +77,62 @@
         const dataUrl = canvas.toDataURL("image/png");
         window.kestrel.lastCapture = dataUrl;
         return dataUrl;
+      },
+      async waitForState(predicate, timeoutMs = 5000) {
+        const started = performance.now();
+        while (performance.now() - started < timeoutMs) {
+          const state = window.kestrel.state();
+          if (predicate(state)) return state;
+          await new Promise((resolve) => setTimeout(resolve, 50));
+        }
+        throw new Error("Timed out waiting for Unity state.");
+      },
+      async runAcceptance() {
+        const checks = [];
+        const check = (name, pass, detail = "") => {
+          checks.push({ name, pass: Boolean(pass), detail });
+          if (!pass) throw new Error(`${name}: ${detail}`);
+        };
+        try {
+          setAcceptanceStatus("Running acceptance...");
+          await window.kestrel.waitForState(() => window.kestrel.ready === true, 15000);
+          window.kestrel.command("loadScenario", { scenario: "fresh", seed: 8919 });
+          let state = await window.kestrel.waitForState((next) => next.scenario === "fresh" && next.seed === 8919);
+          check("fresh scenario", state.ship.bayCount === 6, `bayCount=${state.ship?.bayCount}`);
+          check("authored module state", state.ship.modules.length === 5, `modules=${state.ship?.modules?.length}`);
+
+          const beforeA = state.ship.modules.find((module) => module.slot === 1)?.key;
+          const beforeB = state.ship.modules.find((module) => module.slot === 2)?.key;
+          window.kestrel.command("swapModules", { slotA: 1, slotB: 2 });
+          state = await window.kestrel.waitForState((next) => next.ship.modules.find((module) => module.slot === 1)?.key === beforeB);
+          check("module swap", state.ship.modules.find((module) => module.slot === 2)?.key === beforeA);
+
+          window.kestrel.command("save");
+          window.kestrel.command("swapModules", { slotA: 1, slotB: 2 });
+          await window.kestrel.waitForState((next) => next.ship.modules.find((module) => module.slot === 1)?.key === beforeA);
+          window.kestrel.command("load");
+          state = await window.kestrel.waitForState((next) => next.ship.modules.find((module) => module.slot === 1)?.key === beforeB);
+          check("save/load", state.ship.modules.find((module) => module.slot === 2)?.key === beforeA);
+
+          window.kestrel.command("runTransferLoop");
+          state = await window.kestrel.waitForState((next) => next.location === "foundry" && next.docked === true);
+          check("contract travel loop", state.credits === 740 && state.prestige === 1, `credits=${state.credits}, prestige=${state.prestige}`);
+          const capture = window.kestrel.capture();
+          check("nonblank capture", capture.length > 10000, `capture length=${capture.length}`);
+          const result = { pass: true, checks, state, capture };
+          setAcceptanceStatus(`PASS · ${checks.length}/${checks.length} checks\n${checks.map((item) => `✓ ${item.name}`).join("\n")}`);
+          return window.kestrel.lastAcceptance = result;
+        } catch (error) {
+          const result = { pass: false, checks, error: String(error), state: window.kestrel.state() };
+          setAcceptanceStatus(`FAIL · ${checks.length} checks completed\n${String(error)}`);
+          return window.kestrel.lastAcceptance = result;
+        }
       }
     };
+
+    document.querySelector("#run-acceptance").addEventListener("click", () => {
+      window.kestrel.runAcceptance();
+    });
 
     createUnityInstance(canvas, {
       dataUrl: "Build/{{{ DATA_FILENAME }}}",
@@ -55,6 +144,7 @@
       productVersion: "0.1.0"
     }).then((unityInstance) => {
       window.kestrel.unityInstance = unityInstance;
+      setAcceptanceStatus("Unity loaded · bridge starting...");
     });
   </script>
 </body>

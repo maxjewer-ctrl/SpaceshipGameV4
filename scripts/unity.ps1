@@ -1,6 +1,6 @@
 param(
   [Parameter(Position = 0)]
-  [ValidateSet("doctor", "setup", "sim-test", "unity-test", "test", "build-web-dev", "serve-web", "verify")]
+  [ValidateSet("doctor", "setup", "sim-test", "unity-test", "test", "build-web-dev", "serve-web", "verify", "verify-slice")]
   [string] $Command = "doctor",
 
   [int] $Port = 5174
@@ -59,6 +59,23 @@ function Invoke-SimTests {
   }
 }
 
+function Invoke-BrowserCi {
+  npm run ci
+  if ($LASTEXITCODE -ne 0) {
+    throw "npm run ci failed with exit code $LASTEXITCODE."
+  }
+}
+
+function Assert-WebBuild {
+  $build = Join-Path $UnityProject "Builds\WebGLDev"
+  $index = Join-Path $build "index.html"
+  if (!(Test-Path $index)) {
+    throw "Missing WebGL build index.html. Run: scripts\unity.ps1 build-web-dev"
+  }
+  Get-ChildItem (Join-Path $build "Build") -ErrorAction Stop | Out-Null
+  Write-Host "WebGL build files exist under $build"
+}
+
 function Invoke-UnityTests {
   $results = Join-Path $UnityProject "TestResults"
   New-Item -ItemType Directory -Force -Path $results | Out-Null
@@ -111,12 +128,31 @@ switch ($Command) {
     }
   }
   "verify" {
-    $build = Join-Path $UnityProject "Builds\WebGLDev"
-    $index = Join-Path $build "index.html"
-    if (!(Test-Path $index)) {
-      throw "Missing WebGL build index.html. Run: scripts\unity.ps1 build-web-dev"
+    Assert-WebBuild
+  }
+  "verify-slice" {
+    Invoke-Unity -UnityArgs @("-executeMethod", "Kestrel.Editor.KestrelProjectSetup.EnsureProject")
+    Invoke-SimTests
+    Invoke-UnityTests
+    Invoke-Unity -UnityArgs @("-executeMethod", "Kestrel.Editor.KestrelVerification.ExportReport")
+    Invoke-Unity -UnityArgs @("-buildTarget", "WebGL", "-executeMethod", "Kestrel.Editor.KestrelBuild.BuildWebDev")
+    Assert-WebBuild
+    Invoke-BrowserCi
+
+    $artifactDir = Join-Path $RepoRoot ".shots\unity\latest"
+    New-Item -ItemType Directory -Force -Path $artifactDir | Out-Null
+    $summary = [ordered]@{
+      generatedUtc = [DateTime]::UtcNow.ToString("O")
+      commit = (git -C $RepoRoot rev-parse --short HEAD)
+      simTests = "passed"
+      unityEditMode = "passed"
+      unityPlayMode = "passed"
+      webglBuild = "passed"
+      browserCi = "passed"
+      liveAcceptance = "run window.kestrel.runAcceptance() against http://127.0.0.1:$Port"
     }
-    Get-ChildItem (Join-Path $build "Build") -ErrorAction Stop | Out-Null
-    Write-Host "WebGL build files exist under $build"
+    $summary | ConvertTo-Json | Set-Content -Encoding utf8 (Join-Path $artifactDir "verification-summary.json")
+    Write-Host "Automated Unity slice verification passed."
+    Write-Host "Serve with scripts\unity.ps1 serve-web, then click Run acceptance (or call window.kestrel.runAcceptance()) for the live canvas gate."
   }
 }
