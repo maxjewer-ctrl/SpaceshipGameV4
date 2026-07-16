@@ -37,17 +37,21 @@
       border-radius: 3px;
       cursor: pointer;
     }
-    #view-controls, #bay-controls {
+    #view-controls, #captain-controls, #bay-controls {
       display: flex;
       gap: 5px;
       margin-bottom: 7px;
     }
-    #view-controls button, #bay-controls button {
+    #view-controls button, #captain-controls button, #bay-controls button {
       flex: 1;
       padding: 4px;
       font-size: 11px;
     }
     #bay-controls {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+    }
+    #captain-controls {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
     }
@@ -67,6 +71,11 @@
       <button id="view-cockpit" type="button">Cockpit</button>
       <button id="view-midship" type="button">Midship</button>
       <button id="view-engine" type="button">Engine</button>
+    </div>
+    <div id="captain-controls" aria-label="Captain models">
+      <button type="button" data-model="explorer">Man</button>
+      <button type="button" data-model="female-explorer">Woman</button>
+      <button type="button" data-model="alien-explorer">Frog</button>
     </div>
     <div id="bay-controls" aria-label="Module bay inspection views">
       <button type="button" data-slot="0">Bay 0</button>
@@ -173,6 +182,9 @@
     document.querySelector("#view-cockpit").addEventListener("click", () => window.kestrel.command("movePlayerToCockpit"));
     document.querySelector("#view-midship").addEventListener("click", () => window.kestrel.command("movePlayerToMidship"));
     document.querySelector("#view-engine").addEventListener("click", () => window.kestrel.command("movePlayerToEngine"));
+    document.querySelectorAll("#captain-controls [data-model]").forEach((button) => {
+      button.addEventListener("click", () => window.kestrel.command("setCaptainModel", { model: button.dataset.model }));
+    });
     document.querySelectorAll("#bay-controls [data-slot]").forEach((button) => {
       button.addEventListener("click", () => window.kestrel.command("movePlayerToSlot", { slot: Number(button.dataset.slot) }));
     });

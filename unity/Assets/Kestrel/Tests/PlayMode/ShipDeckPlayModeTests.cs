@@ -21,6 +21,26 @@ public sealed class ShipDeckPlayModeTests
         Assert.That(Object.FindFirstObjectByType<KestrelPlayerController>(), Is.Not.Null);
         Assert.That(runtime.Sockets.Count, Is.EqualTo(6));
         Assert.That(runtime.UsingAuthoredDeck, Is.True);
+        Assert.That(runtime.CaptainModelId, Is.EqualTo("explorer"));
+        Assert.That(runtime.CaptainAnimator, Is.Not.Null);
+        Object.Destroy(go);
+    }
+
+    [UnityTest]
+    public IEnumerator RuntimeCanSwitchAllCharacterPickerModels()
+    {
+        var go = new GameObject("captain-picker-runtime");
+        var runtime = go.AddComponent<ShipDeckRuntime>();
+        runtime.BuildScenario("fresh", 8919);
+
+        foreach (var modelId in new[] { "explorer", "female-explorer", "alien-explorer" })
+        {
+            runtime.SetCaptainModel(modelId);
+            yield return null;
+            Assert.That(runtime.CaptainModelId, Is.EqualTo(modelId));
+            Assert.That(runtime.CaptainAnimator?.runtimeAnimatorController, Is.Not.Null);
+        }
+
         Object.Destroy(go);
     }
 

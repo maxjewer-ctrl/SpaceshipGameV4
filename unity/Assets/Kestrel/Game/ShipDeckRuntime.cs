@@ -9,11 +9,20 @@ namespace Kestrel.Game;
 public sealed class ShipDeckRuntime : MonoBehaviour
 {
     private const string SixBayDeckResource = "Kestrel/Prefabs/KestrelSixBayDeck";
+    private const string DefaultCaptainModelId = "explorer";
+    private static readonly IReadOnlyDictionary<string, string> CaptainResources = new Dictionary<string, string>
+    {
+        ["explorer"] = "Kestrel/Characters/CaptainExplorer",
+        ["female-explorer"] = "Kestrel/Characters/CaptainFemaleExplorer",
+        ["alien-explorer"] = "Kestrel/Characters/CaptainAlienExplorer"
+    };
     public const string EditorPreviewName = "Kestrel Ship Preview";
     private readonly List<ModuleBaySocket> sockets = new();
     private GameState state = GameStateFactory.CreateScenario("fresh", 8919);
     private ModuleCatalog moduleCatalog = ModuleCatalog.Empty;
     private KestrelPlayerController? player;
+    private GameObject? captainVisual;
+    private string captainModelId = DefaultCaptainModelId;
     private FollowCamera? followCamera;
     private BrowserBridgeBehaviour? bridge;
     private Transform? deckRoot;
@@ -28,6 +37,8 @@ public sealed class ShipDeckRuntime : MonoBehaviour
     public IReadOnlyList<ModuleBaySocket> Sockets => sockets;
     public bool UsingAuthoredDeck { get; private set; }
     public string Objective => CurrentObjective();
+    public string CaptainModelId => captainModelId;
+    public Animator? CaptainAnimator => captainVisual?.GetComponentInChildren<Animator>(true);
 
     private void Start()
     {
@@ -126,6 +137,32 @@ public sealed class ShipDeckRuntime : MonoBehaviour
     {
         followCamera?.ClearInspection();
         player?.Teleport(new Vector3(0f, 0.2f, 20.7f));
+    }
+
+    public void SetCaptainModel(string modelId)
+    {
+        captainModelId = CaptainResources.ContainsKey(modelId) ? modelId : DefaultCaptainModelId;
+        if (player == null) return;
+
+        if (captainVisual != null)
+        {
+            if (Application.isPlaying) Destroy(captainVisual);
+            else DestroyImmediate(captainVisual);
+        }
+
+        var prefab = Resources.Load<GameObject>(CaptainResources[captainModelId]);
+        if (prefab != null)
+        {
+            captainVisual = Instantiate(prefab, player.transform, false);
+            captainVisual.name = $"Captain Visual ({captainModelId})";
+            player.SetVisualAnimator(captainVisual.GetComponentInChildren<Animator>(true));
+            return;
+        }
+
+        captainVisual = CaptainMarker("Captain Visual Fallback", Vector3.zero, new Color(0.22f, 0.4f, 0.56f));
+        captainVisual.transform.SetParent(player.transform, false);
+        player.SetVisualAnimator(null);
+        Debug.LogWarning($"Missing native captain prefab for '{captainModelId}'. Run Kestrel > Characters > Rebuild Captain Prefabs.");
     }
 
     private void RebuildDeck()
@@ -283,10 +320,12 @@ public sealed class ShipDeckRuntime : MonoBehaviour
         player = FindFirstObjectByType<KestrelPlayerController>();
         if (player == null)
         {
-            var playerObject = CaptainMarker("Captain", new Vector3(0f, 1f, -4.5f), new Color(0.22f, 0.4f, 0.56f));
+            var playerObject = new GameObject("Captain");
+            playerObject.transform.position = new Vector3(0f, 0.2f, -5f);
             playerObject.AddComponent<CharacterController>();
             player = playerObject.AddComponent<KestrelPlayerController>();
         }
+        SetCaptainModel(captainModelId);
         player.Teleport(new Vector3(0f, 0.2f, -5f));
         var camera = Camera.main;
         if (camera == null)

@@ -20,6 +20,7 @@ public static class KestrelProjectSetup
         Directory.CreateDirectory("Assets/Kestrel/Content");
         KestrelContentSync.SyncBrowserContent();
         KestrelShipPrefabBuilder.EnsurePrefabs();
+        KestrelCaptainPrefabBuilder.EnsurePrefabs();
         EnsureStarterScene();
 
         EditorBuildSettings.scenes = new[]

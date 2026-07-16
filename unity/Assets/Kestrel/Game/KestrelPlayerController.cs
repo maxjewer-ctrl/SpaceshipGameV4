@@ -5,11 +5,14 @@ namespace Kestrel.Game;
 [RequireComponent(typeof(CharacterController))]
 public sealed class KestrelPlayerController : MonoBehaviour
 {
+    private static readonly int MovingParameter = Animator.StringToHash("Moving");
+
     [SerializeField] private float walkSpeed = 4.2f;
     [SerializeField] private float sprintSpeed = 6.4f;
     [SerializeField] private float turnSpeed = 540f;
 
     private CharacterController? controller;
+    private Animator? visualAnimator;
     private Vector3 velocity;
 
     private void Awake()
@@ -39,6 +42,11 @@ public sealed class KestrelPlayerController : MonoBehaviour
                 turnSpeed * Time.deltaTime);
         }
 
+        if (visualAnimator != null)
+        {
+            visualAnimator.SetBool(MovingParameter, move.sqrMagnitude > 0.001f);
+        }
+
         velocity.y += Physics.gravity.y * Time.deltaTime;
         if (controller != null && controller.isGrounded && velocity.y < 0f)
         {
@@ -46,6 +54,12 @@ public sealed class KestrelPlayerController : MonoBehaviour
         }
 
         controller?.Move((move * speed + velocity) * Time.deltaTime);
+    }
+
+    public void SetVisualAnimator(Animator? animator)
+    {
+        visualAnimator = animator;
+        if (visualAnimator != null) visualAnimator.SetBool(MovingParameter, false);
     }
 
     public void Teleport(Vector3 position)

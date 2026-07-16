@@ -67,6 +67,9 @@ public sealed class BrowserBridgeBehaviour : MonoBehaviour
             case "movePlayerToEngine":
                 Runtime.MovePlayerToEngine();
                 break;
+            case "setCaptainModel":
+                Runtime.SetCaptainModel(command.model);
+                break;
             case "save":
                 Runtime.SaveCurrent();
                 break;
@@ -123,5 +126,6 @@ public sealed class BrowserBridgeBehaviour : MonoBehaviour
         public int slotB;
         public int contractId;
         public string destination = "";
+        public string model = "";
     }
 }

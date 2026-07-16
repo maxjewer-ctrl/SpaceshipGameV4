@@ -10,8 +10,8 @@ and a pirate combat encounter, followed by WebGL inspection of the Unity ship.
    visible exterior context.
 2. **Module silhouettes and set dressing** — initial six-bay pass complete;
    continue replacing primitive forms as production meshes become available.
-3. **Captain presentation** — replace the blockout marker with a readable
-   animated character, grounded feet, and a contact shadow.
+3. **Captain presentation** — initial native character pass complete; continue
+   with higher-fidelity animation blending and lighting polish as needed.
 4. **Diegetic HUD** — consolidate status and interaction information into ship
    displays and reduce competition between overlays.
 5. **Station and Dustwell kits** — establish location-specific architecture,
@@ -65,3 +65,21 @@ The initial six-bay pass is implemented in visual revision 7:
 - Live WebGL acceptance passes all 7 checks: fresh scenario, authored module
   state, module swap, save/load, contract travel loop, day upkeep, and nonblank
   capture.
+
+## #3 Captain Presentation
+
+The initial character pass is implemented:
+
+- The original three animated Meshy GLBs remain retained in both the browser
+  source tree and Unity's source-asset folder.
+- Unity-native `.anim` assets, materials, Animator Controllers, and prefabs are
+  generated repeatably for Explorer, Trailblazer, and Outrider.
+- The runtime captain now uses the skinned character instead of the blockout
+  marker, with consistent height, grounded feet, shadows, and idle/walk states.
+- The three existing character-picker IDs map directly to Unity resources, and
+  WebGL development controls exercise live switching between all options.
+- EditMode tests verify 15/9/9 retained clip sets; PlayMode tests verify runtime
+  switching and controllers for every option.
+
+See [`UNITY_CHARACTER_PIPELINE.md`](UNITY_CHARACTER_PIPELINE.md) for source
+preservation, regeneration, and verification details.
