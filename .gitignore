@@ -34,3 +34,17 @@ unity/TestResults/
 unity/.vs/
 unity/*.csproj
 unity/*.sln
+
+# A Unity editor was once opened with Assets/Scenes as the project root. Keep
+# that nested machine cache out of portable checkouts; the real project root is
+# unity/ and Unity recreates these files locally.
+unity/Assets/Scenes/Assets.meta
+unity/Assets/Scenes/[Ll]ibrary/
+unity/Assets/Scenes/[Ll]ogs.meta
+unity/Assets/Scenes/[Ll]ogs/
+unity/Assets/Scenes/[Pp]ackages.meta
+unity/Assets/Scenes/[Pp]ackages/
+unity/Assets/Scenes/[Pp]roject[Ss]ettings.meta
+unity/Assets/Scenes/[Pp]roject[Ss]ettings/
+unity/Assets/Scenes/[Uu]ser[Ss]ettings.meta
+unity/Assets/Scenes/[Uu]ser[Ss]ettings/

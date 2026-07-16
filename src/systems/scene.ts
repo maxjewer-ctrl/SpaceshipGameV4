@@ -8,7 +8,7 @@ import type { SceneChoice } from "../content";
 import { stats, paxJobs, vipJobs, cargoUsed, isSilenced } from "../derive";
 import { replaceModal, closeModal } from "../modal";
 import { requestRender } from "../bus";
-import { dialogueHeadHTML } from "../ui/portraits";
+import { dialogueHeadHTML, npcPortrait } from "../ui/portraits";
 import { applyEffects } from "./scheduler";
 import { actionAttr } from "../dispatch";
 
@@ -53,6 +53,20 @@ export function npcsInRoom(room: string): string[] {
 // ---- scene rendering ----
 let pendingAfter: (() => void) | null = null;
 
+function dossierHTML(npc: (typeof NPCS)[string]): string {
+  if (!npc.dossier) return "";
+  return `<dl class="npc-dossier">
+    <div><dt>Species</dt><dd>${npc.dossier.species}</dd></div>
+    <div><dt>Station role</dt><dd>${npc.dossier.role}</dd></div>
+    <div><dt>Field note</dt><dd>${npc.dossier.note}</dd></div>
+  </dl>`;
+}
+
+function npcHeadHTML(key: string, withBlurb = true): string {
+  const npc = NPCS[key];
+  return dialogueHeadHTML(npcPortrait(key), npc.icon || "◆", npc.name, withBlurb ? npc.blurb : "");
+}
+
 export function openNPC(key: string) {
   if (!NPCS[key]) return;
   renderNode(key, "start");
@@ -67,7 +81,8 @@ function renderNode(key: string, nodeKey: string) {
     return `<button ${ok ? "" : "disabled"} ${actionAttr("sceneChoose", key, nodeKey, i)}>${c.label}${ok ? "" : ` <span class="dim">— ${why}</span>`}</button>`;
   }).join("");
   replaceModal(`<div class="scene"><div class="scene-loc">${PLANETS[S.loc].n} · station</div>
-    ${dialogueHeadHTML(null, npc.icon || "◆", npc.name, npc.blurb)}
+    ${npcHeadHTML(key)}
+    ${dossierHTML(npc)}
     <p>${node.text}</p>
     <div class="choices">${choices}</div></div>`);
 }
@@ -84,7 +99,7 @@ export function sceneChoose(key: string, nodeKey: string, idx: number) {
   };
   if (c.reply) {
     pendingAfter = after;
-    replaceModal(`<div class="scene">${dialogueHeadHTML(null, npc.icon || "◆", npc.name)}
+    replaceModal(`<div class="scene"><div class="scene-loc">${PLANETS[S.loc].n} · station</div>${npcHeadHTML(key, false)}
       <p>${c.reply}</p>
       <div class="choices"><button class="primary" ${actionAttr("sceneContinue")}>Continue</button></div></div>`);
   } else {

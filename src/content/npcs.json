@@ -417,5 +417,106 @@
         ]
       }
     }
+  },
+
+  "nym_quell": {
+    "name": "Nym Quell",
+    "room": "market",
+    "icon": "🧫",
+    "modelKey": "corbin",
+    "planets": ["solace"],
+    "blurb": "Quarantine clerk, spore gardener, and the last word on what crosses Port Solace alive.",
+    "dossier": {
+      "species": "Brackwater amphibiad · Corbin kin-line",
+      "role": "Quarantine clerk / fungal horticulturist",
+      "note": "Keeps a private garden in a retired decontamination tank. Distrusts sealed cargo and charming captains."
+    },
+    "nodes": {
+      "start": {
+        "text": "Nym turns a sample vial through the market light, watching the sediment settle. Her outer gills tighten when she notices you. \"Captain. Your ship passed the clean scan. That means either you're clean or you've paid someone better than me. I prefer the first possibility.\"",
+        "choices": [
+          { "label": "Ask about the garden", "goto": "garden" },
+          { "label": "Ask what quarantine clerks fear", "reply": "\"Anything that learns the shape of its container,\" Nym says. \"Mold, bureaucracy, captains. The first two are easier to culture.\"", "end": true },
+          { "label": "Leave her to the samples", "reply": "\"Cycle your filters before departure, Captain. Advice is still free. Filters aren't.\"", "end": true }
+        ]
+      },
+      "garden": {
+        "text": "\"Decontamination tank twelve,\" she says, almost smiling. \"Warm, damp, officially condemned. Perfect soil. I grow six edible caps, two medicines, and one species that sings through the pipework when the station pressure drops. Vance calls it a code violation. Vance eats the blue ones.\"",
+        "choices": [
+          { "label": "Ask for a blue cap", "reply": "Nym wraps one in waxed paper. \"Not for eating. Brew it when someone's lungs sound wet. If their lungs start singing, come find me instead.\"", "end": true },
+          { "label": "Thank her and go", "reply": "Her gills fan once, pleased. \"A captain who can leave a living thing unmonetized. Rare specimen.\"", "end": true }
+        ]
+      }
+    }
+  },
+
+  "ilya_veer": {
+    "name": "Ilya Veer",
+    "room": "concourse",
+    "icon": "🗺️",
+    "modelKey": "tomas",
+    "planets": ["meridian"],
+    "blurb": "Maps relay shadows: the quiet pockets between official signals where unofficial ships disappear.",
+    "dossier": {
+      "species": "Veylan tetracline · Tomas kin-line",
+      "role": "Independent signal cartographer",
+      "note": "Four eyes, three obsolete survey licenses, and a map of every place Meridian claims radio cannot reach."
+    },
+    "nodes": {
+      "start": {
+        "text": "Ilya studies two paper star charts at once, upper eyes following the lanes while the lower pair watch the crowd. \"A ship leaves a wake in more than vacuum, Captain. Heat. Rumor. Debt. I draw the places those wakes stop being visible.\"",
+        "choices": [
+          { "label": "Ask why the charts are paper", "reply": "\"Because paper cannot report who unfolded it.\" All four eyes settle on you. \"And because batteries fail at the exact moment a secret becomes expensive.\"", "end": true },
+          { "label": "Ask about the blank patch past the Verge", "reply": "Ilya folds that corner under one long finger. \"That is not a relay shadow. Shadows require something between you and the light. Out there, Captain, the light simply stops.\"", "end": true },
+          { "label": "Let the cartographer work", "reply": "\"May your wake be brief and your transponder boring.\"", "end": true }
+        ]
+      }
+    }
+  },
+
+  "oss_varda": {
+    "name": "Oss Varda",
+    "room": "auction",
+    "icon": "⚖️",
+    "planets": ["havens"],
+    "blurb": "Salvage-rights appraiser. Can tell what a wreck was worth, who owned it, and which answer will get you shot.",
+    "dossier": {
+      "species": "Khelt silicate arthropoid",
+      "role": "Salvage-rights appraiser",
+      "note": "Reads stress history in fractured metal by touch. Has never confused legal ownership with moral ownership."
+    },
+    "nodes": {
+      "start": {
+        "text": "Oss rests four delicate mouth-palps against a scorched drive collar. The mineral plates along their brow catch the auction lamps like old slate. \"Three owners,\" they decide. \"First bought it. Second stole it. Third died beside it. The floor recognizes the second. I find the third's claim more persuasive.\"",
+        "choices": [
+          { "label": "Ask how metal remembers", "reply": "\"Everything remembers force, Captain. Bone. Hull. Law. You only need the correct instrument and the patience not to demand a pleasant answer.\"", "end": true },
+          { "label": "Ask who owns a wreck", "reply": "Their palps fold into something like a smile. \"The first person with papers, the last person with guns, or the dead. Depends which room you're asking in.\"", "end": true },
+          { "label": "Leave the appraisal undisturbed", "reply": "Oss taps the collar once. It rings flat. \"Good instinct. Some evidence changes when handled.\"", "end": true }
+        ]
+      }
+    }
+  },
+
+  "sen_asha": {
+    "name": "Sen Asha",
+    "room": "drydock",
+    "icon": "🧵",
+    "planets": ["foundry"],
+    "blurb": "Pressure-suit tailor. Repairs the inch of cloth between a dockworker and all the ways vacuum wins.",
+    "dossier": {
+      "species": "Avarin quillborn",
+      "role": "Pressure tailor / sealwright",
+      "note": "Knows every yard crew by their patched elbows. Refuses rush work, bribes, and synthetic cobalt thread."
+    },
+    "nodes": {
+      "start": {
+        "text": "Sen draws a ceramic needle through three layers of pressure cloth. Rust-red crown quills lift as your shadow crosses the bench. \"If you're here for a rush repair, no. If you're here because someone else rushed one, put it down gently and tell me whether it already killed anybody.\"",
+        "choices": [
+          { "label": "Ask what makes a good pressure seam", "reply": "\"Fear, properly measured.\" Sen pulls the cobalt thread tight. \"Courage makes people skip stitches. Fear counts every one.\"", "end": true },
+          { "label": "Compliment the cobalt stitching", "reply": "Their crown settles, flattered despite themself. \"Real cobalt fiber. Holds at minus two hundred, glows before it fails, and costs enough that nobody asks me to make curtains.\"", "end": true },
+          { "label": "Back away from the needlework", "reply": "\"Slowly, yes. Look at that — a captain who can follow safety markings.\"", "end": true }
+        ]
+      }
+    }
   }
 }

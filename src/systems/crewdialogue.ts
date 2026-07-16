@@ -22,7 +22,7 @@ import { requestRender } from "../bus";
 import { actionAttr } from "../dispatch";
 import { crewPortrait, dialogueHeadHTML } from "../ui/portraits";
 import { applyEffects } from "./scheduler";
-import { sentiment, crewKey, remember, hasMemory } from "./ledger";
+import { sentiment, crewKey, remember, hasMemory, strongestMemory } from "./ledger";
 import { trustTier, type Trust } from "./trust";
 import type { CrewMember } from "../types";
 import type { CrewDialogueChoice, CrewDialogueNode, CrewDialogueTree } from "../content";
@@ -142,6 +142,14 @@ function headFor(c: CrewMember, node: CrewDialogueNode): string {
   return dialogueHeadHTML(src, "🧑‍🚀", c.name, node.sub || "");
 }
 
+function lastingImpressionHTML(c: CrewMember, nodeKey: string): string {
+  if (nodeKey !== "hub") return "";
+  const impression = strongestMemory(crewKey(c));
+  return impression?.note
+    ? `<div class="ct-impression"><span>LASTING IMPRESSION</span>${impression.note}</div>`
+    : "";
+}
+
 // force: true for a direct player action or navigation continuing an
 // already-open conversation (replaces in place, never queues behind itself).
 // false (default) for the unprompted docking beat (checkCrewDialogueArcs),
@@ -170,6 +178,7 @@ function renderCrewNode(key: string, tree: CrewDialogueTree, nodeKey: string, fo
     <div class="scene-loc">${sceneLoc()}</div>
     ${headFor(c, node)}
     <p>${node.text}</p>
+    ${lastingImpressionHTML(c, nodeKey)}
     ${consequence}
     <div class="choices">${controls}</div>
   </div>`;

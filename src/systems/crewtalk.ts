@@ -27,6 +27,15 @@ let activeCrewId: number | null = null;
 let lastLine = "";
 
 export function openCrewTalk(id: number) {
+  const c = findCrew(id);
+  if (c?.key && CREW_TREES[c.key]) {
+    // Authored characters have one conversation, not a generic small-talk
+    // menu with their real dialogue buried behind a "long version" button.
+    activeCrewId = null;
+    lastLine = "";
+    openCrewDialogue(id);
+    return;
+  }
   activeCrewId = id;
   lastLine = "";
   renderCrewTalk();
@@ -63,7 +72,6 @@ function renderCrewTalk() {
       <button ${actionAttr("ctAbout")}>Tell me about yourself</button>
       <button ${actionAttr("ctShip")}>About the ship</button>
       <button ${actionAttr("ctWorld")}>What do you make of all this?</button>
-      ${c.key && CREW_TREES[c.key] ? `<button ${actionAttr("ctDeepTalk")}>Talk it through — the long version</button>` : ""}
       ${questBtn}
       <button class="primary" ${actionAttr("ctClose")}>Nod and move on</button>
       ${dismissBtn}
@@ -370,10 +378,4 @@ export function ctDismissConfirm() {
   lastLine = "";
   closeModal();
   requestRender();
-}
-// Registered crew get a deep conversation tree (systems/crewdialogue.ts) on
-// top of the topic menu above; this just opens it for whoever's aboard.
-export function ctDeepTalk() {
-  if (activeCrewId == null) return;
-  openCrewDialogue(activeCrewId);
 }

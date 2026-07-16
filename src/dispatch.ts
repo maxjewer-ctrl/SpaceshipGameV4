@@ -60,7 +60,7 @@ import {
 import { pressStart, pressEnd, interact, debugRoom } from "./ui/walk";
 import { crewTalk, crewHighlight, wkInspect, walkDeck, sitChair, toggleModAndInspect } from "./ui/shipwalk";
 import { wkPay, wkTalk, wkFight } from "./systems/walkEncounters";
-import { ctVibe, ctAbout, ctShip, ctQuest, ctWorld, ctClose, ctQuestHelp, ctQuestSkip, ctDeepTalk, ctDismiss, ctDismissCancel, ctDismissConfirm } from "./systems/crewtalk";
+import { ctVibe, ctAbout, ctShip, ctQuest, ctWorld, ctClose, ctQuestHelp, ctQuestSkip, ctDismiss, ctDismissCancel, ctDismissConfirm } from "./systems/crewtalk";
 import { crewDialogueChoose, crewDialogueContinue } from "./systems/crewdialogue";
 import { dcValve, dcVector, dcCare } from "./systems/damagecontrol";
 import { refitShip } from "./systems/wear";
@@ -132,8 +132,8 @@ const ACTIONS: Record<string, (...args: any[]) => void> = {
   toggleModAndInspect,
   // crew dialogue — trust-gated topics, personal quests
   ctVibe, ctAbout, ctShip, ctQuest, ctWorld, ctClose, ctQuestHelp, ctQuestSkip, ctDismiss, ctDismissCancel, ctDismissConfirm,
-  // named crew's deep conversation trees (trust + faction rep + events) — Juno, Bapu, ...
-  ctDeepTalk, crewDialogueChoose, crewDialogueContinue,
+  // named crew conversation trees (trust + faction rep + events) — Juno, Bapu, ...
+  crewDialogueChoose, crewDialogueContinue,
   // damage control — crew-gap minigames (no mechanic/pilot/med bay aboard)
   dcValve, dcVector, dcCare,
   // agenda beats — the named twelve's honest/dishonest objectives billing due
