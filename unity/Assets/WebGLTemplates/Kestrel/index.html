@@ -132,6 +132,16 @@
           window.kestrel.command("runTransferLoop");
           state = await window.kestrel.waitForState((next) => next.location === "foundry" && next.docked === true);
           check("contract travel loop", state.credits === 740 && state.prestige === 1, `credits=${state.credits}, prestige=${state.prestige}`);
+
+          window.kestrel.command("loadScenario", { scenario: "trader", seed: 8919 });
+          await window.kestrel.waitForState((next) => next.scenario === "trader" && next.day === 14);
+          window.kestrel.command("waitDay");
+          state = await window.kestrel.waitForState((next) => next.scenario === "trader" && next.day === 15);
+          check("day upkeep", state.food === 25 && state.credits === 1784 && state.starve === 0 && state.unpaid === 0,
+            `food=${state.food}, credits=${state.credits}, starve=${state.starve}, unpaid=${state.unpaid}`);
+
+          window.kestrel.command("loadScenario", { scenario: "fresh", seed: 8919 });
+          state = await window.kestrel.waitForState((next) => next.scenario === "fresh" && next.day === 1);
           const capture = window.kestrel.capture();
           check("nonblank capture", capture.length > 10000, `capture length=${capture.length}`);
           const result = { pass: true, checks, state, capture };

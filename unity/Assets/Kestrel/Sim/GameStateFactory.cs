@@ -103,6 +103,8 @@ public static class GameStateFactory
                 Id = Slug(crew.Name),
                 Name = crew.Name,
                 Role = crew.Role,
+                Salary = 8,
+                DaysAboard = 12,
                 PostSlot = Math.Min(index, Math.Max(0, definition.BayCount - 1))
             }).ToList()
         };

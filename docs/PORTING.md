@@ -15,10 +15,13 @@ and an end-to-end Unity acceptance flow both pass.
 4. **Playable parity** — the Unity presentation can drive the same loop and
    persist it through save/load.
 
-The first two levels are active now. `test/porting-parity.test.ts` derives
+The first three levels are active now. `test/porting-parity.test.ts` derives
 `test/porting/fixtures/scenario-projections.json` from the real browser scenario
-loader. `unity/Kestrel.Sim.Tests/SimTests.cs` reads that same fixture and checks
-all seven C# projections plus the first module-swap action.
+loader. `test/porting-upkeep.test.ts` derives
+`test/porting/fixtures/upkeep-traces.json` by running the browser's real day tick
+through food shortage, missed payroll, recovery, and powered hydroponics.
+`unity/Kestrel.Sim.Tests/SimTests.cs` reads both fixtures and checks all seven
+C# projections, the first module-swap action, and every upkeep trace tick.
 
 Regenerate the projection only for an intentional browser behavior change:
 
@@ -27,6 +30,9 @@ $env:UPDATE_PORTING = "1"
 npx vitest run test/porting-parity.test.ts
 Remove-Item Env:UPDATE_PORTING
 ```
+
+Regenerate `upkeep-traces.json` the same way by substituting
+`test/porting-upkeep.test.ts` in the command above.
 
 Review the fixture diff before committing it. A fixture update and its matching
 C# implementation belong in the same change.
@@ -42,9 +48,17 @@ The first Unity-owned vertical slice is deliberately narrow:
 5. Dock, receive 240 credits and one prestige, and clear the job.
 6. Save and reload the completed run.
 
-Random lane events, generated markets, campaign scheduling, and crew modifiers
-remain browser-owned. They should enter C# one bounded vocabulary at a time,
-with trace fixtures added before presentation work.
+The next deterministic vocabulary is also Unity-owned: docked and traveling
+day ticks advance crew tenure, apply powered hydroponics output, consume one
+ration per person, escalate and recover starvation, and make payroll. Four
+starving days dismiss the last crew member; three missed payrolls dismiss the
+first; six starving days end the run. These order-sensitive outcomes are pinned
+to browser-derived traces.
+
+Random lane events, generated markets, campaign scheduling, and advanced crew
+modifiers (perks, veterancy discounts, cook efficiency) remain browser-owned.
+They should enter C# one bounded vocabulary at a time, with trace fixtures added
+before presentation work.
 
 ## Boundaries
 

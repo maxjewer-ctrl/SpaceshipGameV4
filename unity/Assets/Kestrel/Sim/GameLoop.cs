@@ -13,7 +13,8 @@ public static class GameLoop
     };
 
     public const float FuelPerDay = 4f;
-    public const int FoodPerDay = 1;
+    public const int FoodPerPersonPerDay = 1;
+    public const int HydroponicsFoodPerDay = 2;
 
     public static bool SwapModules(GameState state, int slotA, int slotB)
     {
@@ -52,22 +53,86 @@ public static class GameLoop
 
     public static bool AdvanceTravelDay(GameState state)
     {
-        if (state.Travel == null) return false;
-        state.Day++;
-        state.Fuel = Math.Max(0f, state.Fuel - FuelPerDay);
-        state.Food = Math.Max(0, state.Food - FoodPerDay);
+        if (state.Travel == null || state.Over) return false;
+        DayTick(state, true);
         state.Travel.Left--;
 
         if (state.Travel.Left <= 0)
         {
             Arrive(state);
         }
-        else
+        else if (!state.Over)
         {
             state.Log.Insert(0, $"Holding course. {state.Travel.Left} days remain.");
         }
 
         return true;
+    }
+
+    public static bool WaitDay(GameState state)
+    {
+        if (!state.Docked || state.Travel != null || state.Over) return false;
+        DayTick(state, false);
+        if (!state.Over) state.Log.Insert(0, "You wait a day in port. The dockworkers play cards. The meter runs.");
+        return true;
+    }
+
+    public static void DayTick(GameState state, bool traveling)
+    {
+        if (state.Over) return;
+        state.Day++;
+        foreach (var crew in state.Crew) crew.DaysAboard++;
+
+        if (traveling) state.Fuel = Math.Max(0f, state.Fuel - FuelPerDay);
+
+        var foodGenerated = state.Ship.Modules.Count(module =>
+            module.Key == "hydro" && module.Powered && !module.Damaged) * HydroponicsFoodPerDay;
+        var foodConsumed = (1 + state.Crew.Count) * FoodPerPersonPerDay;
+        state.Food += foodGenerated - foodConsumed;
+        if (state.Food < 0)
+        {
+            state.Food = 0;
+            state.Starve++;
+            state.Prestige = Math.Max(0, state.Prestige - 1);
+            if (state.Starve == 2)
+                state.Log.Insert(0, "The pantry is empty. Everyone's rationing air-paste and resentment.");
+            if (state.Starve == 4 && state.Crew.Count > 0)
+            {
+                var crew = state.Crew[^1];
+                state.Crew.RemoveAt(state.Crew.Count - 1);
+                state.Log.Insert(0, $"{crew.Name} is too weak to work and jumps ship at the first chance. Starvation is bad for retention.");
+            }
+            if (state.Starve >= 6)
+            {
+                state.Over = true;
+                state.Dead = true;
+                state.Log.Insert(0, "You starved in the black. The ship drifts on, a quiet tomb with your name on the registry.");
+                return;
+            }
+            if (state.Starve >= 2) state.Log.Insert(0, "STARVING - buy food, fast.");
+        }
+        else
+        {
+            state.Starve = 0;
+        }
+
+        var payroll = state.Crew.Sum(crew => crew.Salary);
+        if (payroll <= 0) return;
+        if (state.Credits >= payroll)
+        {
+            state.Credits -= payroll;
+            state.Unpaid = 0;
+            return;
+        }
+
+        state.Unpaid++;
+        state.Log.Insert(0, "You couldn't make payroll. The crew notices these things.");
+        if (state.Unpaid < 3 || state.Crew.Count == 0) return;
+        var departingCrew = state.Crew[0];
+        state.Crew.RemoveAt(0);
+        state.Log.Insert(0, $"{departingCrew.Name} quit over back pay. Word gets around (-2 prestige).");
+        state.Prestige = Math.Max(0, state.Prestige - 2);
+        state.Unpaid = 1;
     }
 
     private static void Arrive(GameState state)

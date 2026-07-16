@@ -81,6 +81,63 @@ public sealed class SimTests
     }
 
     [Fact]
+    public void DayUpkeepMatchesBrowserDerivedTraces()
+    {
+        using var fixture = LoadFixture("upkeep-traces.json");
+
+        var crisis = GameStateFactory.CreateScenario("fresh", 8919);
+        crisis.Food = 0;
+        crisis.Credits = 0;
+        crisis.Prestige = 5;
+        crisis.Crew.Add(new CrewState { Id = "ari-vale", Name = "Ari Vale", Role = "pilot", Salary = 8 });
+        crisis.Crew.Add(new CrewState { Id = "bo-mercer", Name = "Bo Mercer", Role = "gunner", Salary = 8 });
+        AssertTrace(fixture.RootElement.GetProperty("crisis"), crisis, 6);
+
+        var recovery = GameStateFactory.CreateScenario("fresh", 8919);
+        recovery.Food = 10;
+        recovery.Credits = 20;
+        recovery.Prestige = 2;
+        recovery.Starve = 3;
+        recovery.Unpaid = 2;
+        recovery.Crew.Add(new CrewState { Id = "cora-wynn", Name = "Cora Wynn", Role = "gunner", Salary = 8 });
+        AssertTrace(fixture.RootElement.GetProperty("recovery"), recovery, 1);
+
+        var hydroponics = GameStateFactory.CreateScenario("trader", 8919);
+        AssertTrace(fixture.RootElement.GetProperty("hydroponics"), hydroponics, 1);
+    }
+
+    [Fact]
+    public void UpkeepStateRoundTripsAndOlderV16SubsetDefaultsSafely()
+    {
+        var state = GameStateFactory.CreateScenario("trader", 8919);
+        state.Starve = 2;
+        state.Unpaid = 1;
+        state.Crew[0].Salary = 11;
+        state.Crew[0].DaysAboard = 27;
+        var restored = SaveCodec.Deserialize(SaveCodec.Serialize(state));
+
+        Assert.Equal(2, restored.Starve);
+        Assert.Equal(1, restored.Unpaid);
+        Assert.Equal(11, restored.Crew[0].Salary);
+        Assert.Equal(27, restored.Crew[0].DaysAboard);
+
+        var legacyJson = SaveCodec.Serialize(GameStateFactory.CreateScenario("trader", 8919))
+            .Replace("\"starve\":0,", "")
+            .Replace("\"unpaid\":0,", "")
+            .Replace("\"over\":false,", "")
+            .Replace("\"dead\":false,", "")
+            .Replace("\"salary\":8,", "")
+            .Replace("\"daysAboard\":12,", "");
+        var legacy = SaveCodec.Deserialize(legacyJson);
+        Assert.Equal(0, legacy.Starve);
+        Assert.Equal(0, legacy.Unpaid);
+        Assert.False(legacy.Over);
+        Assert.False(legacy.Dead);
+        Assert.All(legacy.Crew, crew => Assert.Equal(8, crew.Salary));
+        Assert.All(legacy.Crew, crew => Assert.Equal(0, crew.DaysAboard));
+    }
+
+    [Fact]
     public void ModuleSlotsStayUniqueAndWithinTheHull()
     {
         foreach (var scenario in GameStateFactory.ScenarioNames)
@@ -92,11 +149,36 @@ public sealed class SimTests
         }
     }
 
-    private static JsonDocument LoadFixture()
+    private static JsonDocument LoadFixture(string fileName = "scenario-projections.json")
     {
-        var path = Path.Combine(AppContext.BaseDirectory, "Fixtures", "scenario-projections.json");
+        var path = Path.Combine(AppContext.BaseDirectory, "Fixtures", fileName);
         return JsonDocument.Parse(File.ReadAllText(path));
     }
+
+    private static void AssertTrace(JsonElement expectedTrace, GameState state, int ticks)
+    {
+        var expected = expectedTrace.EnumerateArray().ToArray();
+        Assert.Equal(ticks + 1, expected.Length);
+        AssertJsonEqual(expected[0].GetRawText(), UpkeepSnapshot(state), "upkeep initial");
+        for (var tick = 0; tick < ticks; tick++)
+        {
+            GameLoop.DayTick(state, false);
+            AssertJsonEqual(expected[tick + 1].GetRawText(), UpkeepSnapshot(state), $"upkeep tick {tick + 1}");
+        }
+    }
+
+    private static string UpkeepSnapshot(GameState state) => JsonSerializer.Serialize(new
+    {
+        state.Day,
+        state.Credits,
+        state.Food,
+        state.Prestige,
+        Starve = state.Starve,
+        Unpaid = state.Unpaid,
+        Over = state.Over,
+        Dead = state.Dead,
+        Crew = state.Crew.Select(crew => new { crew.Name, crew.Role, crew.Salary, crew.DaysAboard })
+    }, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
 
     private static void AssertJsonEqual(string expected, string actual, string context)
     {

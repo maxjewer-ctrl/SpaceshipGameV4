@@ -49,6 +49,9 @@ public sealed class BrowserBridgeBehaviour : MonoBehaviour
             case "advanceDay":
                 Runtime.AdvanceTravelDay();
                 break;
+            case "waitDay":
+                Runtime.WaitDay();
+                break;
             case "runTransferLoop":
                 Runtime.RunTransferLoop();
                 break;

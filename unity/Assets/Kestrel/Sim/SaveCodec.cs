@@ -24,6 +24,10 @@ public static class SaveCodec
         Number(json, "hull", state.Hull).Append(',');
         Number(json, "hullMax", state.HullMax).Append(',');
         Number(json, "prestige", state.Prestige).Append(',');
+        Number(json, "starve", state.Starve).Append(',');
+        Number(json, "unpaid", state.Unpaid).Append(',');
+        Boolean(json, "over", state.Over).Append(',');
+        Boolean(json, "dead", state.Dead).Append(',');
         Number(json, "engineLevel", state.EngineLevel).Append(',');
         String(json, "location", state.Location).Append(',');
         Boolean(json, "docked", state.Docked).Append(',');
@@ -67,6 +71,10 @@ public static class SaveCodec
             Hull = Int(root, "hull"),
             HullMax = Int(root, "hullMax"),
             Prestige = Int(root, "prestige"),
+            Starve = IntOrDefault(root, "starve"),
+            Unpaid = IntOrDefault(root, "unpaid"),
+            Over = BoolOrDefault(root, "over"),
+            Dead = BoolOrDefault(root, "dead"),
             EngineLevel = Int(root, "engineLevel"),
             Location = Text(root, "location"),
             Docked = Bool(root, "docked")
@@ -91,7 +99,11 @@ public static class SaveCodec
         foreach (var value in Array(root, "crew"))
         {
             var crew = Object(value, "crew");
-            state.Crew.Add(new CrewState { Id = Text(crew, "id"), Name = Text(crew, "name"), Role = Text(crew, "role"), PostSlot = Int(crew, "postSlot") });
+            state.Crew.Add(new CrewState
+            {
+                Id = Text(crew, "id"), Name = Text(crew, "name"), Role = Text(crew, "role"),
+                Salary = IntOrDefault(crew, "salary", 8), DaysAboard = IntOrDefault(crew, "daysAboard"), PostSlot = Int(crew, "postSlot")
+            });
         }
         ReadContracts(root, "offers", state.Offers);
         ReadContracts(root, "jobs", state.Jobs);
@@ -125,7 +137,8 @@ public static class SaveCodec
     }
     private static void AppendCrew(StringBuilder json, CrewState crew)
     {
-        json.Append('{'); String(json, "id", crew.Id).Append(','); String(json, "name", crew.Name).Append(','); String(json, "role", crew.Role).Append(','); Number(json, "postSlot", crew.PostSlot); json.Append('}');
+        json.Append('{'); String(json, "id", crew.Id).Append(','); String(json, "name", crew.Name).Append(','); String(json, "role", crew.Role).Append(',');
+        Number(json, "salary", crew.Salary).Append(','); Number(json, "daysAboard", crew.DaysAboard).Append(','); Number(json, "postSlot", crew.PostSlot); json.Append('}');
     }
     private static void AppendContract(StringBuilder json, ContractState contract)
     {
@@ -163,8 +176,10 @@ public static class SaveCodec
     private static List<object?> Array(Dictionary<string, object?> root, string key) => root.TryGetValue(key, out var value) && value is List<object?> list ? list : throw new InvalidOperationException($"Save JSON field '{key}' is not an array.");
     private static string Text(Dictionary<string, object?> root, string key) => root.TryGetValue(key, out var value) && value is string text ? text : throw new InvalidOperationException($"Save JSON field '{key}' is not text.");
     private static int Int(Dictionary<string, object?> root, string key) => root.TryGetValue(key, out var value) && value is double number ? checked((int)number) : throw new InvalidOperationException($"Save JSON field '{key}' is not numeric.");
+    private static int IntOrDefault(Dictionary<string, object?> root, string key, int defaultValue = 0) => root.TryGetValue(key, out var value) && value is double number ? checked((int)number) : defaultValue;
     private static float Float(Dictionary<string, object?> root, string key) => root.TryGetValue(key, out var value) && value is double number ? (float)number : throw new InvalidOperationException($"Save JSON field '{key}' is not numeric.");
     private static bool Bool(Dictionary<string, object?> root, string key) => root.TryGetValue(key, out var value) && value is bool flag ? flag : throw new InvalidOperationException($"Save JSON field '{key}' is not boolean.");
+    private static bool BoolOrDefault(Dictionary<string, object?> root, string key) => root.TryGetValue(key, out var value) && value is bool flag && flag;
 
     private static void Validate(GameState state)
     {

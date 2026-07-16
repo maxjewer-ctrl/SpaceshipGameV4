@@ -16,6 +16,10 @@ public sealed class GameState
     public int Hull { get; set; } = 100;
     public int HullMax { get; set; } = 100;
     public int Prestige { get; set; }
+    public int Starve { get; set; }
+    public int Unpaid { get; set; }
+    public bool Over { get; set; }
+    public bool Dead { get; set; }
     public int EngineLevel { get; set; } = 1;
     public string Location { get; set; } = "solace";
     public bool Docked { get; set; } = true;
@@ -48,6 +52,8 @@ public sealed class CrewState
     public string Id { get; set; } = "";
     public string Name { get; set; } = "";
     public string Role { get; set; } = "";
+    public int Salary { get; set; }
+    public int DaysAboard { get; set; }
     public int PostSlot { get; set; }
 }
 

@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Linq;
 using Kestrel.Game;
 using NUnit.Framework;
 using UnityEngine;
@@ -39,6 +40,23 @@ public sealed class ShipDeckPlayModeTests
         Assert.That(runtime.State.Credits, Is.EqualTo(740));
         yield return null;
         PlayerPrefs.DeleteKey("kestrelrun:unity:slot0");
+        Object.Destroy(go);
+    }
+
+    [UnityTest]
+    public IEnumerator DockedWaitAppliesBrowserParityUpkeep()
+    {
+        var go = new GameObject("upkeep-runtime");
+        var runtime = go.AddComponent<ShipDeckRuntime>();
+        runtime.BuildScenario("trader", 8919);
+
+        Assert.That(runtime.WaitDay(), Is.True);
+        Assert.That(runtime.State.Day, Is.EqualTo(15));
+        Assert.That(runtime.State.Food, Is.EqualTo(25));
+        Assert.That(runtime.State.Credits, Is.EqualTo(1784));
+        Assert.That(runtime.State.Crew.All(crew => crew.DaysAboard == 13), Is.True);
+
+        yield return null;
         Object.Destroy(go);
     }
 }

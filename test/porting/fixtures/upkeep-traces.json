@@ -1,0 +1,217 @@
+{
+  "schema": 1,
+  "seed": 8919,
+  "crisis": [
+    {
+      "day": 1,
+      "credits": 0,
+      "food": 0,
+      "prestige": 5,
+      "starve": 0,
+      "unpaid": 0,
+      "over": false,
+      "dead": false,
+      "crew": [
+        {
+          "name": "Ari Vale",
+          "role": "pilot",
+          "salary": 8,
+          "daysAboard": 0
+        },
+        {
+          "name": "Bo Mercer",
+          "role": "gunner",
+          "salary": 8,
+          "daysAboard": 0
+        }
+      ]
+    },
+    {
+      "day": 2,
+      "credits": 0,
+      "food": 0,
+      "prestige": 4,
+      "starve": 1,
+      "unpaid": 1,
+      "over": false,
+      "dead": false,
+      "crew": [
+        {
+          "name": "Ari Vale",
+          "role": "pilot",
+          "salary": 8,
+          "daysAboard": 1
+        },
+        {
+          "name": "Bo Mercer",
+          "role": "gunner",
+          "salary": 8,
+          "daysAboard": 1
+        }
+      ]
+    },
+    {
+      "day": 3,
+      "credits": 0,
+      "food": 0,
+      "prestige": 3,
+      "starve": 2,
+      "unpaid": 2,
+      "over": false,
+      "dead": false,
+      "crew": [
+        {
+          "name": "Ari Vale",
+          "role": "pilot",
+          "salary": 8,
+          "daysAboard": 2
+        },
+        {
+          "name": "Bo Mercer",
+          "role": "gunner",
+          "salary": 8,
+          "daysAboard": 2
+        }
+      ]
+    },
+    {
+      "day": 4,
+      "credits": 0,
+      "food": 0,
+      "prestige": 0,
+      "starve": 3,
+      "unpaid": 1,
+      "over": false,
+      "dead": false,
+      "crew": [
+        {
+          "name": "Bo Mercer",
+          "role": "gunner",
+          "salary": 8,
+          "daysAboard": 3
+        }
+      ]
+    },
+    {
+      "day": 5,
+      "credits": 0,
+      "food": 0,
+      "prestige": 0,
+      "starve": 4,
+      "unpaid": 1,
+      "over": false,
+      "dead": false,
+      "crew": []
+    },
+    {
+      "day": 6,
+      "credits": 0,
+      "food": 0,
+      "prestige": 0,
+      "starve": 5,
+      "unpaid": 1,
+      "over": false,
+      "dead": false,
+      "crew": []
+    },
+    {
+      "day": 7,
+      "credits": 0,
+      "food": 0,
+      "prestige": 0,
+      "starve": 6,
+      "unpaid": 1,
+      "over": true,
+      "dead": true,
+      "crew": []
+    }
+  ],
+  "recovery": [
+    {
+      "day": 1,
+      "credits": 20,
+      "food": 10,
+      "prestige": 2,
+      "starve": 3,
+      "unpaid": 2,
+      "over": false,
+      "dead": false,
+      "crew": [
+        {
+          "name": "Cora Wynn",
+          "role": "gunner",
+          "salary": 8,
+          "daysAboard": 0
+        }
+      ]
+    },
+    {
+      "day": 2,
+      "credits": 12,
+      "food": 8,
+      "prestige": 2,
+      "starve": 0,
+      "unpaid": 0,
+      "over": false,
+      "dead": false,
+      "crew": [
+        {
+          "name": "Cora Wynn",
+          "role": "gunner",
+          "salary": 8,
+          "daysAboard": 1
+        }
+      ]
+    }
+  ],
+  "hydroponics": [
+    {
+      "day": 14,
+      "credits": 1800,
+      "food": 26,
+      "prestige": 4,
+      "starve": 0,
+      "unpaid": 0,
+      "over": false,
+      "dead": false,
+      "crew": [
+        {
+          "name": "Odile Vance",
+          "role": "pilot",
+          "salary": 8,
+          "daysAboard": 12
+        },
+        {
+          "name": "Kesh Barlow",
+          "role": "mechanic",
+          "salary": 8,
+          "daysAboard": 12
+        }
+      ]
+    },
+    {
+      "day": 15,
+      "credits": 1784,
+      "food": 25,
+      "prestige": 4,
+      "starve": 0,
+      "unpaid": 0,
+      "over": false,
+      "dead": false,
+      "crew": [
+        {
+          "name": "Odile Vance",
+          "role": "pilot",
+          "salary": 8,
+          "daysAboard": 13
+        },
+        {
+          "name": "Kesh Barlow",
+          "role": "mechanic",
+          "salary": 8,
+          "daysAboard": 13
+        }
+      ]
+    }
+  ]
+}

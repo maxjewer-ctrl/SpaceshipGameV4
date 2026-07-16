@@ -66,6 +66,13 @@ public sealed class ShipDeckRuntime : MonoBehaviour
         return changed;
     }
 
+    public bool WaitDay()
+    {
+        var changed = GameLoop.WaitDay(state);
+        if (changed) StateChanged();
+        return changed;
+    }
+
     public bool RunTransferLoop()
     {
         if (state.Offers.Any()) AcceptContract(state.Offers[0].Id);
@@ -199,6 +206,7 @@ public sealed class ShipDeckRuntime : MonoBehaviour
 
     private string CurrentObjective()
     {
+        if (state.Over) return "End of the line";
         if (state.Offers.Any()) return $"Accept {state.Offers[0].Title}";
         if (state.Docked && state.Jobs.Any()) return $"Plot course to {state.Jobs[0].Destination}";
         if (state.Travel != null) return $"Advance burn ({state.Travel.Left}d remain)";
@@ -317,9 +325,12 @@ public sealed class ShipDeckRuntime : MonoBehaviour
     private void OnGUI()
     {
         var travel = state.Travel == null ? state.Location : $"{state.Travel.From} → {state.Travel.Destination} ({state.Travel.Left}d)";
-        GUI.Box(new Rect(18f, 18f, 360f, 112f), "");
-        GUI.Label(new Rect(32f, 28f, 330f, 24f), $"{state.ShipName} · Day {state.Day} · {travel}");
-        GUI.Label(new Rect(32f, 52f, 330f, 24f), $"{state.Credits}cr  Fuel {state.Fuel:0.#}  Food {state.Food}  Hull {state.Hull}/{state.HullMax}");
-        GUI.Label(new Rect(32f, 78f, 330f, 40f), $"Objective: {CurrentObjective()}");
+        var upkeep = state.Starve > 0 || state.Unpaid > 0
+            ? $"  Starving {state.Starve}d  Payroll missed {state.Unpaid}x"
+            : "";
+        GUI.Box(new Rect(18f, 18f, 430f, 112f), "");
+        GUI.Label(new Rect(32f, 28f, 400f, 24f), $"{state.ShipName} · Day {state.Day} · {travel}");
+        GUI.Label(new Rect(32f, 52f, 400f, 24f), $"{state.Credits}cr  Fuel {state.Fuel:0.#}  Food {state.Food}  Hull {state.Hull}/{state.HullMax}{upkeep}");
+        GUI.Label(new Rect(32f, 78f, 400f, 40f), state.Over ? "END OF THE LINE" : $"Objective: {CurrentObjective()}");
     }
 }
