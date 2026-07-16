@@ -138,6 +138,32 @@ public sealed class SimTests
     }
 
     [Fact]
+    public void CaptainAppearanceMatchesBrowserVocabularyAndRoundTripsInV16()
+    {
+        Assert.Equal(
+            new[] { "explorer", "female-explorer", "alien-explorer" },
+            CaptainAppearance.ModelIds);
+
+        var state = GameStateFactory.CreateScenario("fresh", 8919);
+        state.Appearance.Model = CaptainAppearance.AlienExplorer;
+        var restored = SaveCodec.Deserialize(SaveCodec.Serialize(state));
+
+        Assert.Equal(GameState.CurrentVersion, restored.Version);
+        Assert.Equal(CaptainAppearance.AlienExplorer, restored.Appearance.Model);
+    }
+
+    [Fact]
+    public void OlderOrUnknownV16CaptainAppearanceDefaultsToExplorer()
+    {
+        var serialized = SaveCodec.Serialize(GameStateFactory.CreateScenario("fresh", 8919));
+        var withoutAppearance = serialized.Replace("\"appearance\":{\"model\":\"explorer\"},", "");
+        var unknownAppearance = serialized.Replace("\"model\":\"explorer\"", "\"model\":\"unknown-captain\"");
+
+        Assert.Equal(CaptainAppearance.Explorer, SaveCodec.Deserialize(withoutAppearance).Appearance.Model);
+        Assert.Equal(CaptainAppearance.Explorer, SaveCodec.Deserialize(unknownAppearance).Appearance.Model);
+    }
+
+    [Fact]
     public void ModuleSlotsStayUniqueAndWithinTheHull()
     {
         foreach (var scenario in GameStateFactory.ScenarioNames)

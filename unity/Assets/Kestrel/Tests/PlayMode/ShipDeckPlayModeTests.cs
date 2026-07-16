@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Linq;
 using Kestrel.Game;
+using Kestrel.Sim;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -23,6 +24,8 @@ public sealed class ShipDeckPlayModeTests
         Assert.That(runtime.UsingAuthoredDeck, Is.True);
         Assert.That(runtime.CaptainModelId, Is.EqualTo("explorer"));
         Assert.That(runtime.CaptainAnimator, Is.Not.Null);
+        Assert.That(runtime.CaptainPicker, Is.Not.Null);
+        Assert.That(runtime.CaptainPicker?.IsOpen, Is.True);
         Object.Destroy(go);
     }
 
@@ -41,6 +44,29 @@ public sealed class ShipDeckPlayModeTests
             Assert.That(runtime.CaptainAnimator?.runtimeAnimatorController, Is.Not.Null);
         }
 
+        Object.Destroy(go);
+    }
+
+    [UnityTest]
+    public IEnumerator CaptainSelectionSurvivesScenarioRebuildAndSaveLoad()
+    {
+        var go = new GameObject("captain-save-runtime");
+        var runtime = go.AddComponent<ShipDeckRuntime>();
+        runtime.BuildScenario("fresh", 8919);
+        runtime.SetCaptainModel(CaptainAppearance.AlienExplorer);
+        runtime.SaveCurrent();
+
+        runtime.BuildScenario("trader", 42);
+        Assert.That(runtime.CaptainModelId, Is.EqualTo(CaptainAppearance.AlienExplorer));
+        Assert.That(runtime.State.Appearance.Model, Is.EqualTo(CaptainAppearance.AlienExplorer));
+
+        runtime.SetCaptainModel(CaptainAppearance.FemaleExplorer);
+        Assert.That(runtime.LoadSaved(), Is.True);
+        yield return null;
+
+        Assert.That(runtime.CaptainModelId, Is.EqualTo(CaptainAppearance.AlienExplorer));
+        Assert.That(runtime.CaptainAnimator?.runtimeAnimatorController, Is.Not.Null);
+        PlayerPrefs.DeleteKey("kestrelrun:unity:slot0");
         Object.Destroy(go);
     }
 

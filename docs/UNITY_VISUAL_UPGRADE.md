@@ -10,8 +10,9 @@ and a pirate combat encounter, followed by WebGL inspection of the Unity ship.
    visible exterior context.
 2. **Module silhouettes and set dressing** — initial six-bay pass complete;
    continue replacing primitive forms as production meshes become available.
-3. **Captain presentation** — initial native character pass complete; continue
-   with higher-fidelity animation blending and lighting polish as needed.
+3. **Captain presentation** — native character and persistent player-facing
+   picker passes complete; continue with higher-fidelity animation blending and
+   lighting polish as needed.
 4. **Diegetic HUD** — consolidate status and interaction information into ship
    displays and reduce competition between overlays.
 5. **Station and Dustwell kits** — establish location-specific architecture,
@@ -62,9 +63,9 @@ The initial six-bay pass is implemented in visual revision 7:
 
 - Unity EditMode and PlayMode test command passes.
 - Unity WebGL development build completes.
-- Live WebGL acceptance passes all 7 checks: fresh scenario, authored module
-  state, module swap, save/load, contract travel loop, day upkeep, and nonblank
-  capture.
+- Live WebGL acceptance passes all 8 checks: fresh scenario, authored module
+  state, module swap, save/load, captain selection persistence, contract travel
+  loop, day upkeep, and nonblank capture.
 
 ## #3 Captain Presentation
 
@@ -77,9 +78,12 @@ The initial character pass is implemented:
 - The runtime captain now uses the skinned character instead of the blockout
   marker, with consistent height, grounded feet, shadows, and idle/walk states.
 - The three existing character-picker IDs map directly to Unity resources, and
-  WebGL development controls exercise live switching between all options.
+  both the in-game picker and WebGL development controls exercise live switching
+  between all options.
+- Confirmed selection is part of the Unity-owned v16 state, survives scenario
+  rebuilds and save/load, and reappears on the next run.
 - EditMode tests verify 15/9/9 retained clip sets; PlayMode tests verify runtime
-  switching and controllers for every option.
+  switching, controllers for every option, and selection persistence.
 
 See [`UNITY_CHARACTER_PIPELINE.md`](UNITY_CHARACTER_PIPELINE.md) for source
 preservation, regeneration, and verification details.

@@ -23,12 +23,38 @@ public sealed class GameState
     public int EngineLevel { get; set; } = 1;
     public string Location { get; set; } = "solace";
     public bool Docked { get; set; } = true;
+    public AppearanceState Appearance { get; set; } = new();
     public ShipState Ship { get; set; } = new();
     public List<CrewState> Crew { get; set; } = new();
     public List<ContractState> Offers { get; set; } = new();
     public List<ContractState> Jobs { get; set; } = new();
     public TravelState? Travel { get; set; }
     public List<string> Log { get; set; } = new();
+}
+
+public sealed class AppearanceState
+{
+    public string Model { get; set; } = CaptainAppearance.Explorer;
+}
+
+public static class CaptainAppearance
+{
+    public const string Explorer = "explorer";
+    public const string FemaleExplorer = "female-explorer";
+    public const string AlienExplorer = "alien-explorer";
+
+    public static readonly IReadOnlyList<string> ModelIds = new[]
+    {
+        Explorer,
+        FemaleExplorer,
+        AlienExplorer
+    };
+
+    public static bool IsSupported(string? modelId) =>
+        modelId == Explorer || modelId == FemaleExplorer || modelId == AlienExplorer;
+
+    public static string Normalize(string? modelId) =>
+        IsSupported(modelId) ? modelId! : Explorer;
 }
 
 public sealed class ShipState

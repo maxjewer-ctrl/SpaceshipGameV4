@@ -22,6 +22,9 @@ loader. `test/porting-upkeep.test.ts` derives
 through food shortage, missed payroll, recovery, and powered hydroponics.
 `unity/Kestrel.Sim.Tests/SimTests.cs` reads both fixtures and checks all seven
 C# projections, the first module-swap action, and every upkeep trace tick.
+The scenario projection also pins the browser's `appearance.model` vocabulary;
+Unity accepts exactly `explorer`, `female-explorer`, and `alien-explorer`, with
+older or unknown values falling back to `explorer`.
 
 Regenerate the projection only for an intentional browser behavior change:
 
@@ -68,3 +71,5 @@ before presentation work.
 - Browser JSON remains content authority until an explicit migration changes it.
 - Save version stays `16`; the Unity save is a portable subset and must not be
   advertised as a byte-compatible browser save until the full schema migrates.
+- The portable subset includes `appearance.model`, and the in-game captain
+  picker is required to persist it through rebuild, save, and load.

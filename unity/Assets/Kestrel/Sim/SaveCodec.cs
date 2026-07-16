@@ -31,6 +31,9 @@ public static class SaveCodec
         Number(json, "engineLevel", state.EngineLevel).Append(',');
         String(json, "location", state.Location).Append(',');
         Boolean(json, "docked", state.Docked).Append(',');
+        json.Append("\"appearance\":{");
+        String(json, "model", state.Appearance.Model);
+        json.Append("},");
         json.Append("\"ship\":{");
         String(json, "hull", state.Ship.Hull).Append(',');
         Number(json, "bayCount", state.Ship.BayCount).Append(',');
@@ -77,7 +80,8 @@ public static class SaveCodec
             Dead = BoolOrDefault(root, "dead"),
             EngineLevel = Int(root, "engineLevel"),
             Location = Text(root, "location"),
-            Docked = Bool(root, "docked")
+            Docked = Bool(root, "docked"),
+            Appearance = ReadAppearance(root)
         };
 
         if (state.Version > GameState.CurrentVersion)
@@ -130,6 +134,19 @@ public static class SaveCodec
         }
     }
 
+    private static AppearanceState ReadAppearance(Dictionary<string, object?> root)
+    {
+        if (!root.TryGetValue("appearance", out var value) || value is not Dictionary<string, object?> appearance)
+        {
+            return new AppearanceState();
+        }
+
+        return new AppearanceState
+        {
+            Model = CaptainAppearance.Normalize(TextOrDefault(appearance, "model", CaptainAppearance.Explorer))
+        };
+    }
+
     private static void AppendModule(StringBuilder json, ModuleState module)
     {
         json.Append('{'); Number(json, "slot", module.Slot).Append(','); String(json, "key", module.Key).Append(',');
@@ -175,6 +192,7 @@ public static class SaveCodec
     private static Dictionary<string, object?> Object(object? value, string key) => value as Dictionary<string, object?> ?? throw new InvalidOperationException($"Save JSON field '{key}' is not an object.");
     private static List<object?> Array(Dictionary<string, object?> root, string key) => root.TryGetValue(key, out var value) && value is List<object?> list ? list : throw new InvalidOperationException($"Save JSON field '{key}' is not an array.");
     private static string Text(Dictionary<string, object?> root, string key) => root.TryGetValue(key, out var value) && value is string text ? text : throw new InvalidOperationException($"Save JSON field '{key}' is not text.");
+    private static string TextOrDefault(Dictionary<string, object?> root, string key, string defaultValue) => root.TryGetValue(key, out var value) && value is string text ? text : defaultValue;
     private static int Int(Dictionary<string, object?> root, string key) => root.TryGetValue(key, out var value) && value is double number ? checked((int)number) : throw new InvalidOperationException($"Save JSON field '{key}' is not numeric.");
     private static int IntOrDefault(Dictionary<string, object?> root, string key, int defaultValue = 0) => root.TryGetValue(key, out var value) && value is double number ? checked((int)number) : defaultValue;
     private static float Float(Dictionary<string, object?> root, string key) => root.TryGetValue(key, out var value) && value is double number ? (float)number : throw new InvalidOperationException($"Save JSON field '{key}' is not numeric.");
@@ -184,6 +202,7 @@ public static class SaveCodec
     private static void Validate(GameState state)
     {
         if (state.Version != GameState.CurrentVersion) throw new InvalidOperationException($"Expected save version {GameState.CurrentVersion}, got {state.Version}.");
+        if (state.Appearance == null || !CaptainAppearance.IsSupported(state.Appearance.Model)) throw new InvalidOperationException("Captain appearance model is not supported.");
         if (state.Ship.BayCount <= 0 || state.Ship.Modules.Count > state.Ship.BayCount) throw new InvalidOperationException("Ship modules must fit within the authored bay count.");
         var slots = state.Ship.Modules.Select(module => module.Slot).ToArray();
         if (slots.Distinct().Count() != slots.Length || slots.Any(slot => slot < 0 || slot >= state.Ship.BayCount))

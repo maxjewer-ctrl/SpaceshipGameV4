@@ -27,6 +27,7 @@ function projection(scenario: string) {
     engineLevel: S.engineLvl,
     location: S.loc,
     docked: S.docked,
+    captainModel: S.appearance.model || "explorer",
     bayCount: S.slotsMax,
     modules: modInst()
       .map((module) => ({

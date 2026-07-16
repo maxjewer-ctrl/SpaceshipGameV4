@@ -22,6 +22,7 @@ public static class PortSnapshotCodec
         Field(json, "engineLevel", state.EngineLevel).Append(',');
         Field(json, "location", state.Location).Append(',');
         Field(json, "docked", state.Docked).Append(',');
+        Field(json, "captainModel", state.Appearance.Model).Append(',');
         Field(json, "bayCount", state.Ship.BayCount).Append(',');
         json.Append("\"modules\":[");
         for (var i = 0; i < state.Ship.Modules.Count; i++)

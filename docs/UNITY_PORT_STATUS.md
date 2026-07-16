@@ -1,6 +1,6 @@
 # Unity port status
 
-Updated 2026-07-15. The durable progress measure is proven playable behavior,
+Updated 2026-07-16. The durable progress measure is proven playable behavior,
 not file count.
 
 | Gate | Status | Evidence |
@@ -14,9 +14,10 @@ not file count.
 | Level contract validation | Complete | Socket count/order, duplicate IDs, transforms, colliders, room references, and console anchor |
 | First contract/travel loop | Complete | Accept → depart → three days → arrive → pay → save/load |
 | Repeatable automated gate | Complete | `scripts/unity.ps1 verify-slice` |
-| Live WebGL acceptance | Complete | 6/6 checks, clean browser console, `.shots/unity/latest/live-acceptance.png` |
-| Full browser v16 save parity | Not started | Unity currently persists the bounded portable subset |
-| Tick-trace parity | Next | Port day upkeep and a quiet travel trace before random events |
+| Live WebGL acceptance | Complete | 8/8 checks, including captain persistence, with evidence under `.shots/unity/latest/` |
+| Captain appearance parity | Complete | All three browser model IDs are Unity-native, player-selectable, and persisted in v16 saves |
+| Full browser v16 save parity | In progress | Unity persists the bounded portable subset plus `appearance.model` |
+| Tick-trace parity | Complete | Browser-derived starvation, payroll, recovery, and hydroponics traces pass in C# |
 | Stations, economy, combat, campaigns | Browser-owned | Move only after the preceding simulation vocabulary is pinned |
 
 ## Standard checkpoint
@@ -44,7 +45,8 @@ evidence for deck-layout or camera changes.
 
 ## Next transfer slice
 
-Complete the deterministic day-upkeep kernel. Fuel burn, food consumption, and
-arrival payment are now present; pin a browser trace for starvation and payroll,
-then reproduce it in `Kestrel.Sim` before adding random lane events. Expose only
-the resulting state through the existing captain console and bridge.
+Port the first deterministic random lane-event kernel. Pin the browser event
+selection and outcome trace for one bounded encounter, reproduce it in
+`Kestrel.Sim`, and expose only the resulting decision and state through the
+captain console and bridge. In parallel with that gameplay transfer, the next
+presentation pass is the diegetic HUD described in `UNITY_VISUAL_UPGRADE.md`.

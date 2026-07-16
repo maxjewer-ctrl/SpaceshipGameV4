@@ -15,6 +15,8 @@ public sealed class KestrelPlayerController : MonoBehaviour
     private Animator? visualAnimator;
     private Vector3 velocity;
 
+    public bool InputEnabled { get; private set; } = true;
+
     private void Awake()
     {
         controller = GetComponent<CharacterController>();
@@ -25,8 +27,8 @@ public sealed class KestrelPlayerController : MonoBehaviour
 
     private void Update()
     {
-        var x = Input.GetAxisRaw("Horizontal");
-        var z = Input.GetAxisRaw("Vertical");
+        var x = InputEnabled ? Input.GetAxisRaw("Horizontal") : 0f;
+        var z = InputEnabled ? Input.GetAxisRaw("Vertical") : 0f;
         var move = new Vector3(x, 0f, z);
         if (move.sqrMagnitude > 1f)
         {
@@ -60,6 +62,12 @@ public sealed class KestrelPlayerController : MonoBehaviour
     {
         visualAnimator = animator;
         if (visualAnimator != null) visualAnimator.SetBool(MovingParameter, false);
+    }
+
+    public void SetInputEnabled(bool enabled)
+    {
+        InputEnabled = enabled;
+        if (!enabled && visualAnimator != null) visualAnimator.SetBool(MovingParameter, false);
     }
 
     public void Teleport(Vector3 position)

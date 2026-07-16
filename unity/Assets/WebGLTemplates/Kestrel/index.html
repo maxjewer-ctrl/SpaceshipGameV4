@@ -67,6 +67,7 @@
   </div>
   <aside id="dev-monitor" aria-label="Unity development monitor">
     <button id="run-acceptance" type="button">Run acceptance</button>
+    <button id="open-captain-picker" type="button">Captain setup</button>
     <div id="view-controls" aria-label="Ship inspection views">
       <button id="view-cockpit" type="button">Cockpit</button>
       <button id="view-midship" type="button">Midship</button>
@@ -143,12 +144,19 @@
           state = await window.kestrel.waitForState((next) => next.ship.modules.find((module) => module.slot === 1)?.key === beforeB);
           check("module swap", state.ship.modules.find((module) => module.slot === 2)?.key === beforeA);
 
+          window.kestrel.command("setCaptainModel", { model: "alien-explorer" });
+          await window.kestrel.waitForState((next) => next.appearance?.model === "alien-explorer");
           window.kestrel.command("save");
           window.kestrel.command("swapModules", { slotA: 1, slotB: 2 });
           await window.kestrel.waitForState((next) => next.ship.modules.find((module) => module.slot === 1)?.key === beforeA);
+          window.kestrel.command("setCaptainModel", { model: "explorer" });
+          await window.kestrel.waitForState((next) => next.appearance?.model === "explorer");
           window.kestrel.command("load");
-          state = await window.kestrel.waitForState((next) => next.ship.modules.find((module) => module.slot === 1)?.key === beforeB);
+          state = await window.kestrel.waitForState((next) =>
+            next.ship.modules.find((module) => module.slot === 1)?.key === beforeB &&
+            next.appearance?.model === "alien-explorer");
           check("save/load", state.ship.modules.find((module) => module.slot === 2)?.key === beforeA);
+          check("captain selection", state.appearance.model === "alien-explorer");
 
           window.kestrel.command("runTransferLoop");
           state = await window.kestrel.waitForState((next) => next.location === "foundry" && next.docked === true);
@@ -179,6 +187,7 @@
     document.querySelector("#run-acceptance").addEventListener("click", () => {
       window.kestrel.runAcceptance();
     });
+    document.querySelector("#open-captain-picker").addEventListener("click", () => window.kestrel.command("openCaptainPicker"));
     document.querySelector("#view-cockpit").addEventListener("click", () => window.kestrel.command("movePlayerToCockpit"));
     document.querySelector("#view-midship").addEventListener("click", () => window.kestrel.command("movePlayerToMidship"));
     document.querySelector("#view-engine").addEventListener("click", () => window.kestrel.command("movePlayerToEngine"));

@@ -44,10 +44,15 @@ scripts/unity.ps1 setup
 
 or choose `Kestrel > Characters > Rebuild Captain Prefabs` in Unity.
 
-The WebGL development monitor exposes Man, Woman, and Frog buttons using the
-same stable IDs as the browser character picker. Runtime movement drives the
-Animator's `Moving` parameter. This presentation selection deliberately does
-not change save version 16.
+The ship opens a player-facing captain picker on first initialization. Press
+`1`–`3` or the arrow keys to preview the live Unity prefabs, Enter to confirm
+and save, Escape to restore the selection from before the picker opened, and
+`C` to reopen it while playing. The WebGL development monitor retains direct
+Man, Woman, Frog, and Captain setup controls for testing.
+
+`Kestrel.Sim.Appearance.Model` uses the same stable IDs as the browser picker.
+The selected ID survives scenario rebuilds and version-16 save/load without a
+save-version change. Runtime movement drives the Animator's `Moving` parameter.
 
 Before committing character changes, run:
 

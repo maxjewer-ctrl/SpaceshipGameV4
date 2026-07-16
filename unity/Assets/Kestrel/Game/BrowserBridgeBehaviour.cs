@@ -70,6 +70,9 @@ public sealed class BrowserBridgeBehaviour : MonoBehaviour
             case "setCaptainModel":
                 Runtime.SetCaptainModel(command.model);
                 break;
+            case "openCaptainPicker":
+                Runtime.OpenCaptainPicker();
+                break;
             case "save":
                 Runtime.SaveCurrent();
                 break;

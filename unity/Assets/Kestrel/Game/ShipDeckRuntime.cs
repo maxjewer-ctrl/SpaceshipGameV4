@@ -9,12 +9,11 @@ namespace Kestrel.Game;
 public sealed class ShipDeckRuntime : MonoBehaviour
 {
     private const string SixBayDeckResource = "Kestrel/Prefabs/KestrelSixBayDeck";
-    private const string DefaultCaptainModelId = "explorer";
     private static readonly IReadOnlyDictionary<string, string> CaptainResources = new Dictionary<string, string>
     {
-        ["explorer"] = "Kestrel/Characters/CaptainExplorer",
-        ["female-explorer"] = "Kestrel/Characters/CaptainFemaleExplorer",
-        ["alien-explorer"] = "Kestrel/Characters/CaptainAlienExplorer"
+        [CaptainAppearance.Explorer] = "Kestrel/Characters/CaptainExplorer",
+        [CaptainAppearance.FemaleExplorer] = "Kestrel/Characters/CaptainFemaleExplorer",
+        [CaptainAppearance.AlienExplorer] = "Kestrel/Characters/CaptainAlienExplorer"
     };
     public const string EditorPreviewName = "Kestrel Ship Preview";
     private readonly List<ModuleBaySocket> sockets = new();
@@ -22,7 +21,10 @@ public sealed class ShipDeckRuntime : MonoBehaviour
     private ModuleCatalog moduleCatalog = ModuleCatalog.Empty;
     private KestrelPlayerController? player;
     private GameObject? captainVisual;
-    private string captainModelId = DefaultCaptainModelId;
+    private CaptainPickerUI? captainPicker;
+    private KestrelPlayerController? previewPlayer;
+    private Quaternion captainRotationBeforePreview;
+    private Light? captainPreviewLight;
     private FollowCamera? followCamera;
     private BrowserBridgeBehaviour? bridge;
     private Transform? deckRoot;
@@ -37,8 +39,9 @@ public sealed class ShipDeckRuntime : MonoBehaviour
     public IReadOnlyList<ModuleBaySocket> Sockets => sockets;
     public bool UsingAuthoredDeck { get; private set; }
     public string Objective => CurrentObjective();
-    public string CaptainModelId => captainModelId;
+    public string CaptainModelId => state.Appearance.Model;
     public Animator? CaptainAnimator => captainVisual?.GetComponentInChildren<Animator>(true);
+    public CaptainPickerUI? CaptainPicker => captainPicker;
 
     private void Start()
     {
@@ -48,7 +51,9 @@ public sealed class ShipDeckRuntime : MonoBehaviour
 
     public void BuildScenario(string scenario, int seed)
     {
+        var retainedCaptainModel = CaptainAppearance.Normalize(state.Appearance.Model);
         state = GameStateFactory.CreateScenario(scenario, seed);
+        state.Appearance.Model = retainedCaptainModel;
         RebuildDeck();
         PublishState();
     }
@@ -141,8 +146,64 @@ public sealed class ShipDeckRuntime : MonoBehaviour
 
     public void SetCaptainModel(string modelId)
     {
-        captainModelId = CaptainResources.ContainsKey(modelId) ? modelId : DefaultCaptainModelId;
+        state.Appearance.Model = CaptainAppearance.Normalize(modelId);
         if (player == null) return;
+
+        ApplyCaptainVisual();
+        PublishState();
+    }
+
+    public void OpenCaptainPicker() => captainPicker?.Open();
+
+    public void BeginCaptainPreview()
+    {
+        if (player != null)
+        {
+            player.SetInputEnabled(false);
+            if (previewPlayer != player)
+            {
+                previewPlayer = player;
+                captainRotationBeforePreview = player.transform.rotation;
+            }
+            player.transform.rotation = Quaternion.Euler(0f, 180f, 0f);
+            CreateCaptainPreviewLight(player.transform.position);
+        }
+        followCamera?.FrameInspection(new Vector3(0f, 1.45f, -3f), Vector3.zero);
+    }
+
+    public void EndCaptainPreview()
+    {
+        player?.SetInputEnabled(true);
+        if (previewPlayer != null) previewPlayer.transform.rotation = captainRotationBeforePreview;
+        previewPlayer = null;
+        if (captainPreviewLight != null) captainPreviewLight.enabled = false;
+        followCamera?.ClearInspection();
+    }
+
+    private void CreateCaptainPreviewLight(Vector3 playerPosition)
+    {
+        if (captainPreviewLight == null)
+        {
+            var lightObject = new GameObject("Captain Preview Key Light");
+            lightObject.transform.SetParent(transform, false);
+            captainPreviewLight = lightObject.AddComponent<Light>();
+            captainPreviewLight.type = LightType.Spot;
+            captainPreviewLight.color = new Color(0.72f, 0.9f, 1f);
+            captainPreviewLight.intensity = 7f;
+            captainPreviewLight.range = 8f;
+            captainPreviewLight.spotAngle = 58f;
+            captainPreviewLight.shadows = LightShadows.Soft;
+        }
+
+        captainPreviewLight.enabled = true;
+        captainPreviewLight.transform.position = playerPosition + new Vector3(-0.8f, 2.6f, -2.3f);
+        captainPreviewLight.transform.rotation = Quaternion.LookRotation(
+            playerPosition + Vector3.up * 1.1f - captainPreviewLight.transform.position);
+    }
+
+    private void ApplyCaptainVisual()
+    {
+        var modelId = CaptainModelId;
 
         if (captainVisual != null)
         {
@@ -150,11 +211,11 @@ public sealed class ShipDeckRuntime : MonoBehaviour
             else DestroyImmediate(captainVisual);
         }
 
-        var prefab = Resources.Load<GameObject>(CaptainResources[captainModelId]);
+        var prefab = Resources.Load<GameObject>(CaptainResources[modelId]);
         if (prefab != null)
         {
             captainVisual = Instantiate(prefab, player.transform, false);
-            captainVisual.name = $"Captain Visual ({captainModelId})";
+            captainVisual.name = $"Captain Visual ({modelId})";
             player.SetVisualAnimator(captainVisual.GetComponentInChildren<Animator>(true));
             return;
         }
@@ -162,7 +223,7 @@ public sealed class ShipDeckRuntime : MonoBehaviour
         captainVisual = CaptainMarker("Captain Visual Fallback", Vector3.zero, new Color(0.22f, 0.4f, 0.56f));
         captainVisual.transform.SetParent(player.transform, false);
         player.SetVisualAnimator(null);
-        Debug.LogWarning($"Missing native captain prefab for '{captainModelId}'. Run Kestrel > Characters > Rebuild Captain Prefabs.");
+        Debug.LogWarning($"Missing native captain prefab for '{modelId}'. Run Kestrel > Characters > Rebuild Captain Prefabs.");
     }
 
     private void RebuildDeck()
@@ -182,6 +243,7 @@ public sealed class ShipDeckRuntime : MonoBehaviour
         CreateLighting();
         CreatePlayerAndCamera();
         CreateBridge();
+        CreateCaptainPicker();
         UsingAuthoredDeck = TryCreateAuthoredDeck();
         if (!UsingAuthoredDeck) CreatePrototypeDeck();
         BindSocketInteractions();
@@ -325,7 +387,7 @@ public sealed class ShipDeckRuntime : MonoBehaviour
             playerObject.AddComponent<CharacterController>();
             player = playerObject.AddComponent<KestrelPlayerController>();
         }
-        SetCaptainModel(captainModelId);
+        ApplyCaptainVisual();
         player.Teleport(new Vector3(0f, 0.2f, -5f));
         var camera = Camera.main;
         if (camera == null)
@@ -351,6 +413,12 @@ public sealed class ShipDeckRuntime : MonoBehaviour
         bridge = FindFirstObjectByType<BrowserBridgeBehaviour>();
         if (bridge == null) bridge = new GameObject("KestrelBridge").AddComponent<BrowserBridgeBehaviour>();
         bridge.Runtime = this;
+    }
+
+    private void CreateCaptainPicker()
+    {
+        captainPicker = GetComponent<CaptainPickerUI>() ?? gameObject.AddComponent<CaptainPickerUI>();
+        captainPicker.Initialize(this);
     }
 
     private GameObject Cube(string name, Vector3 position, Vector3 scale, Material? material)
