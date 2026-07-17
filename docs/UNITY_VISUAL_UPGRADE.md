@@ -59,6 +59,14 @@ The initial six-bay pass is implemented in visual revision 7:
 - An editor-visible ship preview in `KestrelShipDeck.unity`; Play Mode hides the
   preview before the runtime deck initializes.
 
+Cockpit readability iteration implemented in visual revision 9:
+
+- Helm holo, forward glass glow, command arch, and side wing consoles so cockpit
+  captures read as a bridge
+  instead of only as the start of a corridor.
+- The WebGL Cockpit inspection control now frames an over-shoulder bridge view for
+  screenshot review; Midship and Engine return to the normal traversal camera.
+
 ## Verification
 
 - Unity EditMode and PlayMode test command passes.

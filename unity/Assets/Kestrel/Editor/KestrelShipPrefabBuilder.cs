@@ -9,7 +9,7 @@ namespace Kestrel.Editor;
 public static class KestrelShipPrefabBuilder
 {
     public const string SixBayPrefabPath = "Assets/Resources/Kestrel/Prefabs/KestrelSixBayDeck.prefab";
-    public const int SixBayVisualRevision = 7;
+    public const int SixBayVisualRevision = 9;
     private const string MaterialRoot = "Assets/Kestrel/Content/Materials";
     private const string FlatShaderName = "Kestrel/Flat";
 
@@ -46,6 +46,8 @@ public static class KestrelShipPrefabBuilder
         var console = Material("ConsoleDark", new Color(0.055f, 0.075f, 0.09f));
         var screen = Material("ScreenCyan", new Color(0.025f, 0.22f, 0.27f), 1f, emission: 0.92f, emissionColor: new Color(0.06f, 0.72f, 0.92f));
         var warning = Material("WarningAmber", new Color(0.38f, 0.16f, 0.025f), 1f, emission: 1.05f, emissionColor: new Color(1f, 0.34f, 0.045f));
+        var glass = Material("BridgeGlass", new Color(0.015f, 0.07f, 0.095f), 1f, emission: 0.18f, emissionColor: new Color(0.02f, 0.16f, 0.2f));
+        var holo = Material("HoloAmber", new Color(0.32f, 0.18f, 0.035f), 1f, emission: 0.72f, emissionColor: new Color(1f, 0.48f, 0.08f));
         var engineGlow = Material("EngineGlow", new Color(0.36f, 0.025f, 0.012f), 1f, emission: 1.35f, emissionColor: new Color(1f, 0.11f, 0.025f));
         var cargo = Material("CargoTan", new Color(0.37f, 0.25f, 0.13f));
         var berth = Material("BerthBlue", new Color(0.12f, 0.25f, 0.38f));
@@ -54,7 +56,7 @@ public static class KestrelShipPrefabBuilder
         try
         {
             BuildHullShell(root.transform, wall, ceiling, screen, trim);
-            var consoleAnchor = BuildCockpit(root.transform, floor, wall, cockpit, console, screen, warning, trim);
+            var consoleAnchor = BuildCockpit(root.transform, floor, wall, cockpit, console, screen, warning, trim, glass, holo);
             BuildCentralCorridor(root.transform, floor, wall, screen, trim);
 
             var bayCenters = new[] { 0.5f, 7f, 13.5f };
@@ -126,7 +128,9 @@ public static class KestrelShipPrefabBuilder
         Material console,
         Material screen,
         Material warning,
-        Material trim)
+        Material trim,
+        Material glass,
+        Material holo)
     {
         var inset = Material("InsetMetal", new Color(0.025f, 0.045f, 0.06f), pattern: 1f, panelScale: 1.15f, wear: 0.2f);
         var space = Material("SpaceBlack", new Color(0.004f, 0.008f, 0.018f), 1f);
@@ -141,9 +145,13 @@ public static class KestrelShipPrefabBuilder
         Primitive("Forward Viewport", root, new Vector3(0f, 1.82f, -8.56f), new Vector3(4.5f, 1.25f, 0.08f), space);
         Primitive("Viewport Port Brace", root, new Vector3(-2.45f, 1.75f, -8.45f), new Vector3(0.3f, 1.75f, 0.3f), trim, new Vector3(0f, 0f, -13f));
         Primitive("Viewport Starboard Brace", root, new Vector3(2.45f, 1.75f, -8.45f), new Vector3(0.3f, 1.75f, 0.3f), trim, new Vector3(0f, 0f, 13f));
+        Primitive("Viewport Crown Brace", root, new Vector3(0f, 2.48f, -8.43f), new Vector3(4.65f, 0.22f, 0.2f), trim);
+        Primitive("Viewport Lower Brace", root, new Vector3(0f, 1.02f, -8.43f), new Vector3(4.85f, 0.18f, 0.2f), trim);
+        Decoration("Forward Glass Glow", root, new Vector3(0f, 1.82f, -8.5f), new Vector3(3.85f, 0.82f, 0.055f), glass);
 
         BuildObservationWindow(root, -1, -5.5f, space, stars, planet, trim);
         BuildObservationWindow(root, 1, -5.5f, space, stars, planet, trim);
+        BuildBridgeCommandSilhouette(root, console, screen, warning, trim, glass, holo);
 
         Primitive("Port Command Bank", root, new Vector3(-2.75f, 0.62f, -5.2f), new Vector3(1.15f, 0.95f, 4.25f), console, new Vector3(0f, -5f, 0f));
         Primitive("Starboard Command Bank", root, new Vector3(2.75f, 0.62f, -5.2f), new Vector3(1.15f, 0.95f, 4.25f), console, new Vector3(0f, 5f, 0f));
@@ -160,10 +168,36 @@ public static class KestrelShipPrefabBuilder
         Primitive("Helm Pedestal", consoleAnchor, new Vector3(0f, 0.58f, 0f), new Vector3(1.75f, 1.05f, 0.78f), console);
         Primitive("Helm Display", consoleAnchor, new Vector3(0f, 1.18f, -0.08f), new Vector3(1.35f, 0.72f, 0.09f), screen, new Vector3(18f, 0f, 0f));
         Primitive("Helm Warning Strip", consoleAnchor, new Vector3(0f, 0.2f, -0.48f), new Vector3(1.9f, 0.08f, 0.12f), warning);
+        Decoration("Helm Holo Plate", consoleAnchor, new Vector3(0f, 1.52f, -0.18f), new Vector3(0.92f, 0.035f, 0.92f), holo, Vector3.zero, PrimitiveType.Cylinder);
+        Decoration("Helm Holo Spire", consoleAnchor, new Vector3(0f, 1.83f, -0.18f), new Vector3(0.1f, 0.46f, 0.1f), screen, Vector3.zero, PrimitiveType.Cylinder);
         Decoration("Helm Footwell", root, new Vector3(0f, 0.105f, -3.25f), new Vector3(2.4f, 0.035f, 2.05f), inset);
         Primitive("Helm Port Rail", root, new Vector3(-1.15f, 0.42f, -3.35f), new Vector3(0.12f, 0.75f, 1.7f), trim);
         Primitive("Helm Starboard Rail", root, new Vector3(1.15f, 0.42f, -3.35f), new Vector3(0.12f, 0.75f, 1.7f), trim);
         return consoleAnchor;
+    }
+
+    private static void BuildBridgeCommandSilhouette(
+        Transform root,
+        Material console,
+        Material screen,
+        Material warning,
+        Material trim,
+        Material glass,
+        Material holo)
+    {
+        foreach (var side in new[] { -1, 1 })
+        {
+            var sideName = side < 0 ? "Port" : "Starboard";
+            Primitive($"{sideName} Bridge Wing Console", root, new Vector3(side * 1.78f, 0.72f, -3.3f), new Vector3(1.18f, 0.82f, 1.55f), console, new Vector3(0f, side * 18f, 0f));
+            Decoration($"{sideName} Wing Glass Panel", root, new Vector3(side * 1.68f, 1.25f, -3.56f), new Vector3(0.86f, 0.07f, 0.72f), glass, new Vector3(16f, side * 18f, 0f));
+            Decoration($"{sideName} Wing Alert Strip", root, new Vector3(side * 1.88f, 1.18f, -2.68f), new Vector3(0.72f, 0.055f, 0.12f), side < 0 ? screen : warning);
+            Primitive($"{sideName} Cockpit Arch Upright", root, new Vector3(side * 2.25f, 1.58f, -2.12f), new Vector3(0.22f, 2.25f, 0.24f), trim, new Vector3(0f, 0f, side * 10f));
+        }
+
+        Primitive("Cockpit Arch Crown", root, new Vector3(0f, 2.56f, -2.12f), new Vector3(4.6f, 0.22f, 0.24f), trim);
+        Decoration("Cockpit Arch Status Glass", root, new Vector3(0f, 2.22f, -2.1f), new Vector3(2.4f, 0.1f, 0.08f), glass);
+        Decoration("Navigation Holo Ring", root, new Vector3(0f, 1.45f, -3.72f), new Vector3(1.05f, 0.045f, 1.05f), holo, Vector3.zero, PrimitiveType.Cylinder);
+        Decoration("Navigation Holo Core", root, new Vector3(0f, 1.72f, -3.72f), new Vector3(0.22f, 0.54f, 0.22f), screen, Vector3.zero, PrimitiveType.Cylinder);
     }
 
     private static void BuildObservationWindow(
@@ -608,6 +642,8 @@ public static class KestrelShipPrefabBuilder
         Material("ConsoleDark", new Color(0.055f, 0.075f, 0.09f));
         Material("ScreenCyan", new Color(0.025f, 0.22f, 0.27f), 1f, emission: 0.92f, emissionColor: new Color(0.06f, 0.72f, 0.92f));
         Material("WarningAmber", new Color(0.38f, 0.16f, 0.025f), 1f, emission: 1.05f, emissionColor: new Color(1f, 0.34f, 0.045f));
+        Material("BridgeGlass", new Color(0.015f, 0.07f, 0.095f), 1f, emission: 0.18f, emissionColor: new Color(0.02f, 0.16f, 0.2f));
+        Material("HoloAmber", new Color(0.32f, 0.18f, 0.035f), 1f, emission: 0.72f, emissionColor: new Color(1f, 0.48f, 0.08f));
         Material("EngineGlow", new Color(0.36f, 0.025f, 0.012f), 1f, emission: 1.35f, emissionColor: new Color(1f, 0.11f, 0.025f));
         Material("InsetMetal", new Color(0.025f, 0.045f, 0.06f), pattern: 1f, panelScale: 1.15f, wear: 0.2f);
         Material("ConduitSteel", new Color(0.22f, 0.27f, 0.3f), pattern: 2f, panelScale: 2.2f, wear: 0.2f);

@@ -197,8 +197,11 @@ public sealed class ShipDeckRuntime : MonoBehaviour
 
     public void MovePlayerToCockpit()
     {
-        followCamera?.ClearInspection();
         player?.Teleport(new Vector3(0f, 0.2f, -5f));
+        if (player != null) player.transform.rotation = Quaternion.identity;
+        followCamera?.FrameInspection(
+            new Vector3(0.82f, 2.55f, -3.2f),
+            new Vector3(0f, 0f, 2.15f));
     }
 
     public void MovePlayerToMidship()
