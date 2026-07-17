@@ -168,6 +168,36 @@ foundation of §4.1.
 Each phase ends with the standing rules intact: tsc clean, console clean,
 playtest gate met, committed, pushed — plus the new rule: **CI green**.
 
+### Unity port overlay (started 2026-07-15)
+
+The beta plan now has a parallel engine track: Unity is being introduced for
+ship embodiment, hand-built levels, and browser-playable iteration while the
+existing Vite game remains the authoritative reference until parity is proven.
+
+What exists now:
+
+- `unity/` project scaffold, text serialization, visible meta files, WebGL
+  build path, and Unity-safe ignores.
+- `Kestrel.Sim` pure C# layer with .NET tests and canonical scenario hashes.
+- `Kestrel.Game` runtime slice: 6/8 bay ship deck, player controller, camera,
+  sockets, interactions, save/load, and WebGL bridge.
+- `Kestrel.Editor` setup/build/validation/content-sync commands.
+- GitHub-safe C# sim workflow in `.github/workflows/csharp-sim.yml`.
+- Unity local tests: 5 EditMode and 1 PlayMode currently pass.
+- WebGL development build currently passes local verification.
+
+How this changes beta sequencing:
+
+- Do not delete or replace the browser game yet. It remains the rules oracle,
+  CI harness, and playable fallback.
+- During Phase A/B/C work, port stable rules into `Kestrel.Sim` only after they
+  have browser golden or scenario coverage.
+- Unity gameplay redesign is limited to presentation, camera, movement feel,
+  and level authoring unless a separate design decision explicitly changes
+  simulation behavior.
+- The next Unity beta milestone is not more systems. It is a hand-authored
+  playable ship interior using stable module sockets and browser content data.
+
 ### Phase A — FOUNDATIONS & THE KNIFE (~2–3 weeks)
 Everything in §3, plus:
 

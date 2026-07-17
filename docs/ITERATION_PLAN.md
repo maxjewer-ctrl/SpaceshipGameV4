@@ -17,6 +17,38 @@ cycles alternate so neither starves.
 Scenario coverage: `fresh · trader · fighter · silence · arc · run · reckoning`
 — between them they touch every system without grinding.
 
+## Unity Migration Track (started 2026-07-15)
+
+The browser game remains the reference implementation and playtest oracle.
+Unity now exists as a parallel port under `unity/`, with a local WebGL build
+for browser play and agent-driven iteration.
+
+Current shipped Unity foundation:
+
+- Nested Unity project using installed editor `6000.4.2f1`.
+- Pure C# `Kestrel.Sim` with deterministic scenario generation, v16 save JSON,
+  canonical hashes, and `dotnet test` coverage.
+- Runtime ship-deck slice with 6-bay and 8-bay layouts, over-the-shoulder
+  player movement, module sockets, captain console swapping, save/load, and
+  browser bridge commands.
+- Unity content sync copies `src/content/modules.json` into Unity Resources so
+  Unity module labels use the same content names as the browser game.
+- Local scripts: `scripts/unity.ps1 doctor|setup|sim-test|unity-test|test|build-web-dev|serve-web|verify`.
+- Local Codex skills: `develop-kestrel-unity`, `playtest-kestrel-unity`,
+  `see-kestrel-unity`.
+
+Fresh-session pickup order:
+
+1. Run `git status --short` and keep existing portrait/station changes separate
+   from Unity migration work.
+2. Run `scripts/unity.ps1 doctor`, then `scripts/unity.ps1 setup`.
+3. Run `scripts/unity.ps1 unity-test` and `scripts/unity.ps1 build-web-dev`.
+4. Serve with `scripts/unity.ps1 serve-web` and use
+   `window.kestrel.command(...)` for repeatable browser playtests.
+5. Next implementation target: hand-authored ship level prefabs that preserve
+   module socket IDs, replacing generated prototype geometry one room class at
+   a time.
+
 ## Structural Recovery Direction (2026-07-15)
 
 The next phase is not another content pass. It is a boundary-setting pass so

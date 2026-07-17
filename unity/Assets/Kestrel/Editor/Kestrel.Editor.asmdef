@@ -1,0 +1,19 @@
+{
+  "name": "Kestrel.Editor",
+  "rootNamespace": "Kestrel.Editor",
+  "references": [
+    "Kestrel.Game",
+    "Kestrel.Sim"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

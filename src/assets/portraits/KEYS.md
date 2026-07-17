@@ -55,6 +55,10 @@ the CRT panel styling.
 | `witness_marek` | Cpl. Ellis Marek — gunnery log-keeper in hiding |
 | `witness_senn` | Dr. Halvard Senn — perpetrator with a good memory |
 | `mr_grey` | Mr. Grey — the buyout fixer |
+| `nym_quell` | Nym Quell — quarantine clerk, Corbin's amphibious kin-line |
+| `ilya_veer` | Ilya Veer — signal cartographer, Tomas's four-eyed kin-line |
+| `oss_varda` | Oss Varda — Khelt salvage-rights appraiser |
+| `sen_asha` | Sen Asha — Avarin pressure-suit tailor |
 
 (If an npcs.json id differs from the above, the id in the JSON wins — the
 resolver uses it verbatim.)

@@ -15,6 +15,10 @@ import junoWorried from "../assets/portraits/juno-worried.webp";
 import junoAngry from "../assets/portraits/juno-angry.webp";
 import pip7 from "../assets/portraits/pip7.webp";
 import storeOwner from "../assets/portraits/store-owner.webp";
+import nymQuell from "../assets/portraits/nym-quell.webp";
+import ilyaVeer from "../assets/portraits/ilya-veer.webp";
+import ossVarda from "../assets/portraits/oss-varda.webp";
+import senAsha from "../assets/portraits/sen-asha.webp";
 import type { CrewMember } from "../types";
 
 const CREW_PORTRAITS: Record<string, string> = {
@@ -24,6 +28,13 @@ const CREW_PORTRAITS: Record<string, string> = {
 
 const CREW_EXPRESSIONS: Record<string, Record<string, string>> = {
   juno: { worried: junoWorried, angry: junoAngry },
+};
+
+const NPC_PORTRAITS: Record<string, string> = {
+  nym_quell: nymQuell,
+  ilya_veer: ilyaVeer,
+  oss_varda: ossVarda,
+  sen_asha: senAsha,
 };
 
 export function crewPortrait(c: Pick<CrewMember, "key">, expression = "neutral"): string | null {
@@ -49,4 +60,8 @@ export function dialogueHeadHTML(src: string | null, fallbackIcon: string, name:
 
 export function storeOwnerPortrait(): string {
   return storeOwner;
+}
+
+export function npcPortrait(key: string): string | null {
+  return NPC_PORTRAITS[key] || null;
 }

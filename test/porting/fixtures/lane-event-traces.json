@@ -1,0 +1,41 @@
+{
+  "schema": 1,
+  "seed": 2,
+  "choice": "buy-food",
+  "initial": {
+    "rngState": 2,
+    "event": null,
+    "credits": 500,
+    "food": 20,
+    "prestige": 0,
+    "modalOpen": false,
+    "latestLog": {
+      "d": 1,
+      "m": "— [dev] Scenario loaded: fresh. Clean start, docked at Port Solace, 500cr (prologue skipped) —"
+    }
+  },
+  "selected": {
+    "rngState": 1831565815,
+    "event": "tinker-trader",
+    "credits": 500,
+    "food": 20,
+    "prestige": 0,
+    "modalOpen": true,
+    "latestLog": {
+      "d": 1,
+      "m": "— [dev] Scenario loaded: fresh. Clean start, docked at Port Solace, 500cr (prologue skipped) —"
+    }
+  },
+  "resolved": {
+    "rngState": 1831565815,
+    "event": null,
+    "credits": 470,
+    "food": 30,
+    "prestige": 0,
+    "modalOpen": false,
+    "latestLog": {
+      "d": 1,
+      "m": "Bought 10 food off the tinker barge. Don't ask what's in the cans."
+    }
+  }
+}

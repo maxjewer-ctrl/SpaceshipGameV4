@@ -8,6 +8,7 @@ import { stats } from "../src/derive";
 import {
   openCrewDialogue, crewDialogueChoose, crewDialogueContinue, checkCrewDialogueArcs, checkCrewReq,
 } from "../src/systems/crewdialogue";
+import { openCrewTalk } from "../src/systems/crewtalk";
 import type { CrewMember } from "../src/types";
 
 // Drive Juno's data-driven conversation tree — the first tree built on the
@@ -42,6 +43,24 @@ beforeEach(() => {
 });
 
 describe("Juno dialogue — gating", () => {
+  it("opens Juno's authored conversation directly instead of the generic small-talk menu", () => {
+    seatJuno({ days: 0, bond: 0 });
+    S.ledger.push({
+      who: crewKey(juno()), fact: "survived_the_kestrel_lane", weight: 2, day: S.day,
+      note: "You and Juno pulled each other out of the same fight that killed Captain Osei.",
+    });
+
+    openCrewTalk(1);
+    const html = modalHTML() || "";
+
+    expect(html).toContain("Juno looks up from the drive housing");
+    expect(html).toContain("How's she holding, really?");
+    expect(html).toContain("LASTING IMPRESSION");
+    expect(html).toContain("pulled each other out of the same fight");
+    expect(html).not.toContain("Tell me about yourself");
+    expect(html).not.toContain("Talk it through — the long version");
+  });
+
   it("hides trust-gated topics from a stranger and shows them once bonded", () => {
     seatJuno({ days: 0, bond: 0 });
     expect(trustTier(juno())).toBe("stranger");

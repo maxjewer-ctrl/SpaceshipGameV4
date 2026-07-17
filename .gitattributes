@@ -1,2 +1,9 @@
 # Keep source and content diffs stable across Windows and GitHub runners.
 * text=auto eol=lf
+
+# Unity YAML assets should stay reviewable.
+*.unity text eol=lf
+*.prefab text eol=lf
+*.asset text eol=lf
+*.meta text eol=lf
+*.asmdef text eol=lf

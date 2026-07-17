@@ -809,6 +809,18 @@ th{color:var(--dim); font-weight:500; text-transform:uppercase; font-size:11px; 
 /* scene / dialogue modal */
 .scene .scene-loc{ font-family:var(--mono); font-size:9px; letter-spacing:2px; color:var(--dim); text-transform:uppercase; margin-bottom:6px; }
 .scene .choices button{ text-align:left; }
+.npc-dossier{
+  display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:1px;
+  margin:0 0 14px; padding:1px; border:1px solid #273042; border-radius:6px;
+  overflow:hidden; background:#273042;
+}
+.npc-dossier div{ min-width:0; padding:8px 9px; background:#0b1018; }
+.npc-dossier dt{
+  margin-bottom:3px; color:var(--dim); font-family:var(--mono); font-size:8px;
+  letter-spacing:.14em; text-transform:uppercase;
+}
+.npc-dossier dd{ margin:0; color:#c7cfda; font-size:10px; line-height:1.35; }
+@media (max-width:600px){ .npc-dossier{ grid-template-columns:1fr; } }
 .choice-stakes{ color:var(--amber); font-size:11px; font-weight:500; }
 .dialogue-consequence{ margin:10px 0 2px; padding:8px 10px; border-left:2px solid var(--amber); background:rgba(232,160,74,.08); color:var(--dim); font-size:11px; line-height:1.45; }
 .dialogue-head{ display:flex; align-items:flex-end; gap:14px; margin:0 0 12px; }

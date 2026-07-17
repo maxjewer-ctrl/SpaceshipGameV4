@@ -17,3 +17,34 @@ scripts/meshy/raw/
 # Scratch downloads for free-asset sourcing (docs/ASSET_SOURCING.md) — the zips
 # and extracted kits are a local cache, not something that ships.
 .tmp-assets/
+
+# Unity generated files and local outputs.
+unity/[Ll]ibrary/
+unity/[Tt]emp/
+unity/[Oo]bj/
+unity/**/[Bb]in/
+unity/**/[Oo]bj/
+unity/[Bb]uild/
+unity/[Bb]uilds/
+unity/[Ll]ogs/
+unity/[Uu]ser[Ss]ettings/
+unity/MemoryCaptures/
+unity/Recordings/
+unity/TestResults/
+unity/.vs/
+unity/*.csproj
+unity/*.sln
+
+# A Unity editor was once opened with Assets/Scenes as the project root. Keep
+# that nested machine cache out of portable checkouts; the real project root is
+# unity/ and Unity recreates these files locally.
+unity/Assets/Scenes/Assets.meta
+unity/Assets/Scenes/[Ll]ibrary/
+unity/Assets/Scenes/[Ll]ogs.meta
+unity/Assets/Scenes/[Ll]ogs/
+unity/Assets/Scenes/[Pp]ackages.meta
+unity/Assets/Scenes/[Pp]ackages/
+unity/Assets/Scenes/[Pp]roject[Ss]ettings.meta
+unity/Assets/Scenes/[Pp]roject[Ss]ettings/
+unity/Assets/Scenes/[Uu]ser[Ss]ettings.meta
+unity/Assets/Scenes/[Uu]ser[Ss]ettings/

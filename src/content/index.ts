@@ -95,9 +95,15 @@ export interface SceneChoice {
 export interface SceneNode { text: string; choices: SceneChoice[]; }
 export interface NpcDef {
   name: string; room: string; icon?: string;
+  modelKey?: string;                 // optional crew-model family used on the walk deck
   planets?: string[] | "any";
   gate?: Record<string, any>;       // conditions for the NPC to appear at all
   blurb?: string;                   // one-liner shown on the station map / room list
+  dossier?: {
+    species: string;
+    role: string;
+    note: string;
+  };
   nodes: Record<string, SceneNode>;
 }
 // ---- Named crew's deep conversation trees (data-driven; see systems/crewdialogue.ts) ----

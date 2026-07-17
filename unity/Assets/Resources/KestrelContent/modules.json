@@ -1,0 +1,17 @@
+{
+  "cockpit":  {"n":"Cockpit",          "price":0,   "core":true, "icon":"🧭", "d":"The captain's chair. Where the bad decisions get made."},
+  "engine":   {"n":"Drive Core",       "price":0,   "core":true, "icon":"🔥", "d":"Propulsion and main power. Upgrades add speed AND +2 reactor output."},
+  "fueltank": {"n":"Fuel Tank",        "price":250, "icon":"⛽", "fuel":40,  "d":"+40 fuel capacity. Passive — no power draw."},
+  "cargohold":{"n":"Cargo Hold",       "price":300, "icon":"📦", "cargo":20, "d":"+20 cargo space. Freight pays the bills. Passive."},
+  "cabin":    {"n":"Passenger Cabin",  "price":400, "icon":"🛏️", "pax":2,    "d":"Berths for 2 paying passengers. Passive."},
+  "quarters": {"n":"Crew Quarters",    "price":350, "icon":"👥", "crew":2,   "d":"Bunks for 2 crew members. Passive."},
+  "hydro":    {"n":"Hydroponics Bay",  "price":500, "icon":"🌱", "food":2, "pw":2, "d":"Grows 2 food per day while powered. Beans, mostly."},
+  "medbay":   {"n":"Med Bay",          "price":550, "icon":"💉", "pw":2,     "d":"Treats the sick, unlocks medical contracts. Needs power to run."},
+  "weapons":  {"n":"Weapons Bay",      "price":600, "icon":"🎯", "dmg":8, "pw":2, "d":"+8 combat damage while powered. Stackable."},
+  "shields":  {"n":"Shield Generator", "price":650, "icon":"🛡️", "shield":4, "pw":2, "d":"-4 damage per enemy hit while powered. Stackable."},
+  "armory":   {"n":"Armory",           "price":450, "icon":"🔫",             "d":"Arms the crew. Unlocks bounty contracts. Passive."},
+  "workshop": {"n":"Workshop",         "price":400, "icon":"🔧", "pw":1,     "d":"Powered workbench: raises field repairs from 50% to 60% hull and makes jury-rigs more durable. Full refits still need a yard."},
+  "smuggler": {"n":"Smuggler's Hold",  "price":700, "icon":"🕳️", "scargo":10, "d":"10 units of hidden cargo. Unlocks smuggling runs. Patrols may scan you. Passive — that's the point."},
+  "luxcabin": {"n":"Stateroom",        "price":800, "icon":"🥂", "vip":1, "pw":1, "d":"One luxury berth. Unlocks VIP charters. Cut its power and your VIP will itemize their displeasure."},
+  "reactor":  {"n":"Auxiliary Reactor","price":550, "icon":"⚛️", "gen":3,    "d":"+3 reactor power. The drive core alone can only feed so many systems."}
+}

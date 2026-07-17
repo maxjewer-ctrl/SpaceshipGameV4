@@ -1,0 +1,4 @@
+interface:
+  display_name: "Playtest Kestrel Unity"
+  short_description: "Run and drive the Unity WebGL slice."
+  default_prompt: "Playtest the Unity WebGL build of The Kestrel Run."

@@ -422,7 +422,7 @@ export function buildStationScene(): WalkScene {
           x: gx, y: gy, w: 30, h: 30, key,
           // no colour: walk3d deals wardrobe/skin from the key hash, so the
           // concourse reads as a crowd of different people, not gold clones
-          label: n.name, icon: n.icon || "◆",
+          label: n.name, icon: n.icon || "◆", modelKey: n.modelKey,
           onInteract: () => openNPC(key),
         });
       });
