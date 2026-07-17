@@ -44,6 +44,7 @@ public sealed class ShipDeckRuntime : MonoBehaviour
     public Animator? CaptainAnimator => captainVisual?.GetComponentInChildren<Animator>(true);
     public CaptainPickerUI? CaptainPicker => captainPicker;
     public LaneEventUI? LaneEventUI => laneEventUI;
+    public IReadOnlyList<string> PlaytestCheckpoints => PlaytestCheckpointStore.Names();
 
     private void Start()
     {
@@ -149,7 +150,38 @@ public sealed class ShipDeckRuntime : MonoBehaviour
         return true;
     }
 
+    public bool SavePlaytestCheckpoint(string name)
+    {
+        if (PlaytestCheckpointStore.NormalizeName(name).Length == 0) return false;
+        PlaytestCheckpointStore.Save(name, SaveCodec.Serialize(state));
+        PublishState();
+        return true;
+    }
+
+    public bool LoadPlaytestCheckpoint(string name)
+    {
+        var json = PlaytestCheckpointStore.Load(name);
+        if (string.IsNullOrWhiteSpace(json)) return false;
+        state = SaveCodec.Deserialize(json);
+        RebuildDeck();
+        PublishState();
+        return true;
+    }
+
+    public bool DeletePlaytestCheckpoint(string name)
+    {
+        var deleted = PlaytestCheckpointStore.Delete(name);
+        if (deleted) PublishState();
+        return deleted;
+    }
+
     public string StateJson() => SaveCodec.Serialize(state);
+    public string BridgeStateJson()
+    {
+        var stateJson = StateJson();
+        var checkpointJson = string.Join(",", PlaytestCheckpoints.Select(name => $"\"{name}\""));
+        return stateJson[..^1] + $",\"playtestCheckpoints\":[{checkpointJson}]}}";
+    }
     public string PortSnapshotJson() => PortSnapshotCodec.Serialize(state);
 
     public void MovePlayerToSlot(int slot)

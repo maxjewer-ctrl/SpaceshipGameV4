@@ -14,7 +14,8 @@ not file count.
 | Level contract validation | Complete | Socket count/order, duplicate IDs, transforms, colliders, room references, and console anchor |
 | First contract/travel loop | Complete | Accept → depart → three days → arrive → pay → save/load |
 | Repeatable automated gate | Complete | `scripts/unity.ps1 verify-slice` |
-| Live WebGL acceptance | Complete | 11/11 checks, including captain and lane-event persistence, with evidence under `.shots/unity/latest/` |
+| Live WebGL acceptance | Complete | 13/13 checks, including captain, lane-event, and named-checkpoint persistence, with evidence under `.shots/unity/latest/` |
+| Resumable playtest checkpoints | Complete | Named WebGL checkpoints preserve the full portable v16 state, including pending encounters |
 | Captain appearance parity | Complete | All three browser model IDs are Unity-native, player-selectable, and persisted in v16 saves |
 | Browser RNG parity | Complete | Unity uses browser-compatible Mulberry32 and pins all scenario `rngState` values |
 | First random lane event | Complete | Weighted Tinker Barge selection, buy-food/decline choice UI, travel pause, and resolved save/load |
@@ -44,6 +45,20 @@ under `.shots/unity/latest/` while reviewing the change.
 For visual reviews, the WebGL development monitor also exposes **Cockpit**,
 **Midship**, and **Engine** inspection views. Treat all three as required visual
 evidence for deck-layout or camera changes.
+
+Use the **Playtest checkpoints** controls to save and resume named points. The
+same operations are available to automated playtests:
+
+```js
+window.kestrel.command("saveCheckpoint", { name: "before-tinker-choice" })
+window.kestrel.command("loadCheckpoint", { name: "before-tinker-choice" })
+window.kestrel.command("deleteCheckpoint", { name: "before-tinker-choice" })
+window.kestrel.state().playtestCheckpoints
+```
+
+Checkpoint names are normalized to lowercase slugs and remain in browser local
+storage across WebGL reloads and rebuilds. Keep durable screenshot evidence
+under `.shots/unity/playthroughs/<date>/`.
 
 ## Next transfer slice
 

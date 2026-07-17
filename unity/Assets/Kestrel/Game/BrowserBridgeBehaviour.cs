@@ -85,6 +85,15 @@ public sealed class BrowserBridgeBehaviour : MonoBehaviour
             case "load":
                 Runtime.LoadSaved();
                 break;
+            case "saveCheckpoint":
+                Runtime.SavePlaytestCheckpoint(command.name);
+                break;
+            case "loadCheckpoint":
+                Runtime.LoadPlaytestCheckpoint(command.name);
+                break;
+            case "deleteCheckpoint":
+                Runtime.DeletePlaytestCheckpoint(command.name);
+                break;
             case "capture":
                 Capture();
                 break;
@@ -109,9 +118,9 @@ public sealed class BrowserBridgeBehaviour : MonoBehaviour
         }
 
 #if UNITY_WEBGL && !UNITY_EDITOR
-        KestrelBridgeState(Runtime.StateJson());
+        KestrelBridgeState(Runtime.BridgeStateJson());
 #else
-        Debug.Log(Runtime.StateJson());
+        Debug.Log(Runtime.BridgeStateJson());
 #endif
     }
 
@@ -137,5 +146,6 @@ public sealed class BrowserBridgeBehaviour : MonoBehaviour
         public string destination = "";
         public string model = "";
         public string choice = "";
+        public string name = "";
     }
 }

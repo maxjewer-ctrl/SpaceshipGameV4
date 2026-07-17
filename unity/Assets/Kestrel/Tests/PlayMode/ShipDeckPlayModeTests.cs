@@ -136,4 +136,36 @@ public sealed class ShipDeckPlayModeTests
         PlayerPrefs.DeleteKey("kestrelrun:unity:slot0");
         Object.Destroy(go);
     }
+
+    [UnityTest]
+    public IEnumerator NamedPlaytestCheckpointResumesPendingEncounter()
+    {
+        const string checkpoint = "resume-tinker-hail";
+        PlaytestCheckpointStore.Delete(checkpoint);
+        var go = new GameObject("checkpoint-runtime");
+        var runtime = go.AddComponent<ShipDeckRuntime>();
+        yield return null;
+        runtime.BuildScenario("fresh", 33);
+        runtime.CaptainPicker?.Close(false);
+        Assert.That(runtime.AcceptContract(), Is.True);
+        Assert.That(runtime.Depart("foundry"), Is.True);
+        Assert.That(runtime.AdvanceTravelDay(), Is.True);
+        Assert.That(runtime.AdvanceTravelDay(), Is.True);
+        Assert.That(runtime.State.LaneEvent?.Key, Is.EqualTo(LaneEvents.TinkerTrader));
+
+        Assert.That(runtime.SavePlaytestCheckpoint("Resume Tinker Hail!"), Is.True);
+        Assert.That(runtime.PlaytestCheckpoints, Does.Contain(checkpoint));
+        runtime.BuildScenario("trader", 8919);
+        Assert.That(runtime.State.LaneEvent, Is.Null);
+
+        Assert.That(runtime.LoadPlaytestCheckpoint(checkpoint), Is.True);
+        Assert.That(runtime.State.Seed, Is.EqualTo(33));
+        Assert.That(runtime.State.Travel?.Left, Is.EqualTo(1));
+        Assert.That(runtime.State.LaneEvent?.Key, Is.EqualTo(LaneEvents.TinkerTrader));
+        Assert.That(runtime.LaneEventUI?.IsOpen, Is.True);
+
+        Assert.That(runtime.DeletePlaytestCheckpoint(checkpoint), Is.True);
+        Assert.That(runtime.PlaytestCheckpoints, Does.Not.Contain(checkpoint));
+        Object.Destroy(go);
+    }
 }

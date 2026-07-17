@@ -31,4 +31,19 @@ public static class KestrelSaveStore
         return PlayerPrefs.GetString(key, "");
 #endif
     }
+
+    public static void Delete(string key)
+    {
+#if UNITY_WEBGL && !UNITY_EDITOR
+        KestrelLocalStorageDelete(key);
+#else
+        PlayerPrefs.DeleteKey(key);
+        PlayerPrefs.Save();
+#endif
+    }
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+    [DllImport("__Internal")]
+    private static extern void KestrelLocalStorageDelete(string key);
+#endif
 }

@@ -25,5 +25,9 @@ mergeInto(LibraryManager.library, {
   KestrelLocalStorageLoad: function (keyPtr) {
     var value = localStorage.getItem(UTF8ToString(keyPtr)) || "";
     return stringToNewUTF8(value);
+  },
+
+  KestrelLocalStorageDelete: function (keyPtr) {
+    localStorage.removeItem(UTF8ToString(keyPtr));
   }
 });
